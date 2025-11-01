@@ -1,0 +1,27 @@
+import {z} from 'zod';
+
+export const TusCreateHeadersSchema = z.object({
+  'tus-resumable': z.string().refine(val => val === '1.0.0', {
+    message: 'TUS version must be 1.0.0'
+  }),
+  'upload-length': z.string().transform(val => {
+    const num = parseInt(val)
+    if (isNaN(num) || num <= 0) {
+      throw new Error('upload-length must be a positive number')
+    }
+    if (num > 20 * 1024 * 1024) { // 20MB limit
+      throw new Error('File size exceeds 20MB limit')
+    }
+    return num
+  }),
+  'upload-metadata': z.string().optional(),
+  'content-length': z.string().transform(val => {
+    const num = parseInt(val)
+    if (isNaN(num) || num < 0) {
+      throw new Error('content-length must be a positive number')
+    }
+    return num
+  })
+})
+
+export type TusCreateHeaders = z.infer<typeof TusCreateHeadersSchema>;

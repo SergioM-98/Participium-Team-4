@@ -13,3 +13,29 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Report{
+  id          String   @id @default(uuid())
+  title       String
+  description String @db.Text
+  status      ReportStatus @default(PENDING_APPROVAL)
+  photos      Photo[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Photo {
+  id        String   @id @default(uuid())
+  url       String
+  reportId  String
+  report   Report @relation(fields: [reportId], references: [id])
+}
+
+enum ReportStatus {
+  PENDING_APPROVAL
+  ASSIGNED
+  IN_PROGRESS
+  SUSPENDED
+  REJECTED
+  RESOLVED
+}
