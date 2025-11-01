@@ -46,20 +46,19 @@ The merge workflow should be: `dev` → `QA` after a feature or fix is implement
 participium
 ├── prisma/                   - Prisma: schema.prisma, migrations, seed scripts (contains DB models)
 ├── src/
-│   ├── app/                  - Next.js App Router: pages, layouts, API routes
+│   ├── app/                  - Next.js App Router: pages, layouts, API routes (add other folders inside to create pages)
 │   │   ├── components/       - Reusable React components (UI)
 │   │   └── lib/              - Business & infrastructure (controllers, services, repositories, etc.)
 │   │       ├── controllers/  - HTTP orchestration: request mapping → services
 │   │       ├── services/     - Domain logic / use-cases
 │   │       ├── repositories/ - Data access (DB / API abstraction)
 │   │       ├── dtos/         - Zod schemas for input/output validation
-│   │       ├── models/       - Domain/business models (if different from Prisma models)
+│   │       ├── models/       - Domain/business models (only to use if different from Prisma models)
 │   │       ├── db/           - Prisma client instance and DB connection
 │   │       ├── utils/        - Helpers, logger, generic utilities
-│   │       └── middlewares/  - Error handling, auth guards, wrappers
-│   ├── hooks/                - React hooks (client/server)
-│   ├── styles/               - CSS / global styles
-│   └── types/                - Global TypeScript types / definitions
+│   │       ├── middlewares/  - Error handling, auth guards, wrappers
+│   │       └── types/        - Global TypeScript types / definitions
+│   └── styles/               - CSS / global styles
 ├── tests/                    - test/unit, test/integration, e2e
 ├── scripts/                  - Utility scripts: migrate, seed, etc.
 └── .github/                  - CI/CD workflows, issue/PR templates
