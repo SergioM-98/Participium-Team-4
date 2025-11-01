@@ -20,6 +20,8 @@ When committing, use this format:
 
 This should allow GitHub to track the commits you are making in the project issue.
 
+I report for help the convention of names for the type of commits: https://www.conventionalcommits.org/en/v1.0.0/
+
 The basic workflow should be:
 
 1. **Create branch** - Create a new branch based on the assigned GitHub issue
