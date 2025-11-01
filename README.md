@@ -39,3 +39,26 @@ Standard branches are:
 * `main` - Production-ready code
 
 The merge workflow should be: `dev` → `QA` after a feature or fix is implemented, and after passing all tests, `QA` → `main`
+
+
+## Folder Structure
+
+participium
+├── src/
+│   ├── app/                  - Next.js App Router: pages, layouts, API routes
+│   │   ├── components/       - Reusable React components (UI)
+│   │   └── lib/              - Business & infrastructure (controllers, services, repositories, etc.)
+│   │       ├── controllers/  - HTTP orchestration: request mapping → services
+│   │       ├── services/     - Domain logic / use-cases
+│   │       ├── repositories/ - Data access (DB / API abstraction)
+│   │       ├── dtos/         - Zod schemas for input/output validation
+│   │       ├── models/       - Domain models / persistent types
+│   │       ├── db/           - Prisma: schema, client and DB setup
+│   │       ├── utils/        - Helpers, logger, generic utilities
+│   │       └── middlewares/  - Error handling, auth guards, wrappers
+│   ├── hooks/                - React hooks (client/server)
+│   ├── styles/               - CSS / global styles
+│   └── types/                - Global TypeScript types / definitions
+├── tests/                    - test/unit, test/integration, e2e
+├── scripts/                  - Utility scripts: migrate, seed, etc.
+└── .github/                  - CI/CD workflows, issue/PR templates
