@@ -1,4 +1,5 @@
 import { TusCreateHeaders } from "../dtos/tus.header.dto";
+import { TusResponse } from "../dtos/tus.response.dto";
 
 
 class UploaderCreateService {
@@ -12,7 +13,7 @@ class UploaderCreateService {
         return UploaderCreateService.instance;
     }
 
-    public async createUploadPhotoUrl(headers:TusCreateHeaders, body: ArrayBuffer): Promise<{ uploadUrl: string }> {
+    public async createUploadPhotoUrl(headers:TusCreateHeaders, body: ArrayBuffer): Promise<TusResponse> {
 
 
     }

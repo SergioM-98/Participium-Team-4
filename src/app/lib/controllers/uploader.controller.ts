@@ -23,13 +23,14 @@ export async function createUploadPhotoUrl(Request: Request) {
     const uploaderCreateService = UploaderCreateService.getInstance();
     const result = await uploaderCreateService.createUploadPhotoUrl(validatedHeaders, bodyBytes);
         return new Response(null, {
-            status: 201, // Created - per creazione upload
+            status: 201, // Created ì
             headers: {
                 'Tus-Resumable': '1.0.0',
-                'Location': result.uploadUrl
+                'Location': result.location,
+                'Upload-Offset': result.uploadOffset.toString(),
             }
         });
-        // Continue with the upload process using tusHeaders
+        
     } catch (error) {
         console.error('Error creating upload photo URL:', error);
         throw error;
