@@ -46,7 +46,13 @@ jobs:
     - name: Run linting
       run: npm run lint
       
-    - name: Run tests
-      run: npm run test
+    - name: Run tests with coverage
+      run: npm run test:coverage
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        fail_ci_if_error: true
