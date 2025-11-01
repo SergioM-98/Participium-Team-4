@@ -80,22 +80,24 @@ The merge workflow should be: `dev` → `QA` after a feature or fix is implement
 
 ## Folder Structure
 
-participium
-├── prisma/                   - Prisma: schema.prisma, migrations, seed scripts (contains DB models)
+```
+participium-team-4/
+├── .github/                  # CI/CD workflows, issue/PR templates
+├── prisma/                   # Prisma: schema.prisma, migrations, seed scripts (contains DB models)
+├── scripts/                  # Utility scripts: migrate, seed, etc.
 ├── src/
-│   ├── app/                  - Next.js App Router: pages, layouts, API routes (add other folders inside to create pages)
-│   │   ├── components/       - Reusable React components (UI)
-│   │   └── lib/              - Business & infrastructure (controllers, services, repositories, etc.)
-│   │       ├── controllers/  - HTTP orchestration: request mapping → services
-│   │       ├── services/     - Domain logic / use-cases
-│   │       ├── repositories/ - Data access (DB / API abstraction)
-│   │       ├── dtos/         - Zod schemas for input/output validation
-│   │       ├── models/       - Domain/business models (only to use if different from Prisma models)
-│   │       ├── db/           - Prisma client instance and DB connection
-│   │       ├── utils/        - Helpers, logger, generic utilities
-│   │       ├── middlewares/  - Error handling, auth guards, wrappers
-│   │       └── types/        - Global TypeScript types / definitions
-│   └── styles/               - CSS / global styles
-├── tests/                    - test/unit, test/integration, e2e
-├── scripts/                  - Utility scripts: migrate, seed, etc.
-└── .github/                  - CI/CD workflows, issue/PR templates
+│   ├── app/                  # Next.js App Router: pages, layouts, API routes
+│   │   ├── components/       # Reusable React components (UI)
+│   │   └── lib/              # Business & infrastructure layer
+│   │       ├── controllers/  # HTTP orchestration: request mapping → services
+│   │       ├── services/     # Domain logic / use-cases
+│   │       ├── repositories/ # Data access (DB / API abstraction)
+│   │       ├── dtos/         # Zod schemas for input/output validation
+│   │       ├── models/       # Domain/business models (if different from Prisma models)
+│   │       ├── db/           # Prisma client instance and DB connection
+│   │       ├── utils/        # Helpers, logger, generic utilities
+│   │       ├── middlewares/  # Error handling, auth guards, wrappers
+│   │       └── types/        # Global TypeScript types / definitions
+│   └── styles/               # CSS / global styles
+└── tests/                    # test/unit, test/integration, e2e
+```
