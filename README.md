@@ -1,1 +1,39 @@
 # participium-team-4
+
+## Branch Name Conventions and Workflow
+
+When working on an issue, create a branch based on the name of the issue. The usual convention is like this:
+
+`<type>/<issue-number>-<short-description>`
+
+where type should be one of the following: 
+* `feature/` - New features or enhancements
+* `fix/` - Bug fixes
+* `docs/` - Documentation updates
+* `test/` - Branch that implements tests
+
+The issue number is the ID of the issue assigned by GitHub.
+
+When committing, use this format:
+
+`<type>: <description> #<issue-id>`
+
+This should allow GitHub to track the commits you are making in the project issue.
+
+The basic workflow should be:
+
+1. **Create branch** - Create a new branch based on the assigned GitHub issue
+2. **Develop** - Work on the branch to resolve the issue requirements
+3. **Create Pull Request** - Start a Pull Request to merge your branch into the standard branch when development is complete
+4. **Request Review** - Assign the reviewer in YouTrack as reviewer for your Pull Request
+5. **Address Feedback** - If the reviewer identifies issues, solve them and notify the reviewer to re-review
+6. **Merge** - Once approved, the reviewer merges the branch into the standard branch. If the reviewer finds other problems, repeat step 5
+7. **Cleanup** - Ensure the branch is deleted after successful merge
+
+Standard branches are:
+
+* `dev` - For `feature/`, `fix/`, `docs/`, and `test/` branches
+* `QA` - For quality assurance and testing
+* `main` - Production-ready code
+
+The merge workflow should be: `dev` → `QA` after a feature or fix is implemented, and after passing all tests, `QA` → `main`
