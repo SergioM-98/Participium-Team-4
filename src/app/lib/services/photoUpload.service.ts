@@ -49,7 +49,7 @@ class PhotoUploaderService {
 
             if (isComplete) {
                 // Rename to final filename when upload is complete
-                const finalFilename = `${photoId}_${filename}`;
+                const finalFilename = `${filename}`;
                 const finalFilePath = path.join(process.cwd(), 'uploads', finalFilename);
                 
                 try {
@@ -71,7 +71,7 @@ class PhotoUploaderService {
             });
 
             const response: TusCreateResponse = {
-                location: `/api/photos/${photoRecord.id}`, 
+                location: `${photoRecord.id}`, 
                 uploadOffset: savedFileSize,
             };
 

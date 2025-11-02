@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const TusCreateResponseSchema = z.object({
-    location: z.string().url(),
+    location: z.string(),
     uploadOffset: z.number().min(0),
 });
 

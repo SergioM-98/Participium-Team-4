@@ -59,7 +59,7 @@ class PhotoUpdaterService {
                 console.log(`Upload complete for photo ID: ${uploadId}`);
                 
                 // Rename from temporary to final filename
-                const finalFilename = `${uploadId}_${currentPhoto.filename}`;
+                const finalFilename = `${currentPhoto.filename}`;
                 const finalFilePath = path.join(process.cwd(), 'uploads', finalFilename);
                 
                 try {

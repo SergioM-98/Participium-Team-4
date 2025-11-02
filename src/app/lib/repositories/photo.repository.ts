@@ -27,8 +27,7 @@ export class PhotoRepository {
                     reportId: data.reportId,
                     size: data.size,
                     offset: data.offset,
-                    filename: data.filename,
-                    ...(data.reportId && { reportId: data.reportId })
+                    filename: data.filename
                 }
             });
     }
