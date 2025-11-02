@@ -1,8 +1,13 @@
 import { z } from "zod";
 
-export const TusResponseSchema = z.object({
+export const TusCreateResponseSchema = z.object({
     location: z.string().url(),
     uploadOffset: z.number().min(0),
 });
 
-export type TusResponse = z.infer<typeof TusResponseSchema>;
+export const TusUploadResponseSchema = z.object({
+    uploadOffset: z.number().min(0),
+});
+
+export type TusCreateResponse = z.infer<typeof TusCreateResponseSchema>;
+export type TusUpdateResponse = z.infer<typeof TusUploadResponseSchema>;

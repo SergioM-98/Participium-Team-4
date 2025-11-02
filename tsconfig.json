@@ -31,7 +31,8 @@
           "@/utils/*": ["./src/app/lib/utils/*"],
           "@/middlewares/*": ["./src/app/lib/middlewares/*"],
           "@/types/*": ["./src/app/lib/types/*"],
-          "@/db/*": ["./src/app/lib/db/*"]
+          "@/db/*": ["./src/app/lib/db/*"],
+          
         }
   },
   "include": [
