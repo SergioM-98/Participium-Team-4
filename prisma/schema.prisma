@@ -27,8 +27,8 @@ model Report{
 model Photo {
   id        String   @id @default(uuid())
   url       String
-  reportId  String
-  report   Report @relation(fields: [reportId], references: [id])
+  reportId  String?
+  report   Report? @relation(fields: [reportId], references: [id])
 }
 
 enum ReportStatus {

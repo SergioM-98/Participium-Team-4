@@ -2,7 +2,7 @@
 
 import {headers} from 'next/headers';
 import {TusCreateHeadersSchema} from '@/dtos/tus.header.dto';
-import { UploaderCreateService } from '@/services/uploaderCreate.services';
+import { UploaderCreateService } from '@/app/lib/services/PhotoUploadService';
 
 
 export async function createUploadPhotoUrl(Request: Request) {
