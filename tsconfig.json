@@ -20,7 +20,7 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@/schemas/*": ["./src/app/lib/schemas/*"],
+      "@/dtos/*": ["./src/app/lib/dtos/*"],
       "@/services/*": ["./src/app/lib/services/*"],
       "@/controllers/*": ["./src/app/lib/controllers/*"],
       "@/repositories/*": ["./src/app/lib/repositories/*"],

@@ -21,11 +21,19 @@ export const CheckDuplicatesResponseSchema = z.object({
   isExisting: z.boolean(),
 });
 
-export const PublicUserDataSchema = z.object({
+export const RetrievedUserDataSchema = z.object({
+  id: z.bigint(),
   firstName: z.string(),
   lastName: z.string(),
+  email: z.email(),
   username: z.string(),
-  email: z.string(),
+  role: z.string().optional(),
+});
+
+export const SessionPayloadSchema = z.object({
+  id: z.bigint(),
+  role: z.string().optional(),
+  expiresAt: z.number(),
 });
 
 export const LoginInputSchema = z.object({
@@ -33,8 +41,8 @@ export const LoginInputSchema = z.object({
   password: z.string().min(8),
 });
 
-type PublicUserData = z.infer<typeof PublicUserDataSchema>;
-
+type RetrievedUserData = z.infer<typeof RetrievedUserDataSchema>;
+export type SessionPayload = z.infer<typeof SessionPayloadSchema>;
 export type Citizen = z.infer<typeof CitizenSchema>;
 export type RegistrationInput = z.infer<typeof RegistrationInputSchema>;
 export type CheckDuplicatesResponse = z.infer<
@@ -47,5 +55,5 @@ export type RegistrationResponse =
   | { success: false; error: string };
 
 export type LoginResponse =
-  | { success: true; data: PublicUserData }
+  | { success: true; data: RetrievedUserData }
   | { success: false; error: string };
