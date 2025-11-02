@@ -21,7 +21,9 @@ model Report{
   status      ReportStatus @default(PENDING_APPROVAL)
   photos      Photo[]
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  longitude   Float
+  latitude    Float
+  userId      String
 }
 
 model Photo {
