@@ -44,5 +44,9 @@ export class PhotoRepository {
             });
     }
 
-    // Altri metodi per gestire le foto (es. find, update, delete)
+    public async findById(id: string) {
+        return await prisma.photo.findUnique({
+            where: { id }
+        });
+    }
 }

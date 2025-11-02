@@ -117,9 +117,6 @@ export async function deleteUpload(uploadId: string) {
 
         // Return successful deletion response
         return {
-            success: true,
-            message: 'Upload deleted successfully',
-            uploadId: uploadId,
             tusHeaders: {
                 'Tus-Resumable': '1.0.0',
             }
@@ -129,7 +126,6 @@ export async function deleteUpload(uploadId: string) {
         console.error('Error deleting upload:', error);
         
         return {
-            success: false,
             error: error instanceof Error ? error.message : 'Upload deletion failed',
             tusHeaders: {
                 'Tus-Resumable': '1.0.0',

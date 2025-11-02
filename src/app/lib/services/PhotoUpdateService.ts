@@ -72,8 +72,7 @@ class PhotoUpdaterService {
             }
 
             const response: TusUpdateResponse = {
-                uploadOffset: Number(photoRecord.offset),
-                complete: isComplete
+                uploadOffset: Number(photoRecord.offset)
             };
 
             return response;
