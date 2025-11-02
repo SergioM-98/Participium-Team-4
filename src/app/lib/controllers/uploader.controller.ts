@@ -2,8 +2,9 @@
 
 import { headers } from 'next/headers';
 import { TusCreateHeadersSchema, TusUploadHeadersSchema, TusDeleteHeadersSchema } from '@/dtos/tus.header.dto';
-import { PhotoUploaderService } from '@/services/PhotoUploadService';
-import { PhotoUpdaterService } from '@/services/PhotoUpdateService';
+import { PhotoUploaderService } from '@/services/photoUpload.service';
+import { PhotoUpdaterService } from '@/services/photoUpdate.service';
+import { PhotoDeleteService } from '@/services/photoDelete.service';
 
 export async function createUploadPhoto(request: Request) {
     try {
@@ -112,8 +113,8 @@ export async function deleteUpload(uploadId: string) {
 
         const validatedHeaders = TusDeleteHeadersSchema.parse(headersObj);
 
-        const uploaderService = PhotoUploaderService.getInstance();
-        const result = await uploaderService.deleteUpload(uploadId);
+        const uploaderService = PhotoDeleteService.getInstance();
+        const result = await uploaderService.deletePhoto(uploadId);
 
         // Return successful deletion response
         return {

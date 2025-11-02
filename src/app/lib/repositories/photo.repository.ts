@@ -49,4 +49,9 @@ export class PhotoRepository {
             where: { id }
         });
     }
+    public async delete(id: string) {
+        return await prisma.photo.delete({
+            where: { id }
+        });
+    }
 }
