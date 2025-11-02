@@ -1,7 +1,7 @@
-import { TusCreateHeaders } from "@/dtos/tus.header.dto";
+import { TusUploadHeaders } from "@/dtos/tus.header.dto";
 import { TusUpdateResponse } from "@/dtos/tus.response.dto";
 import { PhotoRepository } from "@/repositories/photoRepository";
-import {savePhotoFile} from "@/utils/fileUtils";
+import { appendFile, rename } from 'fs/promises';
 import path from 'path';
 
 class PhotoUpdaterService {
@@ -19,30 +19,61 @@ class PhotoUpdaterService {
         return PhotoUpdaterService.instance;
     }
 
-    public async updatePhoto(headers: TusCreateHeaders, body: ArrayBuffer): Promise<TusCreateResponse> {
-        if (body.byteLength !== headers['upload-length']) {
-            throw new Error('Body length does not match upload-length header');
+    public async updatePhoto(uploadId: string, headers: TusUploadHeaders, body: ArrayBuffer): Promise<TusUpdateResponse> {
+        if (body.byteLength !== headers['content-length']) {
+            throw new Error('Body length does not match content-length header');
         }
 
         try {
-            const photoId = headers['upload-metadata']?.split(' ')[1];
-            if (!photoId) {
-                throw new Error('Missing photo ID in upload-metadata header');
+            // Get current photo record
+            const currentPhoto = await this.photoRepository.findById(uploadId);
+            if (!currentPhoto) {
+                throw new Error('Photo not found');
             }
 
-            const fileName = `${photoId}.jpg`;
-            const filePath = path.join(process.cwd(), 'uploads', fileName);
-            const publicUrl = `/uploads/${fileName}`;
+            // Verify upload-offset matches current stored offset
+            if (headers['upload-offset'] !== Number(currentPhoto.offset)) {
+                throw new Error(`Offset mismatch: expected ${currentPhoto.offset}, got ${headers['upload-offset']}`);
+            }
 
-            await savePhotoFile(body, filePath);
+            // Get current filename from URL (temp filename)
+            const currentFilename = path.basename(currentPhoto.url);
+            const filePath = path.join(process.cwd(), 'uploads', currentFilename);
 
-            const photoRecord = await this.photoRepository.update(photoId, {
-                url: publicUrl,
-                reportId: undefined
+            // Append chunk to existing file
+            const buffer = Buffer.from(body);
+            await appendFile(filePath, buffer);
+
+            // Calculate new offset
+            const newOffset = headers['upload-offset'] + body.byteLength;
+
+            // Update photo record with new offset
+            const photoRecord = await this.photoRepository.update(uploadId, {
+                offset: BigInt(newOffset), 
             });
 
+            // Check if upload is complete
+            const isComplete = photoRecord.offset === photoRecord.size;
+
+            if (isComplete) {
+                console.log(`Upload complete for photo ID: ${uploadId}`);
+                
+                // Rename from temporary to final filename
+                const finalFilename = `${uploadId}_${currentPhoto.filename}`;
+                const finalFilePath = path.join(process.cwd(), 'uploads', finalFilename);
+                
+                try {
+                    await rename(filePath, finalFilePath);
+                    console.log(`File renamed from ${currentFilename} to ${finalFilename}`);
+                } catch (renameError) {
+                    console.error('Error renaming completed file:', renameError);
+                    // Continue even if rename fails
+                }
+            }
+
             const response: TusUpdateResponse = {
-                uploadOffset: body.byteLength,
+                uploadOffset: Number(photoRecord.offset),
+                complete: isComplete
             };
 
             return response;
@@ -53,4 +84,4 @@ class PhotoUpdaterService {
     }
 }
 
-export { PhotoUpdaterService as PhotoUpdaterService };
+export { PhotoUpdaterService };

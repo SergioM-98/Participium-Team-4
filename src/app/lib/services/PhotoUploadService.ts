@@ -1,7 +1,8 @@
 import { TusCreateHeaders } from "@/dtos/tus.header.dto";
 import { TusCreateResponse } from "@/dtos/tus.response.dto";
 import { PhotoRepository } from "@/repositories/photoRepository";
-import {savePhotoFile} from "@/utils/fileUtils";
+import { savePhotoFile } from "@/utils/fileUtils";
+import { rename } from 'fs/promises';
 import path from 'path';
 
 class PhotoUploaderService {
@@ -25,27 +26,52 @@ class PhotoUploaderService {
         }
 
         try {
+            const photoId = crypto.randomUUID();
             
-            const photoId = crypto.randomUUID(); 
-            const filePath = path.join(process.cwd(), 'uploads', photoId);
-            const publicUrl = `/uploads/${photoId}`;
+            // Extract and sanitize filename from TUS metadata
+            const filename = this.extractAndSanitizeFilename(headers['upload-metadata'], photoId);
+            const fileExtension = this.getFileExtension(filename);
+            
+            // Use temporary filename during upload
+            const tempFilename = `${photoId}_temp${fileExtension}`;
+            const tempFilePath = path.join(process.cwd(), 'uploads', tempFilename);
+            const publicUrl = `/uploads/${tempFilename}`;
 
+            const savedFileSize = await savePhotoFile(body, tempFilePath);
 
-            const savedFileSize = await savePhotoFile(body, filePath);
+            // Verify file integrity
+            if (savedFileSize !== headers['upload-length']) {
+                throw new Error(`File size mismatch: expected ${headers['upload-length']}, got ${savedFileSize}`);
+            }
 
-            if (savedFileSize === headers['upload-length']) {
+            // Check if upload is complete
+            const isComplete = savedFileSize === headers['upload-length'];
+
+            if (isComplete) {
+                // Rename to final filename when upload is complete
+                const finalFilename = `${photoId}_${filename}`;
+                const finalFilePath = path.join(process.cwd(), 'uploads', finalFilename);
                 
+                try {
+                    await rename(tempFilePath, finalFilePath);
+                    console.log(`Upload complete: renamed ${tempFilename} to ${finalFilename}`);
+                } catch (renameError) {
+                    console.error('Error renaming file:', renameError);
+                    // Continue with temp filename if rename fails
+                }
             }
 
             const photoRecord = await this.photoRepository.create({
                 id: photoId,
-                url: publicUrl,
+                url: publicUrl, // Keep original URL (temp filename)
+                size: BigInt(headers['upload-length']),
+                offset: BigInt(savedFileSize), 
+                filename: filename, // Store original filename for later use
                 reportId: undefined
             });
 
-            // 4. Costruisci risposta TUS
             const response: TusCreateResponse = {
-                location: `${photoRecord.id}`,
+                location: `/api/photos/${photoRecord.id}`, 
                 uploadOffset: savedFileSize,
             };
 
@@ -55,6 +81,73 @@ class PhotoUploaderService {
             throw new Error('Failed to create and save photo');
         }
     }
+
+    /**
+     * Extract filename from TUS upload-metadata header and sanitize it
+     * TUS metadata format: "filename dGVzdC5qcGc=,filetype aW1hZ2UvanBlZw=="
+     */
+    private extractAndSanitizeFilename(metadata: string | undefined, fallbackId: string): string {
+        if (!metadata) {
+            return `photo_${fallbackId.substring(0, 8)}.jpg`;
+        }
+
+        try {
+            const pairs = metadata.split(',');
+            let filename = '';
+
+            for (const pair of pairs) {
+                const [key, encodedValue] = pair.trim().split(' ');
+                if (key === 'filename' && encodedValue) {
+                    filename = Buffer.from(encodedValue, 'base64').toString('utf-8');
+                    break;
+                }
+            }
+
+            if (!filename) {
+                return `photo_${fallbackId.substring(0, 8)}.jpg`;
+            }
+
+            return this.sanitizeFilename(filename);
+        } catch (error) {
+            console.warn('Failed to parse TUS metadata:', error);
+            return `photo_${fallbackId.substring(0, 8)}.jpg`;
+        }
+    }
+
+    /**
+     * Sanitize filename to prevent path traversal and invalid characters
+     */
+    private sanitizeFilename(filename: string): string {
+        let sanitized = filename
+            .replace(/[\/\\]/g, '')
+            .replace(/[<>:"|?*\x00-\x1f]/g, '')
+            .replace(/^\.+/, '')
+            .trim();
+
+        if (!sanitized || sanitized.length === 0) {
+            sanitized = 'photo';
+        }
+
+        if (sanitized.length > 100) {
+            const ext = path.extname(sanitized);
+            const name = path.basename(sanitized, ext).substring(0, 96);
+            sanitized = name + ext;
+        }
+
+        if (!path.extname(sanitized)) {
+            sanitized += '.jpg';
+        }
+
+        return sanitized;
+    }
+
+    /**
+     * Get file extension from filename
+     */
+    private getFileExtension(filename: string): string {
+        const ext = path.extname(filename);
+        return ext || '.jpg';
+    }
 }
 
-export { PhotoUploaderService as PhotoUploaderService };
+export { PhotoUploaderService };

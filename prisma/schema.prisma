@@ -27,6 +27,9 @@ model Report{
 model Photo {
   id        String   @id @default(uuid())
   url       String
+  size      BigInt @default(0)
+  offset    BigInt @default(0)
+  filename  String?
   reportId  String?
   report   Report? @relation(fields: [reportId], references: [id])
 }

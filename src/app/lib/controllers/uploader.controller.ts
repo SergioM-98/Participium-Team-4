@@ -1,39 +1,49 @@
 'use server'
 
-import {headers} from 'next/headers';
-import {TusCreateHeadersSchema, TusUploadHeadersSchema} from '@/dtos/tus.header.dto';
-import { PhotoUploaderService } from '@/app/lib/services/PhotoUploadService';
+import { headers } from 'next/headers';
+import { TusCreateHeadersSchema, TusUploadHeadersSchema, TusDeleteHeadersSchema } from '@/dtos/tus.header.dto';
+import { PhotoUploaderService } from '@/services/PhotoUploadService';
+import { PhotoUpdaterService } from '@/services/PhotoUpdateService';
 
-
-export async function createUploadPhoto(Request: Request) {
-    
+export async function createUploadPhoto(request: Request) {
     try {
-    const headersList = await headers();
+        const headersList = await headers();
 
-    const headersObj = {
-      'tus-resumable': headersList.get('tus-resumable'),
-      'upload-length': headersList.get('upload-length'),
-      'upload-metadata': headersList.get('upload-metadata'),
-      'content-length': headersList.get('content-length'),
-    };    
-    const validatedHeaders = TusCreateHeadersSchema.parse(headersObj);
+        const headersObj = {
+            'tus-resumable': headersList.get('tus-resumable'),
+            'upload-length': headersList.get('upload-length'),
+            'upload-metadata': headersList.get('upload-metadata'),
+            'content-length': headersList.get('content-length'),
+        };    
+        
+        const validatedHeaders = TusCreateHeadersSchema.parse(headersObj);
+        const bodyBytes = await request.arrayBuffer();
 
-    const bodyBytes = await Request.arrayBuffer();
-
-    const uploaderCreateService = PhotoUploaderService.getInstance();
-    const result = await uploaderCreateService.createUploadPhoto(validatedHeaders, bodyBytes);
-        return new Response(null, {
-            status: 201, // Created ì
-            headers: {
+        const uploaderService = PhotoUploaderService.getInstance();
+        const result = await uploaderService.createUploadPhoto(validatedHeaders, bodyBytes);
+        
+        // Return TUS compliant response for upload creation
+        return {
+            success: true,
+            location: result.location,
+            uploadOffset: result.uploadOffset,
+            tusHeaders: {
                 'Tus-Resumable': '1.0.0',
                 'Location': result.location,
                 'Upload-Offset': result.uploadOffset.toString(),
             }
-        });
+        };
         
     } catch (error) {
-        console.error('Error creating upload photo URL:', error);
-        throw error;
+        console.error('Error creating upload photo:', error);
+        
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Upload creation failed',
+            tusHeaders: {
+                'Tus-Resumable': '1.0.0',
+            }
+        };
     }
 }
 
@@ -60,44 +70,71 @@ export async function uploadPhotoChunk(request: Request, uploadId: string) {
             throw new Error('Chunk size does not match content-length header');
         }
 
-        const uploaderService = PhotoUploaderService.getInstance();
-        const result = await uploaderService.uploadPhotoChunk(uploadId, validatedHeaders, chunkBytes);
+        const uploaderService = PhotoUpdaterService.getInstance();
+        const result = await uploaderService.updatePhoto(uploadId, validatedHeaders, chunkBytes);
 
         // Return appropriate TUS response based on completion status
-        if (result.complete) {
-            // Upload completed successfully
-            return new Response(null, {
-                status: 200, // OK - Upload completed
-                headers: {
-                    'Tus-Resumable': '1.0.0',
-                    'Upload-Offset': result.uploadOffset.toString(),
-                    'Upload-Complete': 'true',
-                }
-            });
-        } else {
-            // Chunk uploaded, more chunks expected
-            return new Response(null, {
-                status: 204, // No Content - TUS protocol for partial upload
-                headers: {
+
+            return {
+                uploadOffset: result.uploadOffset,
+                tusHeaders: {
                     'Tus-Resumable': '1.0.0',
                     'Upload-Offset': result.uploadOffset.toString(),
                 }
-            });
-        }
+            };
+
+        
 
     } catch (error) {
         console.error('Error uploading photo chunk:', error);
         
         // Return TUS-compliant error response
-        return new Response(JSON.stringify({
-            error: error instanceof Error ? error.message : 'Chunk upload failed'
-        }), {
-            status: 400, // Bad Request
-            headers: {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Chunk upload failed',
+            tusHeaders: {
                 'Tus-Resumable': '1.0.0',
-                'Content-Type': 'application/json',
             }
-        });
+        };
+    }
+}
+
+
+
+export async function deleteUpload(uploadId: string) {
+    try {
+        const headersList = await headers();
+
+        // Extract and validate TUS headers for DELETE request
+        const headersObj = {
+            'tus-resumable': headersList.get('tus-resumable'),
+        };
+
+        const validatedHeaders = TusDeleteHeadersSchema.parse(headersObj);
+
+        const uploaderService = PhotoUploaderService.getInstance();
+        const result = await uploaderService.deleteUpload(uploadId);
+
+        // Return successful deletion response
+        return {
+            success: true,
+            message: 'Upload deleted successfully',
+            uploadId: uploadId,
+            tusHeaders: {
+                'Tus-Resumable': '1.0.0',
+            }
+        };
+
+    } catch (error) {
+        console.error('Error deleting upload:', error);
+        
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Upload deletion failed',
+            tusHeaders: {
+                'Tus-Resumable': '1.0.0',
+            }
+        };
     }
 }
 

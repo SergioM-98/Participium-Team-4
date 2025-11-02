@@ -16,13 +16,30 @@ export class PhotoRepository {
             id: string;
             url: string;
             reportId?: string;
+            size?: bigint;
+            offset?: bigint;
+            filename?: string;
         }) {
             return await prisma.photo.create({
                 data: {
                     id: data.id,
                     url: data.url,
                     reportId: data.reportId,
+                    size: data.size,
+                    offset: data.offset,
+                    filename: data.filename,
                     ...(data.reportId && { reportId: data.reportId })
+                }
+            });
+    }
+
+    public async update(id: string, data: {
+            offset?: bigint;
+        }) {
+            return await prisma.photo.update({
+                where: { id },
+                data: {
+                    ...(data.offset !== undefined && { offset: data.offset }),
                 }
             });
     }
