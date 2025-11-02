@@ -25,7 +25,7 @@ class ReportCreationService {
                 data.latitude,
                 data.userId
             );
-            
+
             return reportResponseSchema.parse(report);
         } catch (error) {
             console.error("Error creating report:", error);
@@ -33,3 +33,5 @@ class ReportCreationService {
         }
     }
 }
+
+export { ReportCreationService };
