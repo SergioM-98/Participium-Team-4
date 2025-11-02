@@ -1,10 +1,11 @@
 'use server'
 
 import { headers } from 'next/headers';
-import { TusCreateHeadersSchema, TusUploadHeadersSchema, TusDeleteHeadersSchema } from '@/dtos/tus.header.dto';
+import { TusCreateHeadersSchema, TusUploadHeadersSchema, TusDeleteHeadersSchema, TusStatusHeadersSchema } from '@/dtos/tus.header.dto';
 import { PhotoUploaderService } from '@/services/photoUpload.service';
 import { PhotoUpdaterService } from '@/services/photoUpdate.service';
 import { PhotoDeleteService } from '@/services/photoDelete.service';
+import { PhotoStatusService } from '@/services/photoStatus.service';
 
 export async function createUploadPhoto(request: Request) {
     try {
@@ -23,7 +24,6 @@ export async function createUploadPhoto(request: Request) {
         const uploaderService = PhotoUploaderService.getInstance();
         const result = await uploaderService.createUploadPhoto(validatedHeaders, bodyBytes);
         
-        // Return TUS compliant response for upload creation
         return {
             location: result.location,
             uploadOffset: result.uploadOffset,
@@ -50,7 +50,6 @@ export async function uploadPhotoChunk(request: Request, uploadId: string) {
     try {
         const headersList = await headers();
 
-        // Extract TUS headers for chunk upload (PATCH)
         const headersObj = {
             'tus-resumable': headersList.get('tus-resumable'),
             'upload-offset': headersList.get('upload-offset'),
@@ -58,13 +57,10 @@ export async function uploadPhotoChunk(request: Request, uploadId: string) {
             'content-length': headersList.get('content-length'),
         };
 
-        // Validate TUS headers for PATCH request
         const validatedHeaders = TusUploadHeadersSchema.parse(headersObj);
         
-        // Get chunk data from request body
         const chunkBytes = await request.arrayBuffer();
 
-        // Validate chunk size matches content-length header
         if (chunkBytes.byteLength !== validatedHeaders['content-length']) {
             throw new Error('Chunk size does not match content-length header');
         }
@@ -72,24 +68,18 @@ export async function uploadPhotoChunk(request: Request, uploadId: string) {
         const uploaderService = PhotoUpdaterService.getInstance();
         const result = await uploaderService.updatePhoto(uploadId, validatedHeaders, chunkBytes);
 
-        // Return appropriate TUS response based on completion status
-
-            return {
-                uploadOffset: result.uploadOffset,
-                tusHeaders: {
-                    'Tus-Resumable': '1.0.0',
-                    'Upload-Offset': result.uploadOffset.toString(),
-                }
-            };
-
-        
+        return {
+            uploadOffset: result.uploadOffset,
+            tusHeaders: {
+                'Tus-Resumable': '1.0.0',
+                'Upload-Offset': result.uploadOffset.toString(),
+            }
+        };
 
     } catch (error) {
         console.error('Error uploading photo chunk:', error);
         
-        // Return TUS-compliant error response
         return {
-
             error: error instanceof Error ? error.message : 'Chunk upload failed',
             tusHeaders: {
                 'Tus-Resumable': '1.0.0',
@@ -98,13 +88,46 @@ export async function uploadPhotoChunk(request: Request, uploadId: string) {
     }
 }
 
+export async function getUploadStatus(uploadId: string) {
+    try {
+        const headersList = await headers();
 
+        const headersObj = {
+            'tus-resumable': headersList.get('tus-resumable'),
+        };
+
+        const validatedHeaders = TusStatusHeadersSchema.parse(headersObj);
+
+        const uploaderService = PhotoStatusService.getInstance();
+        const uploadInfo = await uploaderService.getPhotoStatus(uploadId);
+        if (!uploadInfo) {
+            throw new Error('Upload not found');
+        }
+
+        return {
+            uploadOffset: uploadInfo.uploadOffset,
+            tusHeaders: {
+                'Tus-Resumable': '1.0.0',
+                'Upload-Offset': uploadInfo.uploadOffset.toString(),
+            }
+        };
+
+    } catch (error) {
+        console.error('Error getting upload status:', error);
+        
+        return {
+            error: error instanceof Error ? error.message : 'Upload not found',
+            tusHeaders: {
+                'Tus-Resumable': '1.0.0',
+            }
+        };
+    }
+}
 
 export async function deleteUpload(uploadId: string) {
     try {
         const headersList = await headers();
 
-        // Extract and validate TUS headers for DELETE request
         const headersObj = {
             'tus-resumable': headersList.get('tus-resumable'),
         };
@@ -112,9 +135,8 @@ export async function deleteUpload(uploadId: string) {
         const validatedHeaders = TusDeleteHeadersSchema.parse(headersObj);
 
         const uploaderService = PhotoDeleteService.getInstance();
-        const result = await uploaderService.deletePhoto(uploadId);
+        await uploaderService.deletePhoto(uploadId);
 
-        // Return successful deletion response
         return {
             tusHeaders: {
                 'Tus-Resumable': '1.0.0',
@@ -126,6 +148,29 @@ export async function deleteUpload(uploadId: string) {
         
         return {
             error: error instanceof Error ? error.message : 'Upload deletion failed',
+            tusHeaders: {
+                'Tus-Resumable': '1.0.0',
+            }
+        };
+    }
+}
+
+export async function getTusOptions() {
+    try {
+        return {
+            tusHeaders: {
+                'Tus-Resumable': '1.0.0',
+                'Tus-Version': '1.0.0',
+                'Tus-Extension': 'creation,creation-with-upload,termination',
+                'Tus-Max-Size': (20 * 1024 * 1024).toString(),
+            }
+        };
+
+    } catch (error) {
+        console.error('Error getting TUS options:', error);
+        
+        return {
+            error: 'Failed to get TUS options',
             tusHeaders: {
                 'Tus-Resumable': '1.0.0',
             }

@@ -55,6 +55,13 @@ export const TusDeleteHeadersSchema = z.object({
   })
 })
 
+export const TusStatusHeadersSchema = z.object({
+  'tus-resumable': z.string().refine(val => val === '1.0.0', {
+    message: 'TUS version must be 1.0.0'
+  })
+})
+
 export type TusCreateHeaders = z.infer<typeof TusCreateHeadersSchema>;
 export type TusUploadHeaders = z.infer<typeof TusUploadHeadersSchema>;
 export type TusDeleteHeaders = z.infer<typeof TusDeleteHeadersSchema>;
+export type TusStatusHeaders = z.infer<typeof TusStatusHeadersSchema>;
