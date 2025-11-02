@@ -1,5 +1,5 @@
 import { TusCreateHeaders } from "@/dtos/tus.header.dto";
-import { TusCreateResponse } from "@/dtos/tus.response.dto";
+import { TusCreateResponse } from "@/app/lib/dtos/tus.dto";
 import { PhotoRepository } from "@/app/lib/repositories/photo.repository";
 import { savePhotoFile } from "@/utils/fileUtils";
 import { rename } from 'fs/promises';
