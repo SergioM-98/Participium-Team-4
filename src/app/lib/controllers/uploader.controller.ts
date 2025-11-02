@@ -25,7 +25,6 @@ export async function createUploadPhoto(request: Request) {
         
         // Return TUS compliant response for upload creation
         return {
-            success: true,
             location: result.location,
             uploadOffset: result.uploadOffset,
             tusHeaders: {
@@ -39,7 +38,6 @@ export async function createUploadPhoto(request: Request) {
         console.error('Error creating upload photo:', error);
         
         return {
-            success: false,
             error: error instanceof Error ? error.message : 'Upload creation failed',
             tusHeaders: {
                 'Tus-Resumable': '1.0.0',
@@ -91,7 +89,7 @@ export async function uploadPhotoChunk(request: Request, uploadId: string) {
         
         // Return TUS-compliant error response
         return {
-            success: false,
+
             error: error instanceof Error ? error.message : 'Chunk upload failed',
             tusHeaders: {
                 'Tus-Resumable': '1.0.0',
