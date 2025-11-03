@@ -1,6 +1,7 @@
 import {z} from 'zod';
 
-export const TusCreateHeadersSchema = z.object({
+
+export const TusCreateDataSchema = z.object({
   'tus-resumable': z.string().refine(val => val === '1.0.0', {
     message: 'TUS version must be 1.0.0'
   }),
@@ -9,8 +10,8 @@ export const TusCreateHeadersSchema = z.object({
     if (isNaN(num) || num <= 0) {
       throw new Error('upload-length must be a positive number')
     }
-    if (num > 20 * 1024 * 1024) { // 20MB limit
-      throw new Error('File size exceeds 20MB limit')
+    if (num > 50 * 1024 * 1024) { // 50MB limit
+      throw new Error('File size exceeds 50MB limit')
     }
     return num
   }),
@@ -23,7 +24,8 @@ export const TusCreateHeadersSchema = z.object({
     return num
   })
 })
-export const TusUploadHeadersSchema = z.object({
+
+export const TusUploadDataSchema = z.object({
   'tus-resumable': z.string().refine(val => val === '1.0.0', {
     message: 'TUS version must be 1.0.0'
   }),
@@ -42,26 +44,38 @@ export const TusUploadHeadersSchema = z.object({
     if (isNaN(num) || num <= 0) {
       throw new Error('content-length must be a positive number')
     }
-    if (num > 5 * 1024 * 1024) { // 5MB chunk limit
-      throw new Error('Chunk size exceeds 5MB limit')
+    if (num > 50 * 1024 * 1024) { // 50MB chunk limit
+      throw new Error('Chunk size exceeds 50MB limit')
     }
     return num
   })
 })
 
-export const TusDeleteHeadersSchema = z.object({
+export const TusDeleteDataSchema = z.object({
   'tus-resumable': z.string().refine(val => val === '1.0.0', {
     message: 'TUS version must be 1.0.0'
   })
 })
 
-export const TusStatusHeadersSchema = z.object({
+export const TusStatusDataSchema = z.object({
   'tus-resumable': z.string().refine(val => val === '1.0.0', {
     message: 'TUS version must be 1.0.0'
   })
 })
 
-export type TusCreateHeaders = z.infer<typeof TusCreateHeadersSchema>;
-export type TusUploadHeaders = z.infer<typeof TusUploadHeadersSchema>;
-export type TusDeleteHeaders = z.infer<typeof TusDeleteHeadersSchema>;
-export type TusStatusHeaders = z.infer<typeof TusStatusHeadersSchema>;
+
+export const TusCreateHeadersSchema = TusCreateDataSchema;
+export const TusUploadHeadersSchema = TusUploadDataSchema;
+export const TusDeleteHeadersSchema = TusDeleteDataSchema;
+export const TusStatusHeadersSchema = TusStatusDataSchema;
+
+export type TusCreateData = z.infer<typeof TusCreateDataSchema>;
+export type TusUploadData = z.infer<typeof TusUploadDataSchema>;
+export type TusDeleteData = z.infer<typeof TusDeleteDataSchema>;
+export type TusStatusData = z.infer<typeof TusStatusDataSchema>;
+
+
+export type TusCreateHeaders = TusCreateData;
+export type TusUploadHeaders = TusUploadData;
+export type TusDeleteHeaders = TusDeleteData;
+export type TusStatusHeaders = TusStatusData;
