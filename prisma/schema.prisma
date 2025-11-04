@@ -13,3 +13,14 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+
+model Officer{
+  id            BigInt  @id @default(autoincrement())
+  firstName     String  @db.VarChar(100)
+  lastName      String  @db.VarChar(100)
+  username      String  @unique @db.VarChar(100)
+  passwordHash  String  @db.VarChar(255)
+
+  @@map("officer")
+}
