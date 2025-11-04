@@ -30,19 +30,12 @@ export const RetrievedUserDataSchema = z.object({
   role: z.string().optional(),
 });
 
-export const SessionPayloadSchema = z.object({
-  id: z.bigint(),
-  role: z.string().optional(),
-  expiresAt: z.number(),
-});
-
 export const LoginInputSchema = z.object({
   email: z.email("Invalid email"),
   password: z.string().min(8),
 });
 
 type RetrievedUserData = z.infer<typeof RetrievedUserDataSchema>;
-export type SessionPayload = z.infer<typeof SessionPayloadSchema>;
 export type Citizen = z.infer<typeof CitizenSchema>;
 export type RegistrationInput = z.infer<typeof RegistrationInputSchema>;
 export type CheckDuplicatesResponse = z.infer<
