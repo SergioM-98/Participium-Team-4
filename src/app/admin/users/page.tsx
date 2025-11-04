@@ -1,6 +1,10 @@
 "use client";
+
 import { useMemo, useState } from "react";
-import MunicipalityUserForm, { MunicipalityUserFormData } from "@/components/MunicipalityUserForm";
+import MunicipalityUserForm, {
+  MunicipalityUserFormData,
+} from "@/components/MunicipalityUserForm";
+
 
 type UserRow = MunicipalityUserFormData & { id: string };
 
@@ -60,7 +64,9 @@ export default function AdminUsersPage() {
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">
             Municipality Users (PT02)
           </h1>
-          <p className="text-sm text-gray-700">Create internal municipality accounts.</p>
+          <p className="text-sm text-gray-700">
+            Create internal municipality accounts.
+          </p>
 
           {error && (
             <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">

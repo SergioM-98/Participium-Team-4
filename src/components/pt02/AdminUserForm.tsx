@@ -1,100 +1,127 @@
 "use client";
-import { useState } from "react";
 
-type Role = "MunicipalAdmin" | "PublicRelations" | "TechnicalOffice";
-type FormData = {
+import React, { useState } from "react";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Checkbox } from "../ui/checkbox";
+import { Button } from "../ui/button";
+
+
+export type AdminUserPayload = {
   fullName: string;
   email: string;
-  role: Role;
-  office: string;      // نام اداره/بخش (اختیاری ولی مفید)
-  isActive: boolean;   // کاربر فعال؟
+  role: "MunicipalAdmin" | "PublicRelations" | "TechnicalOffice";
+  office?: string;
+  isActive: boolean;
 };
 
-export default function AdminUserForm({
-  onSubmit,
-}: { onSubmit: (data: FormData) => void }) {
-  const [data, setData] = useState<FormData>({
-    fullName: "",
-    email: "",
-    role: "MunicipalAdmin",
-    office: "",
-    isActive: true,
-  });
+type Props = {
+  onSubmit: (data: AdminUserPayload) => void;
+  emailExists?: (email: string) => boolean;
+};
 
-  const handleChange =
-    (key: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-      setData({ ...data, [key]: e.target.type === "checkbox" ? (e.target as HTMLInputElement).checked : e.target.value });
+export default function AdminUserForm({ onSubmit, emailExists }: Props) {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<AdminUserPayload["role"]>("MunicipalAdmin");
+  const [office, setOffice] = useState("");
+  const [isActive, setIsActive] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!data.fullName.trim() || !data.email.trim()) return; // ولیدیشن خیلی ساده
-    onSubmit(data);
+    setError(null);
+
+    if (!fullName.trim()) return setError("Full name is required.");
+    if (!email.trim()) return setError("Email is required.");
+
+    const emailRegex = /\S+@\S+\.\S+/;
+    if (!emailRegex.test(email)) return setError("Please enter a valid email.");
+    if (emailExists?.(email)) return setError("This email is already registered.");
+
+    onSubmit({
+      fullName: fullName.trim(),
+      email: email.trim(),
+      role,
+      office: office.trim() || undefined,
+      isActive,
+    });
+
+    // Reset form
+    setFullName("");
+    setEmail("");
+    setRole("MunicipalAdmin");
+    setOffice("");
+    setIsActive(true);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
       <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="fullName">Full name</label>
-        <input
+        <Label htmlFor="fullName">Full name</Label>
+        <Input
           id="fullName"
-          className="w-full rounded-md border p-2"
-          value={data.fullName}
-          onChange={handleChange("fullName")}
           placeholder="e.g. Maria Rossi"
-          required
+          value={fullName}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFullName(e.target.value)}
         />
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="email">Email</label>
-        <input
+        <Label htmlFor="email">Email</Label>
+        <Input
           id="email"
           type="email"
-          className="w-full rounded-md border p-2"
-          value={data.email}
-          onChange={handleChange("email")}
           placeholder="m.rossi@comune.torino.it"
-          required
+          value={email}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
         />
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="role">Role</label>
+        <Label htmlFor="role">Role</Label>
         <select
           id="role"
-          className="w-full rounded-md border p-2 bg-white"
-          value={data.role}
-          onChange={handleChange("role")}
+          className="w-full rounded-md border p-2 text-sm"
+          value={role}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+            setRole(e.target.value as AdminUserPayload["role"])
+          }
         >
           <option value="MunicipalAdmin">Municipal Administrator</option>
-          <option value="PublicRelations">Public Relations Officer</option>
           <option value="TechnicalOffice">Technical Office Staff</option>
+          <option value="PublicRelations">Public Relations Officer</option>
         </select>
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium" htmlFor="office">Office (optional)</label>
-        <input
+        <Label htmlFor="office">Office (optional)</Label>
+        <Input
           id="office"
-          className="w-full rounded-md border p-2"
-          value={data.office}
-          onChange={handleChange("office")}
           placeholder="e.g. Roads & Maintenance"
+          value={office}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOffice(e.target.value)}
         />
       </div>
 
-      <label className="inline-flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={data.isActive}
-          onChange={handleChange("isActive")}
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="isActive"
+          checked={isActive}
+          onCheckedChange={(v: boolean) => setIsActive(v)}
         />
-        <span className="text-sm">Active</span>
-      </label>
+        <Label htmlFor="isActive">Active</Label>
+      </div>
 
-      <button type="submit" className="w-full h-10 rounded-md bg-black text-white hover:opacity-90">
+      <Button type="submit" className="w-full">
         Save user
-      </button>
+      </Button>
     </form>
   );
 }
