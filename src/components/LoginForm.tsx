@@ -86,7 +86,7 @@ export default function Home() {
               </span>
             </div>
           </div>
-          <Button type="button" className="w-full" variant="outline">
+          <Button asChild type="button" className="w-full" variant="outline">
             <Link href="/register">Sign up</Link>
           </Button>
         </div>
