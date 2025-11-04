@@ -1,9 +1,7 @@
-import RegistrationForm from "./components/registrationForm";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <div>
-      <RegistrationForm />
-    </div>
-  );
+  // Automatically redirect to the login page
+  // This makes /login the "main" page for users.
+  redirect("/login");
 }
