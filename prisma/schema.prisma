@@ -24,3 +24,49 @@ model Citizen {
 
   @@map("citizen")
 }
+
+model MunicipalityUser {
+  id            BigInt  @id @default(autoincrement())
+  firstName     String  @db.VarChar(100)
+  lastName      String  @db.VarChar(100)
+  email         String  @unique @db.VarChar(100)
+  passwordHash  String  @db.VarChar(255)
+  roleId        BigInt
+
+  role          Role    @relation(fields: [roleId], references: [id])
+
+  @@map("municipality_user")
+}
+
+model Role {
+  id    BigInt  @id @default(autoincrement())
+  name  String  @db.VarChar(100)
+  level BigInt  
+
+  municipalityUsers MunicipalityUser[] 
+  rolePermissions   RolePermission[]
+
+  @@map("role")
+}
+
+model RolePermission {
+  roleId        BigInt  
+  permissionId  BigInt  
+
+  role          Role        @relation(fields: [roleId], references: [id])
+  permission    Permission  @relation(fields: [permissionId], references: [id])
+
+  @@map("role_permission")
+  @@id([roleId, permissionId])
+}
+
+model Permission {
+  id            BigInt  @id @default(autoincrement())
+  name          String  @unique @db.VarChar(100)
+  resource      String  @db.VarChar(100)
+  action        String  @db.VarChar(100)
+
+  rolePermissions RolePermission[]
+
+  @@map("permission")
+}
