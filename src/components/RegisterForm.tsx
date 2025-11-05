@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // Import useRouter
 import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
@@ -10,13 +11,50 @@ import { Label } from "@/components/ui/label";
 
 import { Eye, EyeOff } from "lucide-react";
 
+// Import your server action
+// Changed relative path to use the root alias, which might resolve the build error.
+import { register } from "@/app/lib/actions/citizen";
+
 export default function RegisterForm() {
+  const router = useRouter(); // Hook for navigation
+  const [isPending, startTransition] = useTransition(); // Hook for loading state
+
+  // State for form fields
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  // State for server errors
+  const [error, setError] = useState<string | undefined>("");
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); // Prevent default browser submission
+    setError(undefined); // Clear any previous errors
+
+    // Create FormData to pass to the server action
+    const formData = new FormData();
+    formData.append("firstName", firstName);
+    formData.append("lastName", lastName);
+    formData.append("email", email);
+    formData.append("username", username);
+    formData.append("password", password);
+
+    // Use startTransition to call the server action
+    // This marks the update as a transition and sets isPending to true
+    startTransition(async () => {
+      const response = await register(formData);
+      if (!response.success) {
+        setError(response.error);
+      } else {
+        // Success! Redirect to the login page
+        // You could also show a success message here first
+        router.push("/login?registered=true");
+      }
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
@@ -35,7 +73,8 @@ export default function RegisterForm() {
               Get started by filling out the form below.
             </p>
           </div>
-          <form className="space-y-4">
+          {/* Bind the handleSubmit function to the form's onSubmit event */}
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
@@ -46,6 +85,7 @@ export default function RegisterForm() {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   required
+                  disabled={isPending} // Disable input when pending
                 />
               </div>
               <div className="space-y-2">
@@ -57,6 +97,7 @@ export default function RegisterForm() {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   required
+                  disabled={isPending}
                 />
               </div>
             </div>
@@ -70,6 +111,7 @@ export default function RegisterForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isPending}
               />
             </div>
 
@@ -82,6 +124,7 @@ export default function RegisterForm() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                disabled={isPending}
               />
             </div>
 
@@ -91,23 +134,36 @@ export default function RegisterForm() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder=""
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isPending}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                  disabled={isPending}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
 
-            <Button type="submit" className="w-full">
-              Create account
+            {/* Display server error message if it exists */}
+            {error && (
+              <div
+                className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative text-sm"
+                role="alert"
+              >
+                <span className="block sm:inline">{error}</span>
+              </div>
+            )}
+
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {/* Show different text based on pending state */}
+              {isPending ? "Creating account..." : "Create account"}
             </Button>
           </form>
           <div className="relative">
