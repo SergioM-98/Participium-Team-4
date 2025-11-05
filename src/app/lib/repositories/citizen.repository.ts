@@ -55,8 +55,6 @@ class CitizenRepository {
 
   async retrieveCitizen(userData: LoginInput): Promise<LoginResponse> {
     try {
-      const hashedPassword = await bcrypt.hash(userData.password, 12);
-
       const citizen = await prisma.citizen.findUnique({
         where: {
           email: userData.email,
@@ -67,7 +65,7 @@ class CitizenRepository {
         return { success: false, error: "Invalid credentials" };
       }
 
-      const passwordMatch = bcrypt.compare(
+      const passwordMatch = await bcrypt.compare(
         userData.password,
         citizen.passwordHash
       );

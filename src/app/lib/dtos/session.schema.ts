@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const SessionPayloadSchema = z.object({
-  id: z.bigint(),
+  id: z.int(),
   role: z.string().optional(),
   expiresAt: z.number(),
 });

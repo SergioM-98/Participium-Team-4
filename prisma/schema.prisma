@@ -5,8 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -20,20 +19,28 @@ model Citizen {
   lastName      String  @db.VarChar(100)
   email         String  @unique @db.VarChar(100)
   username      String  @unique @db.VarChar(100)
+  telegram      String? @unique @db.VarChar(100) 
   passwordHash  String  @db.VarChar(255)
+
+  reports Report[]
 
   @@map("citizen")
 }
 
 model MunicipalityUser {
-  id            BigInt  @id @default(autoincrement())
-  firstName     String  @db.VarChar(100)
-  lastName      String  @db.VarChar(100)
-  email         String  @unique @db.VarChar(100)
-  passwordHash  String  @db.VarChar(255)
+  id            BigInt    @id @default(autoincrement())
+  firstName     String    @db.VarChar(100)
+  lastName      String    @db.VarChar(100)
+  email         String    @unique @db.VarChar(100)
+  passwordHash  String    @db.VarChar(255)
   roleId        BigInt
+  departmentId  BigInt
+  startDate     DateTime? @db.Timestamptz(6)
 
-  role          Role    @relation(fields: [roleId], references: [id])
+  role          Role          @relation(fields: [roleId], references: [id])
+  department    Department    @relation(fields: [departmentId], references: [id])
+
+  reports Report[]
 
   @@map("municipality_user")
 }
@@ -44,20 +51,9 @@ model Role {
   level BigInt  
 
   municipalityUsers MunicipalityUser[] 
-  rolePermissions   RolePermission[]
+  permissions       Permission[]
 
   @@map("role")
-}
-
-model RolePermission {
-  roleId        BigInt  
-  permissionId  BigInt  
-
-  role          Role        @relation(fields: [roleId], references: [id])
-  permission    Permission  @relation(fields: [permissionId], references: [id])
-
-  @@map("role_permission")
-  @@id([roleId, permissionId])
 }
 
 model Permission {
@@ -66,7 +62,83 @@ model Permission {
   resource      String  @db.VarChar(100)
   action        String  @db.VarChar(100)
 
-  rolePermissions RolePermission[]
+  roles Role[]
 
   @@map("permission")
+}
+
+model Department {
+  id    BigInt  @id @default(autoincrement())
+  name  Category
+
+  addresses         Address[]
+  reports           Report[]
+  municipalityUsers MunicipalityUser[]
+
+  @@map("department")
+}
+
+model Address {
+  id          BigInt  @id @default(autoincrement())
+  streetName  String  @db.VarChar(200)
+  postalCode  String  @db.VarChar(20)
+  number      BigInt
+  latitude    Decimal @db.Decimal(10,7)
+  longitude   Decimal @db.Decimal(10,7)
+
+  departments Department[]
+
+  @@map("address")
+}
+
+enum Decision {
+  APPROVED
+  REJECTED
+}
+
+enum Category {
+  WATER_SUPPLY
+  ARCHITECTURAL_BARRIERS
+  SEWER_SYSTEM
+  PUBLIC_LIGHTING
+  WASTE
+  ROADS_SIGNS_AND_TRAFFIC_LIGHTS
+  ROADS_AND_URBAN_FURNISHINGS
+  PUBLIC_GREEN_AREAS_AND_BACKGROUNDS
+  OTHER
+}
+
+model Report {
+  id                  BigInt    @id @default(autoincrement())
+  title               String    @db.VarChar(100)
+  description         String    @db.VarChar(500)
+  category            Category
+  latitude            Decimal   @db.Decimal(10,7)
+  longitude           Decimal   @db.Decimal(10,7)
+  decision            Decision?
+  explaination        String    @db.VarChar(500)
+  createdBy           BigInt
+  assignmentDate      DateTime? @db.Timestamptz(6)
+  assignedEmployee    BigInt?
+  assignedDepartment  BigInt?
+
+  citizen           Citizen           @relation(fields: [createdBy], references: [id])
+  municipalityUser  MunicipalityUser? @relation(fields: [assignedEmployee], references: [id])
+  department        Department?       @relation(fields: [assignedDepartment], references: [id])
+
+  photos  Photo[]
+
+  @@map("report")
+}
+
+model Photo {
+  id        BigInt  @id @default(autoincrement())
+  size      Int
+  url       String
+  filename  String  @db.VarChar(255)
+  reportId  BigInt
+
+  report    Report  @relation(fields: [reportId], references: [id])
+
+  @@map("photo")
 }
