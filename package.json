@@ -18,11 +18,13 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "jest": "^30.2.0",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.552.0",
     "next": "16.0.1",
     "prisma": "^6.18.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "react-leaflet": "^5.0.0",
     "tailwind-merge": "^3.3.1",
     "zod": "^4.1.12"
   },
@@ -50,6 +52,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/leaflet": "^1.9.21",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
