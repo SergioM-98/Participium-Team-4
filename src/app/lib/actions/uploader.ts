@@ -1,6 +1,6 @@
 'use server'
 
-import { UploaderController } from '../controllers/uploader.controller';
+import { UploaderController } from '@/controllers/uploader.controller';
 
 const controller = new UploaderController();
 
