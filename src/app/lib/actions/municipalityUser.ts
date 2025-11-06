@@ -4,7 +4,7 @@ import { MunicipalityUserController } from "@/controllers/municipalityUser.contr
 import {
   SetRoleInputSchema,
   SetRoleResponse,
-} from "@/dtos/municipalityUser.schema";
+} from "@/app/lib/dtos/municipalityUser.dtos";
 
 export async function assignRole(formData: FormData): Promise<SetRoleResponse> {
   const cookieStore = await cookies();

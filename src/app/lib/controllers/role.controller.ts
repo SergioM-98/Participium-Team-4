@@ -1,4 +1,4 @@
-import { CreateRoleInput, CreateRoleResponse } from "@/dtos/role.schema";
+import { CreateRoleInput, CreateRoleResponse } from "@/app/lib/dtos/role.dtos";
 import { RoleRepository } from "../repositories/role.repository";
 
 class RoleController {

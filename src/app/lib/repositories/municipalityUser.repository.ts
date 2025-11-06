@@ -1,5 +1,5 @@
-import { prisma } from "@/services/db";
-import { SetRoleResponse } from "../dtos/municipalityUser.schema";
+import { prisma } from "../../../../prisma/db";
+import { SetRoleResponse } from "../dtos/municipalityUser.dtos";
 
 class MunicipalityUserRepository {
   async assignRole(userId: bigint, role: string): Promise<SetRoleResponse> {

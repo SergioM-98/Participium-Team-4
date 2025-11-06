@@ -1,5 +1,5 @@
-import { prisma } from "@/services/db";
-import { CreateRoleResponse } from "@/dtos/role.schema";
+import { prisma } from "@/db/db";
+import { CreateRoleResponse } from "@/app/lib/dtos/role.dtos";
 
 class RoleRepository {
   async createRole(name: string, level: number): Promise<CreateRoleResponse> {

@@ -1,7 +1,10 @@
 import { decrypt } from "@/services/session";
 import { cookies } from "next/headers";
 import { RoleController } from "@/controllers/role.controller";
-import { CreateRoleInputSchema, CreateRoleResponse } from "@/dtos/role.schema";
+import {
+  CreateRoleInputSchema,
+  CreateRoleResponse,
+} from "@/app/lib/dtos/role.dtos";
 
 export async function createRole(
   formData: FormData
