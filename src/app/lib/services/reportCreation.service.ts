@@ -26,7 +26,10 @@ class ReportCreationService {
                 data.userId
             );
 
-            return reportResponseSchema.parse(report);
+            return reportResponseSchema.parse({
+                title: (report as any).title,
+                createdAt: (report as any).createdAt.toISOString()
+            });
         } catch (error) {
             console.error("Error creating report:", error);
             throw new Error("Failed to create report");

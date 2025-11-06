@@ -1,4 +1,4 @@
-import {prisma } from "@/lib/db";
+import { prisma } from "@/prisma/db";
 
 class ReportRepository {
     private static instance: ReportRepository;
@@ -12,7 +12,7 @@ class ReportRepository {
         return ReportRepository.instance;
     }
 
-    public async createReport(uuid: string, title: string, description: string, photos: string[], longitude: number, latitude: number, userId: string): Promise<Report> {
+    public async createReport(uuid: string, title: string, description: string, photos: string[], longitude: number, latitude: number, userId: string){
         const report = await prisma.report.create({
             data: {
                 id: uuid,

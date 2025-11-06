@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { HelpCircle, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { createUploadPhoto, deleteUpload } from "@/app/lib/actions/uploader";
+import { reportCreation } from "@/app/lib/controllers/report.controller";
 
 interface UploadedFile {
   file: File;
@@ -46,6 +47,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const uploadFileToServer = async (file: File): Promise<{success: boolean, uploadId?: string, error?: string}> => {
     try {
@@ -235,9 +237,13 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
+                  minLength={5}
+                  maxLength={100}
                 />
-                {validationErrors.includes('Title is required') && (
-                  <p className="text-xs text-red-500 mt-1">This field is required</p>
+                {validationErrors.some(e => e.includes('Title')) && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {validationErrors.find(e => e.includes('Title'))}
+                  </p>
                 )}
               </div>
               <div>
@@ -251,9 +257,13 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                   className="min-h-[100px]"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  minLength={10}
+                  maxLength={1000}
                 />
-                {validationErrors.includes('Description is required') && (
-                  <p className="text-xs text-red-500 mt-1">This field is required</p>
+                {validationErrors.some(e => e.includes('Description')) && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {validationErrors.find(e => e.includes('Description'))}
+                  </p>
                 )}
               </div>
               <div>
@@ -459,17 +469,27 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
               </Button>
               <Button 
                 className="h-9 px-4 text-sm font-medium"
-                disabled={isUploading}
-                onClick={() => {
+                disabled={isUploading || isSubmitting}
+                onClick={async () => {
                   // Validate form
                   const errors: string[] = [];
                   
                   if (!title.trim()) {
                     errors.push('Title is required');
+                  } else if (title.trim().length < 5) {
+                    errors.push('Title must be at least 5 characters');
+                  } else if (title.trim().length > 100) {
+                    errors.push('Title must be at most 100 characters');
                   }
+                  
                   if (!description.trim()) {
                     errors.push('Description is required');
+                  } else if (description.trim().length < 10) {
+                    errors.push('Description must be at least 10 characters');
+                  } else if (description.trim().length > 1000) {
+                    errors.push('Description must be at most 1000 characters');
                   }
+                  
                   if (!category) {
                     errors.push('Category is required');
                   }
@@ -495,22 +515,46 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                   }
                   
                   setValidationErrors([]);
+                  setIsSubmitting(true);
                   
-                  // Form is valid, proceed
-                  console.log('Form data:', {
-                    title,
-                    description,
-                    category,
-                    location: locationProp,
-                    photos: completedUploads.map(f => ({
-                      filename: f.file.name,
-                      uploadId: f.uploadId
-                    }))
-                  });
-                  // TODO: Submit form or navigate
+                  try {
+                    // Prepare photo IDs from uploaded files
+                    const photoIds = completedUploads.map(f => f.uploadId).filter(Boolean) as string[];
+                    
+                    // TODO: Get userId from authentication context/session
+                    const userId = "temp-user-id"; // Replace with actual user ID
+                    
+                    // Submit report
+                    const result = await reportCreation(
+                      title,
+                      description,
+                      photoIds,
+                      locationProp!.lng,
+                      locationProp!.lat,
+                      userId
+                    );
+                    
+                    console.log('Report created successfully:', result);
+                    
+                    // Reset form on success
+                    setUploadedFiles([]);
+                    setFileProgresses({});
+                    setTitle("");
+                    setDescription("");
+                    setCategory("");
+                    
+                    // TODO: Change the following line to proper user notification
+                    alert('Report created successfully!');
+                    
+                  } catch (error) {
+                    console.error('Error creating report:', error);
+                    setValidationErrors(['Failed to create report. Please try again.']);
+                  } finally {
+                    setIsSubmitting(false);
+                  }
                 }}
               >
-                {isUploading ? 'Uploading...' : 'Continue'}
+                {isSubmitting ? 'Creating report...' : isUploading ? 'Uploading...' : 'Continue'}
               </Button>
             </div>
           </div>
