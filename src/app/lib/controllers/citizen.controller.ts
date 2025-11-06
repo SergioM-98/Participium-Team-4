@@ -4,7 +4,7 @@ import {
   LoginResponse,
   RegistrationInput,
   RegistrationResponse,
-} from "@/schemas/citizen.schema";
+} from "@/app/lib/dtos/citizen.dto";
 
 class CitizenController {
   private citizenRepository: CitizenRepository;

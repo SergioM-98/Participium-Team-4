@@ -5,8 +5,9 @@ import {
   LoginResponse,
   RegistrationInputSchema,
   RegistrationResponse,
-} from "@/schemas/citizen.schema";
+} from "@/app/lib/dtos/citizen.dto";
 import { CitizenController } from "@/controllers/citizen.controller";
+import { createSession } from "@/services/session";
 
 export async function register(
   formData: FormData
@@ -44,5 +45,11 @@ export async function login(formData: FormData): Promise<LoginResponse> {
   }
 
   const controller = new CitizenController();
-  return await controller.retrieveCitizen(validatedData.data);
+  const response = await controller.retrieveCitizen(validatedData.data);
+
+  if (response.success && response.data) {
+    await createSession(response.data.id);
+  }
+
+  return response;
 }

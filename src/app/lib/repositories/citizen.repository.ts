@@ -4,8 +4,8 @@ import {
   LoginResponse,
   RegistrationInput,
   RegistrationResponse,
-} from "@/schemas/citizen.schema";
-import { prisma } from "@/services/db";
+} from "@/dtos/citizen.dto";
+import { prisma } from "@/db/db";
 import bcrypt from "bcrypt";
 
 class CitizenRepository {
@@ -77,9 +77,10 @@ class CitizenRepository {
       }
 
       const retrievedUserData = {
+        id: citizen.id,
         firstName: citizen.firstName,
         lastName: citizen.lastName,
-        username: citizen.userData,
+        username: citizen.username,
         email: citizen.email,
       };
 
