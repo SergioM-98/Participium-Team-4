@@ -3,7 +3,7 @@ import { decrypt } from "@/services/session";
 import {
   CreateDepartmentInputSchema,
   RetrieveDepartmentsResponse,
-} from "@/dtos/department.schema";
+} from "@/app/lib/dtos/department.dto";
 import { DepartmentController } from "@/controllers/department.controller";
 
 export async function retrieveDepartments(): Promise<RetrieveDepartmentsResponse> {

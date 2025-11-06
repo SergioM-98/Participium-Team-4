@@ -2,7 +2,7 @@ import { ReportRepository } from "@/app/lib/repositories/report.repository";
 import {
   CreateReviewInput,
   CreateReviewResponse,
-} from "@/app/lib/dtos/report.schema";
+} from "@/app/lib/dtos/report.dto";
 import { DepartmentRepository } from "@/repositories/department.repository.schema";
 
 class ReportController {

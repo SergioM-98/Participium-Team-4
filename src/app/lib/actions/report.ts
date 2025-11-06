@@ -3,7 +3,7 @@ import { decrypt } from "@/services/session";
 import {
   CreateReviewResponse,
   CreateReviewInputSchema,
-} from "@/app/lib/dtos/report.schema";
+} from "@/app/lib/dtos/report.dto";
 import { ReportController } from "@/app/lib/controllers/report.controller";
 
 export async function createReview(

@@ -2,8 +2,8 @@ import { prisma } from "@/services/db";
 import {
   CreateReviewInput,
   CreateReviewResponse,
-} from "@/app/lib/dtos/report.schema";
-import { Department } from "@/dtos/department.schema";
+} from "@/app/lib/dtos/report.dto";
+import { Department } from "@/app/lib/dtos/department.dto";
 
 class ReportRepository {
   async createReview(

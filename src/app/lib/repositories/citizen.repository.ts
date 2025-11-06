@@ -4,7 +4,7 @@ import {
   LoginResponse,
   RegistrationInput,
   RegistrationResponse,
-} from "@/app/lib/dtos/citizen.schema";
+} from "@/app/lib/dtos/citizen.dto";
 import { prisma } from "@/services/db";
 import bcrypt from "bcrypt";
 

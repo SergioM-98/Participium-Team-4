@@ -1,7 +1,7 @@
 import {
   SetRoleInput,
   SetRoleResponse,
-} from "@/app/lib/dtos/municipalityUser.schema";
+} from "@/app/lib/dtos/municipalityUser.dto";
 import { MunicipalityUserRepository } from "@/repositories/municipalityUser.repository";
 
 class MunicipalityUserController {

@@ -3,7 +3,7 @@ import {
   CreateDepartmentResponse,
   RetrieveDepartmentResponse,
   RetrieveDepartmentsResponse,
-} from "@/app/lib/dtos/department.schema";
+} from "@/app/lib/dtos/department.dto";
 import { DepartmentRepository } from "../repositories/department.repository.schema";
 
 class DepartmentController {

@@ -4,7 +4,7 @@ import {
   Department,
   RetrieveDepartmentResponse,
   RetrieveDepartmentsResponse,
-} from "@/dtos/department.schema";
+} from "@/app/lib/dtos/department.dto";
 
 class DepartmentRepository {
   async createDepartment(name: string): Promise<CreateDepartmentResponse> {
