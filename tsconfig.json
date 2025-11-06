@@ -21,7 +21,7 @@
     "paths": {
           "@/*": ["./src/*"],
           "@/app/*": ["./src/app/*"],
-          "@/components/*": ["./src/app/components/*"],
+          "@/components/*": ["./src/components/*"],
           "@/lib/*": ["./src/app/lib/*"],
           "@/controllers/*": ["./src/app/lib/controllers/*"],
           "@/services/*": ["./src/app/lib/services/*"],
@@ -32,7 +32,7 @@
           "@/middlewares/*": ["./src/app/lib/middlewares/*"],
           "@/types/*": ["./src/app/lib/types/*"],
           "@/db/*": ["./src/app/lib/db/*"],
-          
+          "@/prisma/*": ["./prisma/*"]
         }
   },
   "include": [

@@ -5,8 +5,8 @@ export const TusCreateDataSchema = z.object({
   'tus-resumable': z.string().refine(val => val === '1.0.0', {
     message: 'TUS version must be 1.0.0'
   }),
-  'upload-length': z.string().transform(val => {
-    const num = parseInt(val)
+  'upload-length': z.union([z.string(), z.number()]).transform(val => {
+    const num = typeof val === 'string' ? parseInt(val) : val
     if (isNaN(num) || num <= 0) {
       throw new Error('upload-length must be a positive number')
     }
@@ -16,8 +16,8 @@ export const TusCreateDataSchema = z.object({
     return num
   }),
   'upload-metadata': z.string().optional(),
-  'content-length': z.string().transform(val => {
-    const num = parseInt(val)
+  'content-length': z.union([z.string(), z.number()]).transform(val => {
+    const num = typeof val === 'string' ? parseInt(val) : val
     if (isNaN(num) || num < 0) {
       throw new Error('content-length must be a positive number')
     }
@@ -29,8 +29,8 @@ export const TusUploadDataSchema = z.object({
   'tus-resumable': z.string().refine(val => val === '1.0.0', {
     message: 'TUS version must be 1.0.0'
   }),
-  'upload-offset': z.string().transform(val => {
-    const num = parseInt(val)
+  'upload-offset': z.union([z.string(), z.number()]).transform(val => {
+    const num = typeof val === 'string' ? parseInt(val) : val
     if (isNaN(num) || num < 0) {
       throw new Error('upload-offset must be a non-negative number')
     }
@@ -39,8 +39,8 @@ export const TusUploadDataSchema = z.object({
   'content-type': z.string().refine(val => val === 'application/offset+octet-stream', {
     message: 'Content-Type must be application/offset+octet-stream for TUS chunk uploads'
   }),
-  'content-length': z.string().transform(val => {
-    const num = parseInt(val)
+  'content-length': z.union([z.string(), z.number()]).transform(val => {
+    const num = typeof val === 'string' ? parseInt(val) : val
     if (isNaN(num) || num <= 0) {
       throw new Error('content-length must be a positive number')
     }

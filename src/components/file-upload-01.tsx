@@ -22,35 +22,149 @@ import {
 import { cn } from "@/lib/utils";
 import { HelpCircle, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
+import { createUploadPhoto, deleteUpload } from "@/app/lib/actions/uploader";
 
-export default function FileUpload01() {
+interface UploadedFile {
+  file: File;
+  uploadId?: string;
+  status: 'pending' | 'uploading' | 'completed' | 'error';
+  error?: string;
+}
+
+interface FileUpload01Props {
+  location?: { lat: number; lng: number } | null;
+}
+
+export default function FileUpload01({ location: locationProp }: FileUpload01Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [fileProgresses, setFileProgresses] = useState<Record<string, number>>(
     {}
   );
+  const [isUploading, setIsUploading] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  const handleFileSelect = (files: FileList | null) => {
-    if (!files) return;
+  const uploadFileToServer = async (file: File): Promise<{success: boolean, uploadId?: string, error?: string}> => {
+    try {
+      // Encode metadata in TUS format (base64)
+      const filenameBase64 = btoa(file.name);
+      const metadata = `filename ${filenameBase64}`;
 
-    const newFiles = Array.from(files);
+      const formData = new FormData();
+      formData.append('tus-resumable', '1.0.0');
+      formData.append('upload-length', file.size.toString());
+      formData.append('upload-metadata', metadata);
+      formData.append('file', file);
+
+      const result = await createUploadPhoto(formData);
+
+      if (result.success && result.location) {
+        return { success: true, uploadId: result.location };
+      } else {
+        return { success: false, error: result.error || 'Upload failed' };
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
+    }
+  };
+
+  const handleFileSelect = async (files: FileList | null) => {
+    if (!files || isUploading) return;
+
+    const currentFileCount = uploadedFiles.length;
+    const newFileCount = files.length;
+    const totalFiles = currentFileCount + newFileCount;
+
+    // Check if adding these files would exceed the limit
+    if (totalFiles > 3) {
+      setValidationErrors([`You can upload a maximum of 3 photos. Currently you have ${currentFileCount} photo(s).`]);
+      return;
+    }
+
+    setValidationErrors([]);
+
+    const newFiles: UploadedFile[] = Array.from(files).map(file => ({
+      file,
+      status: 'pending' as const
+    }));
+
     setUploadedFiles((prev) => [...prev, ...newFiles]);
 
-    // Simulate upload progress for each file
-    newFiles.forEach((file) => {
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += Math.random() * 10;
-        if (progress >= 100) {
-          progress = 100;
-          clearInterval(interval);
-        }
-        setFileProgresses((prev) => ({
-          ...prev,
-          [file.name]: Math.min(progress, 100),
-        }));
-      }, 300);
+    // Initialize progress for new files
+    newFiles.forEach((uploadFile) => {
+      setFileProgresses((prev) => ({
+        ...prev,
+        [uploadFile.file.name]: 0,
+      }));
     });
+
+    // Upload files sequentially
+    setIsUploading(true);
+    for (const uploadFile of newFiles) {
+      await uploadSingleFile(uploadFile);
+    }
+    setIsUploading(false);
+  };
+
+  const uploadSingleFile = async (uploadFile: UploadedFile) => {
+    const fileName = uploadFile.file.name;
+
+    // Update status to uploading
+    setUploadedFiles((prev) =>
+      prev.map((f) =>
+        f.file.name === fileName ? { ...f, status: 'uploading' as const } : f
+      )
+    );
+
+    // Set initial progress
+    setFileProgresses((prev) => ({ ...prev, [fileName]: 0 }));
+
+    try {
+      // Update progress to 50% when starting upload
+      setFileProgresses((prev) => ({ ...prev, [fileName]: 50 }));
+
+      // Perform actual upload
+      const result = await uploadFileToServer(uploadFile.file);
+
+      if (result.success) {
+        // Upload completed
+        setFileProgresses((prev) => ({ ...prev, [fileName]: 100 }));
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.file.name === fileName
+              ? { ...f, status: 'completed' as const, uploadId: result.uploadId }
+              : f
+          )
+        );
+      } else {
+        // Upload failed
+        setFileProgresses((prev) => ({ ...prev, [fileName]: 0 }));
+        setUploadedFiles((prev) =>
+          prev.map((f) =>
+            f.file.name === fileName
+              ? { ...f, status: 'error' as const, error: result.error }
+              : f
+          )
+        );
+      }
+    } catch (error) {
+      // Handle unexpected errors
+      setFileProgresses((prev) => ({ ...prev, [fileName]: 0 }));
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.file.name === fileName
+            ? { ...f, status: 'error' as const, error: 'Unexpected error during upload' }
+            : f
+        )
+      );
+    }
   };
 
   const handleBoxClick = () => {
@@ -66,8 +180,24 @@ export default function FileUpload01() {
     handleFileSelect(e.dataTransfer.files);
   };
 
-  const removeFile = (filename: string) => {
-    setUploadedFiles((prev) => prev.filter((file) => file.name !== filename));
+  const removeFile = async (filename: string) => {
+    // Find the file to remove
+    const fileToRemove = uploadedFiles.find(f => f.file.name === filename);
+    
+    // If the file was successfully uploaded, delete it from the server
+    if (fileToRemove?.uploadId && fileToRemove.status === 'completed') {
+      try {
+        const result = await deleteUpload(fileToRemove.uploadId);
+        if (!result.success) {
+          console.error('Failed to delete file from server:', result.error);
+        }
+      } catch (error) {
+        console.error('Error deleting file from server:', error);
+      }
+    }
+    
+    // Remove from UI
+    setUploadedFiles((prev) => prev.filter((uploadFile) => uploadFile.file.name !== filename));
     setFileProgresses((prev) => {
       const newProgresses = { ...prev };
       delete newProgresses[filename];
@@ -103,7 +233,12 @@ export default function FileUpload01() {
                   type="text"
                   placeholder="Enter a title for your report"
                   required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                 />
+                {validationErrors.includes('Title is required') && (
+                  <p className="text-xs text-red-500 mt-1">This field is required</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="reportDescription" className="mb-2">
@@ -114,13 +249,18 @@ export default function FileUpload01() {
                   placeholder="Describe the issue or report"
                   required
                   className="min-h-[100px]"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                 />
+                {validationErrors.includes('Description is required') && (
+                  <p className="text-xs text-red-500 mt-1">This field is required</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="reportCategory" className="mb-2">
                   Category <span className="text-red-500">*</span>
                 </Label>
-                <Select required>
+                <Select required value={category} onValueChange={setCategory}>
                   <SelectTrigger id="reportCategory" className="ps-2 w-full">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
@@ -138,6 +278,9 @@ export default function FileUpload01() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+                {validationErrors.includes('Category is required') && (
+                  <p className="text-xs text-red-500 mt-1">This field is required</p>
+                )}
               </div>
             </div>
           </div>
@@ -174,6 +317,16 @@ export default function FileUpload01() {
                 onChange={(e) => handleFileSelect(e.target.files)}
               />
             </div>
+            {(validationErrors.some(e => e.includes('photo')) || 
+              validationErrors.some(e => e.includes('uploads')) ||
+              validationErrors.some(e => e.includes('Maximum'))) && (
+              <p className="text-xs text-red-500 mt-2">
+                {validationErrors.find(e => e.includes('photo') || e.includes('uploads') || e.includes('Maximum'))}
+              </p>
+            )}
+            {validationErrors.includes('Location is required - please select a location on the map') && (
+              <p className="text-xs text-red-500 mt-2">Please select a location on the map</p>
+            )}
           </div>
 
           <div
@@ -182,13 +335,15 @@ export default function FileUpload01() {
               uploadedFiles.length > 0 ? "mt-4" : ""
             )}
           >
-            {uploadedFiles.map((file, index) => {
-              const imageUrl = URL.createObjectURL(file);
+            {uploadedFiles.map((uploadFile, index) => {
+              const imageUrl = URL.createObjectURL(uploadFile.file);
+              const isError = uploadFile.status === 'error';
+              const isCompleted = uploadFile.status === 'completed';
 
               return (
                 <div
                   className="border border-border rounded-lg p-2 flex flex-col"
-                  key={file.name + index}
+                  key={uploadFile.file.name + index}
                   onLoad={() => {
                     return () => URL.revokeObjectURL(imageUrl);
                   }}
@@ -197,7 +352,7 @@ export default function FileUpload01() {
                     <div className="w-18 h-14 bg-muted rounded-sm flex items-center justify-center self-start row-span-2 overflow-hidden">
                       <img
                         src={imageUrl}
-                        alt={file.name}
+                        alt={uploadFile.file.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -206,17 +361,28 @@ export default function FileUpload01() {
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-foreground truncate max-w-[250px]">
-                            {file.name}
+                            {uploadFile.file.name}
                           </span>
                           <span className="text-sm text-muted-foreground whitespace-nowrap">
-                            {Math.round(file.size / 1024)} KB
+                            {Math.round(uploadFile.file.size / 1024)} KB
                           </span>
+                          {isError && (
+                            <span className="text-xs text-red-500">
+                              Failed
+                            </span>
+                          )}
+                          {isCompleted && (
+                            <span className="text-xs text-green-500">
+                              ✓
+                            </span>
+                          )}
                         </div>
                         <Button
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 bg-transparent! hover:text-red-500"
-                          onClick={() => removeFile(file.name)}
+                          onClick={() => removeFile(uploadFile.file.name)}
+                          disabled={uploadFile.status === 'uploading'}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -225,16 +391,24 @@ export default function FileUpload01() {
                       <div className="flex items-center gap-2">
                         <div className="h-2 bg-muted rounded-full overflow-hidden flex-1">
                           <div
-                            className="h-full bg-primary"
+                            className={cn(
+                              "h-full transition-all",
+                              isError ? "bg-red-500" : isCompleted ? "bg-green-500" : "bg-primary"
+                            )}
                             style={{
-                              width: `${fileProgresses[file.name] || 0}%`,
+                              width: `${fileProgresses[uploadFile.file.name] || 0}%`,
                             }}
                           ></div>
                         </div>
                         <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {Math.round(fileProgresses[file.name] || 0)}%
+                          {Math.round(fileProgresses[uploadFile.file.name] || 0)}%
                         </span>
                       </div>
+                      {isError && uploadFile.error && (
+                        <p className="text-xs text-red-500 mt-1">
+                          {uploadFile.error}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -271,10 +445,73 @@ export default function FileUpload01() {
               <Button
                 variant="outline"
                 className="h-9 px-4 text-sm font-medium"
+                onClick={() => {
+                  setUploadedFiles([]);
+                  setFileProgresses({});
+                  setTitle("");
+                  setDescription("");
+                  setCategory("");
+                  setValidationErrors([]);
+                }}
+                disabled={isUploading}
               >
                 Cancel
               </Button>
-              <Button className="h-9 px-4 text-sm font-medium">Continue</Button>
+              <Button 
+                className="h-9 px-4 text-sm font-medium"
+                disabled={isUploading}
+                onClick={() => {
+                  // Validate form
+                  const errors: string[] = [];
+                  
+                  if (!title.trim()) {
+                    errors.push('Title is required');
+                  }
+                  if (!description.trim()) {
+                    errors.push('Description is required');
+                  }
+                  if (!category) {
+                    errors.push('Category is required');
+                  }
+                  if (!locationProp) {
+                    errors.push('Location is required - please select a location on the map');
+                  }
+                  
+                  const completedUploads = uploadedFiles.filter(f => f.status === 'completed');
+                  if (completedUploads.length === 0) {
+                    errors.push('At least 1 photo is required');
+                  }
+                  if (completedUploads.length > 3) {
+                    errors.push('Maximum 3 photos allowed');
+                  }
+                  
+                  if (uploadedFiles.some(f => f.status === 'error')) {
+                    errors.push('Please remove failed uploads before continuing');
+                  }
+                  
+                  if (errors.length > 0) {
+                    setValidationErrors(errors);
+                    return;
+                  }
+                  
+                  setValidationErrors([]);
+                  
+                  // Form is valid, proceed
+                  console.log('Form data:', {
+                    title,
+                    description,
+                    category,
+                    location: locationProp,
+                    photos: completedUploads.map(f => ({
+                      filename: f.file.name,
+                      uploadId: f.uploadId
+                    }))
+                  });
+                  // TODO: Submit form or navigate
+                }}
+              >
+                {isUploading ? 'Uploading...' : 'Continue'}
+              </Button>
             </div>
           </div>
         </CardContent>

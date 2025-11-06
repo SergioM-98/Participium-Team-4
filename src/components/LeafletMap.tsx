@@ -32,11 +32,16 @@ function MarkersManager({ markers, onMapClick }: { markers: LatLngExpression[]; 
   );
 }
 
-export default function LeafletMap() {
+export default function LeafletMap({ onLocationSelect }: { onLocationSelect?: (location: { lat: number; lng: number } | null) => void }) {
   const [markers, setMarkers] = useState<LatLngExpression[]>([]);
 
   const addOrResetMarker = (pos: LatLngExpression) => {
     setMarkers([pos]);
+    // Notify parent component of the location selection
+    if (onLocationSelect) {
+      const latlng = Array.isArray(pos) ? { lat: pos[0], lng: pos[1] } : pos;
+      onLocationSelect(latlng as { lat: number; lng: number });
+    }
   };
 
   const selected = markers[0];
