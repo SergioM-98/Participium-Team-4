@@ -10,7 +10,6 @@ const LocationDisplay: React.FC<LocationDisplayProps> = ({ selected }) => {
     <div className="mt-4 flex justify-center min-h-[36px]">
       {selected ? (
         <span className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-white/90 border border-gray-300 text-black font-mono text-xs sm:text-sm shadow-sm">
-          <span className="text-lg hidden sm:inline">📍</span>
           {Array.isArray(selected) ? (
             <span>
               <span className="block sm:inline">Latitude: {selected[0].toFixed(5)},</span>

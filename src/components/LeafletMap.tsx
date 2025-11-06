@@ -34,27 +34,30 @@ function MarkersManager({ markers, onMapClick }: { markers: LatLngExpression[]; 
 
 export default function LeafletMap() {
   const [markers, setMarkers] = useState<LatLngExpression[]>([]);
-  
+
   const addOrResetMarker = (pos: LatLngExpression) => {
     setMarkers([pos]);
   };
-  
+
   const selected = markers[0];
-  
+
   return (
-    <>
-      <div className="relative rounded-xl overflow-hidden shadow-lg border border-gray-500" style={{ width: "100%", maxWidth: 900, height: 500 }}>
-        <MapContainer center={[45.0703, 7.6869]} zoom={13} style={{ height: "100%", width: "100%" }}>
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <MarkersManager markers={markers} onMapClick={addOrResetMarker} />
-        </MapContainer>
-        <div className="absolute top-3 right-3 z-[1000]">
-          <LocationDisplay selected={selected} />
-        </div>
+    <div className="relative rounded-xl overflow-hidden shadow-lg border border-gray-500 w-full h-full">
+      <MapContainer
+        center={[45.0703, 7.6869]}
+        zoom={13}
+        className="w-full h-full"
+        style={{ width: "100%", height: "100%" }}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <MarkersManager markers={markers} onMapClick={addOrResetMarker} />
+      </MapContainer>
+      <div className="absolute top-3 right-3 z-[1000]">
+        <LocationDisplay selected={selected} />
       </div>
-    </>
+    </div>
   );
 }
