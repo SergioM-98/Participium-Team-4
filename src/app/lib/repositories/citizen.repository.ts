@@ -5,7 +5,7 @@ import {
   RegistrationInput,
   RegistrationResponse,
 } from "@/app/lib/dtos/citizen.dto";
-import { prisma } from "@/services/db";
+import { prisma } from "@/db/db";
 import bcrypt from "bcrypt";
 
 class CitizenRepository {

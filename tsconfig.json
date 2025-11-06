@@ -27,7 +27,7 @@
       "@/actions/*": ["./src/app/lib/actions/*"],
       "@/types/*": ["./src/app/lib/types/*"],
       "@/lib/*": ["./src/app/lib/*"],
-      "@/db": ["./src/app/lib/services/*"],
+      "@/db/*": ["./prisma/*"],
     }
   },
   "include": [

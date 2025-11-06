@@ -1,4 +1,4 @@
-import { prisma } from "@/services/db";
+import { prisma } from "@/db/db";
 import { SetRoleResponse } from "../dtos/municipalityUser.dto";
 
 class MunicipalityUserRepository {
