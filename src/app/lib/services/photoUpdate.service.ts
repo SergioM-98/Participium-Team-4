@@ -1,5 +1,5 @@
 import { TusUploadHeaders } from "@/dtos/tus.header.dto";
-import { TusUpdateResponse } from "@/dtos/tus.response.dto";
+import { TusUpdateResponse } from "@/app/lib/dtos/tus.dto";
 import { PhotoRepository } from "@/app/lib/repositories/photo.repository";
 import { appendFile, rename } from 'fs/promises';
 import path from 'path';

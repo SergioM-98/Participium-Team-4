@@ -1,5 +1,5 @@
 import { PhotoRepository } from '@/repositories/photo.repository';
-import { TusStatusResponse } from '@/dtos/tus.response.dto';
+import { TusStatusResponse } from '@/app/lib/dtos/tus.dto';
 
 class PhotoStatusService {
     private static instance: PhotoStatusService
