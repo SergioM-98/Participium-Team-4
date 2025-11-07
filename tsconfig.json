@@ -33,7 +33,17 @@
           "@/types/*": ["./src/app/lib/types/*"],
           "@/db/*": ["./src/app/lib/db/*"],
           "@/prisma/*": ["./prisma/*"]
-        }
+        },
+      "@/*": ["./src/*"],
+      "@/dtos/*": ["./src/app/lib/dtos/*"],
+      "@/services/*": ["./src/app/lib/services/*"],
+      "@/controllers/*": ["./src/app/lib/controllers/*"],
+      "@/repositories/*": ["./src/app/lib/repositories/*"],
+      "@/actions/*": ["./src/app/lib/actions/*"],
+      "@/types/*": ["./src/app/lib/types/*"],
+      "@/lib/*": ["./src/app/lib/*"],
+      "@/db/*": ["./prisma/*"]
+    }
   },
   "include": [
     "next-env.d.ts",

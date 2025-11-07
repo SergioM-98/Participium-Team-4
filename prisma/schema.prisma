@@ -55,4 +55,13 @@ enum ReportStatus {
   SUSPENDED
   REJECTED
   RESOLVED
+model Citizen {
+  id            BigInt  @id @default(autoincrement())
+  firstName     String  @db.VarChar(100)
+  lastName      String  @db.VarChar(100)
+  email         String  @unique @db.VarChar(100)
+  username      String  @unique @db.VarChar(100)
+  passwordHash  String  @db.VarChar(255)
+
+  @@map("citizen")
 }
