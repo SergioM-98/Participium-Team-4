@@ -1,3 +1,5 @@
+"use server";
+
 import { prisma } from "@/db/db";
 import { CreateRoleResponse } from "@/app/lib/dtos/role.dto";
 

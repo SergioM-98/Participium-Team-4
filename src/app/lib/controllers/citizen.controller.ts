@@ -1,3 +1,5 @@
+"use server";
+
 import { CitizenRepository } from "@/repositories/citizen.repository";
 import {
   LoginInput,

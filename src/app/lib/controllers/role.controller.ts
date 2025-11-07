@@ -1,3 +1,5 @@
+"use server";
+
 import { CreateRoleInput, CreateRoleResponse } from "@/app/lib/dtos/role.dto";
 import { RoleRepository } from "../repositories/role.repository";
 

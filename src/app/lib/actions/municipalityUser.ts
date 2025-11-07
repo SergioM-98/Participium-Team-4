@@ -1,3 +1,5 @@
+"use server";
+
 import { decrypt } from "@/services/session";
 import { cookies } from "next/headers";
 import { MunicipalityUserController } from "@/controllers/municipalityUser.controller";

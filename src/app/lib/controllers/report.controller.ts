@@ -1,3 +1,5 @@
+"use server";
+
 import { ReportRepository } from "@/app/lib/repositories/report.repository";
 import {
   CreateReviewInput,
