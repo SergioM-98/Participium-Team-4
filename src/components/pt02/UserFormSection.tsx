@@ -1,6 +1,7 @@
 "use client";
 
 import { FC } from "react";
+import { motion } from "framer-motion";
 import MunicipalityUserForm, {
   MunicipalityUserFormData,
 } from "@/components/MunicipalityUserForm";
@@ -21,21 +22,31 @@ const UserFormSection: FC<Props> = ({
   onCancel,
 }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-6">
-      <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-        Municipality Users (PT02)
-      </h1>
-      <p className="text-sm text-gray-700">
-        Create internal municipality accounts.
-      </p>
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white rounded-2xl shadow-xl p-8"
+    >
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold tracking-tighter">
+          Municipality Users
+        </h1>
+        <p className="text-muted-foreground">
+          Create internal municipality accounts.
+        </p>
+      </div>
 
       {error && (
-        <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
+        <div 
+          className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative text-sm"
+          role="alert"
+        >
+          <span className="block sm:inline">{error}</span>
         </div>
       )}
 
-      <div className="mt-4">
+      <div className="mt-6">
         <MunicipalityUserForm
           onSubmit={onSubmit}
           initialData={initialData}
@@ -43,7 +54,7 @@ const UserFormSection: FC<Props> = ({
           onCancel={onCancel}
         />
       </div>
-    </div>
+    </motion.div>
   );
 };
 

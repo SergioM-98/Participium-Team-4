@@ -57,7 +57,7 @@ export default function AdminUsersPage() {
   const cancelEdit = () => setEditingId(null);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 p-6">
+    <main className="min-h-screen bg-linear-to-br from-primary-50 to-primary-100 p-6">
       <div className="mx-auto max-w-3xl space-y-6">
         <UserFormSection
           error={error}

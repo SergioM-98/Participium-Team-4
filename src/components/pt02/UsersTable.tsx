@@ -1,6 +1,7 @@
 "use client";
 
 import { FC } from "react";
+import { motion } from "framer-motion";
 import type { MunicipalityUserFormData } from "@/components/MunicipalityUserForm";
 
 export type UserRow = MunicipalityUserFormData & { id: string };
@@ -13,11 +14,16 @@ type Props = {
 
 const UsersTable: FC<Props> = ({ users, onEdit, onDelete }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-6">
-      <h2 className="text-lg font-semibold mb-3 text-gray-900">Users</h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+      className="bg-white rounded-2xl shadow-xl p-8"
+    >
+      <h2 className="text-2xl font-bold tracking-tighter mb-4">Users</h2>
 
       {users.length === 0 ? (
-        <p className="text-sm text-gray-700">No users yet.</p>
+        <p className="text-muted-foreground">No users yet.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -61,7 +67,7 @@ const UsersTable: FC<Props> = ({ users, onEdit, onDelete }) => {
           </table>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
