@@ -20,14 +20,20 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@/schemas/*": ["./src/app/lib/schemas/*"],
-      "@/services/*": ["./src/app/lib/services/*"],
-      "@/controllers/*": ["./src/app/lib/controllers/*"],
-      "@/repositories/*": ["./src/app/lib/repositories/*"],
-      "@/actions/*": ["./src/app/lib/actions/*"],
-      "@/types/*": ["./src/app/lib/types/*"],
+      "@/app/*": ["./src/app/*"],
+      "@/components/*": ["./src/components/*"],
       "@/lib/*": ["./src/app/lib/*"],
-      "@/db": ["./src/app/lib/services/*"]
+      "@/controllers/*": ["./src/app/lib/controllers/*"],
+      "@/services/*": ["./src/app/lib/services/*"],
+      "@/repositories/*": ["./src/app/lib/repositories/*"],
+      "@/dtos/*": ["./src/app/lib/dtos/*"],
+      "@/models/*": ["./src/app/lib/models/*"],
+      "@/utils/*": ["./src/app/lib/utils/*"],
+      "@/middlewares/*": ["./src/app/lib/middlewares/*"],
+      "@/types/*": ["./src/app/lib/types/*"],
+      "@/db/*": ["./src/app/lib/db/*"],
+      "@/prisma/*": ["./prisma/*"],
+      "@/actions/*": ["./src/app/lib/actions/*"]
     }
   },
   "include": [
