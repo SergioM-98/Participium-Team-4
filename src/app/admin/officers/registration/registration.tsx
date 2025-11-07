@@ -7,7 +7,7 @@ import {
   MunicipalityUserFormData,
 } from "@/components/MunicipalityUserForm";
 
-export default function AdminUsersPage() {
+export default function OfficerRegistration(submitNewOfficer: any) {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [error, setError] = useState<string>("");
   const [editingId, setEditingId] = useState<string | null>(null);

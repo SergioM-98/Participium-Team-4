@@ -29,10 +29,10 @@ const UserFormSection: FC<Props> = ({
       className="bg-white rounded-2xl shadow-xl p-8"
     >
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tighter">
+        <h1 className="text-3xl font-bold tracking-tighter text-black">
           Municipality Users
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground  text-black">
           Create internal municipality accounts.
         </p>
       </div>
