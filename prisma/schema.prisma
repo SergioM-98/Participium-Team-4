@@ -91,9 +91,13 @@ model Address {
   @@map("address")
 }
 
-enum Decision {
-  APPROVED
-  REJECTED
+enum ReportStatus {
+  PENDING_APPROVAL
+  ASSIGNED
+  IN_PROGRESS
+  SUSPENDED
+  REJECTED 
+  RESOLVED
 }
 
 enum Category {
@@ -109,16 +113,16 @@ enum Category {
 }
 
 model Report {
-  id                  BigInt    @id @default(autoincrement())
-  title               String    @db.VarChar(100)
-  description         String    @db.VarChar(500)
+  id                  BigInt        @id @default(autoincrement())
+  title               String        @db.VarChar(100)
+  description         String        @db.VarChar(500)
   category            Category
-  latitude            Decimal   @db.Decimal(10,7)
-  longitude           Decimal   @db.Decimal(10,7)
-  decision            Decision?
-  explaination        String    @db.VarChar(500)
+  latitude            Decimal       @db.Decimal(10,7)
+  longitude           Decimal       @db.Decimal(10,7)
+  status              ReportStatus? 
+  explaination        String        @db.VarChar(500)
   createdBy           BigInt
-  assignmentDate      DateTime? @db.Timestamptz(6)
+  assignmentDate      DateTime?     @db.Timestamptz(6)
   assignedEmployee    BigInt?
   assignedDepartment  BigInt?
 

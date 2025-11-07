@@ -5,6 +5,7 @@ import { decrypt } from "@/services/session";
 import {
   CreateReviewResponse,
   CreateReviewInputSchema,
+  RetrieveReportsByStatusInputSchema,
 } from "@/app/lib/dtos/report.dto";
 import { ReportController } from "@/app/lib/controllers/report.controller";
 
@@ -34,7 +35,7 @@ export async function createReview(
 
   const validatedData = CreateReviewInputSchema.safeParse({
     reportId: formData.get("reportId"),
-    decision: formData.get("decision"),
+    status: formData.get("status"),
     explaination: formData.get("explaination")
       ? String(formData.get("explaination"))
       : undefined,
@@ -74,9 +75,19 @@ export async function retrieveUnreviewedReports() {
   return await controller.retrieveUnreviewedReports();
 }
 
-export async function retrieveValidReports() {
+export async function retrieveReportsByStatus(
+  userData: FormData
+): Promise<any> {
   const cookieStore = await cookies();
   const session = cookieStore.get("session")?.value;
+
+  const validatedData = RetrieveReportsByStatusInputSchema.safeParse({
+    status: userData.get("status"),
+  });
+
+  if (!validatedData.success) {
+    return { success: false, error: "Invalid input data" };
+  }
 
   if (!session) {
     return { success: false, error: "Unauthorized: No session" };
@@ -96,5 +107,5 @@ export async function retrieveValidReports() {
   }
 
   const controller = new ReportController();
-  return await controller.retrieveValidReports();
+  return await controller.retrieveReportsByStatus(validatedData.data);
 }

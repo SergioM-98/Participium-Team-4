@@ -4,6 +4,8 @@ import { prisma } from "@/db/db";
 import {
   CreateReviewInput,
   CreateReviewResponse,
+  RetrieveReportsByStatusInput,
+  RetrieveReportsByStatusResponse,
 } from "@/app/lib/dtos/report.dto";
 import { Department } from "@/app/lib/dtos/department.dto";
 
@@ -18,7 +20,7 @@ class ReportRepository {
           id: userData.reportId,
         },
         data: {
-          decision: userData.decision,
+          status: userData.status,
           explaination: userData.explaination,
           category: userData.category,
           assignedDepartment: department.id,
@@ -35,7 +37,7 @@ class ReportRepository {
     try {
       const reports = await prisma.report.findMany({
         where: {
-          decision: null,
+          status: null,
         },
       });
       return reports;
@@ -45,17 +47,19 @@ class ReportRepository {
     }
   }
 
-  async retrieveValidReports() {
+  async retrieveReportsByStatus(
+    userData: RetrieveReportsByStatusInput
+  ): Promise<RetrieveReportsByStatusResponse> {
     try {
       const reports = await prisma.report.findMany({
         where: {
-          decision: "APPROVED",
+          status: userData.status,
         },
       });
-      return reports;
+      return { success: true, data: reports };
     } catch (error) {
       console.error("Error retrieving valid reports:", error);
-      throw new Error("Could not retrieve valid reports");
+      return { success: false, error: "Could not retrieve valid reports" };
     }
   }
 }

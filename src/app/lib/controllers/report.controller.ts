@@ -4,6 +4,7 @@ import { ReportRepository } from "@/app/lib/repositories/report.repository";
 import {
   CreateReviewInput,
   CreateReviewResponse,
+  RetrieveReportsByStatusInput,
 } from "@/app/lib/dtos/report.dto";
 import { DepartmentRepository } from "@/repositories/department.repository.schema";
 
@@ -34,8 +35,8 @@ class ReportController {
     return await this.reportRepository.retrieveUnreviewedReports();
   }
 
-  async retrieveValidReports() {
-    return await this.reportRepository.retrieveValidReports();
+  async retrieveReportsByStatus(userData: RetrieveReportsByStatusInput) {
+    return await this.reportRepository.retrieveReportsByStatus(userData);
   }
 }
 

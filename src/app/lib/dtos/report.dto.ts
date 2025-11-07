@@ -4,7 +4,14 @@ import { z } from "zod";
 
 export const CreateReviewInputSchema = z.object({
   reportId: z.bigint(),
-  decision: z.enum(["APPROVED", "REJECTED"]),
+  status: z.enum([
+    "PENDING_APPROVAL",
+    "ASSIGNED",
+    "IN_PROGRESS",
+    "SUSPENDED",
+    "REJECTED",
+    "RESOLVED",
+  ]),
   explaination: z.string().optional(),
   category: z.enum([
     "WATER_SUPPLY",
@@ -24,5 +31,37 @@ export const CreateReviewResponseSchema = z.object({
   error: z.string().optional(),
 });
 
+export const RetrieveReportsByStatusInputSchema = z.object({
+  status: z.enum([
+    "PENDING_APPROVAL",
+    "ASSIGNED",
+    "IN_PROGRESS",
+    "SUSPENDED",
+    "REJECTED",
+    "RESOLVED",
+  ]),
+});
+
+export const ReportSchema = z.object({
+  id: z.bigint(),
+  title: z.string(),
+  description: z.string(),
+  category: z.string(),
+  status: z.string().nullable(),
+  explaination: z.string().nullable(),
+  assignedDepartment: z.bigint().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type Report = z.infer<typeof ReportSchema>;
+
 export type CreateReviewInput = z.infer<typeof CreateReviewInputSchema>;
 export type CreateReviewResponse = z.infer<typeof CreateReviewResponseSchema>;
+export type RetrieveReportsByStatusInput = z.infer<
+  typeof RetrieveReportsByStatusInputSchema
+>;
+
+export type RetrieveReportsByStatusResponse =
+  | { success: true; data: Report[] }
+  | { success: false; error: string };
