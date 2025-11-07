@@ -1,12 +1,18 @@
+"use server";
+
 import { decrypt } from "@/services/session";
 import { cookies } from "next/headers";
 import { MunicipalityUserController } from "@/controllers/municipalityUser.controller";
 import {
+  RetrieveMunicipalityResponse,
   SetRoleInputSchema,
   SetRoleResponse,
-} from "@/app/lib/dtos/municipalityUser.dtos";
+} from "@/dtos/municipalityUser.dto";
 
-export async function assignRole(formData: FormData): Promise<SetRoleResponse> {
+export async function assignRole(
+  userId: string,
+  role: string
+): Promise<SetRoleResponse> {
   const cookieStore = await cookies();
   const session = cookieStore.get("session")?.value;
 
@@ -28,8 +34,8 @@ export async function assignRole(formData: FormData): Promise<SetRoleResponse> {
   }
 
   const validatedData = SetRoleInputSchema.safeParse({
-    id: formData.get("id"),
-    role: formData.get("role"),
+    id: BigInt(userId),
+    role: role,
   });
 
   if (!validatedData.success) {
@@ -38,6 +44,33 @@ export async function assignRole(formData: FormData): Promise<SetRoleResponse> {
 
   const controller = new MunicipalityUserController();
   const response = await controller.setRole(validatedData.data);
+
+  return response;
+}
+
+export async function retrieveMunicipalityUsers(): Promise<RetrieveMunicipalityResponse> {
+  const cookieStore = await cookies();
+  const session = cookieStore.get("session")?.value;
+
+  if (!session) {
+    return { success: false, error: "Unauthorized: No session" };
+  }
+
+  const payload = await decrypt(session);
+
+  if (!payload) {
+    return { success: false, error: "Unauthorized: Invalid session payload" };
+  }
+
+  if (payload.role !== "admin") {
+    return {
+      success: false,
+      error: "Unauthorized: Only administrators can retrieve users",
+    };
+  }
+
+  const controller = new MunicipalityUserController();
+  const response = await controller.retrieveMunicipalityUsers();
 
   return response;
 }

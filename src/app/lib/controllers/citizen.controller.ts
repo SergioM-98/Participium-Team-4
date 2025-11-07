@@ -1,10 +1,12 @@
+"use server";
+
 import { CitizenRepository } from "@/repositories/citizen.repository";
 import {
   LoginInput,
   LoginResponse,
   RegistrationInput,
   RegistrationResponse,
-} from "@/app/lib/dtos/citizen.dtos";
+} from "@/app/lib/dtos/citizen.dto";
 
 class CitizenController {
   private citizenRepository: CitizenRepository;

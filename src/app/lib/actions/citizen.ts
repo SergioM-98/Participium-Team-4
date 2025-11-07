@@ -5,7 +5,7 @@ import {
   LoginResponse,
   RegistrationInputSchema,
   RegistrationResponse,
-} from "@/app/lib/dtos/citizen.dtos";
+} from "@/app/lib/dtos/citizen.dto";
 import { CitizenController } from "@/controllers/citizen.controller";
 import { createSession } from "@/services/session";
 

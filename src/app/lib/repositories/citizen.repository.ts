@@ -1,10 +1,12 @@
+"use server";
+
 import {
   CheckDuplicatesResponse,
   LoginInput,
   LoginResponse,
   RegistrationInput,
   RegistrationResponse,
-} from "@/app/lib/dtos/citizen.dtos";
+} from "@/app/lib/dtos/citizen.dto";
 import { prisma } from "@/db/db";
 import bcrypt from "bcrypt";
 

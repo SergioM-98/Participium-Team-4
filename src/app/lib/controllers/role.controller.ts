@@ -1,5 +1,11 @@
-import { CreateRoleInput, CreateRoleResponse } from "@/app/lib/dtos/role.dtos";
-import { RoleRepository } from "../repositories/role.repository";
+"use server";
+
+import {
+  CreateRoleInput,
+  CreateRoleResponse,
+  RetrieveRolesResponse,
+} from "@/dtos/role.dto";
+import { RoleRepository } from "@/repositories/role.repository";
 
 class RoleController {
   private roleRepository: RoleRepository;
@@ -10,6 +16,10 @@ class RoleController {
 
   async setRole(userData: CreateRoleInput): Promise<CreateRoleResponse> {
     return await this.roleRepository.createRole(userData.name, userData.level);
+  }
+
+  async getAllRoles(): Promise<RetrieveRolesResponse> {
+    return await this.roleRepository.getAllRoles();
   }
 }
 
