@@ -1,5 +1,6 @@
 "use server";
 
+import { signIn, auth } from "@/app/auth";
 import {
   LoginInputSchema,
   LoginResponse,
@@ -7,7 +8,6 @@ import {
   RegistrationResponse,
 } from "@/app/lib/dtos/user.dto";
 import { UserController } from "@/controllers/user.controller";
-import { createSession } from "@/services/session";
 
 export async function register(
   formData: FormData
@@ -41,15 +41,41 @@ export async function login(formData: FormData): Promise<LoginResponse> {
   });
 
   if (!validatedData.success) {
-    return { success: false, error: "Invalid input data" };
+    const firstError = validatedData.error.message ?? "Invalid input data";
+    return { success: false, error: firstError };
   }
 
-  const controller = new UserController();
-  const response = await controller.retrieveUser(validatedData.data);
+  try {
+    const result = await signIn("credentials", {
+      username: validatedData.data.username,
+      password: validatedData.data.password,
+      redirect: false,
+    });
 
-  if (response.success && response.data) {
-    signIn("credentials", { redirect: false, ... })
+    if (!result || result.error) {
+      return { success: false, error: "Invalid credentials" };
+    }
+    
+    const session = await auth();
+
+    if (!session?.user) {
+      return { success: false, error: "Failed to retrieve user session" };
+    }
+
+    return {
+      success: true,
+      data: {
+        id: BigInt(session.user.id),
+        firstName: session.user.firstName,
+        lastName: session.user.lastName,
+        username: session.user.name,
+        email: session.user.email,
+        role: session.user.role,
+        office: session.user.office,
+      },
+    };
+  } catch (error) {
+    console.error("Login error:", error);
+    return { success: false, error: "Internal server error" };
   }
-
-  return response;
 }

@@ -24,11 +24,13 @@
     "bcrypt": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.23.24",
     "jest": "^30.2.0",
     "jose": "^6.1.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.552.0",
     "next": "16.0.1",
+    "next-auth": "^4.24.13",
     "prisma": "^6.18.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
@@ -39,6 +41,11 @@
   "jest": {
     "collectCoverage": true,
     "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
     "coverageReporters": [
       "text",
       "lcov",
