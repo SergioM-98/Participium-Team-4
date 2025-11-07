@@ -1,12 +1,12 @@
 "use client";
 
 import { FC } from "react";
-import { User, UserRole } from "@/app/admin/roles/page";
 import UserRoleCard from "@/components/pt03/UserRoleCard";
+import { MunicipalityUser } from "@/dtos/municipalityUser.dto";
 
 type Props = {
-  users: User[];
-  onRoleChange: (userId: string, newRole: UserRole) => void;
+  users: MunicipalityUser[];
+  onRoleChange: (userId: string, newRole: string) => void;
 };
 
 const RoleAssignmentSection: FC<Props> = ({ users, onRoleChange }) => {

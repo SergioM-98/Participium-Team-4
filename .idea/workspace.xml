@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="b164dc21-a29e-48e8-9d46-1e2a73522fdf" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/app/lib/actions/officer.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/lib/controllers/officer.controller.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/lib/repositories/officer.repository.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/schema.prisma" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/admin/roles/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/admin/roles/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/actions/citizen.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/lib/actions/citizen.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/actions/municipalityUser.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/lib/actions/municipalityUser.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/actions/role.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/lib/actions/role.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/controllers/citizen.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/lib/controllers/citizen.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/controllers/municipalityUser.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/lib/controllers/municipalityUser.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/controllers/role.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/lib/controllers/role.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/dtos/citizen.dtos.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/dtos/municipalityUser.dtos.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/dtos/role.dtos.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/dtos/session.dtos.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/repositories/citizen.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/lib/repositories/citizen.repository.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/repositories/municipalityUser.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/lib/repositories/municipalityUser.repository.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/repositories/role.repository.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/lib/repositories/role.repository.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/lib/services/session.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/lib/services/session.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/pt03/RoleAssignmentSection.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/pt03/RoleAssignmentSection.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/pt03/UserRoleCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/pt03/UserRoleCard.tsx" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;gabriele-agosta&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:SergioM-98/participium-team-4.git&quot;,
+    &quot;accountId&quot;: &quot;99181896-dc08-4e0f-9cce-803c97d35096&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="357YtLsvlGA2a7tHWKhNhztdoAO" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Merging pt03__logics__gui&quot;,
+    &quot;js.debugger.nextJs.config.created.client&quot;: &quot;true&quot;,
+    &quot;js.debugger.nextJs.config.created.server&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/gabrieleagosta/Desktop/progetto_finale_se2/participium-team-4&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/gabrieleagosta/Desktop/progetto_finale_se2/participium-team-4/node_modules/typescript/lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RunManager" selected="npm.Next.js: server-side">
+    <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
+      <method v="2" />
+    </configuration>
+    <configuration name="Next.js: server-side" type="js.build_tools.npm">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="dev" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-WS-252.27397.92" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="b164dc21-a29e-48e8-9d46-1e2a73522fdf" name="Changes" comment="" />
+      <created>1762462791789</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1762462791789</updated>
+      <workItem from="1762462793743" duration="691000" />
+      <workItem from="1762505263857" duration="11000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

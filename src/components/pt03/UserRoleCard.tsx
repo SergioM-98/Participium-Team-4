@@ -1,26 +1,29 @@
 "use client";
 
-import { FC, useState } from "react";
-import { User, UserRole } from "@/app/admin/roles/page";
+import { assignRole } from "@/actions/municipalityUser";
+import { retrieveRoles } from "@/actions/role";
+import { Role } from "@/app/lib/dtos/role.dto";
+import { MunicipalityUser } from "@/dtos/municipalityUser.dto";
+import { FC, useEffect, useState } from "react";
 
 type Props = {
-  user: User;
-  onRoleChange: (userId: string, newRole: UserRole) => void;
+  user: MunicipalityUser;
+  onRoleChange: (userId: string, newRole: string) => void;
 };
-
-const availableRoles: UserRole[] = [
-  "Municipal Administrator",
-  "Public Relations Officer",
-  "Technical Office Staff",
-];
 
 const UserRoleCard: FC<Props> = ({ user, onRoleChange }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole>(user.role);
+  const [selectedRole, setSelectedRole] = useState<string>(user.role);
+  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
 
-  const handleSave = () => {
-    onRoleChange(user.id, selectedRole);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      await assignRole(user.id, selectedRole);
+      onRoleChange(user.id, selectedRole);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error assigning role:", error);
+    }
   };
 
   const handleCancel = () => {
@@ -28,27 +31,33 @@ const UserRoleCard: FC<Props> = ({ user, onRoleChange }) => {
     setIsEditing(false);
   };
 
-  const getRoleBadgeColor = (role: UserRole) => {
-    switch (role) {
-      case "Municipal Administrator":
-        return "bg-purple-100 text-purple-800 border-purple-200";
-      case "Public Relations Officer":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "Technical Office Staff":
-        return "bg-green-100 text-green-800 border-green-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+  useEffect(() => {
+    async function fetchRoles() {
+      try {
+        const response = await retrieveRoles();
+        if (response.success && response.data) {
+          setAvailableRoles(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching roles:", error);
+      }
     }
-  };
+
+    fetchRoles();
+  }, []);
 
   return (
     <div className="border rounded-lg p-4 hover:shadow-sm transition-shadow bg-white">
       <div className="flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 truncate">{user.fullName}</h3>
+          <h3 className="font-semibold text-gray-900 truncate">
+            {user.firstName} {user.lastName}
+          </h3>
           <p className="text-sm text-gray-600 truncate">{user.email}</p>
-          {user.office && (
-            <p className="text-xs text-gray-500 mt-1">Office: {user.office}</p>
+          {user.department && (
+            <p className="text-xs text-gray-500 mt-1">
+              Department: {user.department}
+            </p>
           )}
         </div>
 
@@ -57,12 +66,12 @@ const UserRoleCard: FC<Props> = ({ user, onRoleChange }) => {
             <>
               <select
                 value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value as UserRole)}
+                onChange={(e) => setSelectedRole(e.target.value as string)}
                 className="border rounded-md px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 {availableRoles.map((role) => (
-                  <option key={role} value={role}>
-                    {role}
+                  <option key={role.id} value={role.name}>
+                    {role.name}
                   </option>
                 ))}
               </select>
@@ -82,9 +91,7 @@ const UserRoleCard: FC<Props> = ({ user, onRoleChange }) => {
           ) : (
             <>
               <span
-                className={`px-3 py-1 text-sm font-medium rounded-full border whitespace-nowrap ${getRoleBadgeColor(
-                  user.role
-                )}`}
+                className={`px-3 py-1 text-sm font-medium rounded-full border whitespace-nowrap`}
               >
                 {user.role}
               </span>
