@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { use, useState, useTransition } from "react";
 import { motion } from "framer-motion";
-import { useRouter, useSearchParams } from "next/navigation"; // Import useRouter and useSearchParams
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -11,17 +11,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 import { Eye, EyeOff } from "lucide-react";
-
-// Import your server action
-// Changed path from aliased '@/' to relative '../'
-import { login } from "@/app/lib/actions/citizen";
+import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const [email, setEmail] = useState("");
+  const [username, setusername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -34,26 +31,44 @@ export default function LoginPage() {
       : ""
   );
 
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(undefined);
-    setSuccess(undefined); // Clear success message on new attempt
+    setSuccess(undefined);
 
-    const formData = new FormData();
-    formData.append("email", email);
-    formData.append("password", password);
+    const formData = new FormData(event.currentTarget);
+    const username = formData.get("username")?.toString();
+    const password = formData.get("password")?.toString();
+
+    console.log(username);
+    console.log(password);
+    if (!username || !password) {
+      setError("All fields are required");
+      return;
+    }
 
     startTransition(async () => {
-      const response = await login(formData);
-      if (!response.success) {
-        setError(response.error);
-      } else {
-        // Success! Redirect to a dashboard or home page
-        // We'll assume a '/dashboard' route for this example
-        router.push("/dashboard");
+      try {
+        const response = await signIn("credentials", {
+          redirect: false,
+          username,
+          password,
+        });
+
+        if (!response || response.error) {
+          setError(response?.error || "Invalid credentials");
+        } else {
+          // Login riuscito: fai redirect
+          router.push("/dashboard");
+        }
+      } catch (err: any) {
+        console.error(err);
+        setError("Something went wrong. Please try again.");
       }
     });
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
@@ -74,13 +89,14 @@ export default function LoginPage() {
           </div>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">username</Label>
               <Input
-                id="email"
-                type="email"
+                id="username"
+                name="username"
+                type="username"
                 placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setusername(e.target.value)}
                 required
                 disabled={isPending}
               />
@@ -90,6 +106,7 @@ export default function LoginPage() {
               <div className="relative">
                 <Input
                   id="password"
+                  name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
@@ -148,9 +165,11 @@ export default function LoginPage() {
               </span>
             </div>
           </div>
-          <Button asChild type="button" className="w-full" variant="outline">
-            <Link href="/register">Sign up</Link>
-          </Button>
+          <Link href="/register" className="w-full">
+            <Button type="button" className="w-full">
+              Sign up
+            </Button>
+          </Link>
         </div>
       </motion.div>
     </div>

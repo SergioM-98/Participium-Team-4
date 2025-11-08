@@ -1,7 +1,10 @@
 import OfficerRegistration from "./registration";
-import { auth } from "@/app/auth";
 
 import { register } from "@/app/lib/actions/user";
+
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/auth";
+
 
 async function submitNewOfficer(formData: FormData) {
   "use server";
@@ -26,12 +29,18 @@ async function submitNewOfficer(formData: FormData) {
 
 export default async function AdminUsersPage() {
 
-  const session = await auth();
+  const session = await getServerSession(authOptions);
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session) {
     return(
       <div>
-        return <p>You must be the administrator to view this page.</p>;
+        <p>You must be logged in to view this page.</p>
+      </div>
+    );
+  }else if(session.user.role !== "ADMIN"){
+    return(
+      <div>
+        <p>You must be the administrator to view this page.</p>
       </div>
     );
   }

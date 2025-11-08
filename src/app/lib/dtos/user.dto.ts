@@ -26,11 +26,11 @@ const BaseUserSchema = z.object({
     }
   );
 
-export const RegistrationInputSchema = BaseUserSchema.extend({
+export const RegistrationInputSchema = BaseUserSchema.safeExtend({
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
-export const CitizenSchema = BaseUserSchema.extend({
+export const CitizenSchema = BaseUserSchema.safeExtend({
   id: z.coerce.bigint(),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
