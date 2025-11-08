@@ -10,7 +10,8 @@ export async function createReport(
     category: string, 
     longitude: number, 
     latitude: number, 
-    userId: string
+    userId: string,
+    isAnonymous: boolean
 ): Promise<ReportResponse> {
     try {
         const reportData = reportRequestSchema.parse({
@@ -20,7 +21,8 @@ export async function createReport(
             category: category.toLowerCase(),
             longitude,
             latitude,
-            userId
+            userId,
+            isAnonymous
         });
 
         const reportController = new ReportController();

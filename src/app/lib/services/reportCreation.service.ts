@@ -15,6 +15,9 @@ class ReportCreationService {
     }
     public async createReport(data: ReportRequest): Promise<ReportResponse> {
         const uuid = crypto.randomUUID();
+        if (data.isAnonymous) {
+            data.userId = '2';
+        }
         try {
             const report = await this.reportRepository.createReport(
                 uuid,

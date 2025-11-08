@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { HelpCircle, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { createUploadPhoto, deleteUpload } from "@/app/lib/actions/uploader";
-import { reportCreation } from "@/app/lib/controllers/report.controller";
+import { createReport } from "@/actions/report";
 
 interface UploadedFile {
   file: File;
@@ -48,6 +48,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
   const [category, setCategory] = useState("");
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
 
   const uploadFileToServer = async (file: File): Promise<{success: boolean, uploadId?: string, error?: string}> => {
     try {
@@ -66,7 +67,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
       if (result.success && result.location) {
         return { success: true, uploadId: result.location };
       } else {
-        return { success: false, error: result.error || 'Upload failed' };
+        return { success: false, error: 'Upload failed' };
       }
     } catch (error) {
       console.error('Upload error:', error);
@@ -191,7 +192,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
       try {
         const result = await deleteUpload(fileToRemove.uploadId);
         if (!result.success) {
-          console.error('Failed to delete file from server:', result.error);
+          console.error('Failed to delete file from server:');
         }
       } catch (error) {
         console.error('Error deleting file from server:', error);
@@ -223,8 +224,8 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
               </div>
             </div>
           </div>
-
           <div className="px-6 pb-4 mt-2">
+            
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <Label htmlFor="reportTitle" className="mb-2">
@@ -425,6 +426,23 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
               );
             })}
           </div>
+          <div className="px-6 pb-4">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="anonymous"
+                checked={isAnonymous}
+                onChange={(e) => setIsAnonymous(e.target.checked)}
+                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+              />
+              <Label htmlFor="anonymous" className="text-sm text-foreground cursor-pointer">
+                Submit report anonymously
+              </Label>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 ml-6">
+              Your personal information will not be shared with this report
+            </p>
+          </div>
 
           <div className="px-6 py-3 border-t border-border bg-muted rounded-b-lg flex justify-between items-center">
             <TooltipProvider delayDuration={0}>
@@ -525,13 +543,15 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                     const userId = "temp-user-id"; // Replace with actual user ID
                     
                     // Submit report
-                    const result = await reportCreation(
+                    const result = await createReport(
                       title,
                       description,
                       photoIds,
+                      category,
                       locationProp!.lng,
                       locationProp!.lat,
-                      userId
+                      userId,
+                      isAnonymous
                     );
                     
                     console.log('Report created successfully:', result);
@@ -542,6 +562,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                     setTitle("");
                     setDescription("");
                     setCategory("");
+                    setIsAnonymous(false);
                     
                     // TODO: Change the following line to proper user notification
                     alert('Report created successfully!');

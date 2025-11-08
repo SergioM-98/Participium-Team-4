@@ -13,17 +13,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Report{
+model Report {
   id          String   @id @default(uuid())
   title       String
-  description String @db.Text
+  description String   @db.Text
   status      ReportStatus @default(PENDING_APPROVAL)
   photos      Photo[]
   category    Category @default(OTHER)
   createdAt   DateTime @default(now())
   longitude   Float
   latitude    Float
-  userId      String
+  citizenId   BigInt
+  citizen     Citizen  @relation(fields: [citizenId], references: [id])
 }
 
 
@@ -56,7 +57,7 @@ enum ReportStatus {
   REJECTED
   RESOLVED
   }
-  
+
 model Citizen {
   id            BigInt  @id @default(autoincrement())
   firstName     String  @db.VarChar(100)
@@ -64,6 +65,7 @@ model Citizen {
   email         String  @unique @db.VarChar(100)
   username      String  @unique @db.VarChar(100)
   passwordHash  String  @db.VarChar(255)
+  reports       Report[]
 
   @@map("citizen")
 }

@@ -38,7 +38,7 @@ class PhotoDeleteService {
                 filename = `${photo.filename}`;
             } else {
                 // Upload is incomplete - use temporary filename format: {id}_temp.{ext}
-                const extension = path.extname(photo.filename) || '.jpg';
+                const extension = path.extname(photo.filename || '') || '.jpg';
                 filename = `${validatedRequest.photoId}_temp${extension}`;
             }
 

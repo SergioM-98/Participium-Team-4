@@ -17,6 +17,7 @@ export const reportRequestSchema = z.object({
     longitude: z.number(),
     latitude: z.number(),
     userId: z.string(),
+    isAnonymous: z.boolean()
 });
 
 export const reportResponseSchema = z.object({
