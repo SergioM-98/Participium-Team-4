@@ -21,6 +21,7 @@ class ReportCreationService {
                 data.title,
                 data.description,
                 data.photos,
+                data.category,
                 data.longitude,
                 data.latitude,
                 data.userId

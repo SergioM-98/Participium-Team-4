@@ -55,6 +55,8 @@ enum ReportStatus {
   SUSPENDED
   REJECTED
   RESOLVED
+  }
+  
 model Citizen {
   id            BigInt  @id @default(autoincrement())
   firstName     String  @db.VarChar(100)

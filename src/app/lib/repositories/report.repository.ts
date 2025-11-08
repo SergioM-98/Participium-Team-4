@@ -12,7 +12,7 @@ class ReportRepository {
         return ReportRepository.instance;
     }
 
-    public async createReport(uuid: string, title: string, description: string, photos: string[], longitude: number, latitude: number, userId: string){
+    public async createReport(uuid: string, title: string, description: string, photos: string[], category: string, longitude: number, latitude: number, userId: string){
         const report = await prisma.report.create({
             data: {
                 id: uuid,
@@ -21,6 +21,7 @@ class ReportRepository {
                 photos: {
                     connect: photos.map(photoId => ({ id: photoId }))
                 },
+                category: category,
                 longitude: longitude,
                 latitude: latitude,
                 userId: userId
