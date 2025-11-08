@@ -1,7 +1,6 @@
 import OfficerRegistration from "./registration";
 import { auth } from "@/app/auth";
 
-import {  revalidatePath } from "next/cache";
 import { register } from "@/app/lib/actions/user";
 
 async function submitNewOfficer(formData: FormData) {
