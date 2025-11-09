@@ -4,6 +4,7 @@ import { register } from "@/app/lib/actions/user";
 
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
+import ToLogin from "@/components/auth/RedirectComponent";
 
 
 async function submitNewOfficer(formData: FormData) {
@@ -31,18 +32,8 @@ export default async function AdminUsersPage() {
 
   const session = await getServerSession(authOptions);
 
-  if (!session) {
-    return(
-      <div>
-        <p>You must be logged in to view this page.</p>
-      </div>
-    );
-  }else if(session.user.role !== "ADMIN"){
-    return(
-      <div>
-        <p>You must be the administrator to view this page.</p>
-      </div>
-    );
+  if (session?.user.role !== "ADMIN") {
+    return <ToLogin role={"admin"}/>
   }
 
   return (

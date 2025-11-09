@@ -1,4 +1,5 @@
 import { z } from "zod";
+// @ts-expect-error
 import { Role, Category } from "@prisma/client";
 
 const BaseUserSchema = z.object({
