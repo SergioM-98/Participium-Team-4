@@ -13,7 +13,7 @@ import { Eye, EyeOff } from "lucide-react";
 
 // Import your server action
 // Changed relative path to use the root alias, which might resolve the build error.
-import { register } from "@/app/lib/actions/citizen";
+import { register } from "@/app/lib/actions/user";
 
 export default function RegisterForm() {
   const router = useRouter(); // Hook for navigation
@@ -41,6 +41,7 @@ export default function RegisterForm() {
     formData.append("email", email);
     formData.append("username", username);
     formData.append("password", password);
+    formData.append("role", "CITIZEN");
 
     // Use startTransition to call the server action
     // This marks the update as a transition and sets isPending to true

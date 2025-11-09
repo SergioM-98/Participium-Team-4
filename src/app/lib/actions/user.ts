@@ -5,17 +5,29 @@ import {
   RegistrationResponse,
 } from "@/app/lib/dtos/user.dto";
 import { UserController } from "@/controllers/user.controller";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/auth";
 
 export async function register(
   formData: FormData
 ): Promise<RegistrationResponse> {
+
+  
+  const session = await getServerSession(authOptions);
+
   const validatedData = RegistrationInputSchema.safeParse({
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
     email: formData.get("email"),
     username: formData.get("username"),
     password: formData.get("password"),
+    role: formData.get("role"),
+    office: formData.get("office") ?? undefined
   });
+
+  if((!session || session.user.role !== "ADMIN") && validatedData.data?.role !== "CITIZEN"){
+    return { success: false, error: "Unauthorized registration" };
+  }
 
   if (!validatedData.success) {
     return { success: false, error: "Invalid input data" };

@@ -1,26 +1,37 @@
 import { z } from "zod";
-// @ts-expect-error
-import { Role, Category } from "@prisma/client";
+
+export const roleValues = ["CITIZEN", "OFFICER", "ADMIN"] as const;
+export const categoryValues = [
+  "WATER_SUPPLY",
+  "ARCHITECTURAL_BARRIERS",
+  "SEWER_SYSTEM",
+  "PUBLIC_LIGHTING",
+  "WASTE",
+  "ROADS_SIGNS_AND_TRAFFIC_LIGHTS",
+  "ROADS_AND_URBAN_FURNISHINGS",
+  "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS",
+  "OTHER"
+] as const;
 
 const BaseUserSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.email("Invalid email").optional(),
   username: z.string().min(3, "Username must be at least 3 characters"),
-  role: z.enum(Role),
-  office: z.enum(Category).optional(),
+  role: z.enum(roleValues),
+  office: z.enum(categoryValues).optional(),
 }).refine(
     (data) =>
-      (data.role === Role.OFFICER && data.office) ||
-      (data.role !== Role.OFFICER && !data.office),
+      (data.role === "OFFICER" && data.office) ||
+      (data.role !== "OFFICER" && !data.office),
     {
       message: "Only OFFICER can have an office",
       path: ["office"],
     }
   ).refine(
     (data) =>
-      (data.role === Role.CITIZEN && data.email) ||
-      (data.role !== Role.CITIZEN && !data.email),
+      (data.role === "CITIZEN" && data.email) ||
+      (data.role !== "CITIZEN" && !data.email),
     {
       message: "Only CITIZEN can have an email",
       path: ["email"],
@@ -46,20 +57,20 @@ export const RetrievedUserDataSchema = z.object({
   lastName: z.string(),
   email: z.email().optional(),
   username: z.string(),
-  role: z.enum(Role),
-  office: z.enum(Category).optional(),
+  role: z.enum(roleValues),
+  office: z.enum(categoryValues).optional(),
 }).refine(
     (data) =>
-      (data.role === Role.OFFICER && data.office) ||
-      (data.role !== Role.OFFICER && !data.office),
+      (data.role === "OFFICER" && data.office) ||
+      (data.role !== "OFFICER" && !data.office),
     {
       message: "Only OFFICER can have an office",
       path: ["office"],
     }
   ).refine(
     (data) =>
-      (data.role === Role.CITIZEN && data.email) ||
-      (data.role !== Role.CITIZEN && !data.email),
+      (data.role === "CITIZEN" && data.email) ||
+      (data.role !== "CITIZEN" && !data.email),
     {
       message: "Only CITIZEN can have an email",
       path: ["email"],

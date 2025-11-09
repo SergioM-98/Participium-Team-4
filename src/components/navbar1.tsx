@@ -1,4 +1,6 @@
 import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/auth";
 
 import {
   Accordion,
@@ -48,10 +50,14 @@ interface Navbar1Props {
       title: string;
       url: string;
     };
+    logout: {
+      title: string;
+      url: string;
+    }
   };
 }
 
-const Navbar1 = ({
+async function Navbar1({
   logo = {
     url: "/",
     src: "void",
@@ -63,22 +69,26 @@ const Navbar1 = ({
     { title: "Reports", url: "/reports" },
   ],
   auth = {
-    login: { title: "Login", url: "#" },
-    signup: { title: "Sign up", url: "#" },
+    login: { title: "Login", url: "/login" },
+    signup: { title: "Sign up", url: "/signup" },
+    logout: { title: "Logout", url: "/api/auth/signout?callbackUrl=/" },
   },
-}: Navbar1Props) => {
+}: Navbar1Props) {
+  const session = await getServerSession(authOptions);
+
   return (
     <section className="py-4">
-  <div className="w-full px-4 lg:px-8">
+      <div className="w-full px-4 lg:px-8">
         {/* Desktop Menu */}
         <nav className="hidden lg:flex items-center w-full">
           <div className="flex items-center gap-6 flex-1 min-w-0">
             {/* Logo */}
             <a href={logo.url} className="flex items-center gap-2 shrink-0">
               <span className="text-lg font-semibold tracking-tighter">
-                Participium
+                {logo.title}
               </span>
             </a>
+
             <div className="flex items-center min-w-0">
               <NavigationMenu>
                 <NavigationMenuList>
@@ -87,13 +97,23 @@ const Navbar1 = ({
               </NavigationMenu>
             </div>
           </div>
+
+          {/* Buttons */}
           <div className="flex gap-2">
-            <Button asChild variant="outline" size="sm">
-              <a href={auth.login.url}>{auth.login.title}</a>
-            </Button>
-            <Button asChild size="sm">
-              <a href={auth.signup.url}>{auth.signup.title}</a>
-            </Button>
+            {!session ? (
+              <>
+                <Button asChild variant="outline" size="sm">
+                  <a href={auth.login.url}>{auth.login.title}</a>
+                </Button>
+                <Button asChild size="sm">
+                  <a href={auth.signup.url}>{auth.signup.title}</a>
+                </Button>
+              </>
+            ) : (
+              <Button asChild variant="outline" size="sm">
+                <a href={auth.logout.url}>{auth.logout.title}</a>
+              </Button>
+            )}
           </div>
         </nav>
 
@@ -102,46 +122,46 @@ const Navbar1 = ({
           <div className="flex items-center justify-between">
             {/* Logo */}
             <a href={logo.url} className="flex items-center gap-2">
-              <img
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
-              />
+              <img src={logo.src} className="max-h-8 dark:invert" alt={logo.alt} />
             </a>
+
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon">
                   <Menu className="size-4" />
                 </Button>
               </SheetTrigger>
+
               <SheetContent className="overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>
                     <a href={logo.url} className="flex items-center gap-2">
-                      <img
-                        src={logo.src}
-                        className="max-h-8 dark:invert"
-                        alt={logo.alt}
-                      />
+                      <img src={logo.src} className="max-h-8 dark:invert" alt={logo.alt} />
                     </a>
                   </SheetTitle>
                 </SheetHeader>
+
                 <div className="flex flex-col gap-6 p-4">
-                  <Accordion
-                    type="single"
-                    collapsible
-                    className="flex w-full flex-col gap-4"
-                  >
+                  <Accordion type="single" collapsible className="flex w-full flex-col gap-4">
                     {menu.map((item) => renderMobileMenuItem(item))}
                   </Accordion>
 
+                  {/* Mobile buttons */}
                   <div className="flex flex-col gap-3">
-                    <Button asChild variant="outline">
-                      <a href={auth.login.url}>{auth.login.title}</a>
-                    </Button>
-                    <Button asChild>
-                      <a href={auth.signup.url}>{auth.signup.title}</a>
-                    </Button>
+                    {!session ? (
+                      <>
+                        <Button asChild variant="outline">
+                          <a href={auth.login.url}>{auth.login.title}</a>
+                        </Button>
+                        <Button asChild>
+                          <a href={auth.signup.url}>{auth.signup.title}</a>
+                        </Button>
+                      </>
+                    ) : (
+                      <Button asChild variant="outline">
+                        <a href={auth.logout.url}>{auth.logout.title}</a>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </SheetContent>
@@ -151,7 +171,8 @@ const Navbar1 = ({
       </div>
     </section>
   );
-};
+}
+
 
 const renderMenuItem = (item: MenuItem) => {
   if (item.items) {
