@@ -18,7 +18,7 @@ export async function register(
   const validatedData = RegistrationInputSchema.safeParse({
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
-    email: formData.get("email"),
+    email: formData.get("email") ?? undefined,
     username: formData.get("username"),
     password: formData.get("password"),
     role: formData.get("role"),
