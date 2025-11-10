@@ -1,7 +1,4 @@
-import createAdmin from "@/prisma/admin";
-import createAnonymous from "@/prisma/anonymous";
-
-let isInitialized = false;
+import createAdmin from "@/db/admin";
 
 export async function init() {
 
