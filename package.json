@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "participium": "docker compose down && rm -rf prisma/migrations && npx prisma migrate reset --force && npx prisma generate && docker compose up -d && npm run dev"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
