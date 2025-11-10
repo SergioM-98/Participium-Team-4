@@ -1,14 +1,21 @@
 // test/setup.ts
 import { PrismaClient } from '@prisma/client';
 
+// Determina l'URL del database basato sull'ambiente
+let testDatabaseUrl: string;
 
-declare global {
-  var beforeAll: (fn: () => Promise<void>) => void;
-  var afterAll: (fn: () => Promise<void>) => void;
+if (process.env.CI) {
+  // Ambiente CI - usa il service container PostgreSQL
+  testDatabaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@postgres:5432/test_db?schema=public';
+} else {
+  // Ambiente locale - usa il container Docker locale
+  testDatabaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5433/participium_test_db?schema=public';
 }
 
+console.log('Test database URL:', testDatabaseUrl.replace(/password=[^@]*@/, 'password=***@'));
+
 const prisma = new PrismaClient({
-  datasourceUrl: process.env.DATABASE_URL, 
+  datasourceUrl: testDatabaseUrl,
 });
 
 beforeAll(async () => {

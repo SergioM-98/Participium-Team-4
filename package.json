@@ -7,8 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test": "npm run test:setup && jest --runInBand",
+    "test:unit": "jest --selectProjects=\"Unit Tests\"",
+    "test:integration": "npm run test:setup && jest --selectProjects=\"Integration Tests\" --runInBand",
+    "test:setup": "docker-compose up -d test_db && timeout /t 5 /nobreak > nul && set DATABASE_URL=postgresql://postgres:postgres@localhost:5433/participium_test_db?schema=public && npx prisma migrate deploy",
+    "test:cleanup": "docker-compose down test_db",
+    "test:coverage": "npm run test:setup && jest --coverage --runInBand",
+    "test:ci": "jest --coverage --runInBand"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
@@ -26,7 +31,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.24",
-    "jest": "^30.2.0",
     "jose": "^6.1.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.552.0",
@@ -37,6 +41,7 @@
     "react-dom": "19.2.0",
     "react-leaflet": "^5.0.0",
     "tailwind-merge": "^3.3.1",
+    "ts-node": "^10.9.2",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -50,8 +55,10 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.1",
+    "jest": "^30.2.0",
     "tailwindcss": "^4",
+    "ts-jest": "^29.4.5",
     "tw-animate-css": "^1.4.0",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   }
 }

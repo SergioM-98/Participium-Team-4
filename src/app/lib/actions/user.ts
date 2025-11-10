@@ -14,25 +14,28 @@ export async function register(
 
   
   const session = await getServerSession(authOptions);
-  console.log("formData received in register action:", formData);
+
   const validatedData = RegistrationInputSchema.safeParse({
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
-    email: formData.get("email") ?? undefined,
+    email: formData.get("email") || undefined,
     username: formData.get("username"),
     password: formData.get("password"),
     role: formData.get("role"),
-    office: formData.get("office") ?? undefined,
-    telegram: formData.get("telegram") ?? undefined
+    office: formData.get("office") || undefined,
+    telegram: formData.get("telegram") || undefined
   });
 
-  if((!session || session.user.role !== "ADMIN") && validatedData.data?.role !== "CITIZEN"){
-    return { success: false, error: "Unauthorized registration" };
-  }
-
-  if (!validatedData.success) {
+    if (!validatedData.success) {
     return { success: false, error: "Invalid input data" };
   }
+
+  if(session || (!session && validatedData.data?.role !== "CITIZEN")){
+    if(!session || session.user.role !== "ADMIN"){
+        return { success: false, error: "Unauthorized registration" };
+    }
+  }
+
 
   const controller = new UserController();
   const isDuplicate = await controller.checkDuplicates(validatedData.data);

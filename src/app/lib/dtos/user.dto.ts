@@ -29,11 +29,16 @@ const BaseUserSchema = z.object({
       path: ["email"],
     }
   ).refine(
-    (data) =>
-      (data.role !== "CITIZEN" && data.telegram),
+    (data) => {
+      if (data.role === "CITIZEN") {
+        return true; 
+      }
+     
+      return !data.telegram;
+    },
     {
       message: "Only CITIZEN can have a telegram account",
-      path: ["email"],
+      path: ["telegram"], 
     }
   );
 
@@ -76,11 +81,16 @@ export const RetrievedUserDataSchema = z.object({
       path: ["email"],
     }
   ).refine(
-    (data) =>
-      (data.role !== "CITIZEN" && data.telegram),
+    (data) => {
+      if (data.role === "CITIZEN") {
+        return true; 
+      }
+    
+      return !data.telegram;
+    },
     {
       message: "Only CITIZEN can have a telegram account",
-      path: ["email"],
+      path: ["telegram"], 
     }
   );
 
