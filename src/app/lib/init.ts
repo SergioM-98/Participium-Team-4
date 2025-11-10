@@ -1,4 +1,7 @@
 import createAdmin from "@/db/admin";
+import createAnonymous from "@/db/anonymous";
+
+let isInitialized = false;
 
 export async function init() {
 
