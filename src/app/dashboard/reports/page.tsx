@@ -1,10 +1,15 @@
-import { ReportsTable } from "@/components/reports-table";
+import { getReports } from "@/lib/reports-data";
+import { ReportsListClient } from "@/components/reports-list-client";
 
-export default function ReportsPage() {
+// This remains a Server Component
+export default async function ReportsPage() {
+  // 1. Fetch data on the server
+  const reportsData = await getReports();
+
   return (
+    // 2. Render the client component directly inside a simple div
     <div className="container mx-auto py-10">
-      <h1 className="mb-6 text-3xl font-bold">Reports Dashboard</h1>
-      <ReportsTable />
+      <ReportsListClient data={reportsData} />
     </div>
   );
 }
