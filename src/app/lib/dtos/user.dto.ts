@@ -12,7 +12,7 @@ export const categoryValues = [
   "DEPARTMENT_OF_GENERAL_SERVICES_PROCUREMENT_AND_SUPPLIES",
   "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
   "DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING",
-  "DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRASTRUCTURE_AND_MOBILITY",
+  "DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY",
   "DEPARTMENT_OF_LOCAL_POLICE",
   "OTHER"
 ] as const;
@@ -23,7 +23,7 @@ const BaseUserSchema = z.object({
   email: z.email("Invalid email").optional(),
   username: z.string().min(3, "Username must be at least 3 characters"),
   role: z.enum(roleValues),
-  office: z.enum(Offices).optional(),
+  office: z.enum(categoryValues).optional(),
 }).refine(
     (data) =>
       (data.role === "OFFICER" && data.office) ||
