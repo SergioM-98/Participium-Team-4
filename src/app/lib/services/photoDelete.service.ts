@@ -1,4 +1,5 @@
 import { PhotoRepository } from '@/repositories/photo.repository';
+import { DeletePhotoRequest, DeletePhotoRequestSchema, TusDeleteResponse, TusDeleteResponseSchema } from '@/dtos/tus.dto';
 import { unlink } from 'fs/promises';
 import path from 'path';
 
@@ -17,12 +18,15 @@ class PhotoDeleteService {
         return PhotoDeleteService.instance;
     }
 
-    public async deletePhoto(photoId: string): Promise<void> {
+    public async deletePhoto(request: DeletePhotoRequest): Promise<TusDeleteResponse> {
         try {
+            // Validate request DTO
+            const validatedRequest = DeletePhotoRequestSchema.parse(request);
+            
             // Get photo record from database
-            const photo = await this.photoRepository.findById(photoId);
+            const photo = await this.photoRepository.findById(validatedRequest.photoId);
             if (!photo) {
-                throw new Error(`Photo with ID ${photoId} not found`);
+                throw new Error(`Photo with ID ${validatedRequest.photoId} not found`);
             }
 
             // Determine filename based on upload completion status
@@ -34,8 +38,8 @@ class PhotoDeleteService {
                 filename = `${photo.filename}`;
             } else {
                 // Upload is incomplete - use temporary filename format: {id}_temp.{ext}
-                const extension = path.extname(photo.filename) || '.jpg';
-                filename = `${photoId}_temp${extension}`;
+                const extension = path.extname(photo.filename || '') || '.jpg';
+                filename = `${validatedRequest.photoId}_temp${extension}`;
             }
 
             // Construct full file path
@@ -51,12 +55,24 @@ class PhotoDeleteService {
             }
 
             // Delete photo record from database
-            await this.photoRepository.delete(photoId);
-            console.log(`Photo record deleted from database: ${photoId}`);
+            await this.photoRepository.delete(validatedRequest.photoId);
+            console.log(`Photo record deleted from database: ${validatedRequest.photoId}`);
 
+            const response: TusDeleteResponse = TusDeleteResponseSchema.parse({
+                success: true,
+                message: 'Photo deleted successfully'
+            });
+
+            return response;
         } catch (error) {
             console.error('Error in deletePhoto:', error);
-            throw new Error(`Failed to delete photo: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            
+            const response: TusDeleteResponse = TusDeleteResponseSchema.parse({
+                success: false,
+                message: `Failed to delete photo: ${error instanceof Error ? error.message : 'Unknown error'}`
+            });
+
+            return response;
         }
     }
 }

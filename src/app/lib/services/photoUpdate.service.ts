@@ -1,6 +1,5 @@
-import { TusUploadHeaders } from "@/dtos/tus.header.dto";
-import { TusUpdateResponse } from "@/app/lib/dtos/tus.dto";
-import { PhotoRepository } from "@/app/lib/repositories/photo.repository";
+import { UpdatePhotoRequest, UpdatePhotoRequestSchema, TusUpdateResponse, TusUploadResponseSchema } from "@/dtos/tus.dto";
+import { PhotoRepository } from "@/repositories/photo.repository";
 import { appendFile, rename } from 'fs/promises';
 import path from 'path';
 
@@ -19,21 +18,24 @@ class PhotoUpdaterService {
         return PhotoUpdaterService.instance;
     }
 
-    public async updatePhoto(uploadId: string, headers: TusUploadHeaders, body: ArrayBuffer): Promise<TusUpdateResponse> {
-        if (body.byteLength !== headers['content-length']) {
-            throw new Error('Body length does not match content-length header');
-        }
-
+    public async updatePhoto(request: UpdatePhotoRequest): Promise<TusUpdateResponse> {
         try {
+            // Validate request DTO
+            const validatedRequest = UpdatePhotoRequestSchema.parse(request);
+            
+            if (validatedRequest.body.byteLength !== validatedRequest.contentLength) {
+                throw new Error('Body length does not match content-length');
+            }
+
             // Get current photo record
-            const currentPhoto = await this.photoRepository.findById(uploadId);
+            const currentPhoto = await this.photoRepository.findById(validatedRequest.photoId);
             if (!currentPhoto) {
                 throw new Error('Photo not found');
             }
 
             // Verify upload-offset matches current stored offset
-            if (headers['upload-offset'] !== Number(currentPhoto.offset)) {
-                throw new Error(`Offset mismatch: expected ${currentPhoto.offset}, got ${headers['upload-offset']}`);
+            if (validatedRequest.uploadOffset !== Number(currentPhoto.offset)) {
+                throw new Error(`Offset mismatch: expected ${currentPhoto.offset}, got ${validatedRequest.uploadOffset}`);
             }
 
             // Get current filename from URL (temp filename)
@@ -41,14 +43,14 @@ class PhotoUpdaterService {
             const filePath = path.join(process.cwd(), 'uploads', currentFilename);
 
             // Append chunk to existing file
-            const buffer = Buffer.from(body);
+            const buffer = Buffer.from(validatedRequest.body);
             await appendFile(filePath, buffer);
 
             // Calculate new offset
-            const newOffset = headers['upload-offset'] + body.byteLength;
+            const newOffset = validatedRequest.uploadOffset + validatedRequest.body.byteLength;
 
             // Update photo record with new offset
-            const photoRecord = await this.photoRepository.update(uploadId, {
+            const photoRecord = await this.photoRepository.update(validatedRequest.photoId, {
                 offset: BigInt(newOffset), 
             });
 
@@ -56,7 +58,7 @@ class PhotoUpdaterService {
             const isComplete = photoRecord.offset === photoRecord.size;
 
             if (isComplete) {
-                console.log(`Upload complete for photo ID: ${uploadId}`);
+                console.log(`Upload complete for photo ID: ${validatedRequest.photoId}`);
                 
                 // Rename from temporary to final filename
                 const finalFilename = `${currentPhoto.filename}`;
@@ -71,9 +73,9 @@ class PhotoUpdaterService {
                 }
             }
 
-            const response: TusUpdateResponse = {
+            const response: TusUpdateResponse = TusUploadResponseSchema.parse({
                 uploadOffset: Number(photoRecord.offset)
-            };
+            });
 
             return response;
         } catch (error) {

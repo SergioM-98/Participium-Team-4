@@ -1,6 +1,5 @@
-import { TusCreateHeaders } from "@/dtos/tus.header.dto";
-import { TusCreateResponse } from "@/app/lib/dtos/tus.dto";
-import { PhotoRepository } from "@/app/lib/repositories/photo.repository";
+import { CreateUploadRequest, CreateUploadRequestSchema, TusCreateResponse, TusCreateResponseSchema } from "@/dtos/tus.dto";
+import { PhotoRepository } from "@/repositories/photo.repository";
 import { savePhotoFile } from "@/utils/fileUtils";
 import { rename } from 'fs/promises';
 import path from 'path';
@@ -20,32 +19,33 @@ class PhotoUploaderService {
         return PhotoUploaderService.instance;
     }
 
-    public async createUploadPhoto(headers: TusCreateHeaders, body: ArrayBuffer): Promise<TusCreateResponse> {
-        if (body.byteLength !== headers['upload-length']) {
-            throw new Error('Body length does not match upload-length header');
-        }
-
+    public async createUploadPhoto(request: CreateUploadRequest): Promise<TusCreateResponse> {
         try {
-            const photoId = crypto.randomUUID();
+            // Validate request DTO
+            const validatedRequest = CreateUploadRequestSchema.parse(request);
+            
+            if (validatedRequest.body.byteLength !== validatedRequest.uploadLength) {
+                throw new Error('Body length does not match upload-length');
+            }
             
             // Extract and sanitize filename from TUS metadata
-            const filename = this.extractAndSanitizeFilename(headers['upload-metadata'], photoId);
+            const filename = this.extractAndSanitizeFilename(validatedRequest.uploadMetadata, validatedRequest.photoId);
             const fileExtension = this.getFileExtension(filename);
             
             // Use temporary filename during upload
-            const tempFilename = `${photoId}_temp${fileExtension}`;
+            const tempFilename = `${validatedRequest.photoId}_temp${fileExtension}`;
             const tempFilePath = path.join(process.cwd(), 'uploads', tempFilename);
             const publicUrl = `/uploads/${tempFilename}`;
 
-            const savedFileSize = await savePhotoFile(body, tempFilePath);
+            const savedFileSize = await savePhotoFile(validatedRequest.body, tempFilePath);
 
             // Verify file integrity
-            if (savedFileSize !== headers['upload-length']) {
-                throw new Error(`File size mismatch: expected ${headers['upload-length']}, got ${savedFileSize}`);
+            if (savedFileSize !== validatedRequest.uploadLength) {
+                throw new Error(`File size mismatch: expected ${validatedRequest.uploadLength}, got ${savedFileSize}`);
             }
 
             // Check if upload is complete
-            const isComplete = savedFileSize === headers['upload-length'];
+            const isComplete = savedFileSize === validatedRequest.uploadLength;
 
             if (isComplete) {
                 // Rename to final filename when upload is complete
@@ -62,22 +62,22 @@ class PhotoUploaderService {
             }
 
             const photoRecord = await this.photoRepository.create({
-                id: photoId,
+                id: validatedRequest.photoId,
                 url: publicUrl, // Keep original URL (temp filename)
-                size: BigInt(headers['upload-length']),
+                size: BigInt(validatedRequest.uploadLength),
                 offset: BigInt(savedFileSize), 
                 filename: filename, // Store original filename for later use
                 reportId: undefined
             });
 
-            const response: TusCreateResponse = {
+            const response: TusCreateResponse = TusCreateResponseSchema.parse({
                 location: `${photoRecord.id}`, 
                 uploadOffset: savedFileSize,
-            };
+            });
 
             return response;
         } catch (error) {
-            console.error('Error in createUploadPhotoUrl:', error);
+            console.error('Error in createUploadPhoto:', error);
             throw new Error('Failed to create and save photo');
         }
     }
