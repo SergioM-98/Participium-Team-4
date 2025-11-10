@@ -2,14 +2,18 @@ import { z } from "zod";
 
 export const roleValues = ["CITIZEN", "OFFICER", "ADMIN"] as const;
 export const categoryValues = [
-  "WATER_SUPPLY",
-  "ARCHITECTURAL_BARRIERS",
-  "SEWER_SYSTEM",
-  "PUBLIC_LIGHTING",
-  "WASTE",
-  "ROADS_SIGNS_AND_TRAFFIC_LIGHTS",
-  "ROADS_AND_URBAN_FURNISHINGS",
-  "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS",
+  "DEPARTMENT_OF_COMMERCE",
+  "DEPARTMENT_OF_EDUCATIONAL_SERVICES",
+  "DEPARTMENT_OF_DECENTRALIZATION_AND_CIVIC_SERVICES",
+  "DEPARTMENT_OF_SOCIAL_HEALTH_AND_HOUSING_SERVICES",
+  "DEPARTMENT_OF_INTERNAL_SERVICES",
+  "DEPARTMENT_OF_CULTURE_SPORT_MAJOR_EVENTS_AND_TOURISM_PROMOTION",
+  "DEPARTMENT_OF_FINANCIAL_RESOURCES",
+  "DEPARTMENT_OF_GENERAL_SERVICES_PROCUREMENT_AND_SUPPLIES",
+  "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+  "DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING",
+  "DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRASTRUCTURE_AND_MOBILITY",
+  "DEPARTMENT_OF_LOCAL_POLICE",
   "OTHER"
 ] as const;
 
@@ -19,7 +23,7 @@ const BaseUserSchema = z.object({
   email: z.email("Invalid email").optional(),
   username: z.string().min(3, "Username must be at least 3 characters"),
   role: z.enum(roleValues),
-  office: z.enum(categoryValues).optional(),
+  office: z.enum(Offices).optional(),
 }).refine(
     (data) =>
       (data.role === "OFFICER" && data.office) ||
