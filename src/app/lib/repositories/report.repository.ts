@@ -1,5 +1,3 @@
-"use server";
-
 import { prisma } from "@/db/db";
 import {
   CreateReviewInput,
@@ -10,6 +8,35 @@ import {
 import { Department } from "@/app/lib/dtos/department.dto";
 
 class ReportRepository {
+
+
+  // Creazione di un nuovo report
+  public async createReport(
+    uuid: string,
+    title: string,
+    description: string,
+    photos: string[],
+    longitude: number,
+    latitude: number,
+    userId: string
+  ) {
+    const report = await prisma.report.create({
+      data: {
+        id: uuid,
+        title: title,
+        description: description,
+        photos: {
+          connect: photos.map((photoId) => ({ id: photoId })),
+        },
+        longitude: longitude,
+        latitude: latitude,
+        userId: userId,
+      },
+    });
+    return report;
+  }
+
+  // Review di un report
   async createReview(
     userData: CreateReviewInput,
     department: Department

@@ -20,11 +20,13 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@/dtos/*": ["./src/app/lib/dtos/*"],
       "@/services/*": ["./src/app/lib/services/*"],
       "@/controllers/*": ["./src/app/lib/controllers/*"],
       "@/repositories/*": ["./src/app/lib/repositories/*"],
-      "@/actions/*": ["./src/app/lib/actions/*"],
+      "@/dtos/*": ["./src/app/lib/dtos/*"],
+      "@/models/*": ["./src/app/lib/models/*"],
+      "@/utils/*": ["./src/app/lib/utils/*"],
+      "@/middlewares/*": ["./src/app/lib/middlewares/*"],
       "@/types/*": ["./src/app/lib/types/*"],
       "@/lib/*": ["./src/app/lib/*"],
       "@/db/*": ["./prisma/*"],
@@ -36,7 +38,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "**/*.mts",
+    "types/**/*.d.ts"
   ],
   "exclude": ["node_modules"]
 }
