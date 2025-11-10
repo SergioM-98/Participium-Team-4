@@ -1,13 +1,13 @@
 import bcrypt from "bcrypt";
-import { prisma } from "./db";
+import { prisma } from "@/db/db";
 
-export default async function createAdmin() {
+export default async function createAnonymous() {
     const existing = await prisma.user.findUnique({
         where: { username: "Anonymous" },
     });
 
     if (existing) {
-        console.log("Admin already exists. Skipping creation.");
+        console.log("Anonymous user already exists. Skipping creation.");
         return;
     }
 

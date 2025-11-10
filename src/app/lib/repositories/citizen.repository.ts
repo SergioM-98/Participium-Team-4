@@ -6,84 +6,92 @@ import {
   LoginResponse,
   RegistrationInput,
   RegistrationResponse,
-} from "@/dtos/user.dto";
+} from "@/app/lib/dtos/citizen.dto";
 import { prisma } from "@/db/db";
 import bcrypt from "bcrypt";
 
-class UserRepository {
+class CitizenRepository {
   async checkDuplicates(
     userData: RegistrationInput
   ): Promise<CheckDuplicatesResponse> {
     try {
-      const user = await prisma.user.findUnique({
+      const citizen = await prisma.citizen.findUnique({
         where: {
           username: userData.username,
+          email: userData.email,
         },
       });
 
       return {
-        isExisting: user !== null,
+        isExisting: citizen !== null,
       };
     } catch (error) {
-      throw new Error("Failed to fetch user from database");
+      throw new Error("Failed to fetch citizen from database");
     }
   }
 
-  async createUser(
+  async createCitizen(
     userData: RegistrationInput
   ): Promise<RegistrationResponse> {
     try {
       const hashedPassword = await bcrypt.hash(userData.password, 12);
 
-      const user = await prisma.user.create({
+      const citizen = await prisma.citizen.create({
         data: {
           firstName: userData.firstName,
           lastName: userData.lastName,
           email: userData.email,
           username: userData.username,
-          role: userData.role,
-          office: userData.office,
           passwordHash: hashedPassword,
         },
       });
 
       return {
         success: true,
-        data: user.username,
+        data: citizen.username,
       };
     } catch (error) {
-      throw new Error("Failed to fetch user from database");
+      throw new Error("Failed to fetch citizen from database");
     }
   }
 
-  async retrieveUser(userData: LoginInput): Promise<LoginResponse> {
+  async retrieveCitizen(userData: LoginInput): Promise<LoginResponse> {
     try {
-      const user = await prisma.user.findUnique({
+      const citizen = await prisma.citizen.findUnique({
         where: {
-          username: userData.username,
+          email: userData.email,
         },
       });
 
-      if (!user) {
+      if (!citizen) {
         return { success: false, error: "Invalid credentials" };
       }
 
       const passwordMatch = await bcrypt.compare(
         userData.password,
-        user.passwordHash
+        citizen.passwordHash
       );
 
       if (!passwordMatch) {
         return { success: false, error: "Invalid credentials" };
       }
 
-      const { passwordHash, ...rest } = user;
-      return { success: true, data: rest };
+      const retrievedUserData = {
+        id: citizen.id,
+        firstName: citizen.firstName,
+        lastName: citizen.lastName,
+        email: citizen.email,
+        username: citizen.username,
+      };
 
+      return {
+        success: true,
+        data: retrievedUserData,
+      };
     } catch (error) {
-      throw new Error("Failed to fetch user from database");
+      throw new Error("Failed to fetch citizen from database");
     }
   }
 }
 
-export { UserRepository };
+export { CitizenRepository };
