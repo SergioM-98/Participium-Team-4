@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 "use server";
 
 import { ReportRepository } from "@/app/lib/repositories/report.repository";
@@ -39,31 +38,27 @@ class ReportController {
   async retrieveReportsByStatus(userData: RetrieveReportsByStatusInput) {
     return await this.reportRepository.retrieveReportsByStatus(userData);
   }
+
+  // Metodo per la creazione di report da cittadini
+  async createReport(
+    uuid: string,
+    title: string,
+    description: string,
+    photos: string[],
+    longitude: number,
+    latitude: number,
+    userId: string
+  ) {
+    return await this.reportRepository.createReport(
+      uuid,
+      title,
+      description,
+      photos,
+      longitude,
+      latitude,
+      userId
+    );
+  }
 }
 
 export { ReportController };
-=======
-'use server'
-import { reportRequestSchema, ReportResponse } from '@/dtos/report.dto';
-import { ReportCreationService } from '@/services/reportCreation.service';
-
-export async function reportCreation(title: string, description: string, photos: string[], longitude: number, latitude: number, userId: string): Promise<ReportResponse> {
-    try {
-        const reportData = reportRequestSchema.parse({
-            title,
-            description,
-            photos,
-            longitude,
-            latitude,
-            userId
-        });
-
-        const reportCreationService = ReportCreationService.getInstance();
-        const report = await reportCreationService.createReport(reportData);
-        return report;
-    } catch (error) {
-        console.error('Error creating report:', error);
-        throw error;
-    }
-}
->>>>>>> dev

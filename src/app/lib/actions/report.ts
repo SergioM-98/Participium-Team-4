@@ -109,3 +109,25 @@ export async function retrieveReportsByStatus(
   const controller = new ReportController();
   return await controller.retrieveReportsByStatus(validatedData.data);
 }
+
+export async function reportCreation(
+  title: string,
+  description: string,
+  photos: string[],
+  longitude: number,
+  latitude: number,
+  userId: string
+) {
+  const uuid = crypto.randomUUID();
+  const controller = new ReportController();
+  
+  return await controller.createReport(
+    uuid,
+    title,
+    description,
+    photos,
+    longitude,
+    latitude,
+    userId
+  );
+}

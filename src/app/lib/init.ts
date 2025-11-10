@@ -1,4 +1,4 @@
-import createAdmin from "@/prisma/admin";
+import createAdmin from "@/db/admin";
 
 export async function init() {
   await createAdmin();

@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { HelpCircle, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { createUploadPhoto, deleteUpload } from "@/app/lib/actions/uploader";
-import { reportCreation } from "@/app/lib/controllers/report.controller";
+import { reportCreation } from "@/app/lib/actions/report";
 
 interface UploadedFile {
   file: File;
