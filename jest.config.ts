@@ -6,25 +6,79 @@
 import type {Config} from 'jest';
 
 const config: Config = {
-  // Automatically clear mock calls, instances, contexts and results before every test
-  clearMocks: true,
+  // Configurazione per progetti multipli
+  projects: [
+    {
+      // Progetto per Unit Tests
+      displayName: 'Unit Tests',
+      testMatch: ['<rootDir>/test/unit/**/*.test.ts'],
+      testEnvironment: 'jest-environment-node',
+      clearMocks: true,
+      preset: 'ts-jest',
+      moduleNameMapper: {
+        '^@/repositories/(.*)$': '<rootDir>/src/app/lib/repositories/$1',
+        '^@/dtos/(.*)$': '<rootDir>/src/app/lib/dtos/$1',
+        '^@/services/(.*)$': '<rootDir>/src/app/lib/services/$1',
+        '^@/controllers/(.*)$': '<rootDir>/src/app/lib/controllers/$1',
+        '^@/prisma/(.*)$': '<rootDir>/prisma/$1',
+        '^@/db/(.*)$': '<rootDir>/prisma/$1',
+        '^@/lib/(.*)$': '<rootDir>/src/app/lib/$1',
+        '^@/(.*)$': '<rootDir>/src/$1',
+      },
+      transform: {
+        '^.+\\.(ts|tsx)$': ['ts-jest', {
+          useESM: true,
+        }],
+      },
+      extensionsToTreatAsEsm: ['.ts', '.tsx'],
+      globals: {
+        'ts-jest': {
+          useESM: true,
+        },
+      },
+    },
+    {
+      // Progetto per Integration Tests
+      displayName: 'Integration Tests',
+      testMatch: ['<rootDir>/test/integrated/**/*.test.ts'],
+      testEnvironment: 'jest-environment-node',
+      clearMocks: true,
+      preset: 'ts-jest',
+      setupFiles: ['<rootDir>/jest.setup.js'],
+      setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
+      moduleNameMapper: {
+        '^@/repositories/(.*)$': '<rootDir>/src/app/lib/repositories/$1',
+        '^@/dtos/(.*)$': '<rootDir>/src/app/lib/dtos/$1',
+        '^@/services/(.*)$': '<rootDir>/src/app/lib/services/$1',
+        '^@/controllers/(.*)$': '<rootDir>/src/app/lib/controllers/$1',
+        '^@/prisma/(.*)$': '<rootDir>/prisma/$1',
+        '^@/db/(.*)$': '<rootDir>/prisma/$1',
+        '^@/lib/(.*)$': '<rootDir>/src/app/lib/$1',
+        '^@/(.*)$': '<rootDir>/src/$1',
+      },
+      transform: {
+        '^.+\\.(ts|tsx)$': ['ts-jest', {
+          useESM: true,
+        }],
+      },
+      extensionsToTreatAsEsm: ['.ts', '.tsx'],
+      globals: {
+        'ts-jest': {
+          useESM: true,
+        },
+      },
+    }
+  ],
 
-  // Indicates whether the coverage information should be collected while executing the test
+  // Configurazione globale per coverage
   collectCoverage: true,
-
-  // The directory where Jest should output its coverage files
   coverageDirectory: "coverage",
-
-  // Indicates which provider should be used to instrument code for coverage
   coverageProvider: "v8",
 
-  // The test environment that will be used for testing
-  testEnvironment: "jest-environment-node",
-
-  // An array of file extensions your modules use
+  // Estensioni dei moduli
   moduleFileExtensions: [
     "js",
-    "mjs",
+    "mjs", 
     "cjs",
     "jsx",
     "ts",
@@ -35,50 +89,11 @@ const config: Config = {
     "node"
   ],
 
-  // A map from regular expressions to module names - AGGIUNTO I PATH MAPPINGS
-  moduleNameMapper: {
-    '^@/repositories/(.*)$': '<rootDir>/src/app/lib/repositories/$1',
-    '^@/dtos/(.*)$': '<rootDir>/src/app/lib/dtos/$1',
-    '^@/services/(.*)$': '<rootDir>/src/app/lib/services/$1',
-    '^@/controllers/(.*)$': '<rootDir>/src/app/lib/controllers/$1',
-    '^@/prisma/(.*)$': '<rootDir>/prisma/$1',
-    '^@/db/(.*)$': '<rootDir>/prisma/$1',
-    '^@/lib/(.*)$': '<rootDir>/src/app/lib/$1',
-    '^@/(.*)$': '<rootDir>/src/$1',
-  },
-
-  // The glob patterns Jest uses to detect test files
-  testMatch: [
-    "**/__tests__/**/*.?([mc])[jt]s?(x)",
-    "**/?(*.)+(spec|test).?([mc])[jt]s?(x)"
-  ],
-
-  // A map from regular expressions to paths to transformers - AGGIUNTO SUPPORTO TYPESCRIPT
-  transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', {
-      useESM: true,
-    }],
-  },
-
-  // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
+  // Trasformazioni ignorate
   transformIgnorePatterns: [
     "\\\\node_modules\\\\",
     "\\.pnp\\.[^\\\\]+$"
   ],
-
-  // AGGIUNTO: Setup files per configurazioni globali (opzionale)
-  // setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-
-  // AGGIUNTO: Preset per TypeScript (alternativa a transform)
-  preset: 'ts-jest',
-
-  // AGGIUNTO: Configurazioni per ESModules
-  extensionsToTreatAsEsm: ['.ts', '.tsx'],
-  globals: {
-    'ts-jest': {
-      useESM: true,
-    },
-  },
 };
 
 export default config;

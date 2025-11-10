@@ -1,14 +1,11 @@
 // test/setup.ts
 import { PrismaClient } from '@prisma/client';
 
-
-declare global {
-  var beforeAll: (fn: () => Promise<void>) => void;
-  var afterAll: (fn: () => Promise<void>) => void;
-}
+// Usa il database di test se non è specificato diversamente
+const testDatabaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5433/participium_test_db?schema=public';
 
 const prisma = new PrismaClient({
-  datasourceUrl: process.env.DATABASE_URL, 
+  datasourceUrl: testDatabaseUrl,
 });
 
 beforeAll(async () => {
