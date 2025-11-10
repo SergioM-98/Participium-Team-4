@@ -5,11 +5,73 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model Report{
+  id          String   @id @default(uuid())
+  title       String
+  description String @db.Text
+  status      ReportStatus @default(PENDING_APPROVAL)
+  photos      Photo[]
+  category    Category @default(OTHER)
+  createdAt   DateTime @default(now())
+  longitude   Float
+  latitude    Float
+  userId      String
+}
+
+
+model Photo {
+  id        String   @id @default(uuid())
+  url       String
+  size      BigInt @default(0)
+  offset    BigInt @default(0)
+  filename  String?
+  reportId  String?
+  report   Report? @relation(fields: [reportId], references: [id])
+}
+
+enum Category {
+  WATER_SUPPLY
+  ARCHITECTURAL_BARRIERS
+  SEWER_SYSTEM
+  PUBLIC_LIGHTING
+  WASTE
+  ROADS_SIGNS_AND_TRAFFIC_LIGHTS
+  ROADS_AND_URBAN_FURNISHINGS
+  PUBLIC_GREEN_AREAS_AND_BACKGROUNDS
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING_APPROVAL
+  ASSIGNED
+  IN_PROGRESS
+  SUSPENDED
+  REJECTED
+  RESOLVED
+}
+
+enum Role {
+  ADMIN
+  OFFICER
+  CITIZEN
+}
+
+model User {
+  id            BigInt  @id @default(autoincrement())
+  firstName     String  @db.VarChar(100)
+  lastName      String  @db.VarChar(100)
+  email         String? @unique @db.VarChar(100)
+  username      String  @unique @db.VarChar(100)
+  role          Role    @default(CITIZEN)
+  office        Category?
+  passwordHash  String  @db.VarChar(255)
+  @@map("user")
 }
