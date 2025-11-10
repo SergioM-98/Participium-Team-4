@@ -36,7 +36,7 @@ jobs:
         apt-get install -y postgresql-client
 
     - name: Install dependencies
-      run: npm ci
+      run: npm i
 
     - name: Wait for Postgres
       run: |
