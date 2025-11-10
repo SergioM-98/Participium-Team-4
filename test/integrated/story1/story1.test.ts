@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import { register } from "@/app/lib/actions/user";
 import { RegistrationResponse } from "@/app/lib/dtos/user.dto";
+import { prisma } from "../../setup";
 
 // Mock NextAuth to control sessions
 jest.mock('next-auth/next', () => ({
@@ -13,31 +13,11 @@ jest.mock('@/auth', () => ({
 
 import { getServerSession } from 'next-auth/next';
 
-// Real database for integration tests
-const prisma = new PrismaClient({
-    datasources: {
-        db: {
-            url: process.env.DATABASE_URL_TEST || process.env.DATABASE_URL
-        }
-    }
-});
-
 describe('Story 1 - Integration Test: Citizen Registration', () => {
-    
-    beforeAll(async () => {
-        // Connect to test database
-        await prisma.$connect();
-    });
     
     beforeEach(async () => {
         // Clean database before each test
         await prisma.user.deleteMany({});
-    });
-
-    afterAll(async () => {
-        // Clean up and disconnect after all tests
-        await prisma.user.deleteMany({});
-        await prisma.$disconnect();
     });
 
     describe('Citizen Registration Flow', () => {

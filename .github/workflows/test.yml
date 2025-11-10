@@ -56,3 +56,4 @@ jobs:
       env:
         DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
         NODE_ENV: test
+        CI: true
