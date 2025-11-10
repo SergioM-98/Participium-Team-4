@@ -18,7 +18,7 @@ export async function createReport(
             title,
             description,
             photos,
-            category: category.toLowerCase(),
+            category: category,
             longitude,
             latitude,
             userId,
