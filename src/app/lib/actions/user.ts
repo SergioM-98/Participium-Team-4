@@ -14,7 +14,7 @@ export async function register(
 
   
   const session = await getServerSession(authOptions);
-
+  console.log("formData received in register action:", formData);
   const validatedData = RegistrationInputSchema.safeParse({
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),

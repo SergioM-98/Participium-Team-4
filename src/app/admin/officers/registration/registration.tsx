@@ -27,7 +27,7 @@ export default function OfficerRegistration({ submitNewOfficer }: { submitNewOff
     formData.append("username", payload.username);
     formData.append("role", "OFFICER");
     formData.append("password", payload.password);
-    formData.append("office", payload.office ?? "OTHER");
+    formData.append("office", (payload.office === "" ? "OTHER" : payload.office));
 
     const result = await submitNewOfficer(formData);
 
