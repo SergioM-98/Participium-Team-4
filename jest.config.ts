@@ -37,17 +37,14 @@ const config: Config = {
 
   // A map from regular expressions to module names - AGGIUNTO I PATH MAPPINGS
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-    '^@/services/(.*)$': '<rootDir>/src/app/lib/services/$1',
-    '^@/controllers/(.*)$': '<rootDir>/src/app/lib/controllers/$1',
     '^@/repositories/(.*)$': '<rootDir>/src/app/lib/repositories/$1',
     '^@/dtos/(.*)$': '<rootDir>/src/app/lib/dtos/$1',
-    '^@/models/(.*)$': '<rootDir>/src/app/lib/models/$1',
-    '^@/utils/(.*)$': '<rootDir>/src/app/lib/utils/$1',
-    '^@/middlewares/(.*)$': '<rootDir>/src/app/lib/middlewares/$1',
-    '^@/types/(.*)$': '<rootDir>/src/app/lib/types/$1',
-    '^@/lib/(.*)$': '<rootDir>/src/app/lib/$1',
+    '^@/services/(.*)$': '<rootDir>/src/app/lib/services/$1',
+    '^@/controllers/(.*)$': '<rootDir>/src/app/lib/controllers/$1',
+    '^@/prisma/(.*)$': '<rootDir>/prisma/$1',
     '^@/db/(.*)$': '<rootDir>/prisma/$1',
+    '^@/lib/(.*)$': '<rootDir>/src/app/lib/$1',
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
 
   // The glob patterns Jest uses to detect test files
