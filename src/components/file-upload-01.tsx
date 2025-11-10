@@ -23,7 +23,8 @@ import { cn } from "@/lib/utils";
 import { HelpCircle, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { createUploadPhoto, deleteUpload } from "@/app/lib/actions/uploader";
-import { reportCreation } from "@/app/lib/actions/report";
+import { createReport } from "@/actions/report";
+import { useSession } from "next-auth/react";
 
 interface UploadedFile {
   file: File;

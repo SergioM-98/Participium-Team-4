@@ -1,5 +1,5 @@
-import createAdmin from "@/db/admin";
-import createAnonymous from "@/db/anonymous";
+import createAdmin from "@/prisma/admin";
+import createAnonymous from "@/prisma/anonymous";
 
 let isInitialized = false;
 
