@@ -13,3 +13,25 @@ jest.mock('@/db/db', () => ({
         },
     },
 }));
+
+const mockedPrisma = require('@/db/db').prisma;
+
+describe('UserRepository', () => {
+    let userRepository: UserRepository;
+    let mockUserData: RegistrationInput = {
+        firstName
+        
+    }
+
+    beforeEach(() => {
+        userRepository = new UserRepository();
+    });
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe('checkDuplicates', () => {
+        it("should return return Registration success true when username does not exist", async () => {
+            mockedPrisma.user.findUnique.mockResolvedValue({username: test});
+            
+            userRepository.checkDuplicates()
