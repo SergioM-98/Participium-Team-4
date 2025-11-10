@@ -22,7 +22,8 @@ export async function register(
     username: formData.get("username"),
     password: formData.get("password"),
     role: formData.get("role"),
-    office: formData.get("office") ?? undefined
+    office: formData.get("office") ?? undefined,
+    telegram: formData.get("telegram") ?? undefined
   });
 
   if((!session || session.user.role !== "ADMIN") && validatedData.data?.role !== "CITIZEN"){
