@@ -14,7 +14,7 @@ jest.mock('@/app/lib/repositories/user.repository', () => {
 
 describe('UserController Story 1', () => {
     let userController: UserController;
-    let mockUserData: RegistrationInput = {
+    const mockUserData: RegistrationInput = {
         username: "testuser",
         password: "Test@1234",
         firstName: "Test",
@@ -46,15 +46,15 @@ describe('UserController Story 1', () => {
     describe('createUser', () => {
         it("should validate input and call repository's createUser method, return success true", async () => {
             mockRepository.createUser.mockResolvedValue({success: true, data: mockUserData.username});
-            let response: RegistrationResponse = await userController.createUser(mockUserData);
+            const response: RegistrationResponse = await userController.createUser(mockUserData);
             expect(response.success).toBe(true);
             if (response.success) {
                 expect(response.data).toBe(mockUserData.username);
             }
         })
         it("should return error on invalid input data", async () => {
-            let invalidUserData = { ...mockUserData, username: "" }
-            let response: RegistrationResponse = await userController.createUser(invalidUserData)
+            const invalidUserData = { ...mockUserData, username: "" }
+            const response: RegistrationResponse = await userController.createUser(invalidUserData)
             expect(response.success).toBe(false)
             expect(response).toHaveProperty('error')
             });

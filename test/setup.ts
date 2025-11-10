@@ -24,10 +24,26 @@ beforeAll(async () => {
 
     await prisma.$connect();
     
-
-    await prisma.report.deleteMany();
-    await prisma.photo.deleteMany();
-    await prisma.user.deleteMany();
+    const { execSync } = require('child_process');
+    try {
+      execSync('npx prisma migrate deploy --skip-generate', {
+        env: { ...process.env, DATABASE_URL: testDatabaseUrl },
+        stdio: 'inherit',
+      });
+      console.log('Migrations applied successfully');
+      
+      // Pulisci i dati solo se le migrazioni sono riuscite (tabelle esistono)
+      try {
+        await prisma.report.deleteMany();
+        await prisma.photo.deleteMany();
+        await prisma.user.deleteMany();
+      } catch (cleanupError) {
+        console.warn('Cleanup warning:', cleanupError);
+      }
+    } catch (migrationError) {
+      console.warn('Migration error:', migrationError);
+      // Continua comunque, le tabelle potrebbero già esistere
+    }
     
     console.log('Test database setup completed');
   } catch (error) {

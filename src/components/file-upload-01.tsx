@@ -542,7 +542,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                     const photoIds = completedUploads.map(f => f.uploadId).filter(Boolean) as string[];
                     
                     // TODO: Get userId from authentication context/session
-                    const userId =  session?.user?.id; // Replace with actual user ID
+                    const userId =  session?.user?.id || ''; // Replace with actual user ID
                     
                     // Submit report
                     const result = await createReport(
