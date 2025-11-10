@@ -24,6 +24,7 @@ import { HelpCircle, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { createUploadPhoto, deleteUpload } from "@/app/lib/actions/uploader";
 import { createReport } from "@/actions/report";
+import { useSession } from "next-auth/react";
 
 interface UploadedFile {
   file: File;
@@ -42,6 +43,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
   const [fileProgresses, setFileProgresses] = useState<Record<string, number>>(
     {}
   );
+  const { data: session, status } = useSession();
   const [isUploading, setIsUploading] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -540,7 +542,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                     const photoIds = completedUploads.map(f => f.uploadId).filter(Boolean) as string[];
                     
                     // TODO: Get userId from authentication context/session
-                    const userId = "temp-user-id"; // Replace with actual user ID
+                    const userId =  session?.user?.id; // Replace with actual user ID
                     
                     // Submit report
                     const result = await createReport(

@@ -24,7 +24,7 @@ model Report {
   longitude   Float
   latitude    Float
   citizenId   BigInt
-  citizen     Citizen  @relation(fields: [citizenId], references: [id])
+  citizen     User  @relation(fields: [citizenId], references: [id])
 }
 
 
