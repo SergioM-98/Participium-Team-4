@@ -32,6 +32,21 @@ export default function LoginPage() {
   );
 
 
+  const getErrorMessage = (error: string) => {
+    switch (error) {
+      case "CredentialsSignin":
+        return "Wrong credentials"; 
+      case "Configuration":
+        return "Server configuration error";
+      case "AccessDenied":
+        return "Access denied";
+      case "Verification":
+        return "Verification error";
+      default:
+        return "An error occurred during login";
+    }
+  };
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(undefined);
@@ -57,7 +72,8 @@ export default function LoginPage() {
         });
 
         if (!response || response.error) {
-          setError(response?.error || "Invalid credentials");
+          const errorMessage = response?.error ? getErrorMessage(response.error) : "Invalid credentials";
+          setError(errorMessage);
         } else {
           // Login riuscito: fai redirect
           router.push("/dashboard");
@@ -68,7 +84,6 @@ export default function LoginPage() {
       }
     });
   };
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
@@ -89,14 +104,18 @@ export default function LoginPage() {
           </div>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <Label htmlFor="username">username</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
                 name="username"
-                type="username"
-                placeholder="you@example.com"
+                type="text"
+                placeholder="admin"
                 value={username}
-                onChange={(e) => setusername(e.target.value)}
+                onChange={(e) => {
+                  setusername(e.target.value);
+                  // ✅ Pulisci errore quando l'utente inizia a digitare
+                  if (error) setError("");
+                }}
                 required
                 disabled={isPending}
               />
@@ -110,7 +129,10 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError("");
+                  }}
                   required
                   disabled={isPending}
                 />
@@ -171,6 +193,16 @@ export default function LoginPage() {
             </Button>
           </Link>
         </div>
+
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-4 p-4 bg-white/80 backdrop-blur rounded-lg border">
+            <p className="text-xs text-gray-600 text-center">
+              <strong>Test credentials:</strong><br />
+              Username: admin<br />
+              Password: adminTeam4
+            </p>
+          </div>
+        )}
       </motion.div>
     </div>
   );

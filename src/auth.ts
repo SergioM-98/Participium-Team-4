@@ -20,7 +20,7 @@ export const authOptions: AuthOptions = {
         const password = credentials.password;
         if (!username || !password) return null;
 
-        const user = await prisma.citizen.findUnique({
+        const user = await prisma.user.findUnique({
           where: { username },
         });
 

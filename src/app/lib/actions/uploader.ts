@@ -20,7 +20,7 @@ export async function createUploadPhoto(formData: FormData) {
     // Convert file to ArrayBuffer if present
     const bodyBytes = file ? await file.arrayBuffer() : new ArrayBuffer(0);
 
-    return controller.createUploadPhoto(data, bodyBytes);
+    return await controller.createUploadPhoto(data, bodyBytes);
 }
 
 export async function uploadPhotoChunk(uploadId: string, formData: FormData) {
