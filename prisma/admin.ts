@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { prisma } from "@/db/db";
+import { prisma } from "@/prisma/db";
 
 export default async function createAdmin() {
     const existing = await prisma.user.findUnique({

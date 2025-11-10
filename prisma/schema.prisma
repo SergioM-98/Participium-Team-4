@@ -14,27 +14,26 @@ datasource db {
 }
 
 model Report {
-  id          String   @id @default(uuid())
+  id          String       @id @default(uuid())
   title       String
-  description String   @db.Text
+  description String       @db.Text
   status      ReportStatus @default(PENDING_APPROVAL)
   photos      Photo[]
-  category    Category @default(OTHER)
-  createdAt   DateTime @default(now())
+  category    Category     @default(OTHER)
+  createdAt   DateTime     @default(now())
   longitude   Float
   latitude    Float
   citizenId   BigInt
-  citizen     User  @relation(fields: [citizenId], references: [id])
+  citizen     User         @relation(fields: [citizenId], references: [id])
 }
 
-
 model Photo {
-  id        String   @id @default(uuid())
-  url       String
-  size      BigInt @default(0)
-  offset    BigInt @default(0)
-  filename  String?
-  reportId  String?
+  id       String  @id @default(uuid())
+  url      String
+  size     BigInt  @default(0)
+  offset   BigInt  @default(0)
+  filename String?
+  reportId String?
   report   Report? @relation(fields: [reportId], references: [id])
 }
 
@@ -81,61 +80,19 @@ enum Offices {
   OTHER
 }
 
-
 model User {
-  id            BigInt    @id @default(autoincrement())
-  firstName     String    @db.VarChar(100)
-  lastName      String    @db.VarChar(100)
-  email         String?   @unique @db.VarChar(100)
-  username      String    @unique @db.VarChar(100)
-  telegram      String?   @unique @db.VarChar(100) 
-  role          Role      @default(CITIZEN)
-  office        Offices?
-  passwordHash  String    @db.VarChar(255)
+  id           BigInt   @id @default(autoincrement())
+  firstName    String   @db.VarChar(100)
+  lastName     String   @db.VarChar(100)
+  email        String?  @unique @db.VarChar(100)
+  username     String   @unique @db.VarChar(100)
+  telegram     String?  @unique @db.VarChar(100)
+  role         Role     @default(CITIZEN)
+  office       Offices?
+  passwordHash String   @db.VarChar(255)
 
-  reportsCreated Report[] @relation("UserReports")
+
+  reports Report[]
 
   @@map("user")
-}
-
-model MunicipalityUser {
-  id            BigInt    @id @default(autoincrement())
-  firstName     String    @db.VarChar(100)
-  lastName      String    @db.VarChar(100)
-  email         String    @unique @db.VarChar(100)
-  passwordHash  String    @db.VarChar(255)
-  roleId        BigInt
-  departmentId  BigInt
-  startDate     DateTime? @db.Timestamptz(6)
-
-  roleModel     RoleModel     @relation(fields: [roleId], references: [id])
-  department    Department    @relation(fields: [departmentId], references: [id])
-  reportsAssigned Report[]    @relation("AssignedReports")
-
-  @@map("municipality_user")
-}
-
-model RoleModel {
-  id    BigInt  @id @default(autoincrement())
-  name  String  @db.VarChar(100)
-  level BigInt  
-
-  municipalityUsers MunicipalityUser[] 
-  permissions       Permission[]
-
-  @@map("role")
-}
-
-model Permission {
-  id            BigInt  @id @default(autoincrement())
-  firstName     String  @db.VarChar(100)
-  lastName      String  @db.VarChar(100)
-  email         String? @unique @db.VarChar(100)
-  username      String  @unique @db.VarChar(100)
-  role          Role    @default(CITIZEN)
-  office        Category?
-  passwordHash  String  @db.VarChar(255)
-  reports       Report[]
-
-  @@map("citizen")
 }
