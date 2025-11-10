@@ -1,4 +1,4 @@
-import { prisma } from "@/db/db";
+import { prisma } from "@/prisma/db";
 
 export class PhotoRepository {
     private static instance: PhotoRepository;

@@ -7,7 +7,7 @@ import {
   RegistrationInput,
   RegistrationResponse,
 } from "@/dtos/user.dto";
-import { prisma } from "@/db/db";
+import { prisma } from "@/prisma/db";
 import bcrypt from "bcrypt";
 
 class UserRepository {
