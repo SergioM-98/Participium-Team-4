@@ -1,5 +1,5 @@
 import { PhotoRepository } from '@/repositories/photo.repository';
-import { TusStatusResponse } from '@/app/lib/dtos/tus.dto';
+import { GetPhotoStatusRequest, GetPhotoStatusRequestSchema, TusStatusResponse, TusStatusResponseSchema } from '@/dtos/tus.dto';
 
 class PhotoStatusService {
     private static instance: PhotoStatusService
@@ -14,13 +14,23 @@ class PhotoStatusService {
         }
         return PhotoStatusService.instance;
     }
-    public async getPhotoStatus(photoId: string): Promise<TusStatusResponse | null> {
-        const photo = await this.photoRepository.findById(photoId);
-        if (!photo) return null;
+    public async getPhotoStatus(request: GetPhotoStatusRequest): Promise<TusStatusResponse | null> {
+        try {
+            // Validate request DTO
+            const validatedRequest = GetPhotoStatusRequestSchema.parse(request);
+            
+            const photo = await this.photoRepository.findById(validatedRequest.photoId);
+            if (!photo) return null;
 
-        return {
-            uploadOffset: photo.uploadOffset,
-        };
+            const response: TusStatusResponse = TusStatusResponseSchema.parse({
+                uploadOffset: Number(photo.offset),
+            });
+
+            return response;
+        } catch (error) {
+            console.error('Error in getPhotoStatus:', error);
+            throw new Error('Failed to get photo status');
+        }
     }
 }
 

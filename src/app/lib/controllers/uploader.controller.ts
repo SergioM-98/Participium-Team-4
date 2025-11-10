@@ -1,5 +1,12 @@
 import { TusCreateDataSchema, TusUploadDataSchema, TusDeleteDataSchema, TusStatusDataSchema } from '../dtos/tus.header.dto';
 import type { TusCreateData, TusUploadData, TusDeleteData, TusStatusData } from '../dtos/tus.header.dto';
+import { 
+    CreateUploadRequest, 
+    UpdatePhotoRequest, 
+    GetPhotoStatusRequest, 
+    DeletePhotoRequest,
+    ControllerSuccessResponse 
+} from '@/dtos/tus.dto';
 import { PhotoUploaderService } from '@/services/photoUpload.service';
 import { PhotoUpdaterService } from '@/services/photoUpdate.service';
 import { PhotoDeleteService } from '@/services/photoDelete.service';
@@ -7,152 +14,118 @@ import { PhotoStatusService } from '@/services/photoStatus.service';
 
 class UploaderController {
 
-    async createUploadPhoto(data: TusCreateData, bodyBytes: ArrayBuffer) {
-        try {
-            const validatedData = TusCreateDataSchema.parse(data);
+    async createUploadPhoto(data: TusCreateData, bodyBytes: ArrayBuffer): Promise<ControllerSuccessResponse> {
+        const validatedData = TusCreateDataSchema.parse(data);
 
-            const uploaderService = PhotoUploaderService.getInstance();
-            const result = await uploaderService.createUploadPhoto(validatedData, bodyBytes);
+        // Generate photo ID and create service request DTO
+        const photoId = crypto.randomUUID();
+        const serviceRequest: CreateUploadRequest = {
+            uploadLength: validatedData['upload-length'],
+            uploadMetadata: validatedData['upload-metadata'],
+            body: bodyBytes,
+            photoId: photoId
+        };
 
-            return {
-                success: true,
-                location: result.location,
-                uploadOffset: result.uploadOffset,
-                tusHeaders: {
-                    'Tus-Resumable': '1.0.0',
-                    'Location': result.location,
-                    'Upload-Offset': result.uploadOffset.toString(),
-                }
-            };
+        const uploaderService = PhotoUploaderService.getInstance();
+        const result = await uploaderService.createUploadPhoto(serviceRequest);
 
-        } catch (error) {
-            console.error('Error creating upload photo:', error);
-
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Upload creation failed',
-                tusHeaders: {
-                    'Tus-Resumable': '1.0.0',
-                }
-            };
-        }
-    }
-
-    async uploadPhotoChunk(uploadId: string, data: TusUploadData, chunkBytes: ArrayBuffer) {
-        try {
-            const validatedData = TusUploadDataSchema.parse(data);
-
-            if (chunkBytes.byteLength !== validatedData['content-length']) {
-                throw new Error('Chunk size does not match content-length');
+        return {
+            success: true,
+            location: result.location,
+            uploadOffset: result.uploadOffset,
+            tusHeaders: {
+                'Tus-Resumable': '1.0.0',
+                'Location': result.location,
+                'Upload-Offset': result.uploadOffset.toString(),
             }
-
-            const uploaderService = PhotoUpdaterService.getInstance();
-            const result = await uploaderService.updatePhoto(uploadId, validatedData, chunkBytes);
-
-            return {
-                success: true,
-                uploadOffset: result.uploadOffset,
-                tusHeaders: {
-                    'Tus-Resumable': '1.0.0',
-                    'Upload-Offset': result.uploadOffset.toString(),
-                }
-            };
-
-        } catch (error) {
-            console.error('Error uploading photo chunk:', error);
-
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Chunk upload failed',
-                tusHeaders: {
-                    'Tus-Resumable': '1.0.0',
-                }
-            };
-        }
+        };
     }
 
-    async getUploadStatus(uploadId: string, data: TusStatusData) {
-        try {
-            const validatedData = TusStatusDataSchema.parse(data);
+    async uploadPhotoChunk(uploadId: string, data: TusUploadData, chunkBytes: ArrayBuffer): Promise<ControllerSuccessResponse> {
+        const validatedData = TusUploadDataSchema.parse(data);
 
-            const uploaderService = PhotoStatusService.getInstance();
-            const uploadInfo = await uploaderService.getPhotoStatus(uploadId);
-            if (!uploadInfo) {
-                throw new Error('Upload not found');
+        if (chunkBytes.byteLength !== validatedData['content-length']) {
+            throw new Error('Chunk size does not match content-length');
+        }
+
+        // Create service request DTO
+        const serviceRequest: UpdatePhotoRequest = {
+            photoId: uploadId,
+            uploadOffset: validatedData['upload-offset'],
+            contentLength: validatedData['content-length'],
+            body: chunkBytes
+        };
+
+        const uploaderService = PhotoUpdaterService.getInstance();
+        const result = await uploaderService.updatePhoto(serviceRequest);
+
+        return {
+            success: true,
+            uploadOffset: result.uploadOffset,
+            tusHeaders: {
+                'Tus-Resumable': '1.0.0',
+                'Upload-Offset': result.uploadOffset.toString(),
             }
-
-            return {
-                success: true,
-                uploadOffset: uploadInfo.uploadOffset,
-                tusHeaders: {
-                    'Tus-Resumable': '1.0.0',
-                    'Upload-Offset': uploadInfo.uploadOffset.toString(),
-                }
-            };
-
-        } catch (error) {
-            console.error('Error getting upload status:', error);
-
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Upload not found',
-                tusHeaders: {
-                    'Tus-Resumable': '1.0.0',
-                }
-            };
-        }
+        };
     }
 
-    async deleteUpload(uploadId: string, data: TusDeleteData) {
-        try {
-            const validatedData = TusDeleteDataSchema.parse(data);
+    async getUploadStatus(uploadId: string, data: TusStatusData): Promise<ControllerSuccessResponse> {
+        const validatedData = TusStatusDataSchema.parse(data);
 
-            const uploaderService = PhotoDeleteService.getInstance();
-            await uploaderService.deletePhoto(uploadId);
+        // Create service request DTO
+        const serviceRequest: GetPhotoStatusRequest = {
+            photoId: uploadId
+        };
 
-            return {
-                success: true,
-                tusHeaders: {
-                    'Tus-Resumable': '1.0.0',
-                }
-            };
-
-        } catch (error) {
-            console.error('Error deleting upload:', error);
-
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Upload deletion failed',
-                tusHeaders: {
-                    'Tus-Resumable': '1.0.0',
-                }
-            };
+        const uploaderService = PhotoStatusService.getInstance();
+        const uploadInfo = await uploaderService.getPhotoStatus(serviceRequest);
+        if (!uploadInfo) {
+            throw new Error('Upload not found');
         }
+
+        return {
+            success: true,
+            uploadOffset: uploadInfo.uploadOffset,
+            tusHeaders: {
+                'Tus-Resumable': '1.0.0',
+                'Upload-Offset': uploadInfo.uploadOffset.toString(),
+            }
+        };
     }
 
-    async getTusOptions() {
-        try {
-            return {
-                success: true,
-                tusHeaders: {
-                    'Tus-Resumable': '1.0.0',
-                    'Tus-Version': '1.0.0',
-                    'Tus-Extension': 'creation,creation-with-upload,termination',
-                    'Tus-Max-Size': (20 * 1024 * 1024).toString(),
-                }
-            };
+    async deleteUpload(uploadId: string, data: TusDeleteData): Promise<ControllerSuccessResponse> {
+        const validatedData = TusDeleteDataSchema.parse(data);
 
-        } catch (error) {
-            console.error('Error getting TUS options:', error);
+        // Create service request DTO
+        const serviceRequest: DeletePhotoRequest = {
+            photoId: uploadId
+        };
 
-            return {
-                success: false,
-                error: 'Failed to get TUS options',
-                tusHeaders: {
-                    'Tus-Resumable': '1.0.0',
-                }
-            };
+        const uploaderService = PhotoDeleteService.getInstance();
+        const result = await uploaderService.deletePhoto(serviceRequest);
+
+        if (!result.success) {
+            throw new Error(result.message || 'Delete operation failed');
         }
+
+        return {
+            success: true,
+            tusHeaders: {
+                'Tus-Resumable': '1.0.0',
+            }
+        };
+    }
+
+    async getTusOptions(): Promise<ControllerSuccessResponse> {
+        return {
+            success: true,
+            tusHeaders: {
+                'Tus-Resumable': '1.0.0',
+                'Tus-Version': '1.0.0',
+                'Tus-Extension': 'creation,creation-with-upload,termination',
+                'Tus-Max-Size': (20 * 1024 * 1024).toString(),
+            }
+        };
     }
 }
 
