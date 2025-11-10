@@ -146,12 +146,13 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <div className="flex items-center justify-between">
+            {/* TODO: Implement "Remember me" functionality with session maxAge configuration */}
+            {/* <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Checkbox id="remember" disabled={isPending} />
                 <Label htmlFor="remember">Remember me</Label>
               </div>
-            </div>
+            </div> */}
 
             {/* Display server error message */}
             {error && (
@@ -183,7 +184,7 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-white px-2 text-muted-foreground">
-                Don't have an account?
+                Don&apos;t have an account?
               </span>
             </div>
           </div>

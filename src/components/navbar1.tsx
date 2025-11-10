@@ -9,6 +9,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { LogoutButton } from "@/components/LogoutButton";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -110,9 +111,7 @@ async function Navbar1({
                 </Button>
               </>
             ) : (
-              <Button asChild variant="outline" size="sm">
-                <a href={auth.logout.url}>{auth.logout.title}</a>
-              </Button>
+              <LogoutButton variant="outline" size="sm" />
             )}
           </div>
         </nav>
@@ -158,9 +157,7 @@ async function Navbar1({
                         </Button>
                       </>
                     ) : (
-                      <Button asChild variant="outline">
-                        <a href={auth.logout.url}>{auth.logout.title}</a>
-                      </Button>
+                      <LogoutButton variant="outline" className="w-full" />
                     )}
                   </div>
                 </div>

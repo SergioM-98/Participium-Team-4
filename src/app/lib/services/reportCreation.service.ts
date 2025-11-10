@@ -31,7 +31,10 @@ class ReportCreationService {
             );
 
             return reportResponseSchema.parse({
+                id: (report as any).id,
                 title: (report as any).title,
+                description: (report as any).description,
+                category: (report as any).category,
                 createdAt: (report as any).createdAt.toISOString()
             });
         } catch (error) {

@@ -4,7 +4,11 @@ import { FC } from "react";
 import { motion } from "framer-motion";
 import type { MunicipalityUserFormData } from "@/components/MunicipalityUserForm";
 
-export type UserRow = MunicipalityUserFormData & { id: string };
+export type UserRow = MunicipalityUserFormData & { 
+  id: string;
+  email?: string;
+  role?: string;
+};
 
 type Props = {
   users: UserRow[];
@@ -40,8 +44,8 @@ const UsersTable: FC<Props> = ({ users, onEdit, onDelete }) => {
             <tbody>
               {users.map((u) => (
                 <tr key={u.id} className="border-b last:border-0">
-                  <td className="py-2 pr-3">{u.fullName}</td>
-                  <td className="py-2 pr-3">{u.email}</td>
+                  <td className="py-2 pr-3">{`${u.firstName} ${u.lastName}`}</td>
+                  <td className="py-2 pr-3">{u.email || "-"}</td>
                   <td className="py-2 pr-3">{u.role}</td>
                   <td className="py-2 pr-3">{u.office || "-"}</td>
                   <td className="py-2 pr-3">{u.isActive ? "Yes" : "No"}</td>

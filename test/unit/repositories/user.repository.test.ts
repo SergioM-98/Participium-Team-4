@@ -13,11 +13,11 @@ jest.mock('@/db/db', () => ({
     },
 }));
 
-const mockedPrisma = require('@/db/db').prisma;
+const mockedPrisma = jest.requireMock('@/db/db').prisma;
 
 describe('UserRepository Story 1', () => {
     let userRepository: UserRepository;
-    let mockUserData: RegistrationInput = {
+    const mockUserData: RegistrationInput = {
         username: "testuser",
         password: "Test@1234",
         firstName: "Test",
@@ -39,14 +39,14 @@ describe('UserRepository Story 1', () => {
         it("should return isExisting true when username exists", async () => {
             mockedPrisma.user.findUnique.mockResolvedValue(mockUserData);
             
-            let response = await userRepository.checkDuplicates(mockUserData)
+            const response = await userRepository.checkDuplicates(mockUserData)
             expect(response.isExisting).toBe(true);
         });
             
         it ("should return isExisting false when username does not exist", async () => {
             mockedPrisma.user.findUnique.mockResolvedValue(null);
 
-            let response = await userRepository.checkDuplicates(mockUserData)
+            const response = await userRepository.checkDuplicates(mockUserData)
             expect(response).toHaveProperty('isExisting');
             expect(response.isExisting).toBe(false);
             
@@ -59,7 +59,7 @@ describe('UserRepository Story 1', () => {
                 id: 1,
                 passwordHash: "hashedpassword"
             });
-            let response = await userRepository.createUser(mockUserData)
+            const response = await userRepository.createUser(mockUserData)
             expect(response).toHaveProperty('success');
             expect(response).toHaveProperty('data');
             expect(response.success).toBe(true);
