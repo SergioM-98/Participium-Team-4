@@ -39,11 +39,12 @@ class UserRepository {
         data: {
           firstName: userData.firstName,
           lastName: userData.lastName,
-          email: userData.email,
+          email: userData.email ?? undefined,
           username: userData.username,
           role: userData.role,
-          office: userData.office,
+          office: userData.office ?? undefined,
           passwordHash: hashedPassword,
+          telegram: userData.telegram ?? undefined,
         },
       });
 
@@ -78,7 +79,13 @@ class UserRepository {
       }
 
       const { passwordHash, ...rest } = user;
-      return { success: true, data: rest };
+      return {success: true,
+              data: {
+                ...rest,
+                email: rest.email ?? undefined,
+                office: rest.office ?? undefined,
+                telegram: rest.telegram ?? undefined
+              }};
 
     } catch (error) {
       throw new Error("Failed to fetch user from database");

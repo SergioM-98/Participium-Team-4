@@ -70,7 +70,7 @@ async function Navbar1({
   ],
   auth = {
     login: { title: "Login", url: "/login" },
-    signup: { title: "Sign up", url: "/signup" },
+    signup: { title: "Sign up", url: "/register" },
     logout: { title: "Logout", url: "/api/auth/signout?callbackUrl=/" },
   },
 }: Navbar1Props) {
