@@ -15,7 +15,7 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, ChevronDown, Eye } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+// Added Tooltip imports
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Import types from our data file
 import { Report, ReportStatus, STATUS } from "@/lib/reports-data";
@@ -170,74 +177,39 @@ export const columns: ColumnDef<Report>[] = [
       return <div className="text-right font-medium">{formatted}</div>;
     },
   },
+  // --- MODIFIED ACTIONS COLUMN ---
   {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
       const router = useRouter(); // Use hook for navigation
       const report = row.original;
-      const status = report.status;
-
-      const handleApprove = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        alert(
-          `Report ${report.id} approved! (Status would change to 'Assigned')`
-        );
-      };
-
-      const handleReject = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        const reason = prompt(
-          `Why are you rejecting report ${report.id}? (This is mandatory)`
-        );
-        if (reason) {
-          alert(`Report ${report.id} rejected! Reason: ${reason}`);
-        } else {
-          alert("Rejection cancelled (reason is mandatory).");
-        }
-      };
 
       const handleViewDetails = (e: React.MouseEvent) => {
-        e.stopPropagation();
+        e.stopPropagation(); // Stop row click from triggering
         router.push(`/dashboard/reports/${report.id}`);
       };
 
-      const canModerate = status === STATUS.PENDING;
-
+      // Wrapped the Button in a Tooltip
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0"
-              onClick={(e) => e.stopPropagation()} // Stop row click
-            >
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={handleViewDetails}>
-              View details
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleApprove}
-              disabled={!canModerate}
-              className="text-green-600 focus:text-green-600"
-            >
-              Approve
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={handleReject}
-              disabled={!canModerate}
-              className="text-red-600 focus:text-red-600"
-            >
-              Reject
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                onClick={handleViewDetails}
+                aria-label="View details"
+              >
+                <span className="sr-only">View details</span>
+                <Eye className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>View details</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       );
     },
   },
