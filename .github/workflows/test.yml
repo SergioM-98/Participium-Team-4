@@ -47,12 +47,13 @@ jobs:
 
     - name: Setup test database
       run: |
-        npx prisma db push
+        npx prisma migrate deploy
       env:
         DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
 
-    - name: Run tests with coverage
-      run: npm run test:coverage
+    - name: Run all tests with coverage
+      run: npm run test:ci
       env:
         DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
         NODE_ENV: test
+        CI: true
