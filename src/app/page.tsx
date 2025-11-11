@@ -1,7 +1,13 @@
-import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/auth";
+import StartingPage from "@/components/homepage";
 
-export default function Home() {
-  // Automatically redirect to the login page
-  // This makes /login the "main" page for users.
-  redirect("/login");
+
+export default async function HomePage(){
+  const session = await getServerSession(authOptions);
+  return (
+    <div className="flex items-center justify-center">
+      <StartingPage role={session?.user?.role ?? ""}/>
+    </div>
+  );
 }
