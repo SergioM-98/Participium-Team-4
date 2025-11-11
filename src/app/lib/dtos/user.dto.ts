@@ -99,7 +99,7 @@ export const LoginInputSchema = z.object({
   password: z.string().min(8),
 });
 
-type RetrievedUserData = z.infer<typeof RetrievedUserDataSchema>;
+export type RetrievedUserData = z.infer<typeof RetrievedUserDataSchema>;
 export type Citizen = z.infer<typeof CitizenSchema>;
 export type RegistrationInput = z.infer<typeof RegistrationInputSchema>;
 export type CheckDuplicatesResponse = z.infer<

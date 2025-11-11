@@ -3,15 +3,14 @@
 import { useState } from "react";
 import UserFormSection from "@/components/pt02/UserFormSection";
 import UsersTable, { UserRow } from "@/components/pt02/UsersTable";
-import {
-  MunicipalityUserFormData,
-} from "@/components/MunicipalityUserForm";
+import { RegistrationInput } from "@/app/lib/dtos/user.dto";
+import { Offices } from "@prisma/client";
 
 export default function OfficerRegistration({ submitNewOfficer }: { submitNewOfficer: (formData: FormData) => Promise<any> }) {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [error, setError] = useState<string>("");
 
-  const saveUser = async (payload: MunicipalityUserFormData) => {
+  const saveUser = async (payload: RegistrationInput) => {
     try {
       const formData = new FormData();
       formData.append("firstName", payload.firstName);
@@ -19,7 +18,7 @@ export default function OfficerRegistration({ submitNewOfficer }: { submitNewOff
       formData.append("username", payload.username);
       formData.append("role", "OFFICER");
       formData.append("password", payload.password);
-      formData.append("office", (payload.office === "" ? "OTHER" : payload.office));
+      formData.append("office", payload.office as Offices);
 
       const result = await submitNewOfficer(formData);
 

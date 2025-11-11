@@ -2,15 +2,14 @@
 
 import { FC } from "react";
 import { motion } from "framer-motion";
-import MunicipalityUserForm, {
-  MunicipalityUserFormData,
-} from "@/components/MunicipalityUserForm";
+import { Citizen, RegistrationInput } from "@/app/lib/dtos/user.dto";
+import MunicipalityUserForm from "../MunicipalityUserForm";
 
 type Props = {
   error?: string;
-  initialData?: MunicipalityUserFormData;
+  initialData?: RegistrationInput;
   submitLabel?: string;
-  onSubmit: (payload: MunicipalityUserFormData) => void;
+  onSubmit: (payload: RegistrationInput) => void;
   onCancel?: () => void;
 };
 

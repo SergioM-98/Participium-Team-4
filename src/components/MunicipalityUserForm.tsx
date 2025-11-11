@@ -1,14 +1,24 @@
 "use client";
+import { RegistrationInput } from "@/app/lib/dtos/user.dto";
 import { useEffect, useState } from "react";
+import { Offices } from "@prisma/client";
 
-export type MunicipalityUserFormData = {
-  username: string;
-  firstName: string;
-  lastName: string;
-  office: string;
-  isActive: boolean;
-  password: string;
-};
+
+export const officeOptions: Offices[] = ["DEPARTMENT_OF_COMMERCE",
+                          "DEPARTMENT_OF_CULTURE_SPORT_MAJOR_EVENTS_AND_TOURISM_PROMOTION",
+                          "DEPARTMENT_OF_DECENTRALIZATION_AND_CIVIC_SERVICES",
+                          "DEPARTMENT_OF_EDUCATIONAL_SERVICES",
+                          "DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY",
+                          "DEPARTMENT_OF_FINANCIAL_RESOURCES",
+                          "DEPARTMENT_OF_GENERAL_SERVICES_PROCUREMENT_AND_SUPPLIES",
+                          "DEPARTMENT_OF_INTERNAL_SERVICES",
+                          "DEPARTMENT_OF_LOCAL_POLICE",
+                          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+                          "DEPARTMENT_OF_SOCIAL_HEALTH_AND_HOUSING_SERVICES",
+                          "DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING",
+                          "OTHER"]; 
+
+
 
 export default function MunicipalityUserForm({
   onSubmit,
@@ -16,20 +26,23 @@ export default function MunicipalityUserForm({
   submitLabel = "Save user",
   onCancel,
 }: {
-  onSubmit: (data: MunicipalityUserFormData) => void;
-  initialData?: Partial<MunicipalityUserFormData>;
+  onSubmit: (data: RegistrationInput) => void;
+  initialData?: Partial<RegistrationInput>;
   submitLabel?: string;
   onCancel?: () => void;
 }) {
-  const [data, setData] = useState<MunicipalityUserFormData>({
+
+  
+  
+  const [data, setData] = useState<RegistrationInput>({
     username: "",
     firstName: "",
     lastName: "",
-    office: "",
-    isActive: true,
+    office: "OTHER",
+    role: "OFFICER",
     password: "",
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof MunicipalityUserFormData, string>>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof RegistrationInput, string>>>({});
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -37,16 +50,15 @@ export default function MunicipalityUserForm({
       setData((prev) => ({
         ...prev,
         ...initialData,
-        isActive: initialData.isActive ?? true,
-        office: initialData.office ?? "",
+        office: initialData.office ?? "OTHER",
       }));
       setErrors({});
     }
   }, [initialData]);
 
   const handleChange =
-    (key: keyof MunicipalityUserFormData) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (key: keyof RegistrationInput) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const value =
         e.target.type === "checkbox" ? e.target.checked : e.target.value;
       setData((prev) => ({ ...prev, [key]: value }));
@@ -70,9 +82,9 @@ export default function MunicipalityUserForm({
       username: "",
       firstName: "",
       lastName: "",
-      office: "",
-      isActive: true,
+      office: "OTHER",
       password: "",
+      role: "OFFICER"
     });
     setErrors({});
   };
@@ -87,7 +99,7 @@ export default function MunicipalityUserForm({
         username: data.username.trim().toLowerCase(),
         firstName: data.firstName.trim(),
         lastName: data.lastName.trim(),
-        office: data.office?.trim() ?? "",
+        office: data.office as Offices,
       });
       if (!initialData) resetForm();
     } finally {
@@ -166,19 +178,19 @@ export default function MunicipalityUserForm({
         <label htmlFor="office" className="text-sm font-medium text-gray-900">
           Office
         </label>
-        <input
+        <select
           id="office"
           value={data.office}
           onChange={handleChange("office")}
-          className="w-full border p-2 rounded"
-          placeholder="e.g. Roads & Maintenance"
-        />
+          className="w-full border p-2 rounded bg-white"
+        >
+          {officeOptions.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt.replaceAll("_", " ")}
+            </option>
+          ))}
+        </select>
       </div>
-
-      <label className="inline-flex items-center gap-2">
-        <input type="checkbox" checked={data.isActive} onChange={handleChange("isActive")} />
-        <span className="text-sm text-gray-900">Active</span>
-      </label>
 
       <div className="flex items-center gap-3">
         <button
