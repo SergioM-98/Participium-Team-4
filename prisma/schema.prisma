@@ -14,7 +14,7 @@ datasource db {
 }
 
 model Report {
-  id          String       @id @default(uuid())
+  id          BigInt       @id  @default(autoincrement())
   title       String
   description String       @db.Text
   status      ReportStatus @default(PENDING_APPROVAL)
@@ -33,7 +33,7 @@ model Photo {
   size     BigInt  @default(0)
   offset   BigInt  @default(0)
   filename String?
-  reportId String?
+  reportId BigInt?
   report   Report? @relation(fields: [reportId], references: [id])
 }
 
