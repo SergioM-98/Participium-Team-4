@@ -179,8 +179,27 @@ export default function MunicipalityUserForm({
           Office
         </label>
         <select
+        <select
           id="office"
           value={data.office}
+          onChange={(e) => setData((prev) => ({ ...prev, office: e.target.value }))}
+          className="w-full border p-2 rounded"
+        >
+          <option value="">Select Office (Optional)</option>
+          <option value="DEPARTMENT_OF_COMMERCE">Department of Commerce</option>
+          <option value="DEPARTMENT_OF_EDUCATIONAL_SERVICES">Department of Educational Services</option>
+          <option value="DEPARTMENT_OF_DECENTRALIZATION_AND_CIVIC_SERVICES">Department of Decentralization and Civic Services</option>
+          <option value="DEPARTMENT_OF_SOCIAL_HEALTH_AND_HOUSING_SERVICES">Department of Social Health and Housing Services</option>
+          <option value="DEPARTMENT_OF_INTERNAL_SERVICES">Department of Internal Services</option>
+          <option value="DEPARTMENT_OF_CULTURE_SPORT_MAJOR_EVENTS_AND_TOURISM_PROMOTION">Department of Culture Sport Major Events and Tourism Promotion</option>
+          <option value="DEPARTMENT_OF_FINANCIAL_RESOURCES">Department of Financial Resources</option>
+          <option value="DEPARTMENT_OF_GENERAL_SERVICES_PROCUREMENT_AND_SUPPLIES">Department of General Services Procurement and Supplies</option>
+          <option value="DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES">Department of Maintenance and Technical Services</option>
+          <option value="DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING">Department of Urban Planning and Private Building</option>
+          <option value="DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY">Department of Environment Major Projects Infras and Mobility</option>
+          <option value="DEPARTMENT_OF_LOCAL_POLICE">Department of Local Police</option>
+          <option value="OTHER">Other</option>
+        </select>
           onChange={handleChange("office")}
           className="w-full border p-2 rounded bg-white"
         >
