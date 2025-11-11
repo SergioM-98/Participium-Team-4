@@ -33,3 +33,12 @@ export const reportResponseSchema = z.object({
 
 export type ReportRequest = z.infer<typeof reportRequestSchema>;
 export type ReportResponse = z.infer<typeof reportResponseSchema>;
+
+export type ReportRegistrationResponse = 
+  | { success: true; data: string }
+  | { success: false; error: string };
+
+  
+export type RetriveReportResponse =
+| { success: true; data: ReportRequest }
+| { success: false; error: string };

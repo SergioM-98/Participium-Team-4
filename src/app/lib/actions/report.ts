@@ -1,7 +1,9 @@
 'use server'
 
-import { reportRequestSchema, ReportResponse } from '@/dtos/report.dto';
+import { ReportRegistrationResponse, reportRequestSchema } from '@/dtos/report.dto';
 import { ReportController } from '@/controllers/report.controller';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/auth";
 
 export async function createReport(
     title: string, 
@@ -12,25 +14,33 @@ export async function createReport(
     latitude: number, 
     userId: string,
     isAnonymous: boolean
-): Promise<ReportResponse> {
-    try {
-        const reportData = reportRequestSchema.parse({
-            title,
-            description,
-            photos,
-            category: category,
-            longitude,
-            latitude,
-            userId,
-            isAnonymous
-        });
+): Promise<ReportRegistrationResponse> {
 
-        const reportController = new ReportController();
-        const result = await reportController.createReport(reportData);
-        
-        return result;
-    } catch (error) {
-        console.error('Error in createReport action:', error);
-        throw error;
+    const session = await getServerSession(authOptions);
+
+    const reportData = reportRequestSchema.safeParse({
+        title,
+        description,
+        photos,
+        category: category,
+        longitude,
+        latitude,
+        userId,
+        isAnonymous
+    });
+
+    if(!reportData.success){
+        return {
+            success: false,
+            error: "Invalid inputs"
+        }
     }
+
+    if(!session || (session && session.user.role !== "CITIZEN")){
+        return { success: false, error: "Unauthorized report" };
+    }
+
+    const reportController = new ReportController();
+    return await reportController.createReport(reportData.data);
+    
 }
