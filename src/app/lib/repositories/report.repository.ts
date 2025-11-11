@@ -1,5 +1,6 @@
 import { prisma } from "@/prisma/db";
 import { Category } from "@prisma/client";
+import { ReportRegistrationResponse } from "../dtos/report.dto";
 
 class ReportRepository {
     private static instance: ReportRepository;
@@ -13,25 +14,39 @@ class ReportRepository {
         return ReportRepository.instance;
     }
 
-    public async createReport(uuid: string, title: string, description: string, photos: string[], category: string, longitude: number, latitude: number, userId: string){
-        category = category.toUpperCase();
-        const report = await prisma.report.create({
-            data: {
-                id: uuid,
-                title: title,
-                description: description,
-                photos: {
-                    connect: photos.map(photoId => ({ id: photoId }))
-                },
-                    category: Object.values(Category).includes(category as Category) 
-                     ? category as Category 
-                     : Category.OTHER,
-                longitude: longitude,
-                latitude: latitude,
-                citizenId: Number(userId)
+    public async createReport(title: string,
+                            description: string, photos: string[],
+                            category: string, longitude: number,
+                            latitude: number, userId: string)
+                            :Promise<ReportRegistrationResponse>{
+        try{
+            category = category.toUpperCase();
+            const report = await prisma.report.create({
+                data: {
+                    title: title,
+                    description: description,
+                    photos: {
+                        connect: photos.map(photoId => ({ id: photoId }))
+                    },
+                        category: Object.values(Category).includes(category as Category) 
+                        ? category as Category 
+                        : Category.OTHER,
+                    longitude: longitude,
+                    latitude: latitude,
+                    citizenId: Number(userId)
+                }
+            });
+            return {
+                success: true,
+                data: `Report with id: ${report.id} succesfuly created`
             }
-        });
-        return report;
+        }catch{
+
+            return {
+                success:false,
+                error: "Failed to add the report to the database"
+            }
+        }
     }
 }
 

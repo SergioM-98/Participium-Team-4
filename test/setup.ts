@@ -26,7 +26,7 @@ beforeAll(async () => {
     
     const { execSync } = require('child_process');
     try {
-      execSync('npx prisma migrate deploy --skip-generate', {
+      execSync('npx prisma migrate deploy', {
         env: { ...process.env, DATABASE_URL: testDatabaseUrl },
         stdio: 'inherit',
       });
