@@ -20,18 +20,7 @@ export default function OfficerRegistration({ submitNewOfficer }: { submitNewOff
       formData.append("password", payload.password);
       formData.append("office", payload.office as Offices);
 
-      console.log("Sending data:", {
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        username: payload.username,
-        role: "OFFICER",
-        password: "****",
-        office: payload.office === "" ? "OTHER" : payload.office
-      });
-
       const result = await submitNewOfficer(formData);
-
-      console.log("Backend response:", result);
 
       if (result.success) {
         // Backend returns username, but table needs full user data
