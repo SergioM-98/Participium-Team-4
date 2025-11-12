@@ -12,7 +12,7 @@
     "test:integration": "npm run test:setup && jest --selectProjects=\"Integration Tests\" --runInBand",
     "test:coverage": "npm run test:setup && jest --coverage --runInBand",
     "test:ci": "jest --coverage --runInBand",
-    "test:setup": "docker-compose up -d test_db && timeout /t 5 /nobreak > nul && set DATABASE_URL=postgresql://postgres:postgres@localhost:5433/participium_test_db?schema=public && npx prisma migrate deploy",
+    "test:setup": "docker-compose up -d test_db && sleep 5 && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/participium_test_db?schema=public npx prisma migrate deploy",
     "test:reset": "docker-compose down test_db && docker volume rm participium-team-4_pgdata_test || echo Volume already removed && npm run test:setup",
     "test:cleanup": "docker-compose down test_db",
     "participium": "node setup-db.js"
@@ -56,6 +56,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "cross-env": "^10.1.0",
     "dotenv": "^16.4.5",
     "eslint": "^9",
     "eslint-config-next": "16.0.1",
