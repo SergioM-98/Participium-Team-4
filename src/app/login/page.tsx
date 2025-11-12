@@ -11,7 +11,7 @@ export default async function LoginPage() {
 
 
   if (session) {
-    redirect("/dashboard");
+    redirect("/reports");
   }
 
   return <LoginForm/>;

@@ -76,7 +76,7 @@ export default function LoginPage() {
           setError(errorMessage);
         } else {
           // Login riuscito: fai redirect
-          router.push("/dashboard");
+          router.push("/reports");
         }
       } catch (err: any) {
         console.error(err);
