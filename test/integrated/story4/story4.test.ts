@@ -2,8 +2,6 @@ import { prisma } from "../../setup";
 import { getServerSession } from 'next-auth/next';
 import { ReportRegistrationResponse } from "@/app/lib/dtos/report.dto";
 import { createReport } from "@/app/lib/actions/report";
-import createAdmin from "@/prisma/admin";
-import createAnonymous from "@/prisma/anonymous";
 
 // Mock NextAuth to control sessions
 jest.mock('next-auth/next', () => ({

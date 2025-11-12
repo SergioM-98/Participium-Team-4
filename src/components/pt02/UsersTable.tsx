@@ -2,18 +2,15 @@
 
 import { FC } from "react";
 import { motion } from "framer-motion";
-import type { MunicipalityUserFormData } from "@/components/MunicipalityUserForm";
+import { z } from "zod";
+import { RetrievedUserDataSchema } from "@/app/lib/dtos/user.dto";
 
-export type UserRow = MunicipalityUserFormData & { 
-  id: string;
-  email?: string;
-  role?: string;
-};
+export type UserRow = z.infer<typeof RetrievedUserDataSchema>;
 
 type Props = {
   users: UserRow[];
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
+  onEdit: (id: bigint) => void;
+  onDelete: (id: bigint) => void;
 };
 
 const UsersTable: FC<Props> = ({ users, onEdit, onDelete }) => {
@@ -37,18 +34,16 @@ const UsersTable: FC<Props> = ({ users, onEdit, onDelete }) => {
                 <th className="py-2 pr-3">Email</th>
                 <th className="py-2 pr-3">Role</th>
                 <th className="py-2 pr-3">Office</th>
-                <th className="py-2 pr-3">Active</th>
                 <th className="py-2 pr-3">Actions</th>
               </tr>
             </thead>
             <tbody>
               {users.map((u) => (
-                <tr key={u.id} className="border-b last:border-0">
+                <tr key={u.id.toString()} className="border-b last:border-0">
                   <td className="py-2 pr-3">{`${u.firstName} ${u.lastName}`}</td>
                   <td className="py-2 pr-3">{u.email || "-"}</td>
                   <td className="py-2 pr-3">{u.role}</td>
                   <td className="py-2 pr-3">{u.office || "-"}</td>
-                  <td className="py-2 pr-3">{u.isActive ? "Yes" : "No"}</td>
                   <td className="py-2 pr-3">
                     <div className="flex gap-3">
                       <button
