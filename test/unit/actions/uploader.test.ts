@@ -1,0 +1,219 @@
+const mockUploaderController = {
+  createUploadPhoto: jest.fn(),
+  uploadPhotoChunk: jest.fn(),
+  getUploadStatus: jest.fn(),
+  deleteUpload: jest.fn(),
+  getTusOptions: jest.fn(),
+};
+
+jest.mock("@/controllers/uploader.controller", () => {
+  return {
+    UploaderController: jest
+      .fn()
+      .mockImplementation(() => mockUploaderController),
+  };
+});
+
+import {
+  createUploadPhoto,
+  uploadPhotoChunk,
+  getUploadStatus,
+  deleteUpload,
+  getTusOptions,
+} from "@/app/lib/actions/uploader";
+
+describe("Uploader Actions - createUploadPhoto", () => {
+  let validFormData: FormData;
+
+  beforeEach(() => {
+    validFormData = new FormData();
+    validFormData.append("tus-resumable", "1.0.0");
+    validFormData.append("upload-length", "1024");
+    validFormData.append("upload-metadata", "filename test.jpg");
+
+    // Create a mock file
+    const mockFile = new File(["test content"], "test.jpg", {
+      type: "image/jpeg",
+    });
+    validFormData.append("file", mockFile);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should create upload photo successfully", async () => {
+    mockUploaderController.createUploadPhoto.mockResolvedValue({
+      success: true,
+      location: "/files/upload-123",
+      uploadOffset: 0,
+      tusHeaders: {
+        "Tus-Resumable": "1.0.0",
+        Location: "/files/upload-123",
+        "Upload-Offset": "0",
+      },
+    });
+
+    const response = await createUploadPhoto(validFormData);
+
+    expect(response.success).toBe(true);
+    expect((response as any).location).toBe("/files/upload-123");
+    expect((response as any).uploadOffset).toBe(0);
+    expect(mockUploaderController.createUploadPhoto).toHaveBeenCalled();
+  });
+
+  it("should handle upload without metadata", async () => {
+    validFormData.delete("upload-metadata");
+
+    mockUploaderController.createUploadPhoto.mockResolvedValue({
+      success: true,
+      location: "/files/upload-456",
+      uploadOffset: 0,
+      tusHeaders: {
+        "Tus-Resumable": "1.0.0",
+        Location: "/files/upload-456",
+        "Upload-Offset": "0",
+      },
+    });
+
+    const response = await createUploadPhoto(validFormData);
+
+    expect(response.success).toBe(true);
+    expect(mockUploaderController.createUploadPhoto).toHaveBeenCalled();
+  });
+});
+
+describe("Uploader Actions - uploadPhotoChunk", () => {
+  let validFormData: FormData;
+  const uploadId = "upload-123";
+
+  beforeEach(() => {
+    validFormData = new FormData();
+    validFormData.append("tus-resumable", "1.0.0");
+    validFormData.append("upload-offset", "0");
+    validFormData.append("content-type", "image/jpeg");
+
+    const mockChunk = new File(["chunk data"], "chunk.bin", {
+      type: "application/octet-stream",
+    });
+    validFormData.append("chunk", mockChunk);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should upload photo chunk successfully", async () => {
+    mockUploaderController.uploadPhotoChunk.mockResolvedValue({
+      success: true,
+      uploadOffset: 10,
+      tusHeaders: {
+        "Tus-Resumable": "1.0.0",
+        "Upload-Offset": "10",
+      },
+    });
+
+    const response = await uploadPhotoChunk(uploadId, validFormData);
+
+    expect(response.success).toBe(true);
+    if (response.success) {
+      expect((response as any).uploadOffset).toBe(10);
+    }
+    expect(mockUploaderController.uploadPhotoChunk).toHaveBeenCalled();
+  });
+
+  it("should return error when chunk is missing", async () => {
+    validFormData.delete("chunk");
+
+    const response = await uploadPhotoChunk(uploadId, validFormData);
+
+    expect(response.success).toBe(false);
+    if (!response.success) {
+      expect((response as any).error).toBe("No chunk data provided");
+    }
+    expect(mockUploaderController.uploadPhotoChunk).not.toHaveBeenCalled();
+  });
+
+  it("should handle different upload offsets", async () => {
+    validFormData.set("upload-offset", "512");
+
+    mockUploaderController.uploadPhotoChunk.mockResolvedValue({
+      success: true,
+      uploadOffset: 522,
+      tusHeaders: {
+        "Tus-Resumable": "1.0.0",
+        "Upload-Offset": "522",
+      },
+    });
+
+    const response = await uploadPhotoChunk(uploadId, validFormData);
+
+    if (response.success) {
+      expect((response as any).uploadOffset).toBe(522);
+    }
+    expect(mockUploaderController.uploadPhotoChunk).toHaveBeenCalledWith(
+      uploadId,
+      expect.objectContaining({
+        "upload-offset": 512,
+      }),
+      expect.any(ArrayBuffer)
+    );
+  });
+});
+
+describe("Uploader Actions - getUploadStatus", () => {
+  const uploadId = "upload-123";
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should get upload status successfully", async () => {
+    mockUploaderController.getUploadStatus.mockResolvedValue({
+      success: true,
+      uploadOffset: 512,
+      tusHeaders: {
+        "Tus-Resumable": "1.0.0",
+        "Upload-Offset": "512",
+      },
+    });
+
+    const response = await getUploadStatus(uploadId);
+
+    expect(response.success).toBe(true);
+    expect((response as any).uploadOffset).toBe(512);
+    expect(mockUploaderController.getUploadStatus).toHaveBeenCalledWith(
+      uploadId,
+      expect.objectContaining({
+        "tus-resumable": "1.0.0",
+      })
+    );
+  });
+});
+
+describe("Uploader Actions - deleteUpload", () => {
+  const uploadId = "upload-123";
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should delete upload successfully", async () => {
+    mockUploaderController.deleteUpload.mockResolvedValue({
+      success: true,
+      tusHeaders: {
+        "Tus-Resumable": "1.0.0",
+      },
+    });
+
+    const response = await deleteUpload(uploadId);
+
+    expect(response.success).toBe(true);
+    expect(mockUploaderController.deleteUpload).toHaveBeenCalledWith(
+      uploadId,
+      expect.objectContaining({
+        "tus-resumable": "1.0.0",
+      })
+    );
+  });
+});
