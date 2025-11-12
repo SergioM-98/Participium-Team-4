@@ -182,3 +182,157 @@ describe("User Actions - Role setup Story 3", () => {
     expect(response).toHaveProperty("error");
   });
 });
+
+describe("User Actions - OFFICER registration by ADMIN Story 2", () => {
+  let validFormData: FormData;
+
+  const adminSession = {
+    user: {
+      id: "1",
+      name: "Admin User",
+      role: "ADMIN",
+    },
+    expires: "2024-12-31T23:59:59.999Z",
+  };
+
+  const officerSession = {
+    user: {
+      id: "2",
+      name: "Officer User",
+      role: "OFFICER",
+    },
+    expires: "2024-12-31T23:59:59.999Z",
+  };
+
+  const citizenSession = {
+    user: {
+      id: "3",
+      name: "Citizen User",
+      role: "CITIZEN",
+    },
+    expires: "2024-12-31T23:59:59.999Z",
+  };
+
+  beforeEach(() => {
+    validFormData = new FormData();
+    validFormData.append("firstName", "Test");
+    validFormData.append("lastName", "Officer");
+    validFormData.append("email", "");
+    validFormData.append("username", "testofficer");
+    validFormData.append("password", "Test@1234");
+    validFormData.append("role", "OFFICER");
+    validFormData.append("office", "DEPARTMENT_OF_COMMERCE");
+    validFormData.append("telegram", "");
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should register a new OFFICER by ADMIN successfully", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue(adminSession);
+    mockUserController.checkDuplicates.mockResolvedValue({ isExisting: false });
+    mockUserController.createUser.mockResolvedValue({
+      success: true,
+      data: "testofficer",
+    });
+    const response: RegistrationResponse = await register(validFormData);
+    console.log("Response from register action:", response);
+    expect(response.success).toBe(true);
+    expect(mockUserController.checkDuplicates).toHaveBeenCalled();
+    expect(mockUserController.createUser).toHaveBeenCalled();
+  });
+
+  it("should prevent OFFICER registration without session", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue(null);
+    const response: RegistrationResponse = await register(validFormData);
+    expect(response.success).toBe(false);
+    expect(response).toHaveProperty("error");
+    expect(mockUserController.checkDuplicates).not.toHaveBeenCalled();
+    expect(mockUserController.createUser).not.toHaveBeenCalled();
+  });
+
+  it("should prevent OFFICER registration by OFFICER user", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+    const response: RegistrationResponse = await register(validFormData);
+    expect(response.success).toBe(false);
+    expect(response).toHaveProperty("error");
+    expect(mockUserController.checkDuplicates).not.toHaveBeenCalled();
+    expect(mockUserController.createUser).not.toHaveBeenCalled();
+  });
+
+  it("should prevent OFFICER registration by CITIZEN user", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
+    const response: RegistrationResponse = await register(validFormData);
+    expect(response.success).toBe(false);
+    expect(response).toHaveProperty("error");
+    expect(mockUserController.checkDuplicates).not.toHaveBeenCalled();
+    expect(mockUserController.createUser).not.toHaveBeenCalled();
+  });
+
+  it("should reject OFFICER registration when office is empty", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue(adminSession);
+    validFormData.set("office", "");
+    const response: RegistrationResponse = await register(validFormData);
+    expect(response.success).toBe(false);
+    expect(response).toHaveProperty("error");
+    expect(mockUserController.checkDuplicates).not.toHaveBeenCalled();
+    expect(mockUserController.createUser).not.toHaveBeenCalled();
+  });
+
+  it("should reject OFFICER with invalid office value", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue(adminSession);
+    validFormData.set("office", "INVALID_OFFICE");
+    const response: RegistrationResponse = await register(validFormData);
+    expect(response.success).toBe(false);
+    expect(response).toHaveProperty("error");
+    expect(mockUserController.checkDuplicates).not.toHaveBeenCalled();
+    expect(mockUserController.createUser).not.toHaveBeenCalled();
+  });
+
+  it("should reject OFFICER with email (OFFICER cannot have email)", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue(adminSession);
+    validFormData.set("email", "test@example.com");
+    const response: RegistrationResponse = await register(validFormData);
+    expect(response.success).toBe(false);
+    expect(response).toHaveProperty("error");
+    expect(mockUserController.checkDuplicates).not.toHaveBeenCalled();
+    expect(mockUserController.createUser).not.toHaveBeenCalled();
+  });
+
+  it("should reject OFFICER with telegram (OFFICER cannot have telegram)", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue(adminSession);
+    validFormData.set("telegram", "@testofficer");
+    const response: RegistrationResponse = await register(validFormData);
+    expect(response.success).toBe(false);
+    expect(response).toHaveProperty("error");
+    expect(mockUserController.checkDuplicates).not.toHaveBeenCalled();
+    expect(mockUserController.createUser).not.toHaveBeenCalled();
+  });
+
+  it("should block duplicate usernames", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue(adminSession);
+    mockUserController.checkDuplicates.mockResolvedValue({ isExisting: true });
+    const response: RegistrationResponse = await register(validFormData);
+    expect(response.success).toBe(false);
+    expect(response).toHaveProperty("error");
+    expect(mockUserController.checkDuplicates).toHaveBeenCalled();
+    expect(mockUserController.createUser).not.toHaveBeenCalled();
+  });
+
+  it("should handle controller failure", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue(adminSession);
+    mockUserController.checkDuplicates.mockResolvedValue({ isExisting: false });
+    mockUserController.createUser.mockResolvedValue({
+      success: false,
+      error: "Database error",
+    });
+    const response: RegistrationResponse = await register(validFormData);
+    expect(response.success).toBe(false);
+    expect(mockUserController.checkDuplicates).toHaveBeenCalled();
+    expect(mockUserController.createUser).toHaveBeenCalled();
+    if (!response.success) {
+      expect(response.error).toBe("Database error");
+    }
+  });
+});
