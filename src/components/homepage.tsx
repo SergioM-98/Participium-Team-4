@@ -18,8 +18,8 @@ export default function StartingPage({role}:{role:string}){
       icon: <Megaphone className="h-6 w-6" />,
       title: "Signal a problem",
       description:
-        "Already a member? Ue our tool to signal a problem to our operetors",
-      items: ["Potholes", "Brocken lights", "Garbage displacemente"],
+        "Already a member? Use our tool to signal a problem to our operators",
+      items: ["Potholes", "Broken lights", "Garbage displacement"],
       route: role=="" ? "/login" : (role=="CITIZEN" ? "/reports" : "/")
     }
   ];
