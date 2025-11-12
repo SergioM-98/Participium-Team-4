@@ -7,7 +7,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+ 
+    container:
+      image: node:20
+
     services:
       postgres:
         image: postgres:15
@@ -16,43 +19,41 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_DB: test_db
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
         ports:
           - 5432:5432
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
-        
+
+    - name: Install system dependencies
+      run: |
+        apt-get update
+        apt-get install -y postgresql-client
+
     - name: Install dependencies
-      run: npm ci
-      
+      run: npm i
+
+    - name: Wait for Postgres
+      run: |
+        until pg_isready -h postgres -p 5432 -U postgres; do
+          echo "Waiting for postgres..."
+          sleep 2
+        done
+
     - name: Setup test database
       run: |
         npx prisma migrate deploy
-        npx prisma db seed
       env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-        
-    - name: Run linting
-      run: npm run lint
-      
-    - name: Run tests with coverage
-      run: npm run test:coverage
+        DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
+
+    - name: Run all tests with coverage
+      run: npm run test:ci
       env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-        
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage/lcov.info
-        fail_ci_if_error: true
+        DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
+        NODE_ENV: test
+        CI: true
