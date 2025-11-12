@@ -2,7 +2,6 @@ import { register } from "@/app/lib/actions/user";
 import { RegistrationResponse } from "@/app/lib/dtos/user.dto";
 import { prisma } from "../../setup";
 
-// Mock NextAuth to control sessions
 jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
 }));
@@ -42,16 +41,13 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
   };
 
   beforeEach(async () => {
-    // Clean database before each test
     await prisma.user.deleteMany({});
   });
 
   describe("Officer Registration by Admin Flow", () => {
     it("should successfully register a new OFFICER by ADMIN through the complete flow", async () => {
-      // Simulate admin user
       (getServerSession as jest.Mock).mockResolvedValue(adminSession);
 
-      // Create valid FormData for OFFICER
       const formData = new FormData();
       formData.append("firstName", "Mario");
       formData.append("lastName", "Rossi");
@@ -62,16 +58,13 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
-      // Execute registration (complete flow)
       const response: RegistrationResponse = await register(formData);
 
-      // Verify response
       expect(response.success).toBe(true);
       if (response.success) {
         expect(response.data).toBe("mariorossi");
       }
 
-      // Verify user was actually saved to database
       const savedUser = await prisma.user.findUnique({
         where: { username: "mariorossi" },
       });
@@ -87,9 +80,8 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
         telegram: null,
       });
 
-      // Verify password was hashed (not plain text)
       expect(savedUser!.passwordHash).not.toBe("SecurePass123!");
-      expect(savedUser!.passwordHash).toMatch(/^\$2[aby]\$\d+\$/); // bcrypt pattern
+      expect(savedUser!.passwordHash).toMatch(/^\$2[aby]\$\d+\$/); 
     });
 
     it("should successfully register OFFICER with different office departments", async () => {
@@ -117,7 +109,6 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
 
         expect(response.success).toBe(true);
 
-        // Verify user was saved with correct office
         const savedUser = await prisma.user.findUnique({
           where: { username: `officer${office.toLowerCase()}` },
         });
@@ -130,7 +121,6 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     it("should prevent registration of duplicate username", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(adminSession);
 
-      // Create first officer in database
       await prisma.user.create({
         data: {
           firstName: "Existing",
@@ -142,12 +132,11 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
         },
       });
 
-      // Try to register officer with same username
       const formData = new FormData();
       formData.append("firstName", "New");
       formData.append("lastName", "Officer");
       formData.append("email", "");
-      formData.append("username", "existingofficer"); // Duplicate username
+      formData.append("username", "existingofficer"); 
       formData.append("password", "SecurePass123!");
       formData.append("role", "OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
@@ -155,13 +144,11 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
 
       const response: RegistrationResponse = await register(formData);
 
-      // Verify registration failed
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toBe("Username exists");
       }
 
-      // Verify no second user was created
       const usersCount = await prisma.user.count({
         where: { username: "existingofficer" },
       });
@@ -171,26 +158,23 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     it("should prevent registration with invalid input data", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(adminSession);
 
-      // FormData with invalid data
       const formData = new FormData();
-      formData.append("firstName", ""); // Empty
+      formData.append("firstName", ""); 
       formData.append("lastName", "Officer");
       formData.append("email", "");
-      formData.append("username", "ab"); // Too short
-      formData.append("password", "123"); // Too short
+      formData.append("username", "ab"); 
+      formData.append("password", "123"); 
       formData.append("role", "OFFICER");
       formData.append("office", "INVALID_OFFICE");
       formData.append("telegram", "");
 
       const response: RegistrationResponse = await register(formData);
 
-      // Verify validation failed
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toBe("Invalid input data");
       }
 
-      // Verify no user was created
       const usersCount = await prisma.user.count();
       expect(usersCount).toBe(0);
     });
@@ -198,7 +182,6 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     it("should reject OFFICER registration when office is empty", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(adminSession);
 
-      // FormData with empty office
       const formData = new FormData();
       formData.append("firstName", "Test");
       formData.append("lastName", "Officer");
@@ -206,18 +189,16 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
       formData.append("role", "OFFICER");
-      formData.append("office", ""); // Empty office (OFFICER must have office)
+      formData.append("office", ""); 
       formData.append("telegram", "");
 
       const response: RegistrationResponse = await register(formData);
 
-      // Verify registration failed
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toBe("Invalid input data");
       }
 
-      // Verify no user was created
       const usersCount = await prisma.user.count();
       expect(usersCount).toBe(0);
     });
@@ -225,7 +206,6 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     it("should reject OFFICER registration when done by OFFICER user", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(officerSession);
 
-      // Create valid FormData for OFFICER
       const formData = new FormData();
       formData.append("firstName", "Test");
       formData.append("lastName", "Officer");
@@ -238,13 +218,11 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
 
       const response: RegistrationResponse = await register(formData);
 
-      // Verify registration failed (only ADMIN can register OFFICER)
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toBe("Unauthorized registration");
       }
 
-      // Verify no user was created
       const usersCount = await prisma.user.count();
       expect(usersCount).toBe(0);
     });
@@ -252,7 +230,6 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     it("should reject OFFICER registration when done by CITIZEN user", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
 
-      // Create valid FormData for OFFICER
       const formData = new FormData();
       formData.append("firstName", "Test");
       formData.append("lastName", "Officer");
@@ -265,13 +242,11 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
 
       const response: RegistrationResponse = await register(formData);
 
-      // Verify registration failed
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toBe("Unauthorized registration");
       }
 
-      // Verify no user was created
       const usersCount = await prisma.user.count();
       expect(usersCount).toBe(0);
     });
@@ -279,7 +254,6 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     it("should reject OFFICER registration without session (not logged in)", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(null);
 
-      // Create valid FormData for OFFICER
       const formData = new FormData();
       formData.append("firstName", "Test");
       formData.append("lastName", "Officer");
@@ -292,13 +266,11 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
 
       const response: RegistrationResponse = await register(formData);
 
-      // Verify registration failed (must be logged in as ADMIN)
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toBe("Unauthorized registration");
       }
 
-      // Verify no user was created
       const usersCount = await prisma.user.count();
       expect(usersCount).toBe(0);
     });
@@ -306,11 +278,10 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     it("should reject OFFICER registration with email (OFFICER cannot have email)", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(adminSession);
 
-      // FormData with email (OFFICER should not have email)
       const formData = new FormData();
       formData.append("firstName", "Test");
       formData.append("lastName", "Officer");
-      formData.append("email", "test.officer@example.com"); // OFFICER cannot have email
+      formData.append("email", "test.officer@example.com");
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
       formData.append("role", "OFFICER");
@@ -319,13 +290,11 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
 
       const response: RegistrationResponse = await register(formData);
 
-      // Verify registration failed
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toBe("Invalid input data");
       }
 
-      // Verify no user was created
       const usersCount = await prisma.user.count();
       expect(usersCount).toBe(0);
     });
@@ -333,7 +302,6 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     it("should reject OFFICER registration with telegram (OFFICER cannot have telegram)", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(adminSession);
 
-      // FormData with telegram (OFFICER should not have telegram)
       const formData = new FormData();
       formData.append("firstName", "Test");
       formData.append("lastName", "Officer");
@@ -342,17 +310,15 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("password", "SecurePass123!");
       formData.append("role", "OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
-      formData.append("telegram", "@testofficer"); // OFFICER cannot have telegram
+      formData.append("telegram", "@testofficer"); 
 
       const response: RegistrationResponse = await register(formData);
 
-      // Verify registration failed
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toBe("Invalid input data");
       }
 
-      // Verify no user was created
       const usersCount = await prisma.user.count();
       expect(usersCount).toBe(0);
     });
