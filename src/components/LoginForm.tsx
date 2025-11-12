@@ -75,8 +75,11 @@ export default function LoginPage() {
           const errorMessage = response?.error ? getErrorMessage(response.error) : "Invalid credentials";
           setError(errorMessage);
         } else {
-          // Login riuscito: fai redirect
-          router.push("/reports");
+          // Login riuscito: aspetta un attimo per permettere alla sessione di aggiornarsi
+          // poi fai refresh e redirect in base al ruolo
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 100);
         }
       } catch (err: any) {
         console.error(err);
@@ -195,7 +198,7 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {process.env.NODE_ENV === 'development' && (
+        {/* {process.env.NODE_ENV === 'development' && (
           <div className="mt-4 p-4 bg-white/80 backdrop-blur rounded-lg border">
             <p className="text-xs text-gray-600 text-center">
               <strong>Test credentials:</strong><br />
@@ -203,7 +206,7 @@ export default function LoginPage() {
               Password: adminTeam4
             </p>
           </div>
-        )}
+        )} */}
       </motion.div>
     </div>
   );

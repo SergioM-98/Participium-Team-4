@@ -2,13 +2,17 @@
 
 import { useState } from "react";
 import UserFormSection from "@/components/pt02/UserFormSection";
-import UsersTable, { UserRow } from "@/components/pt02/UsersTable";
 import {
   MunicipalityUserFormData,
 } from "@/components/MunicipalityUserForm";
 
-export default function OfficerRegistration({ submitNewOfficer }: { submitNewOfficer: (formData: FormData) => Promise<any> }) {
-  const [users, setUsers] = useState<UserRow[]>([]);
+interface OfficerRegistrationProps {
+  submitNewOfficer: (formData: FormData) => Promise<any>;
+}
+
+export default function OfficerRegistration({ 
+  submitNewOfficer,
+}: OfficerRegistrationProps) {
   const [error, setError] = useState<string>("");
 
   const saveUser = async (payload: MunicipalityUserFormData) => {
@@ -19,7 +23,7 @@ export default function OfficerRegistration({ submitNewOfficer }: { submitNewOff
       formData.append("username", payload.username);
       formData.append("role", "OFFICER");
       formData.append("password", payload.password);
-      formData.append("office", (payload.office === "" ? "OTHER" : payload.office));
+      formData.append("office", payload.office);
 
       console.log("Sending data:", {
         firstName: payload.firstName,
@@ -27,7 +31,7 @@ export default function OfficerRegistration({ submitNewOfficer }: { submitNewOff
         username: payload.username,
         role: "OFFICER",
         password: "****",
-        office: payload.office === "" ? "OTHER" : payload.office
+        office: payload.office
       });
 
       const result = await submitNewOfficer(formData);
@@ -35,33 +39,17 @@ export default function OfficerRegistration({ submitNewOfficer }: { submitNewOff
       console.log("Backend response:", result);
 
       if (result.success) {
-        // Backend returns username, but table needs full user data
-        // For now, we'll create a temporary representation
-        const newUser: UserRow = {
-          id: BigInt(Date.now()), // Temporary ID until page refresh
-          firstName: payload.firstName,
-          lastName: payload.lastName,
-          username: payload.username,
-          role: "OFFICER",
-          office: payload.office as any,
-        };
-        setUsers((prev) => [newUser, ...prev]);
         setError("");
+        console.log("Officer created successfully");
+        return true; // Successo - il form verrà resettato
       } else {
         setError(result.error ?? "Unknown error");
+        return false; // Errore - il form NON verrà resettato
       }
     } catch (err: any) {
       setError(err.message ?? "Internal error");
+      return false; // Errore - il form NON verrà resettato
     }
-  };
-
-  const handleDelete = (id: bigint) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id));
-  };
-
-  const handleEdit = (id: bigint) => {
-    // Edit functionality disabled - requires type conversion between form and table schemas
-    console.log("Edit user:", id);
   };
 
   return (
@@ -73,12 +61,6 @@ export default function OfficerRegistration({ submitNewOfficer }: { submitNewOff
           submitLabel="Save user"
           onSubmit={saveUser}
           onCancel={undefined}
-        />
-
-        <UsersTable
-          users={users}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
         />
       </div>
     </main>

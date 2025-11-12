@@ -6,7 +6,6 @@ export type MunicipalityUserFormData = {
   firstName: string;
   lastName: string;
   office: string;
-  isActive: boolean;
   password: string;
 };
 
@@ -16,7 +15,7 @@ export default function MunicipalityUserForm({
   submitLabel = "Save user",
   onCancel,
 }: {
-  onSubmit: (data: MunicipalityUserFormData) => void;
+  onSubmit: (data: MunicipalityUserFormData) => void | Promise<void | boolean>;
   initialData?: Partial<MunicipalityUserFormData>;
   submitLabel?: string;
   onCancel?: () => void;
@@ -26,7 +25,6 @@ export default function MunicipalityUserForm({
     firstName: "",
     lastName: "",
     office: "",
-    isActive: true,
     password: "",
   });
   const [errors, setErrors] = useState<Partial<Record<keyof MunicipalityUserFormData, string>>>({});
@@ -37,7 +35,6 @@ export default function MunicipalityUserForm({
       setData((prev) => ({
         ...prev,
         ...initialData,
-        isActive: initialData.isActive ?? true,
         office: initialData.office ?? "",
       }));
       setErrors({});
@@ -61,6 +58,7 @@ export default function MunicipalityUserForm({
     if (!data.lastName.trim()) next.lastName = "Last name is required.";
     if (!usernameRegex.test(data.username)) next.username = "Username must be at least 3 characters and contain only letters, numbers, . _ or -";
     if (!data.password || data.password.length < 8) next.password = "Password must be at least 8 characters.";
+    if (!data.office || data.office.trim() === "") next.office = "Office is required.";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -71,25 +69,26 @@ export default function MunicipalityUserForm({
       firstName: "",
       lastName: "",
       office: "",
-      isActive: true,
       password: "",
     });
     setErrors({});
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
     setSubmitting(true);
     try {
-      onSubmit({
+      const result = await onSubmit({
         ...data,
         username: data.username.trim().toLowerCase(),
         firstName: data.firstName.trim(),
         lastName: data.lastName.trim(),
         office: data.office?.trim() ?? "",
       });
-      if (!initialData) resetForm();
+      if (!initialData && result !== false) {
+        resetForm();
+      }
     } finally {
       setSubmitting(false);
     }
@@ -169,10 +168,15 @@ export default function MunicipalityUserForm({
         <select
           id="office"
           value={data.office}
-          onChange={(e) => setData((prev) => ({ ...prev, office: e.target.value }))}
+          onChange={(e) => {
+            setData((prev) => ({ ...prev, office: e.target.value }));
+            setErrors((prev) => ({ ...prev, office: undefined }));
+          }}
           className="w-full border p-2 rounded"
+          aria-invalid={!!errors.office}
+          aria-describedby="office-error"
         >
-          <option value="">Select Office (Optional)</option>
+          <option value="">Select Office</option>
           <option value="DEPARTMENT_OF_COMMERCE">Department of Commerce</option>
           <option value="DEPARTMENT_OF_EDUCATIONAL_SERVICES">Department of Educational Services</option>
           <option value="DEPARTMENT_OF_DECENTRALIZATION_AND_CIVIC_SERVICES">Department of Decentralization and Civic Services</option>
@@ -187,12 +191,8 @@ export default function MunicipalityUserForm({
           <option value="DEPARTMENT_OF_LOCAL_POLICE">Department of Local Police</option>
           <option value="OTHER">Other</option>
         </select>
+        {errors.office && <p id="office-error" className="text-xs text-red-600">{errors.office}</p>}
       </div>
-
-      <label className="inline-flex items-center gap-2">
-        <input type="checkbox" checked={data.isActive} onChange={handleChange("isActive")} />
-        <span className="text-sm text-gray-900">Active</span>
-      </label>
 
       <div className="flex items-center gap-3">
         <button
