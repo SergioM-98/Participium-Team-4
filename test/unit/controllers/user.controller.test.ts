@@ -79,7 +79,7 @@ describe("UserController Story 3", () => {
     password: "Test@1234",
     firstName: "Test",
     lastName: "User",
-    email: "",
+    email: undefined,
     role: "OFFICER",
     office: "DEPARTMENT_OF_COMMERCE",
     telegram: undefined,
