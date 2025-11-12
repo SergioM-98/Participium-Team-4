@@ -11,7 +11,13 @@ export default async function LoginPage() {
 
 
   if (session) {
-    redirect("/reports");
+    if(session.user?.role === "CITIZEN" ){
+      redirect("/reports");
+    } else if(session.user?.role === "ADMIN"){
+      redirect("/admin/officers/registration");
+    }else{
+      redirect("/");
+    }
   }
 
   return <LoginForm/>;
