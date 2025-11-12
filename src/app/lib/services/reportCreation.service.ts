@@ -1,4 +1,4 @@
-import {ReportRequest, reportResponseSchema, ReportResponse} from "@/dtos/report.dto";
+import {ReportRequest, reportResponseSchema, ReportResponse, ReportRegistrationResponse} from "@/dtos/report.dto";
 import {ReportRepository} from "@/repositories/report.repository";
 
 class ReportCreationService {
@@ -13,14 +13,12 @@ class ReportCreationService {
         }
         return ReportCreationService.instance;
     }
-    public async createReport(data: ReportRequest): Promise<ReportResponse> {
-        const uuid = crypto.randomUUID();
+    public async createReport(data: ReportRequest): Promise<ReportRegistrationResponse> {
+
         if (data.isAnonymous) {
             data.userId = '2';
         }
-        try {
-            const report = await this.reportRepository.createReport(
-                uuid,
+            return await this.reportRepository.createReport(
                 data.title,
                 data.description,
                 data.photos,
@@ -29,18 +27,6 @@ class ReportCreationService {
                 data.latitude,
                 data.userId
             );
-
-            return reportResponseSchema.parse({
-                id: (report as any).id,
-                title: (report as any).title,
-                description: (report as any).description,
-                category: (report as any).category,
-                createdAt: (report as any).createdAt.toISOString()
-            });
-        } catch (error) {
-            console.error("Error creating report:", error);
-            throw new Error("Failed to create report");
-        }
     }
 }
 
