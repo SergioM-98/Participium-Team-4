@@ -16,7 +16,7 @@ export default function StartingPage({role}:{role:string}){
     },
     {
       icon: <Megaphone className="h-6 w-6" />,
-      title: "Signal a problem",
+      title: "Report a problem",
       description:
         "Already a member? Use our tool to signal a problem to our operators",
       items: ["Potholes", "Broken lights", "Garbage displacement"],

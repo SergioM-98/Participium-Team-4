@@ -1,6 +1,7 @@
+"use client";
+
 import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/auth";
+import { useSession } from "next-auth/react";
 
 import {
   Accordion,
@@ -58,7 +59,7 @@ interface Navbar1Props {
   };
 }
 
-async function Navbar1({
+function Navbar1({
   logo = {
     url: "/",
     src: "void",
@@ -75,7 +76,32 @@ async function Navbar1({
     logout: { title: "Logout", url: "/api/auth/signout?callbackUrl=/" },
   },
 }: Navbar1Props) {
-  const session = await getServerSession(authOptions);
+  const { data: session } = useSession();
+
+  // Costruisci il menu in base al ruolo dell'utente
+  let filteredMenu = menu.filter((item) => {
+    
+    if (session?.user?.role === "ADMIN") {
+      return false;
+    }
+    
+    if (item.url === "/reports") {
+      return session?.user?.role === "CITIZEN" || session?.user?.role === "MUNICIPALITY_OFFICER";
+    }
+    // Mostra tutti gli altri item
+    return true;
+  });
+
+  // Aggiungi "Create Officer" per gli admin (come unico link)
+  if (session?.user?.role === "ADMIN") {
+    filteredMenu = [
+      { title: "Create Officer", url: "/admin/officers/registration" }
+    ];
+  }
+
+  const logoUrl = session?.user?.role === "ADMIN" 
+    ? "/admin/officers/registration" 
+    : logo.url;
 
   return (
     <section className="py-4">
@@ -84,7 +110,7 @@ async function Navbar1({
         <nav className="hidden lg:flex items-center w-full">
           <div className="flex items-center gap-6 flex-1 min-w-0">
             {/* Logo */}
-            <a href={logo.url} className="flex items-center gap-2 shrink-0">
+            <a href={logoUrl} className="flex items-center gap-2 shrink-0">
               <span className="text-lg font-semibold tracking-tighter">
                 {logo.title}
               </span>
@@ -93,7 +119,7 @@ async function Navbar1({
             <div className="flex items-center min-w-0">
               <NavigationMenu>
                 <NavigationMenuList>
-                  {menu.map((item) => renderMenuItem(item))}
+                  {filteredMenu.map((item) => renderMenuItem(item))}
                 </NavigationMenuList>
               </NavigationMenu>
             </div>
@@ -120,7 +146,7 @@ async function Navbar1({
         <div className="block lg:hidden">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <a href={logo.url} className="flex items-center gap-2">
+            <a href={logoUrl} className="flex items-center gap-2">
               <img src={logo.src} className="max-h-8 dark:invert" alt={logo.alt} />
             </a>
 
@@ -134,7 +160,7 @@ async function Navbar1({
               <SheetContent className="overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>
-                    <a href={logo.url} className="flex items-center gap-2">
+                    <a href={logoUrl} className="flex items-center gap-2">
                       <img src={logo.src} className="max-h-8 dark:invert" alt={logo.alt} />
                     </a>
                   </SheetTitle>
@@ -142,7 +168,7 @@ async function Navbar1({
 
                 <div className="flex flex-col gap-6 p-4">
                   <Accordion type="single" collapsible className="flex w-full flex-col gap-4">
-                    {menu.map((item) => renderMobileMenuItem(item))}
+                    {filteredMenu.map((item) => renderMobileMenuItem(item))}
                   </Accordion>
 
                   {/* Mobile buttons */}

@@ -51,6 +51,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const uploadFileToServer = async (file: File): Promise<{success: boolean, uploadId?: string, error?: string}> => {
     try {
@@ -212,6 +213,31 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
 
   return (
     <div className="w-full flex items-start justify-center">
+      {/* Success notification */}
+      {showSuccess && (
+        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 fade-in duration-300">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg flex items-start gap-3 max-w-md">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-green-800">Report created successfully!</h3>
+              <p className="mt-1 text-sm text-green-700">Your report has been submitted and is pending approval.</p>
+            </div>
+            <button
+              onClick={() => setShowSuccess(false)}
+              className="flex-shrink-0 text-green-500 hover:text-green-600"
+            >
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+      
       <Card className="w-full bg-background rounded-lg p-0 shadow-md">
         <CardContent className="p-0">
           <div className="p-6 pb-4">
@@ -428,7 +454,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
               );
             })}
           </div>
-          <div className="px-6 pb-4">
+          {/* <div className="px-6 pb-4">
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -444,7 +470,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
             <p className="text-xs text-muted-foreground mt-1 ml-6">
               Your personal information will not be shared with this report
             </p>
-          </div>
+          </div> */}
 
           <div className="px-6 py-3 border-t border-border bg-muted rounded-b-lg flex justify-between items-center">
             <TooltipProvider delayDuration={0}>
@@ -566,8 +592,9 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                     setCategory("");
                     setIsAnonymous(false);
                     
-                    // TODO: Change the following line to proper user notification
-                    alert('Report created successfully!');
+                    // Show success message
+                    setShowSuccess(true);
+                    setTimeout(() => setShowSuccess(false), 5000);
                     
                   } catch (error) {
                     console.error('Error creating report:', error);
