@@ -7,6 +7,7 @@ export type MunicipalityUserFormData = {
   lastName: string;
   office: string;
   password: string;
+  confirmPassword: string;
 };
 
 export default function MunicipalityUserForm({
@@ -26,8 +27,11 @@ export default function MunicipalityUserForm({
     lastName: "",
     office: "",
     password: "",
+    confirmPassword: "",
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof MunicipalityUserFormData, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof MunicipalityUserFormData, string>>
+  >({});
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -56,9 +60,13 @@ export default function MunicipalityUserForm({
     const next: typeof errors = {};
     if (!data.firstName.trim()) next.firstName = "First name is required.";
     if (!data.lastName.trim()) next.lastName = "Last name is required.";
-    if (!usernameRegex.test(data.username)) next.username = "Username must be at least 3 characters and contain only letters, numbers, . _ or -";
-    if (!data.password || data.password.length < 8) next.password = "Password must be at least 8 characters.";
-    if (!data.office || data.office.trim() === "") next.office = "Office is required.";
+    if (!usernameRegex.test(data.username))
+      next.username =
+        "Username must be at least 3 characters and contain only letters, numbers, . _ or -";
+    if (!data.password || data.password.length < 8)
+      next.password = "Password must be at least 8 characters.";
+    if (!data.office || data.office.trim() === "")
+      next.office = "Office is required.";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -70,6 +78,7 @@ export default function MunicipalityUserForm({
       lastName: "",
       office: "",
       password: "",
+      confirmPassword: "",
     });
     setErrors({});
   };
@@ -97,7 +106,10 @@ export default function MunicipalityUserForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="firstName" className="text-sm font-medium text-gray-900">
+        <label
+          htmlFor="firstName"
+          className="text-sm font-medium text-gray-900"
+        >
           First name
         </label>
         <input
@@ -109,7 +121,11 @@ export default function MunicipalityUserForm({
           aria-invalid={!!errors.firstName}
           aria-describedby="firstName-error"
         />
-        {errors.firstName && <p id="firstName-error" className="text-xs text-red-600">{errors.firstName}</p>}
+        {errors.firstName && (
+          <p id="firstName-error" className="text-xs text-red-600">
+            {errors.firstName}
+          </p>
+        )}
       </div>
 
       <div>
@@ -125,7 +141,11 @@ export default function MunicipalityUserForm({
           aria-invalid={!!errors.lastName}
           aria-describedby="lastName-error"
         />
-        {errors.lastName && <p id="lastName-error" className="text-xs text-red-600">{errors.lastName}</p>}
+        {errors.lastName && (
+          <p id="lastName-error" className="text-xs text-red-600">
+            {errors.lastName}
+          </p>
+        )}
       </div>
 
       <div>
@@ -141,7 +161,11 @@ export default function MunicipalityUserForm({
           aria-invalid={!!errors.username}
           aria-describedby="username-error"
         />
-        {errors.username && <p id="username-error" className="text-xs text-red-600">{errors.username}</p>}
+        {errors.username && (
+          <p id="username-error" className="text-xs text-red-600">
+            {errors.username}
+          </p>
+        )}
       </div>
 
       <div>
@@ -158,7 +182,35 @@ export default function MunicipalityUserForm({
           aria-invalid={!!errors.password}
           aria-describedby="password-error"
         />
-        {errors.password && <p id="password-error" className="text-xs text-red-600">{errors.password}</p>}
+        {errors.password && (
+          <p id="password-error" className="text-xs text-red-600">
+            {errors.password}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <label
+          htmlFor="confirmPassword"
+          className="text-sm font-medium text-gray-900"
+        >
+          Confirm Password
+        </label>
+        <input
+          id="confirmPassword"
+          type="password"
+          value={data.confirmPassword}
+          onChange={handleChange("confirmPassword")}
+          className="w-full border p-2 rounded"
+          placeholder="********"
+          aria-invalid={!!errors.confirmPassword}
+          aria-describedby="confirmPassword-error"
+        />
+        {errors.confirmPassword && (
+          <p id="confirmPassword-error" className="text-xs text-red-600">
+            {errors.confirmPassword}
+          </p>
+        )}
       </div>
 
       <div>
@@ -178,20 +230,46 @@ export default function MunicipalityUserForm({
         >
           <option value="">Select Office</option>
           <option value="DEPARTMENT_OF_COMMERCE">Department of Commerce</option>
-          <option value="DEPARTMENT_OF_EDUCATIONAL_SERVICES">Department of Educational Services</option>
-          <option value="DEPARTMENT_OF_DECENTRALIZATION_AND_CIVIC_SERVICES">Department of Decentralization and Civic Services</option>
-          <option value="DEPARTMENT_OF_SOCIAL_HEALTH_AND_HOUSING_SERVICES">Department of Social Health and Housing Services</option>
-          <option value="DEPARTMENT_OF_INTERNAL_SERVICES">Department of Internal Services</option>
-          <option value="DEPARTMENT_OF_CULTURE_SPORT_MAJOR_EVENTS_AND_TOURISM_PROMOTION">Department of Culture Sport Major Events and Tourism Promotion</option>
-          <option value="DEPARTMENT_OF_FINANCIAL_RESOURCES">Department of Financial Resources</option>
-          <option value="DEPARTMENT_OF_GENERAL_SERVICES_PROCUREMENT_AND_SUPPLIES">Department of General Services Procurement and Supplies</option>
-          <option value="DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES">Department of Maintenance and Technical Services</option>
-          <option value="DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING">Department of Urban Planning and Private Building</option>
-          <option value="DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY">Department of Environment Major Projects Infras and Mobility</option>
-          <option value="DEPARTMENT_OF_LOCAL_POLICE">Department of Local Police</option>
+          <option value="DEPARTMENT_OF_EDUCATIONAL_SERVICES">
+            Department of Educational Services
+          </option>
+          <option value="DEPARTMENT_OF_DECENTRALIZATION_AND_CIVIC_SERVICES">
+            Department of Decentralization and Civic Services
+          </option>
+          <option value="DEPARTMENT_OF_SOCIAL_HEALTH_AND_HOUSING_SERVICES">
+            Department of Social Health and Housing Services
+          </option>
+          <option value="DEPARTMENT_OF_INTERNAL_SERVICES">
+            Department of Internal Services
+          </option>
+          <option value="DEPARTMENT_OF_CULTURE_SPORT_MAJOR_EVENTS_AND_TOURISM_PROMOTION">
+            Department of Culture Sport Major Events and Tourism Promotion
+          </option>
+          <option value="DEPARTMENT_OF_FINANCIAL_RESOURCES">
+            Department of Financial Resources
+          </option>
+          <option value="DEPARTMENT_OF_GENERAL_SERVICES_PROCUREMENT_AND_SUPPLIES">
+            Department of General Services Procurement and Supplies
+          </option>
+          <option value="DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES">
+            Department of Maintenance and Technical Services
+          </option>
+          <option value="DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING">
+            Department of Urban Planning and Private Building
+          </option>
+          <option value="DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY">
+            Department of Environment Major Projects Infras and Mobility
+          </option>
+          <option value="DEPARTMENT_OF_LOCAL_POLICE">
+            Department of Local Police
+          </option>
           <option value="OTHER">Other</option>
         </select>
-        {errors.office && <p id="office-error" className="text-xs text-red-600">{errors.office}</p>}
+        {errors.office && (
+          <p id="office-error" className="text-xs text-red-600">
+            {errors.office}
+          </p>
+        )}
       </div>
 
       <div className="flex items-center gap-3">
@@ -203,7 +281,11 @@ export default function MunicipalityUserForm({
           {submitting ? "Saving..." : submitLabel}
         </button>
         {onCancel && (
-          <button type="button" onClick={onCancel} className="h-10 rounded-md px-4 border bg-white hover:bg-gray-50">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="h-10 rounded-md px-4 border bg-white hover:bg-gray-50"
+          >
             Cancel
           </button>
         )}

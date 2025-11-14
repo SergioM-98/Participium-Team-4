@@ -24,15 +24,6 @@ export default function OfficerRegistration({
       formData.append("confirmPassword", payload.confirmPassword);
       formData.append("office", payload.office);
 
-      console.log("Sending data:", {
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        username: payload.username,
-        role: "OFFICER",
-        password: "****",
-        office: payload.office,
-      });
-
       const result = await submitNewOfficer(formData);
 
       console.log("Backend response:", result);
