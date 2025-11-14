@@ -80,7 +80,7 @@ export default function StartingPage({ role }: { role: string }) {
   ];
 
   return (
-    <section className="py-32">
+    <section className="py-32 px-4 md:px-6 lg:px-8">
       <div className="container">
         <div className="mx-auto max-w-6xl space-y-12">
           <div className="space-y-4 text-center">

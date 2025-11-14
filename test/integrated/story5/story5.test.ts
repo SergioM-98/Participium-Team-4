@@ -4,8 +4,6 @@ import { ReportRegistrationResponse } from "@/app/lib/dtos/report.dto";
 import { createReport } from "@/app/lib/actions/report";
 import { createUploadPhoto } from "@/app/lib/actions/uploader";
 import { ControllerSuccessResponse } from "@/app/lib/dtos/tus.dto";
-import { rm } from "fs/promises";
-import path from "path";
 
 // Mock NextAuth to control sessions
 jest.mock("next-auth/next", () => ({

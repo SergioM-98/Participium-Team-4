@@ -157,7 +157,7 @@ function Navbar1({
                 </Button>
               </SheetTrigger>
 
-              <SheetContent className="overflow-y-auto">
+              <SheetContent className="overflow-y-auto z-[9999]">
                 <SheetHeader>
                   <SheetTitle>
                     <a href={logoUrl} className="flex items-center gap-2">

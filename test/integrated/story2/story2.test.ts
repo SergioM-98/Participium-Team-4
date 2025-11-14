@@ -49,14 +49,15 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       (getServerSession as jest.Mock).mockResolvedValue(adminSession);
 
       const formData = new FormData();
-      formData.append("firstName", "Mario");
-      formData.append("lastName", "Rossi");
-      formData.append("email", "");
-      formData.append("username", "mariorossi");
-      formData.append("password", "SecurePass123!");
-      formData.append("role", "OFFICER");
-      formData.append("office", "DEPARTMENT_OF_COMMERCE");
-      formData.append("telegram", "");
+  formData.append("firstName", "Mario");
+  formData.append("lastName", "Rossi");
+  formData.append("email", "");
+  formData.append("username", "mariorossi");
+  formData.append("password", "SecurePass123!");
+  formData.append("confirmPassword", "SecurePass123!");
+  formData.append("role", "OFFICER");
+  formData.append("office", "DEPARTMENT_OF_COMMERCE");
+  formData.append("telegram", "");
 
       const response: RegistrationResponse = await register(formData);
 
@@ -96,14 +97,15 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
 
       for (const office of offices) {
         const formData = new FormData();
-        formData.append("firstName", "Officer");
-        formData.append("lastName", office);
-        formData.append("email", "");
-        formData.append("username", `officer${office.toLowerCase()}`);
-        formData.append("password", "SecurePass123!");
-        formData.append("role", "OFFICER");
-        formData.append("office", office);
-        formData.append("telegram", "");
+  formData.append("firstName", "Officer");
+  formData.append("lastName", office);
+  formData.append("email", "");
+  formData.append("username", `officer${office.toLowerCase()}`);
+  formData.append("password", "SecurePass123!");
+  formData.append("confirmPassword", "SecurePass123!");
+  formData.append("role", "OFFICER");
+  formData.append("office", office);
+  formData.append("telegram", "");
 
         const response: RegistrationResponse = await register(formData);
 
@@ -138,6 +140,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("email", "");
       formData.append("username", "existingofficer"); 
       formData.append("password", "SecurePass123!");
+      formData.append("confirmPassword", "SecurePass123!");
       formData.append("role", "OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
@@ -146,7 +149,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
 
       expect(response.success).toBe(false);
       if (!response.success) {
-        expect(response.error).toBe("Username exists");
+        expect(response.error).toBe("Username and/or email already used");
       }
 
       const usersCount = await prisma.user.count({
@@ -212,6 +215,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("email", "");
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
+      formData.append("confirmPassword", "SecurePass123!");
       formData.append("role", "OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
@@ -236,6 +240,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("email", "");
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
+      formData.append("confirmPassword", "SecurePass123!");
       formData.append("role", "OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
@@ -260,6 +265,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("email", "");
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
+      formData.append("confirmPassword", "SecurePass123!");
       formData.append("role", "OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");

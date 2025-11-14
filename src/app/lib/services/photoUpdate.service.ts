@@ -40,7 +40,8 @@ class PhotoUpdaterService {
 
             // Get current filename from URL (temp filename)
             const currentFilename = path.basename(currentPhoto.url);
-            const filePath = path.join(process.cwd(), 'uploads', currentFilename);
+            const uploadsDir = process.env.UPLOADS_DIR || path.join(process.cwd(), 'uploads');
+            const filePath = path.join(uploadsDir, currentFilename);
 
             // Append chunk to existing file
             const buffer = Buffer.from(validatedRequest.body);
@@ -62,7 +63,8 @@ class PhotoUpdaterService {
                 
                 // Rename from temporary to final filename
                 const finalFilename = `${currentPhoto.filename}`;
-                const finalFilePath = path.join(process.cwd(), 'uploads', finalFilename);
+                const uploadsDir = process.env.UPLOADS_DIR || path.join(process.cwd(), 'uploads');
+                const finalFilePath = path.join(uploadsDir, finalFilename);
                 
                 try {
                     await rename(filePath, finalFilePath);

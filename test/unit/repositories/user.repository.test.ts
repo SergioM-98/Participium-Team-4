@@ -8,6 +8,7 @@ jest.mock('@/db/db', () => ({
     prisma: {
         user: {
             findUnique: jest.fn(),
+            findFirst: jest.fn(),
             create: jest.fn(),
         },
     },
@@ -20,6 +21,7 @@ describe('UserRepository Story 1', () => {
     const mockUserData: RegistrationInput = {
         username: "testuser",
         password: "Test@1234",
+        confirmPassword: "Test@1234",
         firstName: "Test",
         lastName: "User",
         email: "testuser@example.com",
@@ -37,14 +39,14 @@ describe('UserRepository Story 1', () => {
 
     describe('checkDuplicates', () => {
         it("should return isExisting true when username exists", async () => {
-            mockedPrisma.user.findUnique.mockResolvedValue(mockUserData);
+            mockedPrisma.user.findFirst.mockResolvedValue(mockUserData);
             
             const response = await userRepository.checkDuplicates(mockUserData)
             expect(response.isExisting).toBe(true);
         });
             
         it ("should return isExisting false when username does not exist", async () => {
-            mockedPrisma.user.findUnique.mockResolvedValue(null);
+            mockedPrisma.user.findFirst.mockResolvedValue(null);
 
             const response = await userRepository.checkDuplicates(mockUserData)
             expect(response).toHaveProperty('isExisting');
@@ -79,6 +81,7 @@ describe('UserRepository Story 2 - OFFICER Registration by ADMIN', () => {
     const mockUserData: RegistrationInput = {
         username: "testofficer",
         password: "Test@1234",
+        confirmPassword: "Test@1234",
         firstName: "Test",
         lastName: "Officer",
         email: undefined,
@@ -96,7 +99,7 @@ describe('UserRepository Story 2 - OFFICER Registration by ADMIN', () => {
 
     describe('checkDuplicates', () => {
         it("should return isExisting true when OFFICER username exists", async () => {
-            mockedPrisma.user.findUnique.mockResolvedValue({
+            mockedPrisma.user.findFirst.mockResolvedValue({
                 ...mockUserData,
                 id: 1,
                 passwordHash: "hashedpassword"
@@ -104,18 +107,18 @@ describe('UserRepository Story 2 - OFFICER Registration by ADMIN', () => {
             
             const response = await userRepository.checkDuplicates(mockUserData)
             expect(response.isExisting).toBe(true);
-            expect(mockedPrisma.user.findUnique).toHaveBeenCalledWith({
+            expect(mockedPrisma.user.findFirst).toHaveBeenCalledWith({
                 where: { username: mockUserData.username }
             });
         });
             
         it ("should return isExisting false when OFFICER username does not exist", async () => {
-            mockedPrisma.user.findUnique.mockResolvedValue(null);
+            mockedPrisma.user.findFirst.mockResolvedValue(null);
 
             const response = await userRepository.checkDuplicates(mockUserData)
             expect(response).toHaveProperty('isExisting');
             expect(response.isExisting).toBe(false);
-            expect(mockedPrisma.user.findUnique).toHaveBeenCalledWith({
+            expect(mockedPrisma.user.findFirst).toHaveBeenCalledWith({
                 where: { username: mockUserData.username }
             });
         });

@@ -60,7 +60,7 @@ export default function LeafletMap({ onLocationSelect }: { onLocationSelect?: (l
         />
         <MarkersManager markers={markers} onMapClick={addOrResetMarker} />
       </MapContainer>
-      <div className="absolute top-3 right-3 z-[1000]">
+      <div className="absolute top-3 right-3">
         <LocationDisplay selected={selected} />
       </div>
     </div>

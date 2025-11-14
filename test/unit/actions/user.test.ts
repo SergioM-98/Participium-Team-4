@@ -50,6 +50,7 @@ describe("User Actions - register function Story 1", () => {
     validFormData.append("email", "test@example.com");
     validFormData.append("username", "testuser");
     validFormData.append("password", "Test@1234");
+    validFormData.append("confirmPassword", "Test@1234");
     validFormData.append("role", "CITIZEN");
     validFormData.append("office", "");
     validFormData.append("telegram", "");
@@ -127,6 +128,7 @@ describe("User Actions - Role setup Story 3", () => {
     validFormData.append("email", "");
     validFormData.append("username", "testuser");
     validFormData.append("password", "Test@1234");
+    validFormData.append("confirmPassword", "Test@1234");
     validFormData.append("role", "OFFICER");
     validFormData.append("office", "DEPARTMENT_OF_COMMERCE");
     validFormData.append("telegram", "");
@@ -220,6 +222,7 @@ describe("User Actions - OFFICER registration by ADMIN Story 2", () => {
     validFormData.append("email", "");
     validFormData.append("username", "testofficer");
     validFormData.append("password", "Test@1234");
+    validFormData.append("confirmPassword", "Test@1234");
     validFormData.append("role", "OFFICER");
     validFormData.append("office", "DEPARTMENT_OF_COMMERCE");
     validFormData.append("telegram", "");
