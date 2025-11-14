@@ -1,18 +1,17 @@
 import { z } from "zod";
 import { Role, Offices } from "@prisma/client";
 
-
-
-
-const BaseUserSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.email("Invalid email").optional(),
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  role: z.enum(Role),
-  office: z.enum(Offices).optional(),
-  telegram: z.string().optional()
-}).refine(
+const BaseUserSchema = z
+  .object({
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    email: z.email("Invalid email").optional(),
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    role: z.enum(Role),
+    office: z.enum(Offices).optional(),
+    telegram: z.string().optional(),
+  })
+  .refine(
     (data) =>
       (data.role === "OFFICER" && data.office) ||
       (data.role !== "OFFICER" && !data.office),
@@ -20,7 +19,8 @@ const BaseUserSchema = z.object({
       message: "Only OFFICER can have an office",
       path: ["office"],
     }
-  ).refine(
+  )
+  .refine(
     (data) =>
       (data.role === "CITIZEN" && data.email) ||
       (data.role !== "CITIZEN" && !data.email),
@@ -28,22 +28,26 @@ const BaseUserSchema = z.object({
       message: "Only CITIZEN can have an email",
       path: ["email"],
     }
-  ).refine(
+  )
+  .refine(
     (data) => {
       if (data.role === "CITIZEN") {
-        return true; 
+        return true;
       }
-     
+
       return !data.telegram;
     },
     {
       message: "Only CITIZEN can have a telegram account",
-      path: ["telegram"], 
+      path: ["telegram"],
     }
   );
 
 export const RegistrationInputSchema = BaseUserSchema.safeExtend({
   password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z
+    .string()
+    .min(8, "Confirm Password must be at least 8 characters"),
 });
 
 export const CitizenSchema = BaseUserSchema.safeExtend({
@@ -55,16 +59,18 @@ export const CheckDuplicatesResponseSchema = z.object({
   isExisting: z.boolean(),
 });
 
-export const RetrievedUserDataSchema = z.object({
-  id: z.bigint(),
-  firstName: z.string(),
-  lastName: z.string(),
-  email: z.email().optional(),
-  username: z.string(),
-  role: z.enum(Role),
-  office: z.enum(Offices).optional(),
-  telegram: z.string().optional()
-}).refine(
+export const RetrievedUserDataSchema = z
+  .object({
+    id: z.bigint(),
+    firstName: z.string(),
+    lastName: z.string(),
+    email: z.email().optional(),
+    username: z.string(),
+    role: z.enum(Role),
+    office: z.enum(Offices).optional(),
+    telegram: z.string().optional(),
+  })
+  .refine(
     (data) =>
       (data.role === "OFFICER" && data.office) ||
       (data.role !== "OFFICER" && !data.office),
@@ -72,7 +78,8 @@ export const RetrievedUserDataSchema = z.object({
       message: "Only OFFICER can and must have an office",
       path: ["office"],
     }
-  ).refine(
+  )
+  .refine(
     (data) =>
       (data.role === "CITIZEN" && data.email) ||
       (data.role !== "CITIZEN" && !data.email),
@@ -80,17 +87,18 @@ export const RetrievedUserDataSchema = z.object({
       message: "Only CITIZEN can and must have an email",
       path: ["email"],
     }
-  ).refine(
+  )
+  .refine(
     (data) => {
       if (data.role === "CITIZEN") {
-        return true; 
+        return true;
       }
-    
+
       return !data.telegram;
     },
     {
       message: "Only CITIZEN can have a telegram account",
-      path: ["telegram"], 
+      path: ["telegram"],
     }
   );
 

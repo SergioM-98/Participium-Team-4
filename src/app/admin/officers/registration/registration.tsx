@@ -2,15 +2,13 @@
 
 import { useState } from "react";
 import UserFormSection from "@/components/pt02/UserFormSection";
-import {
-  MunicipalityUserFormData,
-} from "@/components/MunicipalityUserForm";
+import { MunicipalityUserFormData } from "@/components/MunicipalityUserForm";
 
 interface OfficerRegistrationProps {
   submitNewOfficer: (formData: FormData) => Promise<any>;
 }
 
-export default function OfficerRegistration({ 
+export default function OfficerRegistration({
   submitNewOfficer,
 }: OfficerRegistrationProps) {
   const [error, setError] = useState<string>("");
@@ -23,6 +21,7 @@ export default function OfficerRegistration({
       formData.append("username", payload.username);
       formData.append("role", "OFFICER");
       formData.append("password", payload.password);
+      formData.append("confirmPassword", payload.confirmPassword);
       formData.append("office", payload.office);
 
       console.log("Sending data:", {
@@ -31,7 +30,7 @@ export default function OfficerRegistration({
         username: payload.username,
         role: "OFFICER",
         password: "****",
-        office: payload.office
+        office: payload.office,
       });
 
       const result = await submitNewOfficer(formData);
