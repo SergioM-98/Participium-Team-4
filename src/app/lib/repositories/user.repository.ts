@@ -15,24 +15,37 @@ class UserRepository {
     userData: RegistrationInput
   ): Promise<CheckDuplicatesResponse> {
     try {
-      const user = await prisma.user.findUnique({
+      const existingUsername = await prisma.user.findFirst({
         where: {
           username: userData.username,
         },
       });
 
+      let existingEmail = null;
+      if (userData.email) {
+        existingEmail = await prisma.user.findFirst({
+          where: {
+            email: userData.email,
+          },
+        });
+      }
+
       return {
-        isExisting: user !== null,
+        isExisting:
+          existingUsername !== null ||
+          (userData.email ? existingEmail !== null : false),
       };
     } catch (error) {
       throw new Error("Failed to fetch user from database");
     }
   }
 
-  async createUser(
-    userData: RegistrationInput
-  ): Promise<RegistrationResponse> {
+  async createUser(userData: RegistrationInput): Promise<RegistrationResponse> {
     try {
+      if (userData.password !== userData.confirmPassword) {
+        return { success: false, error: "Passwords do not match" };
+      }
+
       const hashedPassword = await bcrypt.hash(userData.password, 12);
 
       const user = await prisma.user.create({
@@ -79,14 +92,15 @@ class UserRepository {
       }
 
       const { passwordHash, ...rest } = user;
-      return {success: true,
-              data: {
-                ...rest,
-                email: rest.email ?? undefined,
-                office: rest.office ?? undefined,
-                telegram: rest.telegram ?? undefined
-              }};
-
+      return {
+        success: true,
+        data: {
+          ...rest,
+          email: rest.email ?? undefined,
+          office: rest.office ?? undefined,
+          telegram: rest.telegram ?? undefined,
+        },
+      };
     } catch (error) {
       throw new Error("Failed to fetch user from database");
     }
