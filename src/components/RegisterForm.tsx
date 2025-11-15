@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
@@ -12,13 +12,11 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { Eye, EyeOff } from "lucide-react";
 
-// Import your server action
-// Changed relative path to use the root alias, which might resolve the build error.
 import { register } from "@/app/lib/actions/user";
 
 export default function RegisterForm() {
-  const router = useRouter(); // Hook for navigation
-  const [isPending, startTransition] = useTransition(); // Hook for loading state
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   // State for form fields
   const [firstName, setFirstName] = useState("");

@@ -75,9 +75,7 @@ export default function LoginPage() {
           const errorMessage = response?.error ? getErrorMessage(response.error) : "Invalid credentials";
           setError(errorMessage);
         } else {
-          setTimeout(() => {
-            window.location.href = "/";
-          }, 100);
+          router.push("/");
         }
       } catch (err: any) {
         console.error(err);
