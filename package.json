@@ -15,9 +15,12 @@
     "test:setup": "docker-compose up -d test_db && sleep 5 && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/participium_test_db?schema=public npx prisma migrate deploy",
     "test:reset": "docker-compose down test_db && docker volume rm participium-team-4_pgdata_test || echo Volume already removed && npm run test:setup",
     "test:cleanup": "docker-compose down test_db",
-    "participium": "node setup-db.js"
+    "participium": "node setup-db.js",
+    "bot": "npx tsc --skipLibCheck && node ./src/bot/bot.js"
   },
   "dependencies": {
+    "@grammyjs/conversations": "^2.1.0",
+    "@grammyjs/menu": "^1.3.1",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
     "@prisma/client": "^6.18.0",
@@ -34,6 +37,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.24",
+    "grammy": "^1.38.3",
     "jose": "^6.1.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.552.0",
@@ -57,7 +61,7 @@
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
     "cross-env": "^10.1.0",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "eslint": "^9",
     "eslint-config-next": "16.0.1",
     "jest": "^30.2.0",

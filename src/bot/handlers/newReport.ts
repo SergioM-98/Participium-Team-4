@@ -1,6 +1,6 @@
 import { Conversation } from "@grammyjs/conversations";
 import { Context } from "grammy";
-import { Report } from "@/dtos/report.dto";
+import { Report } from "../../app/lib/dtos/report.dto";
 
 const QUESTIONS = [
   "Please provide the title of the report:",
@@ -61,14 +61,7 @@ export async function newReport(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        title: reportData.title,
-        description: reportData.description,
-        photos: reportData.photos,
-        category: reportData.category,
-        longitude: reportData.longitude,
-        latitude: reportData.latitude,
-      }),
+      body: JSON.stringify(reportData),
     });
 
     if (response.ok) {

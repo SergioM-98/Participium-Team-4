@@ -21,6 +21,7 @@ describe("UserController Story 1", () => {
   const mockUserData: RegistrationInput = {
     username: "testuser",
     password: "Test@1234",
+    confirmPassword: "Test@1234",
     firstName: "Test",
     lastName: "User",
     email: "testuser@example.com",
@@ -77,7 +78,8 @@ describe("UserController Story 3", () => {
   const mockUserData: RegistrationInput = {
     username: "testuser",
     password: "Test@1234",
-    firstName: "Test",
+    confirmPassword: "Test@1234",
+    firstName: "Admin",
     lastName: "User",
     email: undefined,
     role: "OFFICER",
@@ -133,6 +135,7 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
   const mockUserData: RegistrationInput = {
     username: "testofficer",
     password: "Test@1234",
+    confirmPassword: "Test@1234",
     firstName: "Test",
     lastName: "Officer",
     email: undefined,

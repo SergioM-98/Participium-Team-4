@@ -38,78 +38,97 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.newReport = newReport;
 var QUESTIONS = [
-    "Qual è il titolo della segnalazione?",
-    "Descrivi il problema in dettaglio:",
-    "Qual è la posizione/indirizzo?",
-    "Qual è la categoria della segnalazione?",
+    "Please provide the title of the report:",
+    "Please describe the problem in detail:",
+    "What is the location/address?",
+    "What is the category of the report?",
 ];
-var FIELD_NAMES = ["title", "description", "location", "category"];
+var FIELD_NAMES = [
+    "title",
+    "description",
+    "latitude",
+    "longitude",
+    "category",
+];
 function newReport(conversation, ctx) {
     return __awaiter(this, void 0, void 0, function () {
-        var reportData, i, nextCtx, response, result, error_1;
-        var _a, _b, _c;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var reportData, i, nextCtx, fieldName, value, response, result, error_1;
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     reportData = {};
                     i = 0;
-                    _d.label = 1;
+                    _b.label = 1;
                 case 1:
                     if (!(i < QUESTIONS.length)) return [3 /*break*/, 5];
                     return [4 /*yield*/, ctx.reply(QUESTIONS[i])];
                 case 2:
-                    _d.sent();
+                    _b.sent();
                     return [4 /*yield*/, conversation.wait()];
                 case 3:
-                    nextCtx = _d.sent();
-                    reportData[FIELD_NAMES[i]] =
-                        ((_a = nextCtx.message) === null || _a === void 0 ? void 0 : _a.text) || "";
-                    ctx = nextCtx; // Aggiorna ctx al nuovo context
-                    _d.label = 4;
+                    nextCtx = _b.sent();
+                    fieldName = FIELD_NAMES[i];
+                    value = ((_a = nextCtx.message) === null || _a === void 0 ? void 0 : _a.text) || "";
+                    switch (fieldName) {
+                        case "title":
+                            reportData.title = value;
+                            break;
+                        case "description":
+                            reportData.description = value;
+                            break;
+                        case "latitude":
+                            reportData.latitude = 0; // TODO: Implement map integration to get real coordinates
+                            break;
+                        case "longitude":
+                            reportData.longitude = 0; // TODO: Implement map integration to get real coordinates
+                            break;
+                        case "category":
+                            reportData.category = value; // Devo fornire agli utenti dei bottoni tra cui poter scegliere la categoria
+                            break;
+                    }
+                    ctx = nextCtx;
+                    _b.label = 4;
                 case 4:
                     i++;
                     return [3 /*break*/, 1];
-                case 5: return [4 /*yield*/, ctx.reply("Inviando la segnalazione...")];
+                case 5:
+                    // TODO: Handle photos - for now empty array
+                    reportData.photos = [];
+                    return [4 /*yield*/, ctx.reply("Sending your report...")];
                 case 6:
-                    _d.sent();
-                    _d.label = 7;
+                    _b.sent();
+                    _b.label = 7;
                 case 7:
-                    _d.trys.push([7, 14, , 16]);
+                    _b.trys.push([7, 14, , 16]);
                     return [4 /*yield*/, fetch("http://localhost:3000/api/reports", {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",
                             },
-                            body: JSON.stringify({
-                                title: reportData.title,
-                                description: reportData.description,
-                                location: reportData.location,
-                                category: reportData.category,
-                                userId: (_b = ctx.from) === null || _b === void 0 ? void 0 : _b.id,
-                                username: (_c = ctx.from) === null || _c === void 0 ? void 0 : _c.username,
-                            }),
+                            body: JSON.stringify(reportData),
                         })];
                 case 8:
-                    response = _d.sent();
+                    response = _b.sent();
                     if (!response.ok) return [3 /*break*/, 11];
                     return [4 /*yield*/, response.json()];
                 case 9:
-                    result = _d.sent();
-                    return [4 /*yield*/, ctx.reply("\u2705 Segnalazione inviata con successo! ID: ".concat(result.id))];
+                    result = _b.sent();
+                    return [4 /*yield*/, ctx.reply("\u2705 Report sent successfully! ID: ".concat(result.id))];
                 case 10:
-                    _d.sent();
+                    _b.sent();
                     return [3 /*break*/, 13];
-                case 11: return [4 /*yield*/, ctx.reply("❌ Errore nell'invio della segnalazione. Riprova più tardi.")];
+                case 11: return [4 /*yield*/, ctx.reply("❌ Error sending the report. Please try again later.")];
                 case 12:
-                    _d.sent();
-                    _d.label = 13;
+                    _b.sent();
+                    _b.label = 13;
                 case 13: return [3 /*break*/, 16];
                 case 14:
-                    error_1 = _d.sent();
-                    console.error("Errore durante l'invio della segnalazione:", error_1);
-                    return [4 /*yield*/, ctx.reply("❌ Errore di connessione. Riprova più tardi.")];
+                    error_1 = _b.sent();
+                    console.error("Error sending the report:", error_1);
+                    return [4 /*yield*/, ctx.reply("❌ Connection error. Please try again later.")];
                 case 15:
-                    _d.sent();
+                    _b.sent();
                     return [3 /*break*/, 16];
                 case 16: return [2 /*return*/];
             }

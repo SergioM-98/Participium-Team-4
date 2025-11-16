@@ -1,6 +1,8 @@
 "use server";
 
 import {
+  AssignReportToOfficerResponse,
+  ReportListResponse,
   ReportRegistrationResponse,
   reportRequestSchema,
 } from "@/dtos/report.dto";
@@ -46,7 +48,7 @@ export async function createReport(
   return await reportController.createReport(reportData.data);
 }
 
-export async function retrieveReportsByOfficerId() {
+export async function retrieveReportsByOfficerId(): Promise<ReportListResponse> {
   const session = await getServerSession(authOptions);
 
   if (!session || (session && session.user.role !== "OFFICER")) {
@@ -55,4 +57,29 @@ export async function retrieveReportsByOfficerId() {
 
   const reportController = new ReportController();
   return await reportController.getReportsByOfficerId(Number(session.user.id));
+}
+
+export async function retrieveUnassignedReports(): Promise<ReportListResponse> {
+  const session = await getServerSession(authOptions);
+
+  if (!session || (session && session.user.role !== "OFFICER")) {
+    return { success: false, error: "Unauthorized access" };
+  }
+
+  const reportController = new ReportController();
+  return await reportController.getUnassignedReports();
+}
+
+export async function assignReportToOfficer(
+  reportId: number,
+  department: string
+): Promise<AssignReportToOfficerResponse> {
+  const session = await getServerSession(authOptions);
+
+  if (!session || (session && session.user.role !== "OFFICER")) {
+    return { success: false, error: "Unauthorized access" };
+  }
+
+  const reportController = new ReportController();
+  return await reportController.assignReportToOfficer(reportId, department);
 }

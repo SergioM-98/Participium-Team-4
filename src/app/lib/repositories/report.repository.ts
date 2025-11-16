@@ -1,10 +1,6 @@
 import { prisma } from "@/prisma/db";
-import { Category, Report } from "@prisma/client";
-import {
-  ReportByOfficer,
-  ReportRegistrationResponse,
-  ReportsByOfficerIdResponse,
-} from "@/dtos/report.dto";
+import { Category, Offices } from "@prisma/client";
+import { ReportRegistrationResponse } from "@/dtos/report.dto";
 
 class ReportRepository {
   private static instance: ReportRepository;
@@ -63,8 +59,46 @@ class ReportRepository {
       },
       include: {
         photos: {
-          select: { url: true },
+          select: { filename: true },
         },
+      },
+    });
+  }
+
+  public async getUnassignedReports() {
+    return await prisma.report.findMany({
+      where: {
+        status: "PENDING_APPROVAL",
+      },
+      include: {
+        photos: {
+          select: { filename: true },
+        },
+      },
+    });
+  }
+
+  public async getOfficerWithLeastReports(department: Offices | string) {
+    return await prisma.user.findFirst({
+      where: {
+        office: department as Offices,
+      },
+      orderBy: {
+        managedReports: {
+          _count: "asc",
+        },
+      },
+    });
+  }
+
+  public async assignReportToOfficer(reportId: number, officerId: number) {
+    await prisma.report.update({
+      where: {
+        id: reportId,
+      },
+      data: {
+        officerId: officerId,
+        status: "ASSIGNED",
       },
     });
   }

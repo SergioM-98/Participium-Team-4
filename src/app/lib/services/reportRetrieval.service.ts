@@ -1,4 +1,4 @@
-import { ReportsByOfficerIdResponse } from "@/dtos/report.dto";
+import { ReportListResponse } from "@/dtos/report.dto";
 import { ReportRepository } from "@/repositories/report.repository";
 
 class ReportRetrievalService {
@@ -18,7 +18,7 @@ class ReportRetrievalService {
 
   public async retrieveReportsByOfficerId(
     officerId: number
-  ): Promise<ReportsByOfficerIdResponse> {
+  ): Promise<ReportListResponse> {
     try {
       const reports = await this.reportRepository.getReportsByOfficerId(
         officerId
@@ -28,11 +28,10 @@ class ReportRetrievalService {
         id: r.id.toString(),
         title: r.title,
         description: r.description,
-        photos: r.photos.map((p) => p.url),
+        photos: r.photos.map((p) => p.filename).filter((f) => f !== null),
         category: r.category,
         longitude: Number(r.longitude),
         latitude: Number(r.latitude),
-        userId: r.citizenId.toString(),
       }));
 
       return {
@@ -43,6 +42,32 @@ class ReportRetrievalService {
       return {
         success: false,
         error: "Failed to retrieve reports for the given officer ID",
+      };
+    }
+  }
+
+  public async retrieveUnassignedReports(): Promise<ReportListResponse> {
+    try {
+      const reports = await this.reportRepository.getUnassignedReports();
+
+      const transformedReports = reports.map((r) => ({
+        id: r.id.toString(),
+        title: r.title,
+        description: r.description,
+        photos: r.photos.map((p) => p.filename).filter((f) => f !== null),
+        category: r.category,
+        longitude: Number(r.longitude),
+        latitude: Number(r.latitude),
+      }));
+
+      return {
+        success: true,
+        data: transformedReports,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: "Failed to retrieve unassigned reports",
       };
     }
   }

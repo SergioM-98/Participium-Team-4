@@ -24,7 +24,7 @@ export class PhotoRepository {
                 data: {
                     id: data.id,
                     url: data.url,
-                    reportId: data.reportId,
+                    reportId: data.reportId ? BigInt(data.reportId) : null,
                     size: data.size,
                     offset: data.offset,
                     filename: data.filename

@@ -20,6 +20,7 @@ describe('UserRepository Story 1', () => {
     const mockUserData: RegistrationInput = {
         username: "testuser",
         password: "Test@1234",
+        confirmPassword: "Test@1234",
         firstName: "Test",
         lastName: "User",
         email: "testuser@example.com",
@@ -79,6 +80,7 @@ describe('UserRepository Story 2 - OFFICER Registration by ADMIN', () => {
     const mockUserData: RegistrationInput = {
         username: "testofficer",
         password: "Test@1234",
+        confirmPassword: "Test@1234",
         firstName: "Test",
         lastName: "Officer",
         email: undefined,
