@@ -9,7 +9,6 @@ import {
 } from "@/dtos/user.dto";
 import { prisma } from "@/prisma/db";
 import bcrypt from "bcrypt";
-import { ca } from "zod/v4/locales";
 
 class UserRepository {
   
@@ -76,14 +75,6 @@ class UserRepository {
           telegram: userData.telegram ?? undefined,
         },
       });
-
-      if(user.role === "CITIZEN") {
-        await prisma.notificationPreferences.create({
-          data: {
-            userId: user.id
-          },
-        });
-      }
 
       return {
         success: true,
