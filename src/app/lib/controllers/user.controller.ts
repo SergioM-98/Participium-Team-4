@@ -2,6 +2,7 @@
 import {
   LoginInput,
   LoginResponse,
+  MeType,
   RegistrationInput,
   RegistrationInputSchema,
   RegistrationResponse,
@@ -10,7 +11,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { UserService } from "../services/user.service";
 import { updateNotificationsPreferences } from "./notifications.controller";
-import { NotificationsData } from "../dtos/notificationPreferences.dto";
+import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
+import { NotificationsService } from "../services/notifications.service";
 
 
 
@@ -83,4 +85,30 @@ import { NotificationsData } from "../dtos/notificationPreferences.dto";
     }else{
       return updateMediaResponse;
     }
+  }
+
+export async function getMe(username: string): Promise<MeType | RegistrationResponse> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.username) {
+      return { success: false, error: "Unauthorized access" };
+    }
+
+    let notifications: NotificationsResponse;
+
+    if(session.user.role === "CITIZEN"){
+      notifications = await NotificationsService.getInstance().getNotificationsPreferences(session.user.username);
+      if(!notifications.success){
+        return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
+      } 
+    }
+
+    return {
+      firstName: session.user.firstName,
+      lastName: session.user.lastName,
+      email: session.user.email ?? undefined,
+      username: session.user.username,
+      role: session.user.role as MeType["role"],
+      office: session.user.office as MeType["office"] ?? undefined,
+      telegram: session.user.telegram ?? undefined,
+    };
   }

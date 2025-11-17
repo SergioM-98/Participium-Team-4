@@ -1,3 +1,4 @@
+import { prisma } from "@/prisma/db";
 import { RegistrationInput, RegistrationResponse } from "../dtos/user.dto";
 import { NotificationsRepository } from "../repositories/notifications.repository";
 import { UserRepository } from "../repositories/user.repository";
@@ -22,20 +23,23 @@ class UserService {
     }
 
     public async createUser(userData: RegistrationInput): Promise<RegistrationResponse> {
-        const result = await this.userRepository.createUser(userData);
-        if(result.success && userData.role === "CITIZEN") {
-            const internalRes = await this.notificationsRepository.updateNotificationsPreferences(userData.username, {
+        return await prisma.$transaction(async (tx) => {
+        const result = await this.userRepository.createUser(userData, tx);
+        if (!result.success) return result;
+
+        if (userData.role === "CITIZEN") {
+            const res = await this.notificationsRepository.updateNotificationsPreferences(userData.username, {
                 emailEnabled: true,
                 telegramEnabled: false,
-            });
-            if(!internalRes.success) {
-                return {
-                    success: false,
-                    error: internalRes.error,
-                };
+            }, tx);
+
+            if (!res.success) {
+                throw new Error(res.error); // rollback automatico 🚨
             }
         }
+
         return result;
+    });
     }
 
     public async retrieveUser(userData: { username: string; password: string; }) {
