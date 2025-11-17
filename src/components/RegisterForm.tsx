@@ -12,9 +12,12 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { Eye, EyeOff } from "lucide-react";
 
-import { UserController } from "@/app/lib/controllers/user.controller";
+type RegisterFormProps = {
+  register: (data: FormData) => Promise<{ success: boolean; error?: string }>;
+};
 
-export default function RegisterForm() {
+
+export default function RegisterForm({ register }: RegisterFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -80,7 +83,7 @@ export default function RegisterForm() {
 
     // Use startTransition to call the server action
     startTransition(async () => {
-      const response = await new UserController().register(formData);
+      const response = await register(formData);
       if (!response.success) {
         setError(response.error);
       } else {
