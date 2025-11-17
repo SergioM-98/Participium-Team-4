@@ -1,4 +1,4 @@
-import { register } from "@/app/lib/actions/user";
+import { UserController } from "@/app/lib/controllers/user.controller";
 import { RegistrationResponse } from "@/app/lib/dtos/user.dto";
 import { prisma } from "../../setup";
 
@@ -55,7 +55,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
   formData.append("telegram", "");
 
       // Execute registration (complete flow)
-      const response: RegistrationResponse = await register(formData);
+      const response: RegistrationResponse = await new UserController().register(formData);
 
       // Verify response
       expect(response.success).toBe(true);
@@ -111,7 +111,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
   formData.append("office", "DEPARTMENT_OF_COMMERCE");
   formData.append("telegram", "");
 
-      const response: RegistrationResponse = await register(formData);
+      const response: RegistrationResponse = await new UserController().register(formData);
 
       // Verify registration failed
       expect(response.success).toBe(false);
@@ -140,7 +140,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("office", "INVALID_OFFICE");
       formData.append("telegram", "");
 
-      const response: RegistrationResponse = await register(formData);
+      const response: RegistrationResponse = await new UserController().register(formData);
 
       // Verify validation failed
       expect(response.success).toBe(false);
@@ -167,7 +167,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("office", ""); // Empty office
       formData.append("telegram", "");
 
-      const response: RegistrationResponse = await register(formData);
+      const response: RegistrationResponse = await new UserController().register(formData);
 
       // Verify registration failed
       expect(response.success).toBe(false);
@@ -195,7 +195,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
-      const response: RegistrationResponse = await register(formData);
+      const response: RegistrationResponse = await new UserController().register(formData);
 
       // Verify registration failed
       expect(response.success).toBe(false);

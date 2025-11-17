@@ -1,7 +1,7 @@
 import { prisma } from "../../setup";
 import { getServerSession } from 'next-auth/next';
 import { ReportRegistrationResponse } from "@/app/lib/dtos/report.dto";
-import { createReport } from "@/app/lib/actions/report";
+import { ReportController } from "@/app/lib/controllers/report.controller";
 
 // Mock NextAuth to control sessions
 jest.mock('next-auth/next', () => ({
@@ -69,13 +69,12 @@ describe('Story 4 - Integration Test: Report Registration', () => {
             });
 
             // Execute registration (complete flow) anonimusly
-            const response: ReportRegistrationResponse = await createReport("mockReview",
+            const response: ReportRegistrationResponse = await new ReportController().createReport("mockReview",
                                                                 "mockDescriptionLongEnough",
                                                                 ["photo1"],
                                                                 "WATER_SUPPLY",
                                                                 10,
                                                                 10,
-                                                                "1",
                                                                 true);
 
             // Verify response
@@ -119,13 +118,12 @@ describe('Story 4 - Integration Test: Report Registration', () => {
             });
 
             // Execute registration (complete flow)
-            const response: ReportRegistrationResponse = await createReport("mockReview",
+            const response: ReportRegistrationResponse = await new ReportController().createReport("mockReview",
                                                                 "mockDescriptionLongEnough",
                                                                 ["photo1"],
                                                                 "WATER_SUPPLY",
                                                                 10,
                                                                 10,
-                                                                "1",
                                                                 false);
 
             // Verify response
@@ -173,13 +171,12 @@ describe('Story 4 - Integration Test: Report Registration', () => {
             });
 
             // Execute registration (complete flow)
-            const response: ReportRegistrationResponse = await createReport("m",
+            const response: ReportRegistrationResponse = await new ReportController().createReport("m",
                                                                 "m",
                                                                 ["photo1"],
                                                                 "WATER_SUPPLY",
                                                                 10,
                                                                 10,
-                                                                "1",
                                                                 true);
             // Verify response
             expect(response.success).toBe(false);
@@ -204,13 +201,12 @@ describe('Story 4 - Integration Test: Report Registration', () => {
             });
 
             // Execute registration (complete flow)
-            const response: ReportRegistrationResponse = await createReport("mockReview",
+            const response: ReportRegistrationResponse = await new ReportController().createReport("mockReview",
                                                                 "mockReviewLongDescription",
                                                                 [],
                                                                 "WATER_SUPPLY",
                                                                 10,
                                                                 10,
-                                                                "1",
                                                                 true);
             // Verify response
             expect(response.success).toBe(false);
@@ -227,13 +223,12 @@ describe('Story 4 - Integration Test: Report Registration', () => {
 
 
             // Execute registration (complete flow)
-            const response: ReportRegistrationResponse = await createReport("mockReview",
+            const response: ReportRegistrationResponse = await new ReportController().createReport("mockReview",
                                                                 "mockReviewLongDescription",
                                                                 ["photo1"],
                                                                 "WATER_SUPPLY",
                                                                 10,
                                                                 10,
-                                                                "1",
                                                                 true);
             // Verify response
             expect(response.success).toBe(false);
@@ -259,13 +254,12 @@ describe('Story 4 - Integration Test: Report Registration', () => {
 
 
             // Execute registration (complete flow)
-            const response: ReportRegistrationResponse = await createReport("mockReview",
+            const response: ReportRegistrationResponse = await new ReportController().createReport("mockReview",
                                                                 "mockReviewLongDescription",
                                                                 ["photo1"],
                                                                 "WATER_SUPPLY",
                                                                 10,
                                                                 10,
-                                                                "1",
                                                                 true);
             // Verify response
             expect(response.success).toBe(false);
@@ -273,47 +267,6 @@ describe('Story 4 - Integration Test: Report Registration', () => {
                 expect(response.error).toBe("Unauthorized report");
             }
         });
-
-
-
-
-
-
-        it('should reject the registration of a new REPORT with a non existing user', async () => {
-            // Simulate logged CITIZEN user
-            (getServerSession as jest.Mock).mockResolvedValue({
-                user:{
-                    firstName: "mock",
-                    lastName: "mock",
-                    email: "mock@mock.it",
-                    username: "mock",
-                    role: "CITIZEN"
-                },
-                expires: "2099-01-01T00:00:00.000Z",
-            });
-
-
-            // Execute registration (complete flow)
-            const response: ReportRegistrationResponse = await createReport("mockReview",
-                                                                "mockReviewLongDescription",
-                                                                ["photo1"],
-                                                                "WATER_SUPPLY",
-                                                                10,
-                                                                10,
-                                                                "3",
-                                                                false);
-            // Verify response
-            expect(response.success).toBe(false);
-            if (!response.success) {
-                expect(response.error).toBe("Failed to add the report to the database");
-            }
-        });
-
-
-
-
-
-
 
     });
 });

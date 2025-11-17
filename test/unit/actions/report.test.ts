@@ -1,4 +1,4 @@
-import { createReport } from "@/app/lib/actions/report";
+import { ReportController } from "@/app/lib/controllers/report.controller";
 import { ReportRegistrationResponse } from "@/app/lib/dtos/report.dto";
 import { prisma } from "@/prisma/db";
 
@@ -51,13 +51,12 @@ describe('User Actions - register function Story 1', () => {
     it("should register a new report successfully", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
         mockReportController.createReport.mockResolvedValue({ success: true, data: "Report with id: 1 succesfuly created" });
-        const response: ReportRegistrationResponse =  await createReport("mockReview",
+        const response: ReportRegistrationResponse =  await new ReportController().createReport("mockReview",
                                                                         "mockDescriptionLongEnough",
                                                                         ["photo1"],
                                                                         "WATER_SUPPLY",
                                                                         10,
                                                                         10,
-                                                                        "1",
                                                                         true);
         console.log("Response from register action:", response);
         expect(response.success).toBe(true);
@@ -70,13 +69,12 @@ describe('User Actions - register function Story 1', () => {
     it("should not register a new report with invalid fields", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
         mockReportController.createReport.mockResolvedValue({ success: true, data: "Report with id: 1 succesfuly created" });
-        const response: ReportRegistrationResponse =  await createReport("",
+        const response: ReportRegistrationResponse =  await new ReportController().createReport("",
                                                                         "mockDescriptionLongEnough",
                                                                         ["photo1"],
                                                                         "WATER_SUPPLY",
                                                                         10,
                                                                         10,
-                                                                        "1",
                                                                         true);
         console.log("Response from register action:", response);
         expect(response.success).toBe(false);
@@ -90,13 +88,12 @@ describe('User Actions - register function Story 1', () => {
     it("should not register a new report without a session", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(null);
         mockReportController.createReport.mockResolvedValue({ success: true, data: "Report with id: 1 succesfuly created" });
-        const response: ReportRegistrationResponse =  await createReport("mockReview",
+        const response: ReportRegistrationResponse =  await new ReportController().createReport("mockReview",
                                                                         "mockDescriptionLongEnough",
                                                                         ["photo1"],
                                                                         "WATER_SUPPLY",
                                                                         10,
                                                                         10,
-                                                                        "1",
                                                                         true);
         console.log("Response from register action:", response);
         expect(response.success).toBe(false);
@@ -110,13 +107,12 @@ describe('User Actions - register function Story 1', () => {
     it("should not register a new report from an officer", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(officerSession);
         mockReportController.createReport.mockResolvedValue({ success: true, data: "Report with id: 1 succesfuly created" });
-        const response: ReportRegistrationResponse =  await createReport("mockReview",
+        const response: ReportRegistrationResponse =  await new ReportController().createReport("mockReview",
                                                                         "mockDescriptionLongEnough",
                                                                         ["photo1"],
                                                                         "WATER_SUPPLY",
                                                                         10,
                                                                         10,
-                                                                        "1",
                                                                         true);
         console.log("Response from register action:", response);
         expect(response.success).toBe(false);
@@ -130,13 +126,12 @@ describe('User Actions - register function Story 1', () => {
     it("should not register a new report if the controller fails", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
         mockReportController.createReport.mockResolvedValue({ success: false, error: "Failed to add the report to the database" });
-        const response: ReportRegistrationResponse =  await createReport("mockReview",
+        const response: ReportRegistrationResponse =  await new ReportController().createReport("mockReview",
                                                                         "mockDescriptionLongEnough",
                                                                         ["photo1"],
                                                                         "WATER_SUPPLY",
                                                                         10,
                                                                         10,
-                                                                        "1",
                                                                         true);
         console.log("Response from register action:", response);
         expect(response.success).toBe(false);

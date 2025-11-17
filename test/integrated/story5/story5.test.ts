@@ -1,8 +1,8 @@
 import { prisma } from "../../setup";
 import { getServerSession } from "next-auth/next";
 import { ReportRegistrationResponse } from "@/app/lib/dtos/report.dto";
-import { createReport } from "@/app/lib/actions/report";
-import { createUploadPhoto } from "@/app/lib/actions/uploader";
+import { ReportController } from "@/app/lib/controllers/report.controller";
+import { UploaderController } from "@/app/lib/controllers/uploader.controller";
 import { ControllerSuccessResponse } from "@/app/lib/dtos/tus.dto";
 
 // Mock NextAuth to control sessions
@@ -77,12 +77,14 @@ describe("Story 5 - Integration Test: uploader", () => {
         new File(["a".repeat(100)], "photo.jpg", { type: "image/jpeg" })
       );
 
-      const response: ControllerSuccessResponse = await createUploadPhoto(data);
+      const response: ControllerSuccessResponse = await new UploaderController().createUploadPhoto(data);
 
       // Verify response
       expect(response.success).toBe(true);
-      expect(response.location).toBeDefined();
-      expect(response.uploadOffset).toBe(100);
+      if(response.success) {
+        expect(response.location).toBeDefined();
+        expect(response.uploadOffset).toBe(100);
+      }
     });
   });
 
@@ -108,6 +110,6 @@ describe("Story 5 - Integration Test: uploader", () => {
       new File(["a".repeat(100)], "photo.jpg", { type: "image/jpeg" })
     );
 
-    await expect(createUploadPhoto(data)).rejects.toThrow();
+    await expect(new UploaderController().createUploadPhoto(data)).rejects.toThrow();
   });
 });
