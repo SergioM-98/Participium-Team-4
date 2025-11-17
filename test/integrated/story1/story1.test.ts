@@ -1,4 +1,4 @@
-import { UserController } from "@/app/lib/controllers/user.controller";
+import { register } from "@/app/lib/controllers/user.controller";
 import { RegistrationResponse } from "@/app/lib/dtos/user.dto";
 import { prisma } from "../../setup";
 
@@ -38,7 +38,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
             formData.append("telegram", "@mariorossi");
 
             // Execute registration (complete flow)
-            const response: RegistrationResponse = await new UserController().register(formData);
+            const response: RegistrationResponse = await register(formData);
 
             // Verify response
             expect(response.success).toBe(true);
@@ -84,7 +84,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
             formData.append("telegram", "");
 
             // Execute registration
-            const response: RegistrationResponse = await new UserController().register(formData);
+            const response: RegistrationResponse = await register(formData);
 
             // Verify response
             expect(response.success).toBe(true);
@@ -136,7 +136,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
             formData.append("office", "");
             formData.append("telegram", "");
 
-            const response: RegistrationResponse = await new UserController().register(formData);
+            const response: RegistrationResponse = await register(formData);
 
             // Verify registration failed
             expect(response.success).toBe(false);
@@ -165,7 +165,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
             formData.append("office", "");
             formData.append("telegram", "");
 
-            const response: RegistrationResponse = await new UserController().register(formData);
+            const response: RegistrationResponse = await register(formData);
 
             // Verify validation failed
             expect(response.success).toBe(false);
@@ -192,7 +192,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
             formData.append("office", "");
             formData.append("telegram", "");
 
-            const response = await new UserController().register(formData);
+            const response = await register(formData);
 
             expect(response.success).toBe(false);
             if (!response.success) {
@@ -240,7 +240,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
             formData.append("office", "");
             formData.append("telegram", "");
 
-            const response: RegistrationResponse = await new UserController().register(formData);
+            const response: RegistrationResponse = await register(formData);
 
             // Verify registration was blocked
             expect(response.success).toBe(false);

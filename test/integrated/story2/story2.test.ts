@@ -1,4 +1,4 @@
-import { UserController } from "@/app/lib/controllers/user.controller";
+import { register } from "@/app/lib/controllers/user.controller";
 import { RegistrationResponse } from "@/app/lib/dtos/user.dto";
 import { prisma } from "../../setup";
 
@@ -59,7 +59,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
   formData.append("office", "DEPARTMENT_OF_COMMERCE");
   formData.append("telegram", "");
 
-      const response: RegistrationResponse = await new UserController().register(formData);
+      const response: RegistrationResponse = await register(formData);
 
       expect(response.success).toBe(true);
       if (response.success) {
@@ -107,7 +107,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
   formData.append("office", office);
   formData.append("telegram", "");
 
-        const response: RegistrationResponse = await new UserController().register(formData);
+        const response: RegistrationResponse = await register(formData);
 
         expect(response.success).toBe(true);
 
@@ -145,7 +145,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
-      const response: RegistrationResponse = await new UserController().register(formData);
+      const response: RegistrationResponse = await register(formData);
 
       expect(response.success).toBe(false);
       if (!response.success) {
@@ -171,7 +171,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("office", "INVALID_OFFICE");
       formData.append("telegram", "");
 
-      const response: RegistrationResponse = await new UserController().register(formData);
+      const response: RegistrationResponse = await register(formData);
 
       expect(response.success).toBe(false);
       if (!response.success) {
@@ -195,7 +195,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("office", ""); 
       formData.append("telegram", "");
 
-      const response: RegistrationResponse = await new UserController().register(formData);
+      const response: RegistrationResponse = await register(formData);
 
       expect(response.success).toBe(false);
       if (!response.success) {
@@ -220,7 +220,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
-      const response: RegistrationResponse = await new UserController().register(formData);
+      const response: RegistrationResponse = await register(formData);
 
       expect(response.success).toBe(false);
       if (!response.success) {
@@ -245,7 +245,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
-      const response: RegistrationResponse = await new UserController().register(formData);
+      const response: RegistrationResponse = await register(formData);
 
       expect(response.success).toBe(false);
       if (!response.success) {
@@ -270,7 +270,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
-      const response: RegistrationResponse = await new UserController().register(formData);
+      const response: RegistrationResponse = await register(formData);
 
       expect(response.success).toBe(false);
       if (!response.success) {
@@ -294,7 +294,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
-      const response: RegistrationResponse = await new UserController().register(formData);
+      const response: RegistrationResponse = await register(formData);
 
       expect(response.success).toBe(false);
       if (!response.success) {
@@ -318,7 +318,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "@testofficer"); 
 
-      const response: RegistrationResponse = await new UserController().register(formData);
+      const response: RegistrationResponse = await register(formData);
 
       expect(response.success).toBe(false);
       if (!response.success) {

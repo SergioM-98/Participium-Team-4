@@ -1,7 +1,7 @@
 import { prisma } from "../../setup";
 import { getServerSession } from 'next-auth/next';
 import { ReportRegistrationResponse } from "@/app/lib/dtos/report.dto";
-import { ReportController } from "@/app/lib/controllers/report.controller";
+import { createReport } from "@/app/lib/controllers/report.controller";
 
 // Mock NextAuth to control sessions
 jest.mock('next-auth/next', () => ({
@@ -69,7 +69,7 @@ describe('Story 4 - Integration Test: Report Registration', () => {
             });
 
             // Execute registration (complete flow) anonimusly
-            const response: ReportRegistrationResponse = await new ReportController().createReport("mockReview",
+            const response: ReportRegistrationResponse = await createReport("mockReview",
                                                                 "mockDescriptionLongEnough",
                                                                 ["photo1"],
                                                                 "WATER_SUPPLY",
@@ -118,7 +118,7 @@ describe('Story 4 - Integration Test: Report Registration', () => {
             });
 
             // Execute registration (complete flow)
-            const response: ReportRegistrationResponse = await new ReportController().createReport("mockReview",
+            const response: ReportRegistrationResponse = await createReport("mockReview",
                                                                 "mockDescriptionLongEnough",
                                                                 ["photo1"],
                                                                 "WATER_SUPPLY",
@@ -171,7 +171,7 @@ describe('Story 4 - Integration Test: Report Registration', () => {
             });
 
             // Execute registration (complete flow)
-            const response: ReportRegistrationResponse = await new ReportController().createReport("m",
+            const response: ReportRegistrationResponse = await createReport("m",
                                                                 "m",
                                                                 ["photo1"],
                                                                 "WATER_SUPPLY",
@@ -201,7 +201,7 @@ describe('Story 4 - Integration Test: Report Registration', () => {
             });
 
             // Execute registration (complete flow)
-            const response: ReportRegistrationResponse = await new ReportController().createReport("mockReview",
+            const response: ReportRegistrationResponse = await createReport("mockReview",
                                                                 "mockReviewLongDescription",
                                                                 [],
                                                                 "WATER_SUPPLY",
@@ -223,7 +223,7 @@ describe('Story 4 - Integration Test: Report Registration', () => {
 
 
             // Execute registration (complete flow)
-            const response: ReportRegistrationResponse = await new ReportController().createReport("mockReview",
+            const response: ReportRegistrationResponse = await createReport("mockReview",
                                                                 "mockReviewLongDescription",
                                                                 ["photo1"],
                                                                 "WATER_SUPPLY",
@@ -254,7 +254,7 @@ describe('Story 4 - Integration Test: Report Registration', () => {
 
 
             // Execute registration (complete flow)
-            const response: ReportRegistrationResponse = await new ReportController().createReport("mockReview",
+            const response: ReportRegistrationResponse = await createReport("mockReview",
                                                                 "mockReviewLongDescription",
                                                                 ["photo1"],
                                                                 "WATER_SUPPLY",
