@@ -21,7 +21,7 @@ export class ProfilePhotoRepository {
             filename?: string;
         }) {
 
-            const user = await prisma.users.findUnique({
+            const user = await prisma.user.findUnique({
                 where: { id: data.userId }
             });
 
@@ -29,7 +29,7 @@ export class ProfilePhotoRepository {
                 throw new Error("User not found");
             }
 
-            return prisma.profile_photos.upsert({
+            return prisma.profilePhoto.upsert({
                 where: { userId: data.userId },
                 update: {
                     url: data.url,
@@ -49,12 +49,12 @@ export class ProfilePhotoRepository {
     }
 
     public async findById(id: string) {
-        return await prisma.profile_photos.findUnique({
+        return await prisma.profilePhoto.findUnique({
             where: { id }
         });
     }
     public async delete(id: string) {
-        return await prisma.profile_photos.delete({
+        return await prisma.profilePhoto.delete({
             where: { id }
         });
     }

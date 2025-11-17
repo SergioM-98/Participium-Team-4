@@ -1,11 +1,14 @@
-import { RegistrationInput } from "../dtos/user.dto";
+import { RegistrationInput, RegistrationResponse } from "../dtos/user.dto";
+import { NotificationsRepository } from "../repositories/notifications.repository";
 import { UserRepository } from "../repositories/user.repository";
 
 class UserService {
     private static instance: UserService
     private userRepository: UserRepository;
+    private notificationsRepository: NotificationsRepository;
     private constructor() {
         this.userRepository = UserRepository.getInstance();
+        this.notificationsRepository = NotificationsRepository.getInstance();
     }
     public static getInstance(): UserService {
         if (!UserService.instance) {
@@ -18,8 +21,21 @@ class UserService {
         return this.userRepository.checkDuplicates(userData);
     }
 
-    public async createUser(userData: RegistrationInput) {
-        return this.userRepository.createUser(userData);
+    public async createUser(userData: RegistrationInput): Promise<RegistrationResponse> {
+        const result = await this.userRepository.createUser(userData);
+        if(result.success && userData.role === "CITIZEN") {
+            const internalRes = await this.notificationsRepository.updateNotificationsPreferences(userData.username, {
+                emailEnabled: true,
+                telegramEnabled: false,
+            });
+            if(!internalRes.success) {
+                return {
+                    success: false,
+                    error: internalRes.error,
+                };
+            }
+        }
+        return result;
     }
 
     public async retrieveUser(userData: { username: string; password: string; }) {

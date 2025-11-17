@@ -40,7 +40,7 @@ class NotificationsRepository {
                 return { success: false, error: "Only CITIZEN can have notification preferences" };
             }
 
-            const preferences = await prisma.notifications_preferences.findUnique({
+            const preferences = await prisma.notificationPreferences.findUnique({
                 where: {
                     id: user.id,
                 },
@@ -60,7 +60,10 @@ class NotificationsRepository {
                 },
         }
         } catch (error) {
-            throw new Error("Failed to fetch user from database");
+            return { 
+                success: false,
+                error: error instanceof Error ? error.message : "Failed to retrieve notification preferences"
+            };
         }
     }
 
@@ -93,11 +96,16 @@ class NotificationsRepository {
                 return { success: false, error: "Cannot enable telegram notifications without telegram media" };
             }
 
-            const updatedPreferences = await prisma.notifications_preferences.update({
+            const updatedPreferences = await prisma.notificationPreferences.upsert({
                 where: {
                     id: user.id,
                 },
-                data: {
+                update: {
+                    emailEnabled: notifications.emailEnabled,
+                    telegramEnabled: notifications.telegramEnabled,
+                },
+                create: {
+                    id: user.id,
                     emailEnabled: notifications.emailEnabled,
                     telegramEnabled: notifications.telegramEnabled,
                 },
@@ -111,7 +119,10 @@ class NotificationsRepository {
                 },
         };
         } catch (error) {
-            throw new Error("Failed to update notification preferences");
+            return { 
+                success: false,
+                error: error instanceof Error ? error.message : "Failed to update notification preferences"
+            };
         }
     }
 }
