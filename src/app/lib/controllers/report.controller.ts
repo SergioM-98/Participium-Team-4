@@ -1,11 +1,10 @@
+"use server";
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { ReportRegistrationResponse, ReportRequest, reportRequestSchema } from '@/dtos/report.dto';
 import { ReportCreationService } from '@/services/reportCreation.service';
 import { getServerSession } from 'next-auth/next';
 
-class ReportController {
-
-    async createReport(
+   export async function createReport(
         title: string, 
         description: string, 
         photos: string[], 
@@ -37,6 +36,3 @@ class ReportController {
         const reportCreationService = ReportCreationService.getInstance();
         return reportCreationService.createReport(reportData.data);
     }
-}
-
-export { ReportController };

@@ -1,30 +1,28 @@
+"use server";
 import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
-import { NotificationsService } from "../services/notifications.service";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
+import { NotificationsService } from "../services/notifications.service";
 
 
-class NotificationsController {
 
-    private notificationsService: NotificationsService = NotificationsService.getInstance();
-
-    async getNotificationsPreferences() : Promise<NotificationsResponse>{
-        const userRoleCheck = await this.checkUserRole();
+    export async function getNotificationsPreferences() : Promise<NotificationsResponse>{
+        const userRoleCheck = await checkUserRole();
         if(!userRoleCheck.success || !userRoleCheck.data) {
             return { success: false, error: "Unauthorized access" };
         }
-        return this.notificationsService.getNotificationsPreferences(userRoleCheck.data);
+        return NotificationsService.getInstance().getNotificationsPreferences(userRoleCheck.data);
     }
 
-    async updateNotificationsPreferences(notifications: NotificationsData) : Promise<NotificationsResponse> {
-        const userRoleCheck = await this.checkUserRole();
+    export async function updateNotificationsPreferences(notifications: NotificationsData) : Promise<NotificationsResponse> {
+        const userRoleCheck = await checkUserRole();
         if(!userRoleCheck.success || !userRoleCheck.data) {
             return { success: false, error: "Unauthorized access" };
         }
-        return this.notificationsService.updateNotificationsPreferences(userRoleCheck.data, notifications);
+        return NotificationsService.getInstance().updateNotificationsPreferences(userRoleCheck.data, notifications);
     }
 
-    private async checkUserRole(): Promise<{
+    async function checkUserRole(): Promise<{
         success: boolean;
         data?: string;
     }> {
@@ -39,8 +37,3 @@ class NotificationsController {
             data: session.user.username,
         };
     }
-
-}
-
-
-export { NotificationsController };

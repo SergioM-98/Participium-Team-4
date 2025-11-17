@@ -1,5 +1,5 @@
+"use server";
 import { TusCreateDataSchema, TusUploadDataSchema, TusDeleteDataSchema, TusStatusDataSchema } from '../dtos/tus.header.dto';
-import type { TusCreateData, TusUploadData, TusDeleteData, TusStatusData } from '../dtos/tus.header.dto';
 import { 
     CreateUploadRequest, 
     UpdatePhotoRequest, 
@@ -12,12 +12,9 @@ import { PhotoUpdaterService } from '@/services/photoUpdate.service';
 import { PhotoDeleteService } from '@/services/photoDelete.service';
 import { PhotoStatusService } from '@/services/photoStatus.service';
 
-class UploaderController {
 
 
-
-
-    async createUploadPhoto(formData: FormData): Promise<ControllerSuccessResponse> {
+    export async function createUploadPhoto(formData: FormData): Promise<ControllerSuccessResponse> {
         const tusResumable = formData.get('tus-resumable') as string;
         const uploadLength = formData.get('upload-length') as string;
         const uploadMetadata = formData.get('upload-metadata') as string | null;
@@ -61,7 +58,7 @@ class UploaderController {
 
 
 
-    async uploadPhotoChunk(uploadId: string, formData: FormData) : Promise<ControllerSuccessResponse> {
+    export async function uploadPhotoChunk(uploadId: string, formData: FormData) : Promise<ControllerSuccessResponse> {
         const tusResumable = formData.get('tus-resumable') as string;
         const uploadOffset = formData.get('upload-offset') as string;
         const contentType = formData.get('content-type') as string;
@@ -112,7 +109,7 @@ class UploaderController {
     }
 
 
-    async getUploadStatus(uploadId: string, tusResumable: string = '1.0.0'): Promise<ControllerSuccessResponse>  {
+    export async function getUploadStatus(uploadId: string, tusResumable: string = '1.0.0'): Promise<ControllerSuccessResponse>  {
         const data = {
             'tus-resumable': tusResumable,
         };
@@ -141,7 +138,7 @@ class UploaderController {
     }
 
 
-    async deleteUpload(uploadId: string, tusResumable: string = '1.0.0'): Promise<ControllerSuccessResponse>  {
+    export async function deleteUpload(uploadId: string, tusResumable: string = '1.0.0'): Promise<ControllerSuccessResponse>  {
         const data = {
             'tus-resumable': tusResumable,
         };
@@ -168,7 +165,7 @@ class UploaderController {
         };
     }
 
-    async getTusOptions(): Promise<ControllerSuccessResponse> {
+    export async function getTusOptions(): Promise<ControllerSuccessResponse> {
         return {
             success: true,
             tusHeaders: {
@@ -179,6 +176,3 @@ class UploaderController {
             }
         };
     }
-}
-
-export { UploaderController };

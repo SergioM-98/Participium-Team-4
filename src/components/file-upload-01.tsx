@@ -22,8 +22,8 @@ import {
 import { cn } from "@/lib/utils";
 import { HelpCircle, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
-import { UploaderController } from "@/app/lib/controllers/uploader.controller";
-import { ReportController } from "@/app/lib/controllers/report.controller";
+import { createUploadPhoto, deleteUpload} from "@/app/lib/controllers/uploader.controller";
+import { createReport } from "@/app/lib/controllers/report.controller";
 import { useSession } from "next-auth/react";
 
 interface UploadedFile {
@@ -66,7 +66,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
       formData.append('upload-metadata', metadata);
       formData.append('file', file);
 
-      const result = await new UploaderController().createUploadPhoto(formData);
+      const result = await createUploadPhoto(formData);
 
       if (result.success && result.location) {
         return { success: true, uploadId: result.location };
@@ -194,7 +194,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
     // If the file was successfully uploaded, delete it from the server
     if (fileToRemove?.uploadId && fileToRemove.status === 'completed') {
       try {
-        const result = await new UploaderController().deleteUpload(fileToRemove.uploadId);
+        const result = await deleteUpload(fileToRemove.uploadId);
         if (!result.success) {
           console.error('Failed to delete file from server:');
         }
@@ -566,7 +566,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                       // Prepare photo IDs from uploaded files
                       const photoIds = completedUploads.map(f => f.uploadId).filter(Boolean) as string[];
                       // Submit report
-                      const result = await new ReportController().createReport(
+                      const result = await createReport(
                         title,
                         description,
                         photoIds,

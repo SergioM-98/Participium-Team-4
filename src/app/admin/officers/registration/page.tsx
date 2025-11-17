@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import MunicipalityUserForm, { MunicipalityUserFormData } from "@/components/MunicipalityUserForm";
-import { UserController } from "@/app/lib/controllers/user.controller";
+import { register } from "@/app/lib/controllers/user.controller";
 
 export default function OfficerRegistrationPage() {
   const [error, setError] = useState<string>("");
@@ -22,7 +22,7 @@ export default function OfficerRegistrationPage() {
       formData.append("office", payload.office);
       formData.append("confirmPassword", payload.confirmPassword);
 
-      const result = await new UserController().register(formData);
+      const result = await register(formData);
 
       if (result.success) {
         setError("");

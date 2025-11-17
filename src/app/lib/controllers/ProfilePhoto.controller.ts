@@ -1,15 +1,14 @@
-import { ControllerSuccessResponse, CreateUploadRequest, DeletePhotoRequest, GetPhotoStatusRequest, UpdatePhotoRequest } from "../dtos/tus.dto";
-import { TusCreateDataSchema, TusDeleteData, TusDeleteDataSchema, TusStatusData, TusStatusDataSchema, TusUploadDataSchema } from "../dtos/tus.header.dto";
-import { ProfilePhotoService } from "../services/profilePhoto.service";
+"use server";
+import { ControllerSuccessResponse, CreateUploadRequest } from "../dtos/tus.dto";
+import { TusCreateDataSchema } from "../dtos/tus.header.dto";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
+import { ProfilePhotoService } from "../services/profilePhoto.service";
+import { parse } from "path";
 
-class ProfilePhotoController {
-    constructor(
-    private profilePhotoService = ProfilePhotoService.getInstance()
-  ) {}
 
-    async createUploadPhoto(formData: FormData) : Promise<ControllerSuccessResponse> {
+
+    export async function createUploadPhoto(formData: FormData) : Promise<ControllerSuccessResponse> {
       const tusResumable = formData.get('tus-resumable') as string;
       const uploadLength = formData.get('upload-length') as string;
       const uploadMetadata = formData.get('upload-metadata') as string | null;
@@ -41,7 +40,14 @@ class ProfilePhotoController {
             throw new Error("Unauthorized access");
         }
 
-        const result = await this.profilePhotoService.createUploadPhoto(serviceRequest, session.user.id);
+        let userId: number;
+        try {
+            userId = parseInt(session.user.id);
+        } catch {
+            throw new Error("Invalid user ID");
+        }
+
+        const result = await ProfilePhotoService.getInstance().createUploadPhoto(serviceRequest, userId);
 
         return {
             success: true,
@@ -56,7 +62,7 @@ class ProfilePhotoController {
     }
 
 
-    async getTusOptions(): Promise<ControllerSuccessResponse> {
+    export async function getTusOptions(): Promise<ControllerSuccessResponse> {
         return {
             success: true,
             tusHeaders: {
@@ -67,6 +73,3 @@ class ProfilePhotoController {
             }
         };
     }
-}
-
-export { ProfilePhotoController };
