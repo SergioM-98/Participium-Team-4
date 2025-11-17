@@ -1,6 +1,4 @@
 "use server";
-
-import { UserRepository } from "@/repositories/user.repository";
 import {
   LoginInput,
   LoginResponse,
@@ -11,25 +9,16 @@ import {
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { UserService } from "../services/user.service";
-import { NotificationsController } from "./notifications.controller";
+import { updateNotificationsPreferences } from "./notifications.controller";
 import { NotificationsData } from "../dtos/notificationPreferences.dto";
 
 
-class UserController {
-  constructor(
-    private userService = UserService.getInstance()
-  ) {}
 
-
-  async checkDuplicates(userData: RegistrationInput) {
-    return await this.userService.checkDuplicates(userData);
+  export async function checkDuplicates(userData: RegistrationInput) {
+    return await UserService.getInstance().checkDuplicates(userData);
   }
 
-
-
-
-  
-  async register(
+  export async function register(
     formData: FormData
   ): Promise<RegistrationResponse> {
     const session = await getServerSession(authOptions);
@@ -56,8 +45,7 @@ class UserController {
       }
     }
 
-    const controller = new UserController();
-    const isDuplicate = await controller.checkDuplicates(validatedData.data);
+    const isDuplicate = await checkDuplicates(validatedData.data);
 
     if (isDuplicate.isExisting) {
       return { success: false, error: "Username and/or email already used" };
@@ -68,14 +56,14 @@ class UserController {
       return { success: false, error: parsed.error.message };
     }
 
-    return await this.userService.createUser(parsed.data);
+    return await UserService.getInstance().createUser(parsed.data);
   }
 
-  async retrieveUser(userData: LoginInput): Promise<LoginResponse> {
-    return await this.userService.retrieveUser(userData);
+  export async function retrieveUser(userData: LoginInput): Promise<LoginResponse> {
+    return await UserService.getInstance().retrieveUser(userData);
   }
 
-  async updateNotificationsMedia(telegram: string | null, email: string | null, removeTelegram:boolean, notifications: NotificationsData): Promise<RegistrationResponse> {
+  export async function updateNotificationsMedia(telegram: string | null, email: string | null, removeTelegram:boolean, notifications: NotificationsData): Promise<RegistrationResponse> {
 
     const session = await getServerSession(authOptions);
     if (!session || !session.user?.username || session.user?.role !== "CITIZEN") {
@@ -86,9 +74,9 @@ class UserController {
         return { success: false, error: "Cannot enable telegram notifications when removing telegram media" };
     }
 
-    const updateMediaResponse = await this.userService.updateNotificationsMedia(session.user.username, telegram, email, removeTelegram);
+    const updateMediaResponse = await UserService.getInstance().updateNotificationsMedia(session.user.username, telegram, email, removeTelegram);
 
-    const notificationsResponse = await new NotificationsController().updateNotificationsPreferences(notifications);
+    const notificationsResponse = await updateNotificationsPreferences(notifications);
 
     if(!notificationsResponse.success){
       return { success: false, error: notificationsResponse.error ?? "Failed to update notification preferences" };
@@ -96,6 +84,3 @@ class UserController {
       return updateMediaResponse;
     }
   }
-}
-
-export { UserController };
