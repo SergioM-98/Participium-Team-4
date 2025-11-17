@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const categoryEnum = z.enum([
+export const categoryEnum = z.enum([
   "WATER_SUPPLY",
   "ARCHITECTURAL_BARRIERS",
   "SEWER_SYSTEM",
@@ -41,6 +41,7 @@ export const reportResponseSchema = z.object({
 });
 
 export type Report = z.infer<typeof reportBaseSchema>;
+export type Category = z.infer<typeof categoryEnum>;
 
 export type ReportRequest = z.infer<typeof reportRequestSchema>;
 export type ReportResponse = z.infer<typeof reportResponseSchema>;

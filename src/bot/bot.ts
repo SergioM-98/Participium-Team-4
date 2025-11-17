@@ -8,6 +8,7 @@ import {
 import * as dotenv from "dotenv";
 import { resolve } from "path";
 import { helpMenu } from "./menus/helpMenu";
+import { categoryMenu } from "./menus/categoryMenu";
 import { handleStart } from "./handlers/start";
 import { newReport } from "./handlers/newReport";
 import { handleHelp } from "./handlers/help";
@@ -26,6 +27,7 @@ bot.use(conversations());
 bot.use(createConversation(newReport));
 
 bot.use(helpMenu);
+bot.use(categoryMenu);
 
 bot.command("start", (ctx) => handleStart(ctx));
 bot.command("newreport", (ctx) => ctx.conversation.enter("newReport"));

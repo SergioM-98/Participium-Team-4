@@ -37,10 +37,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.newReport = newReport;
+var categoryMenu_1 = require("../menus/categoryMenu");
 var QUESTIONS = [
     "Please provide the title of the report:",
     "Please describe the problem in detail:",
-    "What is the location/address?",
+    "Insert latitude",
+    "Insert longitude",
     "What is the category of the report?",
 ];
 var FIELD_NAMES = [
@@ -50,57 +52,96 @@ var FIELD_NAMES = [
     "longitude",
     "category",
 ];
+var CATEGORY_CONFIG = [
+    { value: "WATER_SUPPLY", label: "Water Supply" },
+    {
+        value: "ARCHITECTURAL_BARRIERS",
+        label: "Architectural Barriers",
+    },
+    { value: "SEWER_SYSTEM", label: "Sewer System" },
+    { value: "PUBLIC_LIGHTING", label: "Public Lighting" },
+    { value: "WASTE", label: "Waste" },
+    {
+        value: "ROADS_SIGNS_AND_TRAFFIC_LIGHTS",
+        label: "Roads, Signs & Traffic Lights",
+    },
+    {
+        value: "ROADS_AND_URBAN_FURNISHINGS",
+        label: "Roads & Urban Furnishings",
+    },
+    {
+        value: "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS",
+        label: "Green Areas",
+    },
+    { value: "OTHER", label: "Other" },
+];
 function newReport(conversation, ctx) {
     return __awaiter(this, void 0, void 0, function () {
-        var reportData, i, nextCtx, fieldName, value, response, result, error_1;
+        var title, description, latitudeValue, latitude, longitudeValue, longitude, categoryResponse, reportData, response, result, error_1;
         var _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
-                case 0:
-                    reportData = {};
-                    i = 0;
-                    _b.label = 1;
+                case 0: return [4 /*yield*/, ctx.reply(QUESTIONS[0])];
                 case 1:
-                    if (!(i < QUESTIONS.length)) return [3 /*break*/, 5];
-                    return [4 /*yield*/, ctx.reply(QUESTIONS[i])];
+                    _b.sent();
+                    return [4 /*yield*/, conversation.form.text()];
                 case 2:
-                    _b.sent();
-                    return [4 /*yield*/, conversation.wait()];
+                    title = _b.sent();
+                    return [4 /*yield*/, ctx.reply(QUESTIONS[1])];
                 case 3:
-                    nextCtx = _b.sent();
-                    fieldName = FIELD_NAMES[i];
-                    value = ((_a = nextCtx.message) === null || _a === void 0 ? void 0 : _a.text) || "";
-                    switch (fieldName) {
-                        case "title":
-                            reportData.title = value;
-                            break;
-                        case "description":
-                            reportData.description = value;
-                            break;
-                        case "latitude":
-                            reportData.latitude = 0; // TODO: Implement map integration to get real coordinates
-                            break;
-                        case "longitude":
-                            reportData.longitude = 0; // TODO: Implement map integration to get real coordinates
-                            break;
-                        case "category":
-                            reportData.category = value; // Devo fornire agli utenti dei bottoni tra cui poter scegliere la categoria
-                            break;
-                    }
-                    ctx = nextCtx;
-                    _b.label = 4;
-                case 4:
-                    i++;
-                    return [3 /*break*/, 1];
-                case 5:
-                    // TODO: Handle photos - for now empty array
-                    reportData.photos = [];
-                    return [4 /*yield*/, ctx.reply("Sending your report...")];
-                case 6:
                     _b.sent();
-                    _b.label = 7;
+                    return [4 /*yield*/, conversation.form.text()];
+                case 4:
+                    description = _b.sent();
+                    return [4 /*yield*/, ctx.reply(QUESTIONS[2])];
+                case 5:
+                    _b.sent();
+                    return [4 /*yield*/, conversation.form.text()];
+                case 6:
+                    latitudeValue = _b.sent();
+                    latitude = parseFloat(latitudeValue) || 0;
+                    // Get longitude
+                    return [4 /*yield*/, ctx.reply(QUESTIONS[3])];
                 case 7:
-                    _b.trys.push([7, 14, , 16]);
+                    // Get longitude
+                    _b.sent();
+                    return [4 /*yield*/, conversation.form.text()];
+                case 8:
+                    longitudeValue = _b.sent();
+                    longitude = parseFloat(longitudeValue) || 0;
+                    //await ctx.reply(QUESTIONS[4]);
+                    return [4 /*yield*/, ctx.reply("Select one of the following categories", {
+                            reply_markup: categoryMenu_1.categoryMenu,
+                        })];
+                case 9:
+                    //await ctx.reply(QUESTIONS[4]);
+                    _b.sent();
+                    return [4 /*yield*/, conversation.form.select(CATEGORY_CONFIG.map(function (_a) {
+                            var label = _a.label;
+                            return label;
+                        }), {
+                            otherwise: function (ctx) { return ctx.reply("Please use one of the buttons!"); },
+                        })];
+                case 10:
+                    categoryResponse = _b.sent();
+                    reportData = {
+                        title: title,
+                        description: description,
+                        latitude: latitude,
+                        longitude: longitude,
+                        category: ((_a = CATEGORY_CONFIG.find(function (_a) {
+                            var label = _a.label;
+                            return label === categoryResponse;
+                        })) === null || _a === void 0 ? void 0 : _a.value) ||
+                            "OTHER",
+                        photos: [],
+                    };
+                    return [4 /*yield*/, ctx.reply("Sending your report...")];
+                case 11:
+                    _b.sent();
+                    _b.label = 12;
+                case 12:
+                    _b.trys.push([12, 19, , 21]);
                     return [4 /*yield*/, fetch("http://localhost:3000/api/reports", {
                             method: "POST",
                             headers: {
@@ -108,29 +149,29 @@ function newReport(conversation, ctx) {
                             },
                             body: JSON.stringify(reportData),
                         })];
-                case 8:
+                case 13:
                     response = _b.sent();
-                    if (!response.ok) return [3 /*break*/, 11];
+                    if (!response.ok) return [3 /*break*/, 16];
                     return [4 /*yield*/, response.json()];
-                case 9:
+                case 14:
                     result = _b.sent();
                     return [4 /*yield*/, ctx.reply("\u2705 Report sent successfully! ID: ".concat(result.id))];
-                case 10:
+                case 15:
                     _b.sent();
-                    return [3 /*break*/, 13];
-                case 11: return [4 /*yield*/, ctx.reply("❌ Error sending the report. Please try again later.")];
-                case 12:
+                    return [3 /*break*/, 18];
+                case 16: return [4 /*yield*/, ctx.reply("❌ Error sending the report. Please try again later.")];
+                case 17:
                     _b.sent();
-                    _b.label = 13;
-                case 13: return [3 /*break*/, 16];
-                case 14:
+                    _b.label = 18;
+                case 18: return [3 /*break*/, 21];
+                case 19:
                     error_1 = _b.sent();
                     console.error("Error sending the report:", error_1);
                     return [4 /*yield*/, ctx.reply("❌ Connection error. Please try again later.")];
-                case 15:
+                case 20:
                     _b.sent();
-                    return [3 /*break*/, 16];
-                case 16: return [2 /*return*/];
+                    return [3 /*break*/, 21];
+                case 21: return [2 /*return*/];
             }
         });
     });

@@ -16,7 +16,7 @@
     "test:reset": "docker-compose down test_db && docker volume rm participium-team-4_pgdata_test || echo Volume already removed && npm run test:setup",
     "test:cleanup": "docker-compose down test_db",
     "participium": "node setup-db.js",
-    "bot": "npx tsc --skipLibCheck && node ./src/bot/bot.js"
+    "bot": "npx ts-node -P tsconfig.bot.json ./src/bot/bot.ts"
   },
   "dependencies": {
     "@grammyjs/conversations": "^2.1.0",

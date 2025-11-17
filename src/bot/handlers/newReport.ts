@@ -1,11 +1,13 @@
 import { Conversation } from "@grammyjs/conversations";
 import { Context } from "grammy";
-import { Report } from "../../app/lib/dtos/report.dto";
+import { Report, Category } from "../../app/lib/dtos/report.dto";
+import { categoryMenu } from "../menus/categoryMenu";
 
 const QUESTIONS = [
   "Please provide the title of the report:",
   "Please describe the problem in detail:",
-  "What is the location/address?",
+  "Insert latitude",
+  "Insert longitude",
   "What is the category of the report?",
 ];
 
@@ -17,41 +19,70 @@ const FIELD_NAMES = [
   "category",
 ];
 
+const CATEGORY_CONFIG: Array<{
+  value: Category;
+  label: string;
+}> = [
+  { value: "WATER_SUPPLY", label: "Water Supply" },
+  {
+    value: "ARCHITECTURAL_BARRIERS",
+    label: "Architectural Barriers",
+  },
+  { value: "SEWER_SYSTEM", label: "Sewer System" },
+  { value: "PUBLIC_LIGHTING", label: "Public Lighting" },
+  { value: "WASTE", label: "Waste" },
+  {
+    value: "ROADS_SIGNS_AND_TRAFFIC_LIGHTS",
+    label: "Roads, Signs & Traffic Lights",
+  },
+  {
+    value: "ROADS_AND_URBAN_FURNISHINGS",
+    label: "Roads & Urban Furnishings",
+  },
+  {
+    value: "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS",
+    label: "Green Areas",
+  },
+  { value: "OTHER", label: "Other" },
+];
+
 export async function newReport(
   conversation: Conversation<Context>,
   ctx: Context
 ) {
-  const reportData: Partial<Report> = {};
+  await ctx.reply(QUESTIONS[0]);
 
-  for (let i = 0; i < QUESTIONS.length; i++) {
-    await ctx.reply(QUESTIONS[i]);
-    const nextCtx = await conversation.wait();
-    const fieldName = FIELD_NAMES[i];
-    const value = nextCtx.message?.text || "";
+  const title = await conversation.form.text();
 
-    switch (fieldName) {
-      case "title":
-        reportData.title = value;
-        break;
-      case "description":
-        reportData.description = value;
-        break;
-      case "latitude":
-        reportData.latitude = 0; // TODO: Implement map integration to get real coordinates
-        break;
-      case "longitude":
-        reportData.longitude = 0; // TODO: Implement map integration to get real coordinates
-        break;
-      case "category":
-        reportData.category = value as Report["category"]; // Devo fornire agli utenti dei bottoni tra cui poter scegliere la categoria
-        break;
-    }
+  await ctx.reply(QUESTIONS[1]);
+  const description = await conversation.form.text();
 
-    ctx = nextCtx;
-  }
+  await ctx.reply(QUESTIONS[2]);
+  const latitudeValue = await conversation.form.text();
+  const latitude = parseFloat(latitudeValue) || 0;
 
-  // TODO: Handle photos - for now empty array
-  reportData.photos = [];
+  // Get longitude
+  await ctx.reply(QUESTIONS[3]);
+  const longitudeValue = await conversation.form.text();
+  const longitude = parseFloat(longitudeValue) || 0;
+
+  await ctx.reply(QUESTIONS[4]);
+  const categoryLabels = CATEGORY_CONFIG.map(({ label }) => label);
+  const categoryResponse = await conversation.form.select(categoryLabels, {
+    otherwise: (ctx) => ctx.reply("Please use one of the buttons!"),
+  });
+
+  // Build report data
+  const reportData: Partial<Report> = {
+    title,
+    description,
+    latitude,
+    longitude,
+    category:
+      CATEGORY_CONFIG.find(({ label }) => label === categoryResponse)?.value ||
+      "OTHER",
+    photos: [],
+  };
 
   await ctx.reply("Sending your report...");
 

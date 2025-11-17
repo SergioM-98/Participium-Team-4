@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reportResponseSchema = exports.retrieveReportResponseSchema = exports.reportRequestSchema = exports.reportBaseSchema = void 0;
+exports.reportResponseSchema = exports.retrieveReportResponseSchema = exports.reportRequestSchema = exports.reportBaseSchema = exports.categoryEnum = void 0;
 var zod_1 = require("zod");
-var categoryEnum = zod_1.z.enum([
+exports.categoryEnum = zod_1.z.enum([
     "WATER_SUPPLY",
     "ARCHITECTURAL_BARRIERS",
     "SEWER_SYSTEM",
@@ -17,7 +17,7 @@ exports.reportBaseSchema = zod_1.z.object({
     title: zod_1.z.string().min(5).max(100),
     description: zod_1.z.string().min(10).max(1000),
     photos: zod_1.z.array(zod_1.z.string()).min(1).max(3),
-    category: categoryEnum,
+    category: exports.categoryEnum,
     longitude: zod_1.z.number(),
     latitude: zod_1.z.number(),
 });
