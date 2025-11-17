@@ -47,6 +47,7 @@
     "prisma": "^6.18.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "react-easy-crop": "^5.5.3",
     "react-leaflet": "^5.0.0",
     "tailwind-merge": "^3.3.1",
     "ts-node": "^10.9.2",

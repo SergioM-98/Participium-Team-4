@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useRef, useTransition, useMemo } from "react";
+import { useState, useRef, useTransition, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Cropper from "react-easy-crop";
+import { getCroppedImg } from "@/app/lib/utils/canvasUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +17,7 @@ import {
   TooltipProvider, 
   TooltipTrigger 
 } from "@/components/ui/tooltip";
-import { Pencil, Save, X, Camera, Mail, Send, User as UserIcon, Bell, AlertCircle, Loader2, Info, UserCheck } from "lucide-react";
+import { Pencil, Save, X, Camera, Mail, Send, User as UserIcon, Bell, AlertCircle, Loader2, Info, UserCheck, ZoomIn, ZoomOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ProfilePageProps {
@@ -42,13 +44,18 @@ export default function ProfilePage({ user }: ProfilePageProps) {
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+
   const [formData, setFormData] = useState({
     email: user.email,
     telegram: user.telegram,
     emailEnabled: user.notifications.emailEnabled,
     telegramEnabled: user.notifications.telegramEnabled ?? false,
   });
-
 
   const avatarStyle = useMemo(() => {
     const chartColors = [
@@ -65,7 +72,6 @@ export default function ProfilePage({ user }: ProfilePageProps) {
     };
   }, [user.username]);
 
-
   const validate = () => {
     if (!formData.email.trim()) {
       setValidationError("Email is required.");
@@ -80,18 +86,52 @@ export default function ProfilePage({ user }: ProfilePageProps) {
     return true;
   };
 
- 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    startTransition(async () => {
-        console.log("SIMULAZIONE: Upload foto...", file.name);
-        await new Promise(resolve => setTimeout(resolve, 1000)); 
-        alert("Foto caricata (Simulazione)");
-        router.refresh();
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const imageDataUrl = await readFile(file);
+      setImageSrc(imageDataUrl as string);
+      setIsCropModalOpen(true);
+      e.target.value = "";
+    }
+  };
+
+  const readFile = (file: File) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.addEventListener("load", () => resolve(reader.result), false);
+      reader.readAsDataURL(file);
     });
   };
 
+  const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleUploadCroppedImage = async () => {
+    if (!imageSrc || !croppedAreaPixels) return;
+
+    try {
+      const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
+      if (!croppedImageBlob) return;
+
+      const file = new File([croppedImageBlob], "avatar.jpg", { type: "image/jpeg" });
+      
+      setIsCropModalOpen(false);
+
+      startTransition(async () => {
+          console.log("SIMULAZIONE: Upload foto ritagliata...", file.name, file.size);
+          
+          await new Promise(resolve => setTimeout(resolve, 1500)); 
+          alert("Avatar aggiornato!");
+          router.refresh();
+      });
+
+    } catch (e) {
+      console.error(e);
+      setError("Errore nel ritaglio dell'immagine");
+    }
+  };
 
   const handleSave = () => {
     if (!validate()) return;
@@ -124,6 +164,54 @@ export default function ProfilePage({ user }: ProfilePageProps) {
 
   return (
     <div className="w-full flex items-start justify-center p-4 md:py-10">
+      
+      {isCropModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4 animate-in fade-in">
+          <div className="bg-background w-full max-w-md rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+             <div className="p-4 border-b">
+                <h3 className="font-semibold text-lg">Adjust Profile Picture</h3>
+                <p className="text-sm text-muted-foreground">Drag to position, use slider to zoom.</p>
+             </div>
+             
+             <div className="relative w-full h-64 bg-black">
+                <Cropper
+                  image={imageSrc || ""}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onCropComplete={onCropComplete}
+                  onZoomChange={setZoom}
+                  cropShape="round"
+                  showGrid={false}
+                />
+             </div>
+
+             <div className="p-4 space-y-4">
+                <div className="flex items-center gap-2">
+                    <ZoomOut className="h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="range"
+                      value={zoom}
+                      min={1}
+                      max={3}
+                      step={0.1}
+                      aria-labelledby="Zoom"
+                      onChange={(e) => setZoom(Number(e.target.value))}
+                      className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                    />
+                    <ZoomIn className="h-4 w-4 text-muted-foreground" />
+                </div>
+                
+                <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setIsCropModalOpen(false)}>Cancel</Button>
+                    <Button onClick={handleUploadCroppedImage}>Save & Upload</Button>
+                </div>
+             </div>
+          </div>
+        </div>
+      )}
+
       <Card className="w-full max-w-3xl shadow-md bg-background rounded-xl">
         
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-6">
@@ -176,20 +264,18 @@ export default function ProfilePage({ user }: ProfilePageProps) {
                 </AvatarFallback>
               </Avatar>
 
-              
               {isEditing && (
                 <div 
                   className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Camera className="h-8 w-8 text-white" />
-                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileSelect} />
                 </div>
               )}
             </div>
 
             <div className="space-y-1 text-center sm:text-left flex-1 pt-2 w-full">
-              
               
               <div className="grid grid-cols-2 gap-8 mb-3 px-1">
                  <div className="flex flex-col items-center sm:items-start gap-1">
@@ -210,7 +296,6 @@ export default function ProfilePage({ user }: ProfilePageProps) {
                  </div>
               </div>
               
-      
               <div className="flex flex-col items-center sm:items-start gap-2 mt-2 px-1">
                  <span className="text-muted-foreground text-sm font-medium flex items-center gap-1.5 font-mono">
                     <UserIcon className="h-3.5 w-3.5" /> @{user.username}
@@ -223,9 +308,7 @@ export default function ProfilePage({ user }: ProfilePageProps) {
             </div>
           </div>
 
-          
           <div className="grid gap-6 md:grid-cols-2">
-            
             
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="email" className={cn("flex items-center gap-2", isEditing && "text-primary")}>
@@ -254,7 +337,6 @@ export default function ProfilePage({ user }: ProfilePageProps) {
               )}
             </div>
 
-            {/* Telegram Field */}
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="telegram" className={cn("flex items-center gap-2", isEditing && "text-primary")}>
                  <Send className="h-4 w-4" /> Telegram Username
@@ -292,7 +374,6 @@ export default function ProfilePage({ user }: ProfilePageProps) {
 
           <Separator />
 
-   
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
                 <Bell className="h-5 w-5 text-muted-foreground" />
@@ -300,7 +381,6 @@ export default function ProfilePage({ user }: ProfilePageProps) {
             </div>
             
             <div className="grid gap-4 sm:grid-cols-2">
-                {/* Email Pref */}
                 <div className={cn(
                     "flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm transition-colors",
                     isEditing ? "bg-card" : "bg-muted/20 opacity-80"
@@ -321,7 +401,6 @@ export default function ProfilePage({ user }: ProfilePageProps) {
                     </div>
                 </div>
 
-                {/* Telegram Pref */}
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
