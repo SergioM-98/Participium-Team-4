@@ -32,10 +32,11 @@ interface ProfilePageProps {
       emailEnabled: boolean;
       telegramEnabled?: boolean;
     };
-  }
+  };
+  uploadPhoto: (formData: FormData) => Promise<{ success: boolean; error?: string }>;
 }
 
-export default function ProfilePage({ user }: ProfilePageProps) {
+export default function ProfilePage({ user, uploadPhoto }: ProfilePageProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -119,17 +120,29 @@ export default function ProfilePage({ user }: ProfilePageProps) {
       
       setIsCropModalOpen(false);
 
+      const formData = new FormData();
+      const filenameBase64 = btoa(file.name);
+      const metadata = `filename ${filenameBase64}`;
+
+      formData.append('tus-resumable', '1.0.0');
+      formData.append('upload-length', file.size.toString());
+      formData.append('upload-metadata', metadata);
+      formData.append('file', file);
+
       startTransition(async () => {
-          console.log("SIMULAZIONE: Upload foto ritagliata...", file.name, file.size);
+          const result = await uploadPhoto(formData);
           
-          await new Promise(resolve => setTimeout(resolve, 1500)); 
-          alert("Avatar aggiornato!");
-          router.refresh();
+          if (result?.success) {
+             alert("Avatar updated successfully!");
+             router.refresh();
+          } else {
+             setError(result?.error || "Upload failed");
+          }
       });
 
     } catch (e) {
       console.error(e);
-      setError("Errore nel ritaglio dell'immagine");
+      setError("Error preparing image for upload");
     }
   };
 
@@ -138,11 +151,10 @@ export default function ProfilePage({ user }: ProfilePageProps) {
     setError(null);
     startTransition(async () => {
       try {
-        console.log("SIMULAZIONE: Salvataggio...", formData);
         await new Promise(resolve => setTimeout(resolve, 1500));
         setIsEditing(false);
         router.refresh();
-      } catch (err) { setError("Errore salvataggio."); }
+      } catch (err) { setError("Error saving data."); }
     });
   };
   
