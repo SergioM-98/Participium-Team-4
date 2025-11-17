@@ -66,6 +66,7 @@ import { NotificationsData } from "../dtos/notificationPreferences.dto";
   export async function updateNotificationsMedia(telegram: string | null, email: string | null, removeTelegram:boolean, notifications: NotificationsData): Promise<RegistrationResponse> {
 
     const session = await getServerSession(authOptions);
+    console.log("SESSION:", session);
     if (!session || !session.user?.username || session.user?.role !== "CITIZEN") {
       return { success: false, error: "Unauthorized access" };
     }

@@ -105,8 +105,9 @@ model NotificationPreferences {
   emailEnabled Boolean  @default(true)
   telegramEnabled Boolean @default(false)
 
-  @@map("notifications_preferences")
+
   citizen     User         @relation(fields: [id], references: [id])
+  @@map("notifications_preferences")
 }
 
 model ProfilePhoto {

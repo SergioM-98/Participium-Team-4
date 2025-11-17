@@ -22,6 +22,7 @@ export default async function Profile() {
       telegramEnabled: false
     }
   };
+  console.log("Session User:", session.user);
 
   return (
     <ProfilePage user={dummyUser} />
