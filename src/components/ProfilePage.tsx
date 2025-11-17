@@ -19,6 +19,11 @@ import {
 } from "@/components/ui/tooltip";
 import { Pencil, Save, X, Camera, Mail, Send, User as UserIcon, Bell, AlertCircle, Loader2, Info, UserCheck, ZoomIn, ZoomOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NotificationsData } from "@/app/lib/dtos/notificationPreferences.dto";
+
+
+import { updateNotificationsMedia } from "@/app/lib/controllers/user.controller";
+import { createUploadPhoto } from "@/app/lib/controllers/ProfilePhoto.controller";
 
 interface ProfilePageProps {
   user: {
@@ -33,10 +38,10 @@ interface ProfilePageProps {
       telegramEnabled?: boolean;
     };
   };
-  uploadPhoto: (formData: FormData) => Promise<{ success: boolean; error?: string }>;
+
 }
 
-export default function ProfilePage({ user, uploadPhoto }: ProfilePageProps) {
+export default function ProfilePage({ user }: ProfilePageProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -93,7 +98,7 @@ export default function ProfilePage({ user, uploadPhoto }: ProfilePageProps) {
       const imageDataUrl = await readFile(file);
       setImageSrc(imageDataUrl as string);
       setIsCropModalOpen(true);
-      e.target.value = "";
+      e.target.value = ""; 
     }
   };
 
@@ -120,41 +125,70 @@ export default function ProfilePage({ user, uploadPhoto }: ProfilePageProps) {
       
       setIsCropModalOpen(false);
 
-      const formData = new FormData();
+      const data = new FormData();
       const filenameBase64 = btoa(file.name);
       const metadata = `filename ${filenameBase64}`;
 
-      formData.append('tus-resumable', '1.0.0');
-      formData.append('upload-length', file.size.toString());
-      formData.append('upload-metadata', metadata);
-      formData.append('file', file);
+      data.append('tus-resumable', '1.0.0');
+      data.append('upload-length', file.size.toString());
+      data.append('upload-metadata', metadata);
+      data.append('file', file);
 
       startTransition(async () => {
-          const result = await uploadPhoto(formData);
-          
-          if (result?.success) {
-             alert("Avatar updated successfully!");
-             router.refresh();
-          } else {
-             setError(result?.error || "Upload failed");
+          try {
+
+            const result = await createUploadPhoto(data);
+            
+            if (result?.success) {
+               router.refresh(); 
+            } else {
+               setError(typeof result?.error === 'string' ? result.error : "Upload failed");
+            }
+          } catch (err) {
+            console.error(err);
+            setError("Error during upload");
           }
       });
 
     } catch (e) {
       console.error(e);
-      setError("Error preparing image for upload");
+      setError("Error processing image");
     }
   };
 
   const handleSave = () => {
     if (!validate()) return;
     setError(null);
+
     startTransition(async () => {
       try {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setIsEditing(false);
-        router.refresh();
-      } catch (err) { setError("Error saving data."); }
+        const removeTelegram = user.telegram !== "" && formData.telegram === "";
+        
+        const notificationsData: NotificationsData = {
+            emailEnabled: formData.emailEnabled,
+            telegramEnabled: formData.telegramEnabled
+        };
+
+
+        const result = await updateNotificationsMedia(
+            formData.telegram || null,
+            formData.email || null,
+            removeTelegram,
+            notificationsData
+        );
+
+        if (result.success) {
+            setIsEditing(false);
+            router.refresh(); 
+        } else {
+
+            const errorMessage = typeof result.error === 'string' ? result.error : "Failed to update profile";
+            setError(errorMessage);
+        }
+
+      } catch (err: any) {
+        setError(err.message || "An unexpected error occurred");
+      }
     });
   };
   
@@ -184,7 +218,6 @@ export default function ProfilePage({ user, uploadPhoto }: ProfilePageProps) {
                 <h3 className="font-semibold text-lg">Adjust Profile Picture</h3>
                 <p className="text-sm text-muted-foreground">Drag to position, use slider to zoom.</p>
              </div>
-             
              <div className="relative w-full h-64 bg-black">
                 <Cropper
                   image={imageSrc || ""}
@@ -198,7 +231,6 @@ export default function ProfilePage({ user, uploadPhoto }: ProfilePageProps) {
                   showGrid={false}
                 />
              </div>
-
              <div className="p-4 space-y-4">
                 <div className="flex items-center gap-2">
                     <ZoomOut className="h-4 w-4 text-muted-foreground" />
@@ -208,13 +240,11 @@ export default function ProfilePage({ user, uploadPhoto }: ProfilePageProps) {
                       min={1}
                       max={3}
                       step={0.1}
-                      aria-labelledby="Zoom"
                       onChange={(e) => setZoom(Number(e.target.value))}
                       className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                     />
                     <ZoomIn className="h-4 w-4 text-muted-foreground" />
                 </div>
-                
                 <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={() => setIsCropModalOpen(false)}>Cancel</Button>
                     <Button onClick={handleUploadCroppedImage}>Save & Upload</Button>
@@ -288,7 +318,6 @@ export default function ProfilePage({ user, uploadPhoto }: ProfilePageProps) {
             </div>
 
             <div className="space-y-1 text-center sm:text-left flex-1 pt-2 w-full">
-              
               <div className="grid grid-cols-2 gap-8 mb-3 px-1">
                  <div className="flex flex-col items-center sm:items-start gap-1">
                     <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
@@ -307,12 +336,10 @@ export default function ProfilePage({ user, uploadPhoto }: ProfilePageProps) {
                     </span>
                  </div>
               </div>
-              
               <div className="flex flex-col items-center sm:items-start gap-2 mt-2 px-1">
                  <span className="text-muted-foreground text-sm font-medium flex items-center gap-1.5 font-mono">
                     <UserIcon className="h-3.5 w-3.5" /> @{user.username}
                  </span>
-                 
                  <span className="bg-secondary text-secondary-foreground px-2.5 py-0.5 rounded-full text-xs font-semibold border flex items-center gap-1 w-fit">
                     <UserCheck className="h-3 w-3" /> Citizen
                  </span>
