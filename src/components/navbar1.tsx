@@ -27,6 +27,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { ProfileButton } from "./ProfileButton";
 
 interface MenuItem {
   title: string;
@@ -78,7 +79,7 @@ function Navbar1({
   },
 }: Navbar1Props) {
 
-  const { menu: filteredMenu, logoUrl, role } = useNavbarMenu();
+  const { menu: filteredMenu, logoUrl, role, username } = useNavbarMenu();
 
   return (
     <section className="py-4">
@@ -113,9 +114,17 @@ function Navbar1({
                   <a href={auth.signup.url}>{auth.signup.title}</a>
                 </Button>
               </>
+            ) : role === "CITIZEN" ? (
+              <>
+                <LogoutButton variant="outline" size="sm" />
+                <ProfileButton variant="outline" size="sm" showName={true} username={username}/>
+              </>
             ) : (
-              <LogoutButton variant="outline" size="sm" />
+              <>
+                <LogoutButton variant="outline" size="sm" />
+              </>
             )}
+
           </div>
         </nav>
 
@@ -159,8 +168,16 @@ function Navbar1({
                           <a href={auth.signup.url}>{auth.signup.title}</a>
                         </Button>
                       </>
-                    ) : (
-                      <LogoutButton variant="outline" className="w-full" />
+                    ) : role === "CITIZEN" ? (
+                      <>
+                        <LogoutButton variant="outline" size="sm" className="w-full" />
+                        <ProfileButton variant="outline" size="sm" className="w-full" showName={false} username={username}/>
+                      </>
+                    )
+                     : (
+                      <>
+                        <LogoutButton variant="outline" size="sm" className="w-full" />
+                      </>
                     )}
                   </div>
                 </div>
