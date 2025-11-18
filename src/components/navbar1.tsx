@@ -1,6 +1,6 @@
 "use client";
 
-import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useNavbarMenu } from "@/app/lib/hooks/useNavbarMenu";
 import Link from "next/link";
 
@@ -27,6 +27,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { ProfileButton } from "./ProfileButton";
 
 interface MenuItem {
   title: string;
@@ -67,10 +68,6 @@ function Navbar1({
     alt: "Participium",
     title: "Participium",
   },
-  menu = [
-    { title: "Home", url: "/" },
-    { title: "Reports", url: "/reports" },
-  ],
   auth = {
     login: { title: "Login", url: "/login" },
     signup: { title: "Sign up", url: "/register" },
@@ -78,7 +75,7 @@ function Navbar1({
   },
 }: Navbar1Props) {
 
-  const { menu: filteredMenu, logoUrl, role } = useNavbarMenu();
+  const { menu: filteredMenu, logoUrl, role, username } = useNavbarMenu();
 
   return (
     <section className="py-4">
@@ -114,8 +111,12 @@ function Navbar1({
                 </Button>
               </>
             ) : (
-              <LogoutButton variant="outline" size="sm" />
+              <>
+                <LogoutButton variant="outline" size="sm" />
+                <ProfileButton variant="outline" size="sm" showName={true} username={username}/>
+              </>
             )}
+
           </div>
         </nav>
 
@@ -160,7 +161,10 @@ function Navbar1({
                         </Button>
                       </>
                     ) : (
-                      <LogoutButton variant="outline" className="w-full" />
+                      <>
+                        <LogoutButton variant="outline" size="sm" className="w-full" />
+                        <ProfileButton variant="outline" size="sm" className="w-full" showName={false} username={username}/>
+                      </>
                     )}
                   </div>
                 </div>

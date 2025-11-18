@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import MunicipalityUserForm, { MunicipalityUserFormData } from "@/components/MunicipalityUserForm";
-import { register } from "@/app/lib/actions/user";
+import { register } from "@/app/lib/controllers/user.controller";
 
 export default function OfficerRegistrationPage() {
   const [error, setError] = useState<string>("");

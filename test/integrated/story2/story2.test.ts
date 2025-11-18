@@ -1,4 +1,4 @@
-import { register } from "@/app/lib/actions/user";
+import { register } from "@/app/lib/controllers/user.controller";
 import { RegistrationResponse } from "@/app/lib/dtos/user.dto";
 import { prisma } from "../../setup";
 

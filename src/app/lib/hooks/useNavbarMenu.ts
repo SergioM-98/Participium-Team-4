@@ -10,6 +10,7 @@ interface MenuItem {
 export function useNavbarMenu() {
   const { data: session } = useSession();
   const role = session?.user?.role;
+  const username = session?.user?.username;
 
   const getMenuByRole = (): MenuItem[] => {
     switch (role) {
@@ -34,5 +35,5 @@ export function useNavbarMenu() {
     return "/";
   };
 
-  return { menu: getMenuByRole(), logoUrl: getLogoUrl(), role };
+  return { menu: getMenuByRole(), logoUrl: getLogoUrl(), role, username };
 }

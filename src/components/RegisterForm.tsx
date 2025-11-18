@@ -12,9 +12,12 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { Eye, EyeOff } from "lucide-react";
 
-import { register } from "@/app/lib/actions/user";
+type RegisterFormProps = {
+  register: (data: FormData) => Promise<{ success: boolean; error?: string }>;
+};
 
-export default function RegisterForm() {
+
+export default function RegisterForm({ register }: RegisterFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 

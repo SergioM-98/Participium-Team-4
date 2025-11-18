@@ -1,5 +1,7 @@
+"use server";
 import RegisterForm from "@/components/RegisterForm";
+import { register } from "../lib/controllers/user.controller";
 
-export default function RegisterPage() {
-  return <RegisterForm />;
+export default async function RegisterPage() {
+  return <RegisterForm register={register} />;
 }

@@ -23,14 +23,17 @@ export const authOptions: AuthOptions = {
         const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
         if (!isValid) return null;
 
-        return {
+        const userResult = {
           id: user.id.toString(),
-          name: user.username,
+          username: user.username,
           role: user.role,
+          email: user.email ?? undefined,
           firstName: user.firstName,
           lastName: user.lastName,
           office: user.office ?? undefined,
+          telegram: user.telegram ?? undefined,
         } as User;
+        return userResult;
       },
     }),
   ],
@@ -40,16 +43,26 @@ export const authOptions: AuthOptions = {
     async jwt({ token, user }: { token: NextAuthJWT; user?: User }) {
       if (user) {
         token.id = user.id;
-        token.username = user.name as string;
-        token.role = (user as any).role;
+        token.role = user.role;
+        token.username = user.username;
+        token.email = user.email;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+        token.office = user.office;
+        token.telegram = user.telegram;
       }
       return token;
     },
     async session({ session, token }: { session: any; token: NextAuthJWT }) {
       if (session.user) {
-        session.user.id = token.id;
-        session.user.username = token.username;
-        session.user.role = token.role;
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+        session.user.username = token.username as string;
+        session.user.email = token.email as string;
+        session.user.firstName = token.firstName as string;
+        session.user.lastName = token.lastName as string;
+        session.user.office = token.office as string | undefined;
+        session.user.telegram = token.telegram as string | undefined;
       }
       return session;
     },

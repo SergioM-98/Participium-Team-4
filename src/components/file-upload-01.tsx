@@ -22,8 +22,8 @@ import {
 import { cn } from "@/lib/utils";
 import { HelpCircle, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
-import { createUploadPhoto, deleteUpload } from "@/app/lib/actions/uploader";
-import { createReport } from "@/actions/report";
+import { createUploadPhoto, deleteUpload} from "@/app/lib/controllers/uploader.controller";
+import { createReport } from "@/app/lib/controllers/report.controller";
 import { useSession } from "next-auth/react";
 
 interface UploadedFile {
@@ -565,8 +565,6 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                     try {
                       // Prepare photo IDs from uploaded files
                       const photoIds = completedUploads.map(f => f.uploadId).filter(Boolean) as string[];
-                      // TODO: Get userId from authentication context/session
-                      const userId =  session?.user?.id || '';
                       // Submit report
                       const result = await createReport(
                         title,
@@ -575,7 +573,6 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                         category,
                         locationProp!.lng,
                         locationProp!.lat,
-                        userId,
                         isAnonymous
                       );
                       console.log('Report created successfully:', result);

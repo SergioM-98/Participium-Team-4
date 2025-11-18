@@ -32,8 +32,7 @@
       "@/middlewares/*": ["./src/app/lib/middlewares/*"],
       "@/types/*": ["./src/app/lib/types/*"],
       "@/db/*": ["./src/app/lib/db/*"],
-      "@/prisma/*": ["./prisma/*"],
-      "@/actions/*": ["./src/app/lib/actions/*"]
+      "@/prisma/*": ["./prisma/*"]
     }
   },
   "include": [

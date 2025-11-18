@@ -15,12 +15,8 @@ jest.mock("@/controllers/uploader.controller", () => {
 });
 
 import {
-  createUploadPhoto,
-  uploadPhotoChunk,
-  getUploadStatus,
-  deleteUpload,
-  getTusOptions,
-} from "@/app/lib/actions/uploader";
+  UploaderController
+} from "@/app/lib/controllers/uploader.controller";
 
 describe("Uploader Actions - createUploadPhoto", () => {
   let validFormData: FormData;
@@ -54,7 +50,7 @@ describe("Uploader Actions - createUploadPhoto", () => {
       },
     });
 
-    const response = await createUploadPhoto(validFormData);
+    const response = await new UploaderController().createUploadPhoto(validFormData);
 
     expect(response.success).toBe(true);
     expect((response as any).location).toBe("/files/upload-123");
@@ -76,7 +72,7 @@ describe("Uploader Actions - createUploadPhoto", () => {
       },
     });
 
-    const response = await createUploadPhoto(validFormData);
+    const response = await new UploaderController().createUploadPhoto(validFormData);
 
     expect(response.success).toBe(true);
     expect(mockUploaderController.createUploadPhoto).toHaveBeenCalled();
@@ -113,7 +109,7 @@ describe("Uploader Actions - uploadPhotoChunk", () => {
       },
     });
 
-    const response = await uploadPhotoChunk(uploadId, validFormData);
+    const response = await new UploaderController().uploadPhotoChunk(uploadId, validFormData);
 
     expect(response.success).toBe(true);
     if (response.success) {
@@ -125,7 +121,7 @@ describe("Uploader Actions - uploadPhotoChunk", () => {
   it("should return error when chunk is missing", async () => {
     validFormData.delete("chunk");
 
-    const response = await uploadPhotoChunk(uploadId, validFormData);
+    const response = await new UploaderController().uploadPhotoChunk(uploadId, validFormData);
 
     expect(response.success).toBe(false);
     if (!response.success) {
@@ -146,7 +142,7 @@ describe("Uploader Actions - uploadPhotoChunk", () => {
       },
     });
 
-    const response = await uploadPhotoChunk(uploadId, validFormData);
+    const response = await new UploaderController().uploadPhotoChunk(uploadId, validFormData);
 
     if (response.success) {
       expect((response as any).uploadOffset).toBe(522);
@@ -178,7 +174,7 @@ describe("Uploader Actions - getUploadStatus", () => {
       },
     });
 
-    const response = await getUploadStatus(uploadId);
+    const response = await new UploaderController().getUploadStatus(uploadId);
 
     expect(response.success).toBe(true);
     expect((response as any).uploadOffset).toBe(512);
@@ -206,7 +202,7 @@ describe("Uploader Actions - deleteUpload", () => {
       },
     });
 
-    const response = await deleteUpload(uploadId);
+    const response = await new UploaderController().deleteUpload(uploadId);
 
     expect(response.success).toBe(true);
     expect(mockUploaderController.deleteUpload).toHaveBeenCalledWith(
