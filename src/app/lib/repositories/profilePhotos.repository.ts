@@ -58,4 +58,21 @@ export class ProfilePhotoRepository {
             where: { id }
         });
     }
+
+    public async getPhotoOfUser(userId: number | string) {
+
+        if (typeof userId === 'string') {
+            const user = await prisma.user.findUnique({
+                where: { username: userId }
+            });
+            if (!user) {
+                throw new Error("User not found");
+            }
+            userId = Number(user.id);
+        }
+
+        return await prisma.profilePhoto.findUnique({
+            where: { userId }
+        });
+    }
 }

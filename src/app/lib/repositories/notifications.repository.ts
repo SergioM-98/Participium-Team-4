@@ -2,7 +2,10 @@
 
 import { prisma } from "@/prisma/db";
 import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
+import { Prisma, PrismaClient } from "@prisma/client";
 
+
+type DBClient = PrismaClient | Prisma.TransactionClient;
 class NotificationsRepository {
     private static instance: NotificationsRepository;
 
@@ -67,7 +70,7 @@ class NotificationsRepository {
         }
     }
 
-    async updateNotificationsPreferences(userId: number | string, notifications: NotificationsData): Promise<NotificationsResponse> {
+    async updateNotificationsPreferences(userId: number | string, notifications: NotificationsData, db: DBClient = prisma): Promise<NotificationsResponse> {
         try {
             let user;
             if(typeof userId === "number") {
