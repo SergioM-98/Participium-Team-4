@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { getProfilePhotoUrl } from "@/app/lib/controllers/ProfilePhoto.controller";
 import { useSession } from "next-auth/react";
 
@@ -28,19 +28,37 @@ export function ProfileButton({
   const { data: session } = useSession();
   const [imageUrl, setImageUrl] = useState<string | null>(initialImage || null);
 
-  const initials = username
-    ?.match(/(\b\S)?/g)
-    ?.join("")
-    ?.match(/(^\S|\S$)?/g)
-    ?.join("")
-    .toUpperCase() || "U";
+
+  const initials = useMemo(() => {
+    if (!username) return "U";
+
+    return username.substring(0, 2).toUpperCase();
+  }, [username]);
+
+
+  const avatarStyle = useMemo(() => {
+    if (!username) return {};
+    const chartColors = [
+      "var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"
+    ];
+
+    const name = username;
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    const colorVar = chartColors[Math.abs(hash % chartColors.length)];
+    
+    return {
+        backgroundColor: `oklch(${colorVar})`,
+        color: "oklch(var(--primary-foreground))"
+    };
+  }, [username]);
 
   useEffect(() => {
-
-    if (!initialImage && session?.user?.role === "CITIZEN") {
+    if (!initialImage && session?.user) {
       getProfilePhotoUrl()
         .then((url) => setImageUrl(url))
         .catch(() => {
+
         });
     } else if (initialImage) {
         setImageUrl(initialImage);
@@ -57,7 +75,10 @@ export function ProfileButton({
       <Link href="/profile">
         <Avatar className="h-5 w-5"> 
           <AvatarImage src={imageUrl || ""} alt={username || "User Avatar"} />
-          <AvatarFallback className="text-[9px]">
+          <AvatarFallback 
+            className="text-[9px] font-bold" 
+            style={avatarStyle}
+          >
             {initials}
           </AvatarFallback>
         </Avatar>

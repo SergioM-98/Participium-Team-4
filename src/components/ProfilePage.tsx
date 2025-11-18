@@ -26,7 +26,6 @@ import { updateNotificationsMedia, getMe } from "@/app/lib/controllers/user.cont
 import { createUploadPhoto, getProfilePhotoUrl } from "@/app/lib/controllers/ProfilePhoto.controller";
 import { getNotificationsPreferences } from "@/app/lib/controllers/notifications.controller";
 
-// Definizione del tipo User locale per lo stato
 type UserProfileData = {
   username: string;
   firstName: string;
@@ -62,7 +61,6 @@ export default function ProfilePage() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
 
-  // Stato locale per il form di modifica
   const [formData, setFormData] = useState({
     email: "",
     telegram: "",
@@ -70,7 +68,6 @@ export default function ProfilePage() {
     telegramEnabled: false,
   });
 
-  // Fetch dei dati utente
   useEffect(() => {
     const fetchData = async () => {
       if (status === "loading") return;
@@ -78,7 +75,6 @@ export default function ProfilePage() {
 
       setIsLoadingData(true);
       try {
-        // 1. Recupera dati utente completi dal DB tramite controller
         const userDataResponse = await getMe(session.user.username);
         
         if ('error' in userDataResponse) {
@@ -87,28 +83,25 @@ export default function ProfilePage() {
 
         const userData = userDataResponse;
         
-        // Valori di default
         let notifications = {
           emailEnabled: false,
           telegramEnabled: false
         };
         let imageUrl: string | null = null;
-        
-        // 2. Se Cittadino, recupera preferenze e foto
+
+        // Solo i CITTADINI hanno notifiche e foto modificabile
         if (userData.role === "CITIZEN") {
           try {
             const notifResponse = await getNotificationsPreferences();
             if (notifResponse.success) {
-                notifications.emailEnabled = notifResponse.data.emailEnabled;
-                notifications.telegramEnabled = notifResponse.data.telegramEnabled ?? false;
+                notifications = notifResponse.data;
             }
-            console.log("NOTIFICATIONS:", notifications);
           } catch (e) { console.warn("Failed to load notifications", e); }
 
           try {
             imageUrl = await getProfilePhotoUrl();
           } catch (e) {
-            // Foto non trovata o errore, usa default
+            // Foto non trovata, usa default
           }
         }
 
@@ -129,7 +122,6 @@ export default function ProfilePage() {
 
         setUser(loadedUser);
         
-        // Inizializza anche il form data
         setFormData({
             email: loadedUser.email,
             telegram: loadedUser.telegram,
@@ -241,7 +233,7 @@ export default function ProfilePage() {
   };
 
   const handleSave = () => {
-    if (!user || !validate()) return;
+    if (!user || user.role !== 'CITIZEN' || !validate()) return;
     setError(null);
 
     startTransition(async () => {
@@ -296,13 +288,10 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-  // Sicurezza: evita crash se i dati mancano
+
   const getInitials = () => {
-    if (!user) return "U";
-    const first = user.firstName || "";
-    const last = user.lastName || "";
-    if (!first && !last) return "U";
-    return `${first.charAt(0) || ""}${last.charAt(0) || ""}`.toUpperCase();
+    if (!user?.username) return "U";
+    return user.username.substring(0, 2).toUpperCase();
   };
 
   if (status === "loading" || isLoadingData) {
@@ -321,7 +310,9 @@ export default function ProfilePage() {
       );
   }
 
-  const canEdit = user.role === "CITIZEN";
+  const isCitizen = user.role === "CITIZEN";
+
+  const canEdit = isCitizen;
 
   return (
     <div className="w-full flex items-start justify-center p-4 md:py-10">
@@ -478,7 +469,8 @@ export default function ProfilePage() {
 
           <div className="grid gap-6 md:grid-cols-2">
             
-            {user.role === 'CITIZEN' && (
+            {/* Email*/}
+            {isCitizen && (
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="email" className={cn("flex items-center gap-2", isEditing && "text-primary")}>
                  <Mail className="h-4 w-4" /> Email Address
@@ -507,7 +499,8 @@ export default function ProfilePage() {
             </div>
             )}
 
-            {user.role === 'CITIZEN' && (
+            {/* Telegram */}
+            {isCitizen && (
                 <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="telegram" className={cn("flex items-center gap-2", isEditing && "text-primary")}>
                     <Send className="h-4 w-4" /> Telegram Username
@@ -543,7 +536,8 @@ export default function ProfilePage() {
                 </div>
             )}
 
-            {user.role === 'OFFICER' && user.office && (
+            {/* Office */}
+            {(user.role === 'OFFICER' || user.role === 'ADMIN') && user.office && (
                  <div className="space-y-2 md:col-span-2">
                     <Label className="flex items-center gap-2 text-muted-foreground">
                         <Building2 className="h-4 w-4" /> Department / Office
@@ -555,7 +549,8 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {user.role === 'CITIZEN' && (
+          {/* Notifications */}
+          {isCitizen && (
           <>
           <Separator />
           <div className="space-y-4">
