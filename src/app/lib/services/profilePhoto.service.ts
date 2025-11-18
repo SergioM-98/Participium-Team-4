@@ -20,46 +20,29 @@ class ProfilePhotoService {
         return ProfilePhotoService.instance;
     }
 
-    public async deletePhoto(request: DeletePhotoRequest): Promise<TusDeleteResponse> {
+    public async deletePhoto(userId: number): Promise<TusDeleteResponse> {
         try {
-            // Validate request DTO
-            const validatedRequest = DeletePhotoRequestSchema.parse(request);
             
             // Get photo record from database
-            const photo = await this.profilePhotoRepository.findById(validatedRequest.photoId);
+            const photo = await this.profilePhotoRepository.getPhotoOfUser(userId);
             if (!photo) {
-                throw new Error(`Photo with ID ${validatedRequest.photoId} not found`);
+                throw new Error(`Photo for user ID ${userId} not found`);
             }
 
-            // Determine filename based on upload completion status
-            let filename: string;
-            const isComplete = photo.offset === photo.size;
-
-            if (isComplete) {
-                // Upload is complete - use final filename format: {id}_{originalFilename}
-                filename = `${photo.filename}`;
-            } else {
-                // Upload is incomplete - use temporary filename format: {id}_temp.{ext}
-                const extension = path.extname(photo.filename || '') || '.jpg';
-                filename = `${validatedRequest.photoId}_temp${extension}`;
-            }
-
-            // Construct full file path
-            const uploadsDir = process.env.UPLOADS_DIR || path.join(process.cwd(), 'uploads');
-            const filePath = path.join(uploadsDir, filename);
+            
 
             try {
                 // Delete file from filesystem
-                await unlink(filePath);
-                console.log(`File deleted: ${filePath}`);
+                await unlink(photo.url.replace('/uploads/', ''));
+                console.log(`File deleted: ${photo.url}`);
             } catch (fileError) {
                 // Log file deletion error but continue with database deletion
-                console.warn(`Failed to delete file ${filePath}:`, fileError);
+                console.warn(`Failed to delete file ${photo.url}:`, fileError);
             }
 
             // Delete photo record from database
-            await this.profilePhotoRepository.delete(validatedRequest.photoId);
-            console.log(`Photo record deleted from database: ${validatedRequest.photoId}`);
+            await this.profilePhotoRepository.delete(photo.id);
+            console.log(`Photo record deleted from database: ${photo.id}`);
 
             const response: TusDeleteResponse = TusDeleteResponseSchema.parse({
                 success: true,
@@ -113,8 +96,11 @@ class ProfilePhotoService {
 
         if (isComplete) {
             try {
-                await unlink(finalFilePath);
-                console.log(`Old file removed: ${finalFilePath}`);
+                const oldPhoto = await this.profilePhotoRepository.getPhotoOfUser(userId);
+                if (oldPhoto) {
+                    await unlink(oldPhoto.url.replace('/uploads/', path.join(uploadsDir, '')));
+                    console.log(`Old file removed: ${finalFilePath}`);
+                }
             } catch (err: any) {
                 //ignore errors if file does not exist
                 //then only throw if other error
@@ -122,7 +108,6 @@ class ProfilePhotoService {
                     throw new Error("Failed to delete old file:", err);
                 }
             }
-
             try {
                 await rename(tempFilePath, finalFilePath);
             } catch (renameErr) {
@@ -217,6 +202,13 @@ class ProfilePhotoService {
         const ext = path.extname(filename);
         return ext || '.jpg';
     }
+
+
+    async getPhotoOfUser(userId: number | string) {
+        return await this.profilePhotoRepository.getPhotoOfUser(userId);
+    }
+
+
 }
 
 export { ProfilePhotoService };

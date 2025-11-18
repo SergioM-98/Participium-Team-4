@@ -9,6 +9,10 @@ import {
 } from "@/dtos/user.dto";
 import { prisma } from "@/prisma/db";
 import bcrypt from "bcrypt";
+import { Prisma, PrismaClient } from "@prisma/client";
+
+
+type DBClient = PrismaClient | Prisma.TransactionClient;
 
 class UserRepository {
   
@@ -55,7 +59,7 @@ class UserRepository {
     }
   }
 
-  async createUser(userData: RegistrationInput): Promise<RegistrationResponse> {
+  async createUser(userData: RegistrationInput, db: DBClient = prisma): Promise<RegistrationResponse> {
     try {
       if (userData.password !== userData.confirmPassword) {
         return { success: false, error: "Passwords do not match" };

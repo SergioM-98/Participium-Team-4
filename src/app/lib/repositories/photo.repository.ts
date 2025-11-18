@@ -15,7 +15,7 @@ export class PhotoRepository {
     public async create(data: {
             id: string;
             url: string;
-            reportId?: string;
+            reportId?: number;
             size?: bigint;
             offset?: bigint;
             filename?: string;
