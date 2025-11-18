@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useTransition, useMemo, useCallback } from "react";
+import { useState, useRef, useTransition, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/app/lib/utils/canvasUtils";
 import { Button } from "@/components/ui/button";
@@ -17,32 +18,37 @@ import {
   TooltipProvider, 
   TooltipTrigger 
 } from "@/components/ui/tooltip";
-import { Pencil, Save, X, Camera, Mail, Send, User as UserIcon, Bell, AlertCircle, Loader2, Info, UserCheck, ZoomIn, ZoomOut } from "lucide-react";
+import { Pencil, Save, X, Camera, Mail, Send, User as UserIcon, Bell, AlertCircle, Loader2, Info, UserCheck, ZoomIn, ZoomOut, Building2, ShieldAlert, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NotificationsData } from "@/app/lib/dtos/notificationPreferences.dto";
 
+import { updateNotificationsMedia, getMe } from "@/app/lib/controllers/user.controller";
+import { createUploadPhoto, getProfilePhotoUrl } from "@/app/lib/controllers/ProfilePhoto.controller";
+import { getNotificationsPreferences } from "@/app/lib/controllers/notifications.controller";
 
-import { updateNotificationsMedia } from "@/app/lib/controllers/user.controller";
-import { createUploadPhoto } from "@/app/lib/controllers/ProfilePhoto.controller";
-
-interface ProfilePageProps {
-  user: {
-    username: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    telegram: string;
-    image: string | null;
-    notifications: {
-      emailEnabled: boolean;
-      telegramEnabled?: boolean;
-    };
+// Definizione del tipo User locale per lo stato
+type UserProfileData = {
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  telegram: string;
+  role: string;
+  office?: string;
+  image: string | null;
+  notifications: {
+    emailEnabled: boolean;
+    telegramEnabled?: boolean;
   };
+};
 
-}
-
-export default function ProfilePage({ user }: ProfilePageProps) {
+export default function ProfilePage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+  
+  const [user, setUser] = useState<UserProfileData | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -56,18 +62,98 @@ export default function ProfilePage({ user }: ProfilePageProps) {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
 
+  // Stato locale per il form di modifica
   const [formData, setFormData] = useState({
-    email: user.email,
-    telegram: user.telegram,
-    emailEnabled: user.notifications.emailEnabled,
-    telegramEnabled: user.notifications.telegramEnabled ?? false,
+    email: "",
+    telegram: "",
+    emailEnabled: false,
+    telegramEnabled: false,
   });
 
+  // Fetch dei dati utente
+  useEffect(() => {
+    const fetchData = async () => {
+      if (status === "loading") return;
+      if (!session?.user?.username) return;
+
+      setIsLoadingData(true);
+      try {
+        // 1. Recupera dati utente completi dal DB tramite controller
+        const userDataResponse = await getMe(session.user.username);
+        
+        if ('error' in userDataResponse) {
+          throw new Error(userDataResponse.error);
+        }
+
+        const userData = userDataResponse;
+        
+        // Valori di default
+        let notifications = {
+          emailEnabled: false,
+          telegramEnabled: false
+        };
+        let imageUrl: string | null = null;
+        
+        // 2. Se Cittadino, recupera preferenze e foto
+        if (userData.role === "CITIZEN") {
+          try {
+            const notifResponse = await getNotificationsPreferences();
+            if (notifResponse.success) {
+                notifications.emailEnabled = notifResponse.data.emailEnabled;
+                notifications.telegramEnabled = notifResponse.data.telegramEnabled ?? false;
+            }
+            console.log("NOTIFICATIONS:", notifications);
+          } catch (e) { console.warn("Failed to load notifications", e); }
+
+          try {
+            imageUrl = await getProfilePhotoUrl();
+          } catch (e) {
+            // Foto non trovata o errore, usa default
+          }
+        }
+
+        const loadedUser: UserProfileData = {
+            username: userData.username || session.user.username,
+            firstName: userData.firstName || "",
+            lastName: userData.lastName || "",
+            email: userData.email || "",
+            telegram: userData.telegram || "",
+            role: userData.role || session.user.role,
+            office: userData.office || undefined,
+            image: imageUrl,
+            notifications: {
+                emailEnabled: notifications.emailEnabled,
+                telegramEnabled: notifications.telegramEnabled ?? false
+            }
+        };
+
+        setUser(loadedUser);
+        
+        // Inizializza anche il form data
+        setFormData({
+            email: loadedUser.email,
+            telegram: loadedUser.telegram,
+            emailEnabled: loadedUser.notifications.emailEnabled,
+            telegramEnabled: loadedUser.notifications.telegramEnabled ?? false,
+        });
+
+      } catch (err: any) {
+        console.error("Error fetching profile:", err);
+        setError("Failed to load profile data.");
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchData();
+  }, [session, status]);
+
   const avatarStyle = useMemo(() => {
+    if (!user?.username) return {};
     const chartColors = [
       "var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"
     ];
-    const name = user.username || "User";
+    const name = user.username;
     let hash = 0;
     for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
     const colorVar = chartColors[Math.abs(hash % chartColors.length)];
@@ -76,7 +162,7 @@ export default function ProfilePage({ user }: ProfilePageProps) {
         backgroundColor: `oklch(${colorVar})`,
         color: "oklch(var(--primary-foreground))"
     };
-  }, [user.username]);
+  }, [user?.username]);
 
   const validate = () => {
     if (!formData.email.trim()) {
@@ -136,11 +222,9 @@ export default function ProfilePage({ user }: ProfilePageProps) {
 
       startTransition(async () => {
           try {
-
             const result = await createUploadPhoto(data);
-            
             if (result?.success) {
-               router.refresh(); 
+               window.location.reload(); 
             } else {
                setError(typeof result?.error === 'string' ? result.error : "Upload failed");
             }
@@ -157,7 +241,7 @@ export default function ProfilePage({ user }: ProfilePageProps) {
   };
 
   const handleSave = () => {
-    if (!validate()) return;
+    if (!user || !validate()) return;
     setError(null);
 
     startTransition(async () => {
@@ -169,7 +253,6 @@ export default function ProfilePage({ user }: ProfilePageProps) {
             telegramEnabled: formData.telegramEnabled
         };
 
-
         const result = await updateNotificationsMedia(
             formData.telegram || null,
             formData.email || null,
@@ -179,9 +262,17 @@ export default function ProfilePage({ user }: ProfilePageProps) {
 
         if (result.success) {
             setIsEditing(false);
-            router.refresh(); 
+            setUser(prev => prev ? ({
+                ...prev,
+                email: formData.email,
+                telegram: formData.telegram,
+                notifications: {
+                    emailEnabled: formData.emailEnabled,
+                    telegramEnabled: formData.telegramEnabled
+                }
+            }) : null);
+            router.refresh();
         } else {
-
             const errorMessage = typeof result.error === 'string' ? result.error : "Failed to update profile";
             setError(errorMessage);
         }
@@ -193,6 +284,7 @@ export default function ProfilePage({ user }: ProfilePageProps) {
   };
   
   const handleCancel = () => {
+    if (!user) return;
     setFormData({
       email: user.email,
       telegram: user.telegram,
@@ -204,9 +296,32 @@ export default function ProfilePage({ user }: ProfilePageProps) {
     setIsEditing(false);
   };
 
+  // Sicurezza: evita crash se i dati mancano
   const getInitials = () => {
-    return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+    if (!user) return "U";
+    const first = user.firstName || "";
+    const last = user.lastName || "";
+    if (!first && !last) return "U";
+    return `${first.charAt(0) || ""}${last.charAt(0) || ""}`.toUpperCase();
   };
+
+  if (status === "loading" || isLoadingData) {
+    return (
+        <div className="flex items-center justify-center min-h-[60vh]">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    );
+  }
+
+  if (!user) {
+      return (
+        <div className="flex items-center justify-center min-h-[60vh]">
+            <p className="text-muted-foreground">Profile not found.</p>
+        </div>
+      );
+  }
+
+  const canEdit = user.role === "CITIZEN";
 
   return (
     <div className="w-full flex items-start justify-center p-4 md:py-10">
@@ -260,27 +375,33 @@ export default function ProfilePage({ user }: ProfilePageProps) {
           <div className="space-y-1">
             <CardTitle className="text-2xl font-bold">My Profile</CardTitle>
             <CardDescription>
-              Manage your contact information and notification preferences.
+              {user.role === 'OFFICER' 
+                ? 'View your officer details and office assignment.' 
+                : user.role === 'ADMIN'
+                ? 'System administrator profile.'
+                : 'Manage your contact information and notification preferences.'}
             </CardDescription>
           </div>
           
-          <Button
-            variant={isEditing ? "ghost" : "outline"}
-            size="sm"
-            onClick={isEditing ? handleCancel : () => setIsEditing(true)}
-            disabled={isPending}
-            className="gap-2"
-          >
-            {isEditing ? (
-              <>
-                <X className="h-4 w-4" /> Cancel
-              </>
-            ) : (
-              <>
-                <Pencil className="h-4 w-4" /> Edit
-              </>
-            )}
-          </Button>
+          {canEdit && (
+            <Button
+              variant={isEditing ? "ghost" : "outline"}
+              size="sm"
+              onClick={isEditing ? handleCancel : () => setIsEditing(true)}
+              disabled={isPending}
+              className="gap-2"
+            >
+              {isEditing ? (
+                <>
+                  <X className="h-4 w-4" /> Cancel
+                </>
+              ) : (
+                <>
+                  <Pencil className="h-4 w-4" /> Edit
+                </>
+              )}
+            </Button>
+          )}
         </CardHeader>
         
         <Separator />
@@ -324,7 +445,7 @@ export default function ProfilePage({ user }: ProfilePageProps) {
                         First Name
                     </Label>
                     <span className="text-lg font-semibold text-foreground leading-none">
-                        {user.firstName}
+                        {user.firstName || "-"}
                     </span>
                  </div>
                  <div className="flex flex-col items-center sm:items-start gap-1">
@@ -332,7 +453,7 @@ export default function ProfilePage({ user }: ProfilePageProps) {
                         Last Name
                     </Label>
                     <span className="text-lg font-semibold text-foreground leading-none">
-                        {user.lastName}
+                        {user.lastName || "-"}
                     </span>
                  </div>
               </div>
@@ -340,8 +461,16 @@ export default function ProfilePage({ user }: ProfilePageProps) {
                  <span className="text-muted-foreground text-sm font-medium flex items-center gap-1.5 font-mono">
                     <UserIcon className="h-3.5 w-3.5" /> @{user.username}
                  </span>
-                 <span className="bg-secondary text-secondary-foreground px-2.5 py-0.5 rounded-full text-xs font-semibold border flex items-center gap-1 w-fit">
-                    <UserCheck className="h-3 w-3" /> Citizen
+                 <span className={cn(
+                    "px-2.5 py-0.5 rounded-full text-xs font-semibold border flex items-center gap-1 w-fit",
+                    user.role === 'OFFICER' 
+                        ? "bg-blue-50 text-blue-700 border-blue-200" 
+                        : user.role === 'ADMIN'
+                        ? "bg-purple-50 text-purple-700 border-purple-200"
+                        : "bg-secondary text-secondary-foreground"
+                 )}>
+                    {user.role === 'OFFICER' ? <ShieldAlert className="h-3 w-3" /> : user.role === 'ADMIN' ? <ShieldCheck className="h-3 w-3"/> : <UserCheck className="h-3 w-3" />} 
+                    {user.role === 'OFFICER' ? 'Officer' : user.role === 'ADMIN' ? 'Administrator' : 'Citizen'}
                  </span>
               </div>
             </div>
@@ -349,6 +478,7 @@ export default function ProfilePage({ user }: ProfilePageProps) {
 
           <div className="grid gap-6 md:grid-cols-2">
             
+            {user.role === 'CITIZEN' && (
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="email" className={cn("flex items-center gap-2", isEditing && "text-primary")}>
                  <Mail className="h-4 w-4" /> Email Address
@@ -375,44 +505,59 @@ export default function ProfilePage({ user }: ProfilePageProps) {
                 </div>
               )}
             </div>
+            )}
 
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="telegram" className={cn("flex items-center gap-2", isEditing && "text-primary")}>
-                 <Send className="h-4 w-4" /> Telegram Username
-              </Label>
-              {isEditing ? (
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">@</span>
-                  <Input 
-                    id="telegram" 
-                    className="pl-7"
-                    value={formData.telegram}
-                    onChange={(e) => {
-                        const val = e.target.value.replace('@', '');
-                        setFormData(prev => ({
-                            ...prev, 
-                            telegram: val,
-                            telegramEnabled: val === "" ? false : prev.telegramEnabled
-                        }));
-                    }}
-                    placeholder="username"
-                    disabled={isPending}
-                  />
+            {user.role === 'CITIZEN' && (
+                <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="telegram" className={cn("flex items-center gap-2", isEditing && "text-primary")}>
+                    <Send className="h-4 w-4" /> Telegram Username
+                </Label>
+                {isEditing ? (
+                    <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">@</span>
+                    <Input 
+                        id="telegram" 
+                        className="pl-7"
+                        value={formData.telegram}
+                        onChange={(e) => {
+                            const val = e.target.value.replace('@', '');
+                            setFormData(prev => ({
+                                ...prev, 
+                                telegram: val,
+                                telegramEnabled: val === "" ? false : prev.telegramEnabled
+                            }));
+                        }}
+                        placeholder="username"
+                        disabled={isPending}
+                    />
+                    </div>
+                ) : (
+                    <div className="flex items-center h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm">
+                    {user.telegram ? (
+                        <span className="text-blue-600 font-medium hover:underline cursor-pointer">@{user.telegram.replace('@', '')}</span>
+                    ) : (
+                        <span className="text-muted-foreground italic">No account linked</span>
+                    )}
+                    </div>
+                )}
                 </div>
-              ) : (
-                <div className="flex items-center h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm">
-                  {user.telegram ? (
-                    <span className="text-blue-600 font-medium hover:underline cursor-pointer">@{user.telegram.replace('@', '')}</span>
-                  ) : (
-                    <span className="text-muted-foreground italic">No account linked</span>
-                  )}
-                </div>
-              )}
-            </div>
+            )}
+
+            {user.role === 'OFFICER' && user.office && (
+                 <div className="space-y-2 md:col-span-2">
+                    <Label className="flex items-center gap-2 text-muted-foreground">
+                        <Building2 className="h-4 w-4" /> Department / Office
+                    </Label>
+                    <div className="flex items-center h-12 w-full rounded-md border border-input bg-muted/30 px-3 text-sm font-medium text-foreground shadow-sm">
+                        {user.office.replace(/_/g, ' ')}
+                    </div>
+                 </div>
+            )}
           </div>
 
+          {user.role === 'CITIZEN' && (
+          <>
           <Separator />
-
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-2">
                 <Bell className="h-5 w-5 text-muted-foreground" />
@@ -476,6 +621,8 @@ export default function ProfilePage({ user }: ProfilePageProps) {
                 </TooltipProvider>
             </div>
           </div>
+          </>
+          )}
 
         </CardContent>
 

@@ -106,7 +106,8 @@ import path, { parse } from "path";
         if (!photo) {
             throw new Error("Profile photo not found");
         }else{
-            const img = await fs.readFile(photo.url);const ext = path.extname(photo.url).toLowerCase(); // '.png'
+            const img = await fs.readFile(photo.url);
+            const ext = path.extname(photo.url).toLowerCase(); // '.png'
             const mime = ext === ".jpg" || ext === ".jpeg"
             ? "image/jpeg"
             : ext === ".webp"

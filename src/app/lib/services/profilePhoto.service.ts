@@ -8,11 +8,11 @@ import { savePhotoFile } from '../utils/fileUtils';
 class ProfilePhotoService {
     private static instance: ProfilePhotoService;
     private profilePhotoRepository: ProfilePhotoRepository;
-
+    private uploadsDir = path.join(process.cwd(), 'uploads', 'profile-photos');
     private constructor() {
         this.profilePhotoRepository = ProfilePhotoRepository.getInstance();
     }
-
+ 
     public static getInstance(): ProfilePhotoService {
         if (!ProfilePhotoService.instance) {
             ProfilePhotoService.instance = new ProfilePhotoService();
@@ -117,7 +117,7 @@ class ProfilePhotoService {
 
         const record = await this.profilePhotoRepository.create({
             id: validatedRequest.photoId,
-            url: isComplete ? `/uploads/${finalFilename}` : `/uploads/${tempFilename}`,
+            url: isComplete ? path.join(uploadsDir, finalFilename) : path.join(uploadsDir, tempFilename),
             size: BigInt(validatedRequest.uploadLength),
             offset: BigInt(savedFileSize),
             filename: finalFilename,

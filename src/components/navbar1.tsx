@@ -1,6 +1,6 @@
 "use client";
 
-import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useNavbarMenu } from "@/app/lib/hooks/useNavbarMenu";
 import Link from "next/link";
 
@@ -68,10 +68,6 @@ function Navbar1({
     alt: "Participium",
     title: "Participium",
   },
-  menu = [
-    { title: "Home", url: "/" },
-    { title: "Reports", url: "/reports" },
-  ],
   auth = {
     login: { title: "Login", url: "/login" },
     signup: { title: "Sign up", url: "/register" },
@@ -114,14 +110,10 @@ function Navbar1({
                   <a href={auth.signup.url}>{auth.signup.title}</a>
                 </Button>
               </>
-            ) : role === "CITIZEN" ? (
-              <>
-                <LogoutButton variant="outline" size="sm" />
-                <ProfileButton variant="outline" size="sm" showName={true} username={username}/>
-              </>
             ) : (
               <>
                 <LogoutButton variant="outline" size="sm" />
+                <ProfileButton variant="outline" size="sm" showName={true} username={username}/>
               </>
             )}
 
@@ -168,15 +160,10 @@ function Navbar1({
                           <a href={auth.signup.url}>{auth.signup.title}</a>
                         </Button>
                       </>
-                    ) : role === "CITIZEN" ? (
+                    ) : (
                       <>
                         <LogoutButton variant="outline" size="sm" className="w-full" />
                         <ProfileButton variant="outline" size="sm" className="w-full" showName={false} username={username}/>
-                      </>
-                    )
-                     : (
-                      <>
-                        <LogoutButton variant="outline" size="sm" className="w-full" />
                       </>
                     )}
                   </div>
