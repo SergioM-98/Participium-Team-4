@@ -68,7 +68,6 @@ import { NotificationsService } from "../services/notifications.service";
   export async function updateNotificationsMedia(telegram: string | null, email: string | null, removeTelegram:boolean, notifications: NotificationsData): Promise<RegistrationResponse> {
 
     const session = await getServerSession(authOptions);
-    console.log("SESSION:", session);
     if (!session || !session.user?.username || session.user?.role !== "CITIZEN") {
       return { success: false, error: "Unauthorized access" };
     }
@@ -102,7 +101,6 @@ export async function getMe(username: string): Promise<MeType | RegistrationResp
         return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
       } 
     }
-    console.log("SESSION USER:", session.user);
     return {
       firstName: session.user.firstName,
       lastName: session.user.lastName,

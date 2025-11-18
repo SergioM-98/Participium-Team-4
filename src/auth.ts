@@ -15,7 +15,6 @@ export const authOptions: AuthOptions = {
       async authorize(credentials) {
         if (!credentials) return null;
 
-        // Controllo se i dati sono presenti
         const username = credentials.username;
         const password = credentials.password;
         if (!username || !password) return null;
@@ -23,11 +22,9 @@ export const authOptions: AuthOptions = {
         const user = await prisma.user.findUnique({
           where: { username },
         });
-
         if (!user) return null;
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) return null;
-
         return {
           id: user.id.toString(),
           username: user.username,
