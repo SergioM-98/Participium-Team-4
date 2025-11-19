@@ -114,45 +114,82 @@
 }
 
 @layer base {
+  /* --- LEAFLET CUSTOMIZATIONS --- */
+
+  /* FIX: Rimuove l'anello blu/shadow da marker e cluster al focus/hover */
+  .leaflet-marker-icon:focus,
+  .leaflet-marker-icon:hover,
+  .leaflet-marker-icon:focus-visible,
+  .leaflet-interactive:focus,
+  .leaflet-interactive:focus-visible,
+  .leaflet-marker-cluster:focus {
+      outline: none !important;
+      box-shadow: none !important;
+  }
+  
+  /* Stili wrapper per l'icona del cluster */
   .leaflet-marker-cluster-custom {
-        background-color: transparent; 
-    }
-    .leaflet-marker-cluster-custom div {
-        
-        background-color: oklch(var(--primary)); 
-        color: oklch(var(--primary-foreground)); 
-        border: 2px solid oklch(var(--background)); 
-        transition: all 0.2s ease-in-out;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        border-radius: 9999px; 
-    }
-    .leaflet-marker-cluster-custom div.size-8 {
-        width: 32px;
-        height: 32px;
-        font-size: 13px;
-    }
-    .leaflet-marker-cluster-custom div.size-10 {
-        width: 40px;
-        height: 40px;
-        font-size: 14px;
-    }
-    .leaflet-marker-cluster-custom div.size-12 {
-        width: 48px;
-        height: 48px;
-        font-size: 15px;
-    }
+      background-color: transparent; 
+  }
+  
+  /* Stile interno del cerchio del Cluster */
+  .leaflet-marker-cluster-custom div {
+      /* Sfondo Bianco semi-trasparente (0.9 alpha) */
+      background-color: rgba(255, 255, 255, 0.9); 
+      
+      /* Colore testo e bordi presi dal tema (Primary color) */
+      color: oklch(var(--primary)); 
+      border: 2px solid oklch(var(--primary));
+      
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+      
+      /* Layout */
+      display: flex;
+      flex-direction: column; 
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border-radius: 9999px; /* rounded-full */
+      padding: 4px;
+  }
+  
+  /* Dimensioni dinamiche per i cluster */
+  .leaflet-marker-cluster-custom div.size-8 {
+      width: 32px;
+      height: 32px;
+  }
+  .leaflet-marker-cluster-custom div.size-10 {
+      width: 40px;
+      height: 40px;
+  }
+  .leaflet-marker-cluster-custom div.size-12 {
+      width: 48px;
+      height: 48px;
+  }
+  .leaflet-marker-cluster-custom div.size-14 {
+      width: 56px;
+      height: 56px;
+  }
+  .leaflet-marker-cluster-custom div.size-16 {
+      width: 64px;
+      height: 64px;
+  }
+
+  /* Spaziatura icona interna */
+  .leaflet-marker-cluster-custom div svg {
+      margin-bottom: 2px;
+  }
+
+  /* Reset generali di Shadcn/Tailwind */
   * {
     @apply border-border outline-ring/50;
-
   }
   body {
     @apply bg-background text-foreground;
   }
 }
+
 @layer components {
     /* Stili per l'icona del marker singolo (Mega phone) */
     .report-marker-icon {

@@ -8,22 +8,13 @@ import MarkerClusterGroup from 'react-leaflet-markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
-// 💡 Importa i tipi dal DTO centralizzato
 import { Report, Bounds } from "@/app/lib/dtos/map.dto"; 
-
-// --- Interfaccia Props ---
-interface ReportsClusterLayerProps {
-    reports: Report[];
-    onReportClick: (report: Report) => void;
-    onClusterClick: (bounds: Bounds) => void; 
-}
 
 // --- Icona Personalizzata (Singolo Marker) ---
 const REPORT_ICON = L.divIcon({
     className: 'report-marker-icon', 
     html: `
-        <div style="background-color: oklch(var(--primary)); color: oklch(var(--primary-foreground));" 
-             class="p-1 rounded-full shadow-md">
+        <div class="p-1 rounded-full shadow-md bg-white/90 border-2 border-primary text-primary">
              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-megaphone">
                 <path d="m3 11 18 2v4H3z"/><path d="M12 11v6"/><path d="M3 15h18"/><path d="m11 5 6 4"/>
              </svg>
@@ -36,20 +27,36 @@ const REPORT_ICON = L.divIcon({
 // --- Funzione Creazione Icona Cluster ---
 const createClusterCustomIcon = (cluster: any) => {
   const count = cluster.getChildCount();
-  let sizeClass = 'size-8'; 
+  // Utilizziamo classi di dimensione customizzate per il CSS
+  let sizeClass = 'size-12'; 
   
   if (count >= 10 && count < 100) {
-    sizeClass = 'size-10';
+    sizeClass = 'size-14';
   } else if (count >= 100) {
-    sizeClass = 'size-12';
+    sizeClass = 'size-16';
   }
 
+  // L'HTML è rimasto pulito, lo stile è gestito via CSS globale
   return divIcon({
-    html: `<div class="flex items-center justify-center font-bold shadow-lg rounded-full ${sizeClass}">${count}</div>`,
+    html: `
+        <div class="flex flex-col items-center justify-center font-bold shadow-lg rounded-full ${sizeClass}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            <span class="text-xs">${count}</span>
+        </div>
+    `,
     className: `leaflet-marker-cluster leaflet-marker-cluster-custom`,
     iconSize: new Point(48, 48), 
   });
 };
+
+// --- Interfaccia Props ---
+interface ReportsClusterLayerProps {
+    reports: Report[];
+    onReportClick: (report: Report) => void;
+    onClusterClick: (bounds: Bounds) => void; 
+}
 
 
 export default function ReportsClusterLayer({ 
@@ -74,7 +81,6 @@ export default function ReportsClusterLayer({
             west: clusterBounds.getWest(),
         };
 
-        // Chiama la callback che invoca la Server Action
         onClusterClick(bounds);
         
     }, [onClusterClick]);

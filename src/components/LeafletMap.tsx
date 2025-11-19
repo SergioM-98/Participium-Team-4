@@ -1,4 +1,4 @@
-// src/components/LeafletMap.tsx (MODIFICATO)
+// src/components/LeafletMap.tsx
 "use client";
 
 import { LatLngExpression } from "leaflet";
@@ -12,15 +12,12 @@ import MapBase from "./map/MapBase";
 import MapPolygons from "./map/MapPolygons";
 import MapMarkers from "./map/MapMarkers";
 import { extractVisualizationPolygons } from "./map/utils";
-// 💡 Import del nuovo layer e dei tipi DTO
 import ReportsClusterLayer from "./map/ReportsClusterLayer";
 import { Report, Bounds } from "@/app/lib/dtos/map.dto"; 
-
 
 import torinoGeoJSON from "@/data/torino-boundary.json";
 
 const COLOR = "#17138f";
-// ... (omitted constants like faLocationDotSVG, customMarkerIcon, worldCoordinates, cityPolygons extraction)
 
 const faLocationDotSVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="36" height="36">
@@ -45,16 +42,19 @@ const worldCoordinates: [number, number][] = [
 
 const cityPolygons = extractVisualizationPolygons(torinoGeoJSON);
 
-// Definizione del tipo di proprietà per il layer dei reports
 interface ReportsLayerProps { 
     reports: Report[]; 
     onReportClick: (report: Report) => void;
     onClusterClick: (bounds: Bounds) => void;
 }
 
-
-// main Leaflet map component
-export default function LeafletMap({ onLocationSelect, reportsLayer }: { onLocationSelect?: (location: { lat: number; lng: number } | null) => void, reportsLayer?: ReportsLayerProps }) {
+export default function LeafletMap({ 
+    onLocationSelect, 
+    reportsLayer 
+}: { 
+    onLocationSelect?: (location: { lat: number; lng: number } | null) => void,
+    reportsLayer?: ReportsLayerProps 
+}) {
   const [markers, setMarkers] = useState<LatLngExpression[]>([]);
 
   const addOrResetMarker = (pos: LatLngExpression) => {
@@ -66,9 +66,7 @@ export default function LeafletMap({ onLocationSelect, reportsLayer }: { onLocat
   };
 
   const selected = markers[0];
-
   const inverseMaskHoles = cityPolygons.length > 0 ? [worldCoordinates, ...cityPolygons] : [];
-
 
   return (
     <div className="relative rounded-xl overflow-hidden shadow-lg border border-gray-500 w-full h-full">
@@ -78,24 +76,24 @@ export default function LeafletMap({ onLocationSelect, reportsLayer }: { onLocat
             positions={inverseMaskHoles as any}
             pathOptions={{
               color: 'transparent',
-              fillColor:
-                COLOR,
+              fillColor: COLOR,
               fillOpacity: 0.1
             }}
           />
         )}
-        <MapPolygons cityPolygons={cityPolygons} borderColor={
-          COLOR} />
+        <MapPolygons cityPolygons={cityPolygons} borderColor={COLOR} />
         
-        {/* 💡 Rendering del Reports Cluster Layer se le props sono fornite */}
-        {reportsLayer ? (
+        {/* 1. Layer dei Report Esistenti (Cluster) */}
+        {reportsLayer && (
             <ReportsClusterLayer 
                 reports={reportsLayer.reports}
                 onReportClick={reportsLayer.onReportClick}
                 onClusterClick={reportsLayer.onClusterClick}
             />
-        ) : (
-            // Layer di selezione posizione (vecchio) solo se reportsLayer non è presente
+        )}
+
+        {/* 2. Layer di Selezione (Nuovo Marker) - Ora è indipendente! */}
+        {onLocationSelect && (
             <MapMarkers
                 markers={markers}
                 onMapClick={addOrResetMarker}
@@ -104,7 +102,7 @@ export default function LeafletMap({ onLocationSelect, reportsLayer }: { onLocat
             />
         )}
       </MapBase>
-      {/* display the selected location on the map */}
+      
       <div className="absolute top-3 right-3 z-[1000]">
         <LocationDisplay selected={selected} />
       </div>

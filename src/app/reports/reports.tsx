@@ -7,8 +7,8 @@ import { useState, useCallback, useMemo } from "react";
 import FileUpload01 from "../../components/file-upload-01";
 import ClusterReportsSheet from "../../components/map/ClusterReportsSheet"; 
 import ReportDetailSheet from "../../components/map/ReportDetailSheet"; // 💡 Componente Dettaglio Mock
-import { getReportsInCluster } from "@/app/actions/reports"; 
-import { Report, Bounds } from "@/app/lib/dtos/map.dto"; 
+import { getReportsInCluster } from "../../app/lib/actions/report"; 
+import { Report, Bounds } from "@/dtos/map.dto"; 
 
 const LeafletMap = dynamic(() => import("../../components/LeafletMap"), {
   ssr: false,
