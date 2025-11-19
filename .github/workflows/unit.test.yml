@@ -3,8 +3,6 @@ name: Run Unit Tests on PR
 on:
   pull_request:
     branches: [ QA ]
-  push:
-    branches: [ QA ]
 
 jobs:
   unit-tests:
