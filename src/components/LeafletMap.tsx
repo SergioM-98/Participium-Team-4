@@ -1,3 +1,4 @@
+// src/components/LeafletMap.tsx (MODIFICATO)
 "use client";
 
 import { LatLngExpression } from "leaflet";
@@ -11,10 +12,15 @@ import MapBase from "./map/MapBase";
 import MapPolygons from "./map/MapPolygons";
 import MapMarkers from "./map/MapMarkers";
 import { extractVisualizationPolygons } from "./map/utils";
+// 💡 Import del nuovo layer e dei tipi DTO
+import ReportsClusterLayer from "./map/ReportsClusterLayer";
+import { Report, Bounds } from "@/app/lib/dtos/map.dto"; 
+
 
 import torinoGeoJSON from "@/data/torino-boundary.json";
 
 const COLOR = "#17138f";
+// ... (omitted constants like faLocationDotSVG, customMarkerIcon, worldCoordinates, cityPolygons extraction)
 
 const faLocationDotSVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="36" height="36">
@@ -29,7 +35,6 @@ const customMarkerIcon = L.divIcon({
   popupAnchor: [0, -36],
 });
 
-// cover the entire map with a rectangle, used for inverse masking
 const worldCoordinates: [number, number][] = [
   [90, -180],
   [90, 180],
@@ -38,11 +43,18 @@ const worldCoordinates: [number, number][] = [
   [90, -180]
 ];
 
-// extract the city polygons from the GeoJSON data
 const cityPolygons = extractVisualizationPolygons(torinoGeoJSON);
 
+// Definizione del tipo di proprietà per il layer dei reports
+interface ReportsLayerProps { 
+    reports: Report[]; 
+    onReportClick: (report: Report) => void;
+    onClusterClick: (bounds: Bounds) => void;
+}
+
+
 // main Leaflet map component
-export default function LeafletMap({ onLocationSelect }: { onLocationSelect?: (location: { lat: number; lng: number } | null) => void }) {
+export default function LeafletMap({ onLocationSelect, reportsLayer }: { onLocationSelect?: (location: { lat: number; lng: number } | null) => void, reportsLayer?: ReportsLayerProps }) {
   const [markers, setMarkers] = useState<LatLngExpression[]>([]);
 
   const addOrResetMarker = (pos: LatLngExpression) => {
@@ -74,12 +86,23 @@ export default function LeafletMap({ onLocationSelect }: { onLocationSelect?: (l
         )}
         <MapPolygons cityPolygons={cityPolygons} borderColor={
           COLOR} />
-        <MapMarkers
-          markers={markers}
-          onMapClick={addOrResetMarker}
-          cityPolygons={cityPolygons}
-          markerIcon={customMarkerIcon}
-        />
+        
+        {/* 💡 Rendering del Reports Cluster Layer se le props sono fornite */}
+        {reportsLayer ? (
+            <ReportsClusterLayer 
+                reports={reportsLayer.reports}
+                onReportClick={reportsLayer.onReportClick}
+                onClusterClick={reportsLayer.onClusterClick}
+            />
+        ) : (
+            // Layer di selezione posizione (vecchio) solo se reportsLayer non è presente
+            <MapMarkers
+                markers={markers}
+                onMapClick={addOrResetMarker}
+                cityPolygons={cityPolygons}
+                markerIcon={customMarkerIcon}
+            />
+        )}
       </MapBase>
       {/* display the selected location on the map */}
       <div className="absolute top-3 right-3 z-[1000]">
