@@ -10,8 +10,7 @@ export default async function RegisterPage() {
     if(session.user.role == "CITIZEN"){
       redirect("/reports")
     }else if(session.user.role == "OFFICER"){
-      //here we miss the page to see and manage the reviews (story 6)
-      redirect("/")
+      redirect("/officer/reports")
     }else{
       redirect("/admin/officers/registration")
     }

@@ -15,7 +15,9 @@ export default async function LoginPage() {
       redirect("/reports");
     } else if(session.user?.role === "ADMIN"){
       redirect("/admin/officers/registration");
-    }else{
+    } else if(session.user?.role === "OFFICER"){
+      redirect("/officer/reports");
+    } else{
       redirect("/");
     }
   }

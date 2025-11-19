@@ -92,10 +92,14 @@ function Navbar1({
     return true;
   });
 
-  // Aggiungi "Create Officer" per gli admin (come unico link)
+  // Aggiungi menu specifici per ruolo
   if (session?.user?.role === "ADMIN") {
     filteredMenu = [
       { title: "Create Officer", url: "/admin/officers/registration" }
+    ];
+  } else if (session?.user?.role === "OFFICER") {
+    filteredMenu = [
+      { title: "My Reports", url: "/officer/reports" }
     ];
   }
 
