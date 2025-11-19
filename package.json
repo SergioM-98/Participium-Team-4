@@ -18,6 +18,9 @@
     "test:setup": "docker-compose up -d test_db && sleep 5 && cross-env DATABASE_URL=postgresql://postgres:postgres@localhost:5433/participium_test_db?schema=public npx prisma migrate deploy",
     "test:reset": "docker-compose down test_db && docker volume rm participium-team-4_pgdata_test || echo Volume already removed && npm run test:setup",
     "test:cleanup": "docker-compose down test_db",
+    "test:ci:unit": "jest --testPathPatterns=\"test/unit\" --coverage --ci --passWithNoTests",
+    "test:ci:integration": "jest --testPathPatterns=\"test/integrated\" --coverage --ci --runInBand --passWithNoTests",
+    "test:ci:all": "jest --coverage --runInBand --ci --passWithNoTests",
     "participium": "node setup-db.js"
   },
   "dependencies": {

@@ -29,7 +29,7 @@ jobs:
       run: npm i
 
     - name: Run unit tests with coverage
-      run: npm run test:unit
+      run: npm run test:ci:unit
       env:
         NODE_ENV: test
         CI: true

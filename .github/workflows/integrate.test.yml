@@ -56,12 +56,11 @@ jobs:
     - name: Setup test database
       run: |
         npx prisma migrate deploy
-        npx prisma db seed
       env:
         DATABASE_URL: postgresql://postgres:postgres@postgres:5432/integration_test_db
 
     - name: Run integration tests with coverage
-      run: npm run test:integration
+      run: npm run test:ci:integration
       env:
         DATABASE_URL: postgresql://postgres:postgres@postgres:5432/integration_test_db
         NODE_ENV: test

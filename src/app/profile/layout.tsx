@@ -9,8 +9,8 @@ export default async function ProfileLayout({
 }) {
   const session = await getServerSession(authOptions);
 
-  if (!session || (session.user?.role !== "CITIZEN")) {
-    //redirect("/forbidden");
+  if (!session ) {
+    redirect("/forbidden");
   }
 
   return <>{children}</>;

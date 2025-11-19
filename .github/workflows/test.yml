@@ -52,7 +52,7 @@ jobs:
         DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
 
     - name: Run all tests with coverage
-      run: npm run test:ci
+      run: npm run test:ci:all
       env:
         DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
         NODE_ENV: test
