@@ -4,37 +4,41 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Search, Filter, FileText, Loader2 } from "lucide-react";
+import { MapPin, Search, Filter, FileText, Loader2, AlertCircle } from "lucide-react";
+import { retrieveReportsByOfficerId } from "@/actions/report";
+import type { ReportByOfficer } from "@/dtos/report.dto";
 
-const mockReports = [
-  {
-    id: "1",
-    title: "Broken Street Light on Main Street",
-    description: "The street light near the intersection is not working properly. It's been flickering for the past week and now it's completely off.",
-    photos: ["/uploads/light1.jpg", "/uploads/light2.jpg"],
-    category: "PUBLIC_LIGHTING",
-    longitude: 7.6869,
-    latitude: 45.0703,
-  },
-  {
-    id: "2",
-    title: "Pothole on Via Roma",
-    description: "Large pothole causing damage to vehicles. It's about 30cm deep and 50cm wide, located near house number 45.",
-    photos: ["/uploads/pothole1.jpg"],
-    category: "ROADS_AND_URBAN_FURNISHINGS",
-    longitude: 7.6897,
-    latitude: 45.0732,
-  },
-  {
-    id: "3",
-    title: "Water Leak in Park",
-    description: "Continuous water leak from underground pipe in the central park. Water is flooding the walking path.",
-    photos: ["/uploads/water1.jpg", "/uploads/water2.jpg", "/uploads/water3.jpg"],
-    category: "WATER_SUPPLY",
-    longitude: 7.6825,
-    latitude: 45.0689,
-  },
-];
+type Report = ReportByOfficer;
+
+// const mockReports = [
+//   {
+//     id: "1",
+//     title: "Broken Street Light on Main Street",
+//     description: "The street light near the intersection is not working properly. It's been flickering for the past week and now it's completely off.",
+//     photos: ["/uploads/light1.jpg", "/uploads/light2.jpg"],
+//     category: "PUBLIC_LIGHTING",
+//     longitude: 7.6869,
+//     latitude: 45.0703,
+//   },
+//   {
+//     id: "2",
+//     title: "Pothole on Via Roma",
+//     description: "Large pothole causing damage to vehicles. It's about 30cm deep and 50cm wide, located near house number 45.",
+//     photos: ["/uploads/pothole1.jpg"],
+//     category: "ROADS_AND_URBAN_FURNISHINGS",
+//     longitude: 7.6897,
+//     latitude: 45.0732,
+//   },
+//   {
+//     id: "3",
+//     title: "Water Leak in Park",
+//     description: "Continuous water leak from underground pipe in the central park. Water is flooding the walking path.",
+//     photos: ["/uploads/water1.jpg", "/uploads/water2.jpg", "/uploads/water3.jpg"],
+//     category: "WATER_SUPPLY",
+//     longitude: 7.6825,
+//     latitude: 45.0689,
+//   },
+// ];
 
 const categoryLabels: Record<string, string> = {
   WATER_SUPPLY: "Water Supply",
@@ -64,16 +68,35 @@ export default function ReportsList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedReport, setSelectedReport] = useState<typeof mockReports[0] | null>(null);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [reports, setReports] = useState<Report[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    async function fetchReports() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await retrieveReportsByOfficerId();
+        
+        if (!response.success) {
+          setError(response.error || "Failed to load reports");
+          return;
+        }
+        
+        // @ts-ignore - TypeScript narrowing issue with discriminated union
+        setReports(response.data);
+      } catch (err) {
+        setError("An unexpected error occurred");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchReports();
   }, []);
 
-  const filteredReports = mockReports.filter((report) => {
+  const filteredReports = reports.filter((report) => {
     const matchesSearch =
       report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -90,12 +113,12 @@ export default function ReportsList() {
         </p>
       </div>
 
-      {!isLoading && (
+      {!isLoading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <Card>
             <CardHeader className="pb-3">
               <CardDescription className="text-xs">Total Reports</CardDescription>
-              <CardTitle className="text-3xl">{mockReports.length}</CardTitle>
+              <CardTitle className="text-3xl">{reports.length}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
@@ -108,7 +131,7 @@ export default function ReportsList() {
             <CardHeader className="pb-3">
               <CardDescription className="text-xs">Categories</CardDescription>
               <CardTitle className="text-3xl">
-                {new Set(mockReports.map((r) => r.category)).size}
+                {new Set(reports.map((r) => r.category)).size}
               </CardTitle>
             </CardHeader>
           </Card>
@@ -169,6 +192,20 @@ export default function ReportsList() {
             <p className="text-muted-foreground">Loading your reports...</p>
           </div>
         </div>
+      ) : error ? (
+        <Card className="p-12">
+          <div className="flex flex-col items-center justify-center text-center">
+            <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
+            <h3 className="text-xl font-semibold mb-2">Error Loading Reports</h3>
+            <p className="text-muted-foreground max-w-md">{error}</p>
+            <Button 
+              className="mt-4" 
+              onClick={() => window.location.reload()}
+            >
+              Try Again
+            </Button>
+          </div>
+        </Card>
       ) : filteredReports.length === 0 ? (
         <Card className="p-12">
           <div className="flex flex-col items-center justify-center text-center">

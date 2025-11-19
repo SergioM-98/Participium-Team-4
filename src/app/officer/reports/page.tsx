@@ -4,11 +4,11 @@ import { redirect } from "next/navigation";
 import ReportsList from "./reports-list";
 
 export default async function OfficerReportsPage() {
-  // Temporarily disabled for frontend testing
-  // const session = await getServerSession(authOptions);
-  // if (!session || session.user.role !== "OFFICER") {
-  //   redirect("/login");
-  // }
+  const session = await getServerSession(authOptions);
+
+  if (!session || session.user.role !== "OFFICER") {
+    redirect("/login");
+  }
 
   return <ReportsList />;
 }
