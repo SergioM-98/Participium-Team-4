@@ -1,11 +1,9 @@
 import { prisma } from "../../setup";
 import { getServerSession } from "next-auth/next";
 import { ReportRegistrationResponse } from "@/app/lib/dtos/report.dto";
-import { createReport } from "@/app/lib/actions/report";
-import { createUploadPhoto } from "@/app/lib/actions/uploader";
+import {  } from "@/app/lib/controllers/report.controller";
+import { createUploadPhoto } from "@/app/lib/controllers/uploader.controller";
 import { ControllerSuccessResponse } from "@/app/lib/dtos/tus.dto";
-import { rm } from "fs/promises";
-import path from "path";
 
 // Mock NextAuth to control sessions
 jest.mock("next-auth/next", () => ({
@@ -83,8 +81,10 @@ describe("Story 5 - Integration Test: uploader", () => {
 
       // Verify response
       expect(response.success).toBe(true);
-      expect(response.location).toBeDefined();
-      expect(response.uploadOffset).toBe(100);
+      if(response.success) {
+        expect(response.location).toBeDefined();
+        expect(response.uploadOffset).toBe(100);
+      }
     });
   });
 

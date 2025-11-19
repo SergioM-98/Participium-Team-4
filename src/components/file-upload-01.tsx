@@ -22,8 +22,8 @@ import {
 import { cn } from "@/lib/utils";
 import { HelpCircle, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
-import { createUploadPhoto, deleteUpload } from "@/app/lib/actions/uploader";
-import { createReport } from "@/actions/report";
+import { createUploadPhoto, deleteUpload} from "@/app/lib/controllers/uploader.controller";
+import { createReport } from "@/app/lib/controllers/report.controller";
 import { useSession } from "next-auth/react";
 
 interface UploadedFile {
@@ -49,6 +49,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -251,6 +252,11 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                 </p>
               </div>
             </div>
+            {error && (
+              <div className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative text-sm" role="alert">
+                <span className="block sm:inline">{error}</span>
+              </div>
+            )}
           </div>
           <div className="px-6 pb-4 mt-2">
             
@@ -513,99 +519,83 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
               >
                 Cancel
               </Button>
-              <Button 
-                className="h-9 px-4 text-sm font-medium"
-                disabled={isUploading || isSubmitting}
-                onClick={async () => {
-                  // Validate form
-                  const errors: string[] = [];
-                  
-                  if (!title.trim()) {
-                    errors.push('Title is required');
-                  } else if (title.trim().length < 5) {
-                    errors.push('Title must be at least 5 characters');
-                  } else if (title.trim().length > 100) {
-                    errors.push('Title must be at most 100 characters');
-                  }
-                  
-                  if (!description.trim()) {
-                    errors.push('Description is required');
-                  } else if (description.trim().length < 10) {
-                    errors.push('Description must be at least 10 characters');
-                  } else if (description.trim().length > 1000) {
-                    errors.push('Description must be at most 1000 characters');
-                  }
-                  
-                  if (!category) {
-                    errors.push('Category is required');
-                  }
-                  if (!locationProp) {
-                    errors.push('Location is required - please select a location on the map');
-                  }
-                  
-                  const completedUploads = uploadedFiles.filter(f => f.status === 'completed');
-                  if (completedUploads.length === 0) {
-                    errors.push('At least 1 photo is required');
-                  }
-                  if (completedUploads.length > 3) {
-                    errors.push('Maximum 3 photos allowed');
-                  }
-                  
-                  if (uploadedFiles.some(f => f.status === 'error')) {
-                    errors.push('Please remove failed uploads before continuing');
-                  }
-                  
-                  if (errors.length > 0) {
-                    setValidationErrors(errors);
-                    return;
-                  }
-                  
-                  setValidationErrors([]);
-                  setIsSubmitting(true);
-                  
-                  try {
-                    // Prepare photo IDs from uploaded files
-                    const photoIds = completedUploads.map(f => f.uploadId).filter(Boolean) as string[];
-                    
-                    // TODO: Get userId from authentication context/session
-                    const userId =  session?.user?.id || ''; // Replace with actual user ID
-                    
-                    // Submit report
-                    const result = await createReport(
-                      title,
-                      description,
-                      photoIds,
-                      category,
-                      locationProp!.lng,
-                      locationProp!.lat,
-                      userId,
-                      isAnonymous
-                    );
-                    
-                    console.log('Report created successfully:', result);
-                    
-                    // Reset form on success
-                    setUploadedFiles([]);
-                    setFileProgresses({});
-                    setTitle("");
-                    setDescription("");
-                    setCategory("");
-                    setIsAnonymous(false);
-                    
-                    // Show success message
-                    setShowSuccess(true);
-                    setTimeout(() => setShowSuccess(false), 5000);
-                    
-                  } catch (error) {
-                    console.error('Error creating report:', error);
-                    setValidationErrors(['Failed to create report. Please try again.']);
-                  } finally {
-                    setIsSubmitting(false);
-                  }
-                }}
-              >
-                {isSubmitting ? 'Creating report...' : isUploading ? 'Uploading...' : 'Continue'}
-              </Button>
+                <Button 
+                  className="h-9 px-4 text-sm font-medium"
+                  disabled={isUploading || isSubmitting}
+                  onClick={async () => {
+                    setError(null);
+                    // Validate form
+                    const errors: string[] = [];
+                    if (!title.trim()) {
+                      errors.push('Title is required');
+                    } else if (title.trim().length < 5) {
+                      errors.push('Title must be at least 5 characters');
+                    } else if (title.trim().length > 100) {
+                      errors.push('Title must be at most 100 characters');
+                    }
+                    if (!description.trim()) {
+                      errors.push('Description is required');
+                    } else if (description.trim().length < 10) {
+                      errors.push('Description must be at least 10 characters');
+                    } else if (description.trim().length > 1000) {
+                      errors.push('Description must be at most 1000 characters');
+                    }
+                    if (!category) {
+                      errors.push('Category is required');
+                    }
+                    if (!locationProp) {
+                      errors.push('Location is required - please select a location on the map');
+                    }
+                    const completedUploads = uploadedFiles.filter(f => f.status === 'completed');
+                    if (completedUploads.length === 0) {
+                      errors.push('At least 1 photo is required');
+                    }
+                    if (completedUploads.length > 3) {
+                      errors.push('Maximum 3 photos allowed');
+                    }
+                    if (uploadedFiles.some(f => f.status === 'error')) {
+                      errors.push('Please remove failed uploads before continuing');
+                    }
+                    if (errors.length > 0) {
+                      setValidationErrors(errors);
+                      return;
+                    }
+                    setValidationErrors([]);
+                    setIsSubmitting(true);
+                    try {
+                      // Prepare photo IDs from uploaded files
+                      const photoIds = completedUploads.map(f => f.uploadId).filter(Boolean) as string[];
+                      // Submit report
+                      const result = await createReport(
+                        title,
+                        description,
+                        photoIds,
+                        category,
+                        locationProp!.lng,
+                        locationProp!.lat,
+                        isAnonymous
+                      );
+                      console.log('Report created successfully:', result);
+                      // Reset form on success
+                      setUploadedFiles([]);
+                      setFileProgresses({});
+                      setTitle("");
+                      setDescription("");
+                      setCategory("");
+                      setIsAnonymous(false);
+                      // Show success message
+                      setShowSuccess(true);
+                      setTimeout(() => setShowSuccess(false), 5000);
+                    } catch (err) {
+                      console.error('Error creating report:', err);
+                      setError('Failed to create report. Please try again.');
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                >
+                  {isSubmitting ? 'Creating report...' : isUploading ? 'Uploading...' : 'Continue'}
+                </Button>
             </div>
           </div>
         </CardContent>

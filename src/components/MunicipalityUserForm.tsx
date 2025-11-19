@@ -1,5 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export type MunicipalityUserFormData = {
   username: string;
@@ -7,6 +12,7 @@ export type MunicipalityUserFormData = {
   lastName: string;
   office: string;
   password: string;
+  confirmPassword: string;
 };
 
 export default function MunicipalityUserForm({
@@ -26,8 +32,11 @@ export default function MunicipalityUserForm({
     lastName: "",
     office: "",
     password: "",
+    confirmPassword: "",
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof MunicipalityUserFormData, string>>>({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof MunicipalityUserFormData, string>>
+  >({});
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -56,9 +65,23 @@ export default function MunicipalityUserForm({
     const next: typeof errors = {};
     if (!data.firstName.trim()) next.firstName = "First name is required.";
     if (!data.lastName.trim()) next.lastName = "Last name is required.";
-    if (!usernameRegex.test(data.username)) next.username = "Username must be at least 3 characters and contain only letters, numbers, . _ or -";
-    if (!data.password || data.password.length < 8) next.password = "Password must be at least 8 characters.";
-    if (!data.office || data.office.trim() === "") next.office = "Office is required.";
+    if (!data.username.trim()) {
+      next.username = "Username is required.";
+    } else if (!usernameRegex.test(data.username)) {
+      next.username = "Username must be at least 3 characters and contain only letters, numbers, dots, underscores, or hyphens.";
+    }
+    if (!data.password) {
+      next.password = "Password is required.";
+    } else if (data.password.length < 8) {
+      next.password = "Password must be at least 8 characters long.";
+    }
+    if (!data.confirmPassword) {
+      next.confirmPassword = "Confirm password is required.";
+    } else if (data.password !== data.confirmPassword) {
+      next.confirmPassword = "Passwords do not match. Please verify both passwords are identical.";
+    }
+    if (!data.office || data.office.trim() === "")
+      next.office = "Office selection is required.";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -70,6 +93,7 @@ export default function MunicipalityUserForm({
       lastName: "",
       office: "",
       password: "",
+      confirmPassword: "",
     });
     setErrors({});
   };
@@ -80,11 +104,12 @@ export default function MunicipalityUserForm({
     setSubmitting(true);
     try {
       const result = await onSubmit({
-        ...data,
         username: data.username.trim().toLowerCase(),
         firstName: data.firstName.trim(),
         lastName: data.lastName.trim(),
         office: data.office?.trim() ?? "",
+        password: data.password,
+        confirmPassword: data.confirmPassword,
       });
       if (!initialData && result !== false) {
         resetForm();
@@ -95,119 +120,144 @@ export default function MunicipalityUserForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="firstName" className="text-sm font-medium text-gray-900">
-          First name
-        </label>
-        <input
-          id="firstName"
-          value={data.firstName}
-          onChange={handleChange("firstName")}
-          className="w-full border p-2 rounded"
-          placeholder="e.g. Maria"
-          aria-invalid={!!errors.firstName}
-          aria-describedby="firstName-error"
-        />
-        {errors.firstName && <p id="firstName-error" className="text-xs text-red-600">{errors.firstName}</p>}
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center">
+      <Card className="w-full max-w-md bg-background rounded-lg p-0 shadow-md mx-4">
+          <CardContent className="p-0">
+            <form onSubmit={handleSubmit}>
+              <div className="p-6 pb-4">
+                <h2 className="text-lg font-medium text-foreground">Create a new municipality user</h2>
+                <p className="text-sm text-muted-foreground mt-1">Fill the form to create a new municipality user.</p>
+              </div>
 
-      <div>
-        <label htmlFor="lastName" className="text-sm font-medium text-gray-900">
-          Last name
-        </label>
-        <input
-          id="lastName"
-          value={data.lastName}
-          onChange={handleChange("lastName")}
-          className="w-full border p-2 rounded"
-          placeholder="e.g. Rossi"
-          aria-invalid={!!errors.lastName}
-          aria-describedby="lastName-error"
-        />
-        {errors.lastName && <p id="lastName-error" className="text-xs text-red-600">{errors.lastName}</p>}
-      </div>
+              <div className="px-6 pb-4 mt-2">
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First name</Label>
+                    <Input
+                      id="firstName"
+                      value={data.firstName}
+                      onChange={handleChange("firstName")}
+                      placeholder="e.g. Maria"
+                      aria-invalid={!!errors.firstName}
+                      aria-describedby="firstName-error"
+                    />
+                    {errors.firstName && <p id="firstName-error" className="text-xs text-red-500 mt-1">{errors.firstName}</p>}
+                  </div>
 
-      <div>
-        <label htmlFor="username" className="text-sm font-medium text-gray-900">
-          Username
-        </label>
-        <input
-          id="username"
-          value={data.username}
-          onChange={handleChange("username")}
-          className="w-full border p-2 rounded"
-          placeholder="e.g. m.rossi"
-          aria-invalid={!!errors.username}
-          aria-describedby="username-error"
-        />
-        {errors.username && <p id="username-error" className="text-xs text-red-600">{errors.username}</p>}
-      </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last name</Label>
+                    <Input
+                      id="lastName"
+                      value={data.lastName}
+                      onChange={handleChange("lastName")}
+                      placeholder="e.g. Rossi"
+                      aria-invalid={!!errors.lastName}
+                      aria-describedby="lastName-error"
+                    />
+                    {errors.lastName && <p id="lastName-error" className="text-xs text-red-500 mt-1">{errors.lastName}</p>}
+                  </div>
 
-      <div>
-        <label htmlFor="password" className="text-sm font-medium text-gray-900">
-          Password
-        </label>
-        <input
-          id="password"
-          type="password"
-          value={data.password}
-          onChange={handleChange("password")}
-          className="w-full border p-2 rounded"
-          placeholder="********"
-          aria-invalid={!!errors.password}
-          aria-describedby="password-error"
-        />
-        {errors.password && <p id="password-error" className="text-xs text-red-600">{errors.password}</p>}
-      </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      value={data.username}
+                      onChange={handleChange("username")}
+                      placeholder="e.g. m.rossi"
+                      aria-invalid={!!errors.username}
+                      aria-describedby="username-error"
+                    />
+                    {errors.username && <p id="username-error" className="text-xs text-red-500 mt-1">{errors.username}</p>}
+                  </div>
 
-      <div>
-        <label htmlFor="office" className="text-sm font-medium text-gray-900">
-          Office
-        </label>
-        <select
-          id="office"
-          value={data.office}
-          onChange={(e) => {
-            setData((prev) => ({ ...prev, office: e.target.value }));
-            setErrors((prev) => ({ ...prev, office: undefined }));
-          }}
-          className="w-full border p-2 rounded"
-          aria-invalid={!!errors.office}
-          aria-describedby="office-error"
-        >
-          <option value="">Select Office</option>
-          <option value="DEPARTMENT_OF_COMMERCE">Department of Commerce</option>
-          <option value="DEPARTMENT_OF_EDUCATIONAL_SERVICES">Department of Educational Services</option>
-          <option value="DEPARTMENT_OF_DECENTRALIZATION_AND_CIVIC_SERVICES">Department of Decentralization and Civic Services</option>
-          <option value="DEPARTMENT_OF_SOCIAL_HEALTH_AND_HOUSING_SERVICES">Department of Social Health and Housing Services</option>
-          <option value="DEPARTMENT_OF_INTERNAL_SERVICES">Department of Internal Services</option>
-          <option value="DEPARTMENT_OF_CULTURE_SPORT_MAJOR_EVENTS_AND_TOURISM_PROMOTION">Department of Culture Sport Major Events and Tourism Promotion</option>
-          <option value="DEPARTMENT_OF_FINANCIAL_RESOURCES">Department of Financial Resources</option>
-          <option value="DEPARTMENT_OF_GENERAL_SERVICES_PROCUREMENT_AND_SUPPLIES">Department of General Services Procurement and Supplies</option>
-          <option value="DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES">Department of Maintenance and Technical Services</option>
-          <option value="DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING">Department of Urban Planning and Private Building</option>
-          <option value="DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY">Department of Environment Major Projects Infras and Mobility</option>
-          <option value="DEPARTMENT_OF_LOCAL_POLICE">Department of Local Police</option>
-          <option value="OTHER">Other</option>
-        </select>
-        {errors.office && <p id="office-error" className="text-xs text-red-600">{errors.office}</p>}
-      </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={data.password}
+                      onChange={handleChange("password")}
+                      placeholder="••••••••"
+                      aria-invalid={!!errors.password}
+                      aria-describedby="password-error"
+                    />
+                    {errors.password && <p id="password-error" className="text-xs text-red-500 mt-1">{errors.password}</p>}
+                  </div>
 
-      <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={submitting}
-          className="flex-1 h-10 rounded-md bg-black text-white hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {submitting ? "Saving..." : submitLabel}
-        </button>
-        {onCancel && (
-          <button type="button" onClick={onCancel} className="h-10 rounded-md px-4 border bg-white hover:bg-gray-50">
-            Cancel
-          </button>
-        )}
-      </div>
-    </form>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={data.confirmPassword}
+                      onChange={handleChange("confirmPassword")}
+                      placeholder="••••••••"
+                      aria-invalid={!!errors.confirmPassword}
+                      aria-describedby="confirmPassword-error"
+                    />
+                    {errors.confirmPassword && <p id="confirmPassword-error" className="text-xs text-red-500 mt-1">{errors.confirmPassword}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="office">Office</Label>
+                    <Select
+                      required
+                      value={data.office}
+                      onValueChange={(value) => {
+                        setData((prev) => ({ ...prev, office: value }));
+                        setErrors((prev) => ({ ...prev, office: undefined }));
+                      }}
+                    >
+                      <SelectTrigger id="office" className="ps-2 w-full" aria-invalid={!!errors.office} aria-describedby="office-error">
+                        <SelectValue placeholder="Select Office" />
+                      </SelectTrigger>
+                      <SelectContent className="w-screen sm:w-auto max-w-[90vw]" style={{ maxWidth: "90vw" }}>
+                        <SelectGroup>
+                          <SelectItem value="DEPARTMENT_OF_COMMERCE">Department of Commerce</SelectItem>
+                          <SelectItem value="DEPARTMENT_OF_EDUCATIONAL_SERVICES">Department of Educational Services</SelectItem>
+                          <SelectItem value="DEPARTMENT_OF_DECENTRALIZATION_AND_CIVIC_SERVICES">Department of Decentralization and Civic Services</SelectItem>
+                          <SelectItem value="DEPARTMENT_OF_SOCIAL_HEALTH_AND_HOUSING_SERVICES">Department of Social Health and Housing Services</SelectItem>
+                          <SelectItem value="DEPARTMENT_OF_INTERNAL_SERVICES">Department of Internal Services</SelectItem>
+                          <SelectItem value="DEPARTMENT_OF_CULTURE_SPORT_MAJOR_EVENTS_AND_TOURISM_PROMOTION">Department of Culture Sport Major Events and Tourism Promotion</SelectItem>
+                          <SelectItem value="DEPARTMENT_OF_FINANCIAL_RESOURCES">Department of Financial Resources</SelectItem>
+                          <SelectItem value="DEPARTMENT_OF_GENERAL_SERVICES_PROCUREMENT_AND_SUPPLIES">Department of General Services Procurement and Supplies</SelectItem>
+                          <SelectItem value="DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES">Department of Maintenance and Technical Services</SelectItem>
+                          <SelectItem value="DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING">Department of Urban Planning and Private Building</SelectItem>
+                          <SelectItem value="DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY">Department of Environment Major Projects Infras and Mobility</SelectItem>
+                          <SelectItem value="DEPARTMENT_OF_LOCAL_POLICE">Department of Local Police</SelectItem>
+                          <SelectItem value="OTHER">Other</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    {errors.office && <p id="office-error" className="text-xs text-red-500 mt-1">{errors.office}</p>}
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-6 py-4 flex justify-end items-center gap-2">
+                {onCancel && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-9 px-4 text-sm font-medium"
+                    onClick={onCancel}
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </Button>
+                )}
+                <Button
+                  type="submit"
+                  className="h-9 px-4 text-sm font-medium flex-1"
+                  disabled={submitting}
+                  onClick={handleSubmit}
+                >
+                  {submitting ? "Saving..." : submitLabel}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+    </div>
   );
 }

@@ -1,18 +1,75 @@
-"use client"
+"use client";
 
 import Link from "next/link";
 import { Megaphone, User } from "lucide-react";
+import { useSession } from "next-auth/react";
 
-export default function StartingPage({role}:{role:string}){
+
+export default function StartingPage({ role: propRole }: { role?: string } = {}) {
+  const { data: session, status } = useSession();
+  const role = propRole ?? session?.user?.role ?? "";
+  const isLoggedIn = role && role !== "";
+
+  if (status === "loading") {
+    return (
+      <section className="py-12 md:py-20">
+        <div className="container">
+          <div className="mx-auto max-w-6xl">
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-pulse space-y-4 w-full max-w-md">
+                <div className="h-12 bg-muted rounded-lg"></div>
+                <div className="h-4 bg-muted rounded-lg w-3/4"></div>
+                <div className="grid grid-cols-3 gap-4 pt-8">
+                  <div className="h-32 bg-muted rounded-lg"></div>
+                  <div className="h-32 bg-muted rounded-lg"></div>
+                  <div className="h-32 bg-muted rounded-lg"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (session && isLoggedIn) {
+    return (
+      <section className="py-12 md:py-20">
+        <div className="container">
+          <div className="mx-auto max-w-6xl">
+            {/* Header Welcome */}
+            <div className="mb-12 space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="h-16 w-16 rounded-full bg-linear-to-br from-primary to-primary/60 flex items-center justify-center">
+                  <User className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                    Welcome, {session?.user?.name || "User"}!
+                  </h1>
+                  <p className="text-muted-foreground text-lg">
+                    Thank you for choosing PARTICIPIUM
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   const services = [
-    
     {
       icon: <User className="h-6 w-6" />,
       title: "Join us",
-      description:
-        "Join us in our mission to make Turin great again",
-      items: ["Create a user", "Signal problems", "Make the best out of our city"],
-      route: "/register"
+      description: "Join us in our mission to make Turin great",
+      items: [
+        "Create a user",
+        "Signal problems",
+        "Make the best out of our city",
+      ],
+      route: "/register",
     },
     {
       icon: <Megaphone className="h-6 w-6" />,
@@ -20,12 +77,12 @@ export default function StartingPage({role}:{role:string}){
       description:
         "Already a member? Use our tool to signal a problem to our operators",
       items: ["Potholes", "Broken lights", "Garbage displacement"],
-      route: role=="" ? "/login" : (role=="CITIZEN" ? "/reports" : "/")
-    }
+  route: role == "" ? "/login" : role == "CITIZEN" ? "/reports" : "/",
+    },
   ];
 
   return (
-    <section className="py-32">
+    <section className="py-32 px-4 md:px-6 lg:px-8">
       <div className="container">
         <div className="mx-auto max-w-6xl space-y-12">
           <div className="space-y-4 text-center">
@@ -33,7 +90,7 @@ export default function StartingPage({role}:{role:string}){
               PARTICIPIUM
             </h2>
             <p className="text-muted-foreground mx-auto max-w-2xl text-lg tracking-tight md:text-xl">
-              We collect you reviews to improve our city together.
+              We collect your reviews to improve our city together.
             </p>
           </div>
 
@@ -68,4 +125,4 @@ export default function StartingPage({role}:{role:string}){
       </div>
     </section>
   );
-};
+}

@@ -1,0 +1,43 @@
+name: Run Unit Tests on PR
+
+on:
+  pull_request:
+    branches: [ QA ]
+  push:
+    branches: [ QA ]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+ 
+    container:
+      image: node:20
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Cache node modules
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      run: npm i
+
+    - name: Run unit tests with coverage
+      run: npm run test:ci:unit
+      env:
+        NODE_ENV: test
+        CI: true
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        file: ./coverage/lcov.info
+        flags: unit-tests
+        name: unit-test-coverage
