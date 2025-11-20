@@ -14,6 +14,34 @@ class ReportRepository {
         return ReportRepository.instance;
     }
 
+
+    public async getReportById(id: string | number) {
+        try {
+            const report = await prisma.report.findUnique({
+                where: { id: typeof id === 'string' ? BigInt(id) : id },
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    longitude: true,
+                    latitude: true,
+                    createdAt: true,
+                    citizen: {
+                        select: {
+                            username: true,
+                        }
+                    },
+                }
+            });
+            if (!report) {
+                return { success: false, error: "Report not found" };
+            }
+            return { success: true, data: report };
+        } catch (e) {
+            return { success: false, error: "Error retrieving report" };
+        }
+    }
+
     public async createReport(title: string,
                             description: string, photos: string[],
                             category: string, longitude: number,
@@ -46,6 +74,32 @@ class ReportRepository {
                 success:false,
                 error: "Failed to add the report to the database"
             }
+        }
+    }
+
+    public async getApprovedReports() {
+        const where: any = { status: 'ASSIGNED' };
+        try {
+            const reports = await prisma.report.findMany({
+                where,
+                select: {
+                    id: true,
+                    title: true,
+                    longitude: true,
+                    latitude: true,
+                    citizen: {
+                        select: {
+                            username: true,
+                        }
+                    },
+                }
+            });
+            if (!reports || reports.length === 0) {
+                return { success: false, error: "No reports found" };
+            }
+            return { success: true, data: reports };
+        } catch (e) {
+            return { success: false, error: "Error retrieving reports" };
         }
     }
 }
