@@ -23,7 +23,7 @@ export default function ClusterReportsSheet({
     onOpenChange, 
     onReportClick,
     isLoading
-}: ClusterReportsSheetProps) {
+}: Readonly<ClusterReportsSheetProps>) {
 
     const handleCardClick = (report: Report) => {
         onOpenChange(false);

@@ -26,11 +26,19 @@ class ReportRepository {
                     longitude: true,
                     latitude: true,
                     createdAt: true,
+                    category: true,
+                    status: true,
                     citizen: {
                         select: {
                             username: true,
                         }
                     },
+                    photos: {
+                        select: {
+                            id: true,
+                            url: true
+                        }
+                    }
                 }
             });
             if (!report) {
@@ -87,6 +95,7 @@ class ReportRepository {
                     title: true,
                     longitude: true,
                     latitude: true,
+                    category: true,
                     citizen: {
                         select: {
                             username: true,

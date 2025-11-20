@@ -16,6 +16,7 @@ export async function getApprovedReportsForMap() {
     title: r.title,
     longitude: r.longitude,
     latitude: r.latitude,
+    category: r.category,
     username: r.citizen?.username
   }));
 
@@ -40,8 +41,11 @@ export async function getReportById(params: { id: string }) {
     description: repoResult.data.description,
     longitude: repoResult.data.longitude,
     latitude: repoResult.data.latitude,
-    createdAt: repoResult.data.createdAt,
-    username: repoResult.data.citizen?.username
+    createdAt: repoResult.data.createdAt.toISOString(),
+    category: repoResult.data.category,
+    status: repoResult.data.status,
+    username: repoResult.data.citizen?.username,
+    photos: repoResult.data.photos.map((p: any) => p.url)
   };
 
   return { success: true, data };

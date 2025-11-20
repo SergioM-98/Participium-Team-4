@@ -62,7 +62,7 @@ export default function ReportsClusterLayer({
     reports, 
     onReportClick, 
     onClusterClick 
-}: ReportsClusterLayerProps) {
+}: Readonly<ReportsClusterLayerProps>) {
     const map = useMap();
     const [mapReady, setMapReady] = useState(false);
 
@@ -102,7 +102,6 @@ export default function ReportsClusterLayer({
                 <Marker
                     key={report.id}
                     position={[report.latitude, report.longitude]}
-                    // Usa l'icona specifica per la categoria
                     icon={getCachedIcon(report.category)}
                     eventHandlers={{
                         click: (e) => {
