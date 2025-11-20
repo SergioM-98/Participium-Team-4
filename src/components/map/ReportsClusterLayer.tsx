@@ -1,63 +1,62 @@
-// src/components/map/ReportsClusterLayer.tsx
 "use client";
 
 import { Marker, useMap } from 'react-leaflet';
 import L, { divIcon, Point } from 'leaflet';
 import { useState, useMemo } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server'; 
 import MarkerClusterGroup from 'react-leaflet-markercluster'; 
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
 import { Report, Bounds } from "@/app/lib/dtos/map.dto"; 
+import { ReportMarkerIcon, ClusterMarkerIcon } from './MapIcons'; 
 
-// --- Icona Personalizzata (Singolo Marker) ---
-const REPORT_ICON = L.divIcon({
-    className: 'report-marker-icon', 
-    html: `
-        <div class="p-1 rounded-full shadow-md bg-white/90 border-2 border-primary text-primary">
-             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-megaphone">
-                <path d="m3 11 18 2v4H3z"/><path d="M12 11v6"/><path d="M3 15h18"/><path d="m11 5 6 4"/>
-             </svg>
-        </div>
-    `,
-    iconSize: new Point(24, 24),
-    iconAnchor: new Point(12, 24),
-});
+// Funzione helper per creare l'icona dinamica per categoria
+const createReportIcon = (category: string) => {
+    const reportIconHtml = renderToStaticMarkup(<ReportMarkerIcon category={category} />);
+    
+    return L.divIcon({
+        className: 'report-marker-icon', 
+        html: reportIconHtml,
+        iconSize: new Point(40, 40), 
+        iconAnchor: new Point(20, 20),
+    });
+};
 
-// --- Funzione Creazione Icona Cluster ---
+// Cache semplice per evitare di rigenerare stringhe HTML identiche
+const iconCache: Record<string, L.DivIcon> = {};
+const getCachedIcon = (category: string) => {
+    if (!iconCache[category]) {
+        iconCache[category] = createReportIcon(category);
+    }
+    return iconCache[category];
+};
+
+// --- Funzione Generazione Cluster ---
 const createClusterCustomIcon = (cluster: any) => {
   const count = cluster.getChildCount();
-  // Utilizziamo classi di dimensione customizzate per il CSS
-  let sizeClass = 'size-12'; 
   
-  if (count >= 10 && count < 100) {
-    sizeClass = 'size-14';
-  } else if (count >= 100) {
-    sizeClass = 'size-16';
-  }
+  // Dimensioni dinamiche
+  let size = 40;
+  if (count >= 10) size = 48;
+  if (count >= 100) size = 56;
 
-  // L'HTML è rimasto pulito, lo stile è gestito via CSS globale
+  const clusterHtml = renderToStaticMarkup(
+    <ClusterMarkerIcon count={count} />
+  );
+
   return divIcon({
-    html: `
-        <div class="flex flex-col items-center justify-center font-bold shadow-lg rounded-full ${sizeClass}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-            </svg>
-            <span class="text-xs">${count}</span>
-        </div>
-    `,
-    className: `leaflet-marker-cluster leaflet-marker-cluster-custom`,
-    iconSize: new Point(48, 48), 
+    html: clusterHtml,
+    className: 'leaflet-marker-cluster-custom',
+    iconSize: new Point(size, size), 
   });
 };
 
-// --- Interfaccia Props ---
 interface ReportsClusterLayerProps {
     reports: Report[];
     onReportClick: (report: Report) => void;
     onClusterClick: (bounds: Bounds) => void; 
 }
-
 
 export default function ReportsClusterLayer({ 
     reports, 
@@ -72,8 +71,9 @@ export default function ReportsClusterLayer({
     }
 
     const handleClusterClick = useMemo(() => (cluster: any) => {
+        L.DomEvent.stopPropagation(cluster.originalEvent);
+
         const clusterBounds = cluster.layer.getBounds();
-        
         const bounds: Bounds = {
             north: clusterBounds.getNorth(),
             south: clusterBounds.getSouth(),
@@ -82,7 +82,6 @@ export default function ReportsClusterLayer({
         };
 
         onClusterClick(bounds);
-        
     }, [onClusterClick]);
     
     if (!mapReady) return null;
@@ -90,7 +89,10 @@ export default function ReportsClusterLayer({
     return (
         <MarkerClusterGroup
             chunkedLoading
-            maxClusterRadius={80} 
+            maxClusterRadius={60}
+            spiderfyOnMaxZoom={false} 
+            showCoverageOnHover={false} 
+            zoomToBoundsOnClick={false} 
             iconCreateFunction={createClusterCustomIcon} 
             eventHandlers={{
                 clusterclick: handleClusterClick
@@ -100,9 +102,13 @@ export default function ReportsClusterLayer({
                 <Marker
                     key={report.id}
                     position={[report.latitude, report.longitude]}
-                    icon={REPORT_ICON}
+                    // Usa l'icona specifica per la categoria
+                    icon={getCachedIcon(report.category)}
                     eventHandlers={{
-                        click: () => onReportClick(report), 
+                        click: (e) => {
+                            L.DomEvent.stopPropagation(e.originalEvent);
+                            onReportClick(report);
+                        }, 
                     }}
                 />
             ))}

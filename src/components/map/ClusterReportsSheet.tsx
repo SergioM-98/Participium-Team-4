@@ -1,11 +1,10 @@
 // src/components/map/ClusterReportsSheet.tsx
-import { Report } from "./ReportsClusterLayer"; 
+import { Report } from "@/app/lib/dtos/map.dto"; // Assicurati che l'import sia corretto
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 
-// Placeholder per ScrollArea (si prega di usare la vera implementazione shadcn: npm install @radix-ui/react-scroll-area)
 const ScrollArea = ({ children, className }: { children: React.ReactNode, className?: string }) => (
     <div className={`overflow-y-auto ${className}`}>{children}</div>
 );
@@ -18,9 +17,6 @@ interface ClusterReportsSheetProps {
     isLoading: boolean;
 }
 
-/**
- * Sheet per mostrare la lista dei report all'interno di un cluster.
- */
 export default function ClusterReportsSheet({ 
     reports, 
     isOpen, 
@@ -36,7 +32,8 @@ export default function ClusterReportsSheet({
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent side="right" className="w-full sm:max-w-md flex flex-col">
+            {/* 👇 MODIFICA QUI: Aggiunto z-[9999] */}
+            <SheetContent side="right" className="w-full sm:max-w-md flex flex-col z-[9999]">
                 <SheetHeader>
                     <SheetTitle>Report nel Cluster ({isLoading ? '...' : reports.length})</SheetTitle>
                     <SheetDescription>

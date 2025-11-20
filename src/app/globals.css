@@ -126,6 +126,19 @@
       outline: none !important;
       box-shadow: none !important;
   }
+  @layer base {
+  /* Rimuove stili di default fastidiosi di Leaflet sui div */
+  .leaflet-marker-cluster-custom {
+      background: none;
+      border: none;
+  }
+  
+  /* Reset tap highlight per mobile */
+  .leaflet-interactive, 
+  .report-marker-icon {
+      -webkit-tap-highlight-color: transparent !important;
+  }
+}
   
   /* Stili wrapper per l'icona del cluster */
   .leaflet-marker-cluster-custom {
@@ -196,4 +209,10 @@
         background: transparent;
         border: none;
     }
+}
+@layer utilities {
+  /* FIX CRITICO: Forza le Sheet ad essere sopra la mappa Leaflet (che arriva a z-1000) */
+  .z-\[9999\] {
+    z-index: 9999 !important;
+  }
 }

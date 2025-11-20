@@ -12,15 +12,13 @@ interface ReportDetailSheetProps {
     onOpenChange: (open: boolean) => void;
 }
 
-/**
- * Componente Sheet Mock per i dettagli di un singolo Report (si apre al click del marker).
- */
 export default function ReportDetailSheet({ report, isOpen, onOpenChange }: ReportDetailSheetProps) {
     if (!report) return null;
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            <SheetContent side="right" className="w-full sm:max-w-lg flex flex-col">
+            {/* 👇 MODIFICA QUI: Aggiunto z-[9999] */}
+            <SheetContent side="right" className="w-full sm:max-w-lg flex flex-col z-[9999]">
                 <SheetHeader>
                     <SheetTitle className="flex items-center gap-2">
                         <AlertCircle className="h-5 w-5 text-primary" />
