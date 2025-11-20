@@ -57,7 +57,7 @@ interface Navbar1Props {
     logout: {
       title: string;
       url: string;
-    }
+    };
   };
 }
 
@@ -74,7 +74,6 @@ function Navbar1({
     logout: { title: "Logout", url: "/api/auth/signout?callbackUrl=/" },
   },
 }: Navbar1Props) {
-
   const { menu: filteredMenu, logoUrl, role, username } = useNavbarMenu();
 
   return (
@@ -113,10 +112,14 @@ function Navbar1({
             ) : (
               <>
                 <LogoutButton variant="outline" size="sm" />
-                <ProfileButton variant="outline" size="sm" showName={true} username={username}/>
+                <ProfileButton
+                  variant="outline"
+                  size="sm"
+                  showName={true}
+                  username={username}
+                />
               </>
             )}
-
           </div>
         </nav>
 
@@ -125,7 +128,11 @@ function Navbar1({
           <div className="flex items-center justify-between">
             {/* Logo */}
             <Link href={logoUrl} className="flex items-center gap-2">
-              <img src={logo.src} className="max-h-8 dark:invert" alt={logo.alt} />
+              <img
+                src={logo.src}
+                className="max-h-8 dark:invert"
+                alt={logo.alt}
+              />
             </Link>
 
             <Sheet>
@@ -139,13 +146,21 @@ function Navbar1({
                 <SheetHeader>
                   <SheetTitle>
                     <Link href={logoUrl} className="flex items-center gap-2">
-                      <img src={logo.src} className="max-h-8 dark:invert" alt={logo.alt} />
+                      <img
+                        src={logo.src}
+                        className="max-h-8 dark:invert"
+                        alt={logo.alt}
+                      />
                     </Link>
                   </SheetTitle>
                 </SheetHeader>
 
                 <div className="flex flex-col gap-6 p-4">
-                  <Accordion type="single" collapsible className="flex w-full flex-col gap-4">
+                  <Accordion
+                    type="single"
+                    collapsible
+                    className="flex w-full flex-col gap-4"
+                  >
                     {filteredMenu.map((item) => renderMobileMenuItem(item))}
                   </Accordion>
 
@@ -162,8 +177,18 @@ function Navbar1({
                       </>
                     ) : (
                       <>
-                        <LogoutButton variant="outline" size="sm" className="w-full" />
-                        <ProfileButton variant="outline" size="sm" className="w-full" showName={false} username={username}/>
+                        <LogoutButton
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                        />
+                        <ProfileButton
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          showName={false}
+                          username={username}
+                        />
                       </>
                     )}
                   </div>
@@ -176,7 +201,6 @@ function Navbar1({
     </section>
   );
 }
-
 
 const renderMenuItem = (item: MenuItem) => {
   if (item.items) {
@@ -196,7 +220,10 @@ const renderMenuItem = (item: MenuItem) => {
 
   return (
     <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink asChild className="bg-background hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors">
+      <NavigationMenuLink
+        asChild
+        className="bg-background hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
+      >
         <Link href={item.url}>{item.title}</Link>
       </NavigationMenuLink>
     </NavigationMenuItem>
