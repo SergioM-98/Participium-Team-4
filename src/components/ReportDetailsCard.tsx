@@ -14,7 +14,13 @@ interface Report {
   title: string;
   description: string;
   category: string;
-  status: "pending" | "approved" | "rejected" | "resolved";
+  status:
+    | "pending_approval"
+    | "assigned"
+    | "in_progress"
+    | "suspended"
+    | "rejected"
+    | "resolved";
   latitude: number;
   longitude: number;
   reporterName: string; // Could be 'Anonymous'
@@ -39,19 +45,20 @@ const formatCategory = (category: string) => {
 // Helper function for status badge styling
 const getStatusBadge = (status: Report["status"]) => {
   switch (status) {
-    case "approved":
-      return (
-        <Badge className="bg-green-500 hover:bg-green-500/90">Approved</Badge>
-      );
+    case "pending_approval":
+      return <Badge variant="secondary">Pending Approval</Badge>;
+    case "assigned":
+      return <Badge className="bg-yellow-500 hover:bg-yellow-500/90">Assigned</Badge>;
+    case "in_progress":
+      return <Badge className="bg-orange-500 hover:bg-orange-500/90">In Progress</Badge>;
+    case "suspended":
+      return <Badge className="bg-gray-500 hover:bg-gray-500/90">Suspended</Badge>;
     case "rejected":
       return <Badge className="bg-red-500 hover:bg-red-500/90">Rejected</Badge>;
     case "resolved":
-      return (
-        <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>
-      );
-    case "pending":
+      return <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>;
     default:
-      return <Badge variant="secondary">Pending</Badge>;
+      return <Badge variant="secondary">Unknown</Badge>;
   }
 };
 
