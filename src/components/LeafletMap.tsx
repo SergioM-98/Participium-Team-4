@@ -11,6 +11,8 @@ import MapBase from "./map/MapBase";
 import MapPolygons from "./map/MapPolygons";
 import MapMarkers from "./map/MapMarkers";
 import { extractVisualizationPolygons } from "./map/utils";
+import ReportsClusterLayer from "./map/ReportsClusterLayer";
+import { Report, Bounds } from "@/app/lib/dtos/map.dto"; 
 
 import torinoGeoJSON from "@/data/torino-boundary.json";
 
@@ -29,7 +31,6 @@ const customMarkerIcon = L.divIcon({
   popupAnchor: [0, -36],
 });
 
-// cover the entire map with a rectangle, used for inverse masking
 const worldCoordinates: [number, number][] = [
   [90, -180],
   [90, 180],
@@ -38,11 +39,21 @@ const worldCoordinates: [number, number][] = [
   [90, -180]
 ];
 
-// extract the city polygons from the GeoJSON data
 const cityPolygons = extractVisualizationPolygons(torinoGeoJSON);
 
-// main Leaflet map component
-export default function LeafletMap({ onLocationSelect }: { onLocationSelect?: (location: { lat: number; lng: number } | null) => void }) {
+interface ReportsLayerProps { 
+    reports: Report[]; 
+    onReportClick: (report: Report) => void;
+    onClusterClick: (bounds: Bounds) => void;
+}
+
+export default function LeafletMap({ 
+    onLocationSelect, 
+    reportsLayer 
+}: { 
+    onLocationSelect?: (location: { lat: number; lng: number } | null) => void,
+    reportsLayer?: ReportsLayerProps 
+}) {
   const [markers, setMarkers] = useState<LatLngExpression[]>([]);
 
   const addOrResetMarker = (pos: LatLngExpression) => {
@@ -54,9 +65,7 @@ export default function LeafletMap({ onLocationSelect }: { onLocationSelect?: (l
   };
 
   const selected = markers[0];
-
   const inverseMaskHoles = cityPolygons.length > 0 ? [worldCoordinates, ...cityPolygons] : [];
-
 
   return (
     <div className="relative rounded-xl overflow-hidden shadow-lg border border-gray-500 w-full h-full">
@@ -66,22 +75,33 @@ export default function LeafletMap({ onLocationSelect }: { onLocationSelect?: (l
             positions={inverseMaskHoles as any}
             pathOptions={{
               color: 'transparent',
-              fillColor:
-                COLOR,
+              fillColor: COLOR,
               fillOpacity: 0.1
             }}
           />
         )}
-        <MapPolygons cityPolygons={cityPolygons} borderColor={
-          COLOR} />
-        <MapMarkers
-          markers={markers}
-          onMapClick={addOrResetMarker}
-          cityPolygons={cityPolygons}
-          markerIcon={customMarkerIcon}
-        />
+        <MapPolygons cityPolygons={cityPolygons} borderColor={COLOR} />
+        
+
+        {reportsLayer && (
+            <ReportsClusterLayer 
+                reports={reportsLayer.reports}
+                onReportClick={reportsLayer.onReportClick}
+                onClusterClick={reportsLayer.onClusterClick}
+            />
+        )}
+
+
+        {onLocationSelect && (
+            <MapMarkers
+                markers={markers}
+                onMapClick={addOrResetMarker}
+                cityPolygons={cityPolygons}
+                markerIcon={customMarkerIcon}
+            />
+        )}
       </MapBase>
-      {/* display the selected location on the map */}
+      
       <div className="absolute top-3 right-3 z-[1000]">
         <LocationDisplay selected={selected} />
       </div>

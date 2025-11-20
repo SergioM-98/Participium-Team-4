@@ -89,7 +89,7 @@ export default function ProfilePage() {
         };
         let imageUrl: string | null = null;
 
-        // Solo i CITTADINI hanno notifiche e foto modificabile
+  
         if (userData.role === "CITIZEN") {
           try {
             const notifResponse = await getNotificationsPreferences();
@@ -101,7 +101,7 @@ export default function ProfilePage() {
           try {
             imageUrl = await getProfilePhotoUrl();
           } catch (e) {
-            // Foto non trovata, usa default
+
           }
         }
 

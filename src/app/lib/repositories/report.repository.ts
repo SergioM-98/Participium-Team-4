@@ -1,17 +1,57 @@
 import { prisma } from "@/prisma/db";
-import { Category } from "@prisma/client";
-import { ReportRegistrationResponse } from "../dtos/report.dto";
+import { Category, Report } from "@prisma/client";
+import {
+  ReportByOfficer,
+  ReportRegistrationResponse,
+  ReportsByOfficerIdResponse,
+} from "@/dtos/report.dto";
 
 class ReportRepository {
-    private static instance: ReportRepository;
+  private static instance: ReportRepository;
 
-    private constructor() {}
+  private constructor() {}
 
-    public static getInstance(): ReportRepository {
-        if (!ReportRepository.instance) {
-            ReportRepository.instance = new ReportRepository();
+  public static getInstance(): ReportRepository {
+    if (!ReportRepository.instance) {
+      ReportRepository.instance = new ReportRepository();
+    }
+    return ReportRepository.instance;
+  }
+
+
+    public async getReportById(id: string | number) {
+        try {
+            const report = await prisma.report.findUnique({
+                where: { id: typeof id === 'string' ? BigInt(id) : id },
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    longitude: true,
+                    latitude: true,
+                    createdAt: true,
+                    category: true,
+                    status: true,
+                    citizen: {
+                        select: {
+                            username: true,
+                        }
+                    },
+                    photos: {
+                        select: {
+                            id: true,
+                            url: true
+                        }
+                    }
+                }
+            });
+            if (!report) {
+                return { success: false, error: "Report not found" };
+            }
+            return { success: true, data: report };
+        } catch (e) {
+            return { success: false, error: "Error retrieving report" };
         }
-        return ReportRepository.instance;
     }
 
     public async createReport(title: string,
@@ -46,6 +86,33 @@ class ReportRepository {
                 success:false,
                 error: "Failed to add the report to the database"
             }
+        }
+    }
+
+    public async getApprovedReports() {
+        const where: any = { status: 'ASSIGNED' };
+        try {
+            const reports = await prisma.report.findMany({
+                where,
+                select: {
+                    id: true,
+                    title: true,
+                    longitude: true,
+                    latitude: true,
+                    category: true,
+                    citizen: {
+                        select: {
+                            username: true,
+                        }
+                    },
+                }
+            });
+            if (!reports || reports.length === 0) {
+                return { success: false, error: "No reports found" };
+            }
+            return { success: true, data: reports };
+        } catch (e) {
+            return { success: false, error: "Error retrieving reports" };
         }
     }
 }
