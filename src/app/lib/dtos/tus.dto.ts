@@ -48,6 +48,10 @@ export type ControllerSuccessResponse = {
     tusHeaders: Record<string, string>;
     location?: string;
     uploadOffset?: number;
+} | {
+    success: false;
+    error: string;
+    tusHeaders: Record<string, string>;
 };
 
 // Type exports

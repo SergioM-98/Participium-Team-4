@@ -1,4 +1,4 @@
-import { register } from "@/app/lib/actions/user";
+import { register } from "@/app/lib/controllers/user.controller";
 import { RegistrationResponse } from "@/app/lib/dtos/user.dto";
 import { prisma } from "../../setup";
 
@@ -44,14 +44,15 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
 
       // Create valid FormData for OFFICER
       const formData = new FormData();
-      formData.append("firstName", "Mario");
-      formData.append("lastName", "Rossi");
-      formData.append("email", "");
-      formData.append("username", "mariorossi");
-      formData.append("password", "SecurePass123!");
-      formData.append("role", "OFFICER");
-      formData.append("office", "DEPARTMENT_OF_COMMERCE");
-      formData.append("telegram", "");
+  formData.append("firstName", "Mario");
+  formData.append("lastName", "Rossi");
+  formData.append("email", "");
+  formData.append("username", "mariorossi");
+  formData.append("password", "SecurePass123!");
+  formData.append("confirmPassword", "SecurePass123!");
+  formData.append("role", "OFFICER");
+  formData.append("office", "DEPARTMENT_OF_COMMERCE");
+  formData.append("telegram", "");
 
       // Execute registration (complete flow)
       const response: RegistrationResponse = await register(formData);
@@ -100,21 +101,22 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
 
       // Try to register user with same username
       const formData = new FormData();
-      formData.append("firstName", "New");
-      formData.append("lastName", "User");
-      formData.append("email", "");
-      formData.append("username", "existinguser"); // Duplicate username
-      formData.append("password", "SecurePass123!");
-      formData.append("role", "OFFICER");
-      formData.append("office", "DEPARTMENT_OF_COMMERCE");
-      formData.append("telegram", "");
+  formData.append("firstName", "New");
+  formData.append("lastName", "User");
+  formData.append("email", "");
+  formData.append("username", "existinguser"); // Duplicate username
+  formData.append("password", "SecurePass123!");
+  formData.append("confirmPassword", "SecurePass123!");
+  formData.append("role", "OFFICER");
+  formData.append("office", "DEPARTMENT_OF_COMMERCE");
+  formData.append("telegram", "");
 
       const response: RegistrationResponse = await register(formData);
 
       // Verify registration failed
       expect(response.success).toBe(false);
       if (!response.success) {
-        expect(response.error).toBe("Username exists");
+        expect(response.error).toBe("Username and/or email already used");
       }
 
       // Verify no second user was created
@@ -188,6 +190,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("email", "");
       formData.append("username", "testuser");
       formData.append("password", "SecurePass123!");
+      formData.append("confirmPassword", "SecurePass123!");
       formData.append("role", "OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");

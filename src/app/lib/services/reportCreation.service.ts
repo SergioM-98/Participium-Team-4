@@ -1,9 +1,4 @@
-import {
-  ReportRequest,
-  reportResponseSchema,
-  ReportResponse,
-  ReportRegistrationResponse,
-} from "@/dtos/report.dto";
+import { ReportRequest, ReportRegistrationResponse } from "@/dtos/report.dto";
 import { ReportRepository } from "@/repositories/report.repository";
 
 class ReportCreationService {

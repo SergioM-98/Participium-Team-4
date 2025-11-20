@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function NotFoundContent() {
   return (
@@ -18,12 +19,8 @@ export default function NotFoundContent() {
           </p>
         </div>
 
-        <Button
-          size="lg"
-          onClick={() => window.location.href = '/'}
-          className="w-full sm:w-auto"
-        >
-          Return to Website
+        <Button asChild size="lg" className="w-full sm:w-auto">
+          <Link href="/">Return to Website</Link>
         </Button>
       </div>
     </div>

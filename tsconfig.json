@@ -33,7 +33,8 @@
       "@/types/*": ["./src/app/lib/types/*"],
       "@/db/*": ["./src/app/lib/db/*"],
       "@/prisma/*": ["./prisma/*"],
-      "@/actions/*": ["./src/app/lib/actions/*"]
+      "@/actions/*": ["./src/app/lib/actions/*"],
+      "@/data/*": ["./src/data/*"]
     }
   },
   "include": [

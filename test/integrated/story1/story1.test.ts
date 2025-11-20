@@ -1,4 +1,4 @@
-import { register } from "@/app/lib/actions/user";
+import { register } from "@/app/lib/controllers/user.controller";
 import { RegistrationResponse } from "@/app/lib/dtos/user.dto";
 import { prisma } from "../../setup";
 
@@ -32,6 +32,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
             formData.append("email", "mario.rossi@example.com");
             formData.append("username", "mariorossi");
             formData.append("password", "SecurePass123!");
+            formData.append("confirmPassword", "SecurePass123!");
             formData.append("role", "CITIZEN");
             formData.append("office", "");
             formData.append("telegram", "@mariorossi");
@@ -77,6 +78,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
             formData.append("email", "anna.bianchi@example.com");
             formData.append("username", "annabianchi");
             formData.append("password", "SecurePass123!");
+            formData.append("confirmPassword", "SecurePass123!");
             formData.append("role", "CITIZEN");
             formData.append("office", "");
             formData.append("telegram", "");
@@ -129,6 +131,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
             formData.append("email", "newuser@example.com");
             formData.append("username", "existinguser"); // Duplicate username
             formData.append("password", "SecurePass123!");
+            formData.append("confirmPassword", "SecurePass123!");
             formData.append("role", "CITIZEN");
             formData.append("office", "");
             formData.append("telegram", "");
@@ -138,7 +141,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
             // Verify registration failed
             expect(response.success).toBe(false);
             if (!response.success) {
-                expect(response.error).toBe("Username exists");
+                expect(response.error).toBe("Username and/or email already used");
             }
 
             // Verify no second user was created
@@ -232,6 +235,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
             formData.append("email", "newcitizen@example.com");
             formData.append("username", "newcitizen");
             formData.append("password", "SecurePass123!");
+            formData.append("confirmPassword", "SecurePass123!");
             formData.append("role", "CITIZEN");
             formData.append("office", "");
             formData.append("telegram", "");

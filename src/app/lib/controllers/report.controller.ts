@@ -1,23 +1,56 @@
+("use server");
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
   ReportRegistrationResponse,
-  ReportRequest,
+  reportRequestSchema,
   ReportsByOfficerIdResponse,
 } from "@/dtos/report.dto";
 import { ReportCreationService } from "@/services/reportCreation.service";
-import { ReportRetrievalService } from "../services/reportRetrieval.service";
+import { getServerSession } from "next-auth/next";
+import { ReportRetrievalService } from "@/services/reportRetrieval.service";
 
-class ReportController {
-  async createReport(data: ReportRequest): Promise<ReportRegistrationResponse> {
-    const reportCreationService = ReportCreationService.getInstance();
-    return reportCreationService.createReport(data);
+export async function createReport(
+  title: string,
+  description: string,
+  photos: string[],
+  category: string,
+  longitude: number,
+  latitude: number,
+  isAnonymous: boolean
+): Promise<ReportRegistrationResponse> {
+  const session = await getServerSession(authOptions);
+  if (!session || (session && session.user.role !== "CITIZEN")) {
+    return { success: false, error: "Unauthorized report" };
   }
-
-  async getReportsByOfficerId(
-    officerId: number
-  ): Promise<ReportsByOfficerIdResponse> {
-    const reportRetrievalService = ReportRetrievalService.getInstance();
-    return reportRetrievalService.retrieveReportsByOfficerId(officerId);
+  const reportData = reportRequestSchema.safeParse({
+    title,
+    description,
+    photos,
+    category: category,
+    longitude,
+    latitude,
+    userId: isAnonymous ? 2 : session.user.id,
+    isAnonymous,
+  });
+  if (!reportData.success) {
+    return {
+      success: false,
+      error: "Invalid inputs",
+    };
   }
+  const reportCreationService = ReportCreationService.getInstance();
+  return reportCreationService.createReport(reportData.data);
 }
 
-export { ReportController };
+export async function getReportsByOfficerId(
+  officerId: number
+): Promise<ReportsByOfficerIdResponse> {
+  const session = await getServerSession(authOptions);
+
+  if (!session || (session && session.user.role !== "OFFICER")) {
+    return { success: false, error: "Unauthorized access" };
+  }
+
+  const reportRetrievalService = ReportRetrievalService.getInstance();
+  return reportRetrievalService.retrieveReportsByOfficerId(officerId);
+}

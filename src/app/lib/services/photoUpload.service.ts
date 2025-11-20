@@ -34,7 +34,8 @@ class PhotoUploaderService {
             
             // Use temporary filename during upload
             const tempFilename = `${validatedRequest.photoId}_temp${fileExtension}`;
-            const tempFilePath = path.join(process.cwd(), 'uploads', tempFilename);
+            const uploadsDir = process.env.UPLOADS_DIR || path.join(process.cwd(), 'uploads');
+            const tempFilePath = path.join(uploadsDir, tempFilename);
             const publicUrl = `/uploads/${tempFilename}`;
 
             const savedFileSize = await savePhotoFile(validatedRequest.body, tempFilePath);
@@ -50,7 +51,8 @@ class PhotoUploaderService {
             if (isComplete) {
                 // Rename to final filename when upload is complete
                 const finalFilename = `${filename}`;
-                const finalFilePath = path.join(process.cwd(), 'uploads', finalFilename);
+                const uploadsDir = process.env.UPLOADS_DIR || path.join(process.cwd(), 'uploads');
+                const finalFilePath = path.join(uploadsDir, finalFilename);
                 
                 try {
                     await rename(tempFilePath, finalFilePath);

@@ -43,7 +43,8 @@ class PhotoDeleteService {
             }
 
             // Construct full file path
-            const filePath = path.join(process.cwd(), 'uploads', filename);
+            const uploadsDir = process.env.UPLOADS_DIR || path.join(process.cwd(), 'uploads');
+            const filePath = path.join(uploadsDir, filename);
 
             try {
                 // Delete file from filesystem

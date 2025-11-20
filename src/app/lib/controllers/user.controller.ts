@@ -1,37 +1,113 @@
 "use server";
-
-import { UserRepository } from "@/repositories/user.repository";
 import {
   LoginInput,
   LoginResponse,
+  MeType,
   RegistrationInput,
   RegistrationInputSchema,
   RegistrationResponse,
 } from "@/app/lib/dtos/user.dto";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/auth";
+import { UserService } from "../services/user.service";
+import { updateNotificationsPreferences } from "./notifications.controller";
+import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
+import { NotificationsService } from "../services/notifications.service";
 
 
-class UserController {
-  constructor(private userRepository = new UserRepository()) {}
 
-
-  async checkDuplicates(userData: RegistrationInput) {
-    return await this.userRepository.checkDuplicates(userData);
+  export async function checkDuplicates(userData: RegistrationInput) {
+    return await UserService.getInstance().checkDuplicates(userData);
   }
 
-  async createUser(
-    userData: RegistrationInput
+  export async function register(
+    formData: FormData
   ): Promise<RegistrationResponse> {
-    const parsed = RegistrationInputSchema.safeParse(userData);
+    const session = await getServerSession(authOptions);
+
+    const validatedData = RegistrationInputSchema.safeParse({
+      firstName: formData.get("firstName"),
+      lastName: formData.get("lastName"),
+      email: formData.get("email") || undefined,
+      username: formData.get("username"),
+      password: formData.get("password"),
+      confirmPassword: formData.get("confirmPassword"),
+      role: formData.get("role"),
+      office: formData.get("office") || undefined,
+      telegram: formData.get("telegram") || undefined,
+    });
+
+    if (!validatedData.success) {
+      return { success: false, error: "Invalid input data" };
+    }
+
+    if (session || (!session && validatedData.data?.role !== "CITIZEN")) {
+      if (!session || session.user.role !== "ADMIN") {
+        return { success: false, error: "Unauthorized registration" };
+      }
+    }
+
+    const isDuplicate = await checkDuplicates(validatedData.data);
+
+    if (isDuplicate.isExisting) {
+      return { success: false, error: "Username and/or email already used" };
+    }
+
+    const parsed = RegistrationInputSchema.safeParse(validatedData.data);
     if (!parsed.success) {
       return { success: false, error: parsed.error.message };
     }
 
-    return await this.userRepository.createUser(parsed.data);
+    return await UserService.getInstance().createUser(parsed.data);
   }
 
-  async retrieveUser(userData: LoginInput): Promise<LoginResponse> {
-    return await this.userRepository.retrieveUser(userData);
+  export async function retrieveUser(userData: LoginInput): Promise<LoginResponse> {
+    return await UserService.getInstance().retrieveUser(userData);
   }
-}
 
-export { UserController };
+  export async function updateNotificationsMedia(telegram: string | null, email: string | null, removeTelegram:boolean, notifications: NotificationsData): Promise<RegistrationResponse> {
+
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.username || session.user?.role !== "CITIZEN") {
+      return { success: false, error: "Unauthorized access" };
+    }
+
+    if(removeTelegram && notifications.telegramEnabled){
+        return { success: false, error: "Cannot enable telegram notifications when removing telegram media" };
+    }
+
+    const updateMediaResponse = await UserService.getInstance().updateNotificationsMedia(session.user.username, telegram, email, removeTelegram);
+
+    const notificationsResponse = await updateNotificationsPreferences(notifications);
+
+    if(!notificationsResponse.success){
+      return { success: false, error: notificationsResponse.error ?? "Failed to update notification preferences" };
+    }else{
+      return updateMediaResponse;
+    }
+  }
+
+export async function getMe(username: string): Promise<MeType | RegistrationResponse> {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.username) {
+      return { success: false, error: "Unauthorized access" };
+    }
+
+    let notifications: NotificationsResponse;
+
+    if(session.user.role === "CITIZEN"){
+      notifications = await NotificationsService.getInstance().getNotificationsPreferences(session.user.username);
+      if(!notifications.success){
+        return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
+      } 
+    }
+    return {
+      firstName: session.user.firstName,
+      lastName: session.user.lastName,
+      email: session.user.email ?? undefined,
+      username: session.user.username,
+      role: session.user.role as MeType["role"],
+      office: session.user.office as MeType["office"] ?? undefined,
+      telegram: session.user.telegram ?? undefined,
+    };
+  }
