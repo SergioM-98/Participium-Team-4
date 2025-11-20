@@ -1,18 +1,22 @@
 import { prisma } from "@/prisma/db";
-import { Category } from "@prisma/client";
-import { ReportRegistrationResponse } from "../dtos/report.dto";
+import { Category, Report } from "@prisma/client";
+import {
+  ReportByOfficer,
+  ReportRegistrationResponse,
+  ReportsByOfficerIdResponse,
+} from "@/dtos/report.dto";
 
 class ReportRepository {
-    private static instance: ReportRepository;
+  private static instance: ReportRepository;
 
-    private constructor() {}
+  private constructor() {}
 
-    public static getInstance(): ReportRepository {
-        if (!ReportRepository.instance) {
-            ReportRepository.instance = new ReportRepository();
-        }
-        return ReportRepository.instance;
+  public static getInstance(): ReportRepository {
+    if (!ReportRepository.instance) {
+      ReportRepository.instance = new ReportRepository();
     }
+    return ReportRepository.instance;
+  }
 
 
     public async getReportById(id: string | number) {
