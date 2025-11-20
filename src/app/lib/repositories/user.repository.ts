@@ -9,8 +9,27 @@ import {
 } from "@/dtos/user.dto";
 import { prisma } from "@/prisma/db";
 import bcrypt from "bcrypt";
+import { Prisma, PrismaClient } from "@prisma/client";
+
+
+type DBClient = PrismaClient | Prisma.TransactionClient;
 
 class UserRepository {
+  
+    private static instance: UserRepository;
+
+    private constructor() {}
+
+    public static getInstance(): UserRepository {
+        if (!UserRepository.instance) {
+            UserRepository.instance = new UserRepository();
+        }
+        return UserRepository.instance;
+    }
+
+
+
+
   async checkDuplicates(
     userData: RegistrationInput
   ): Promise<CheckDuplicatesResponse> {
@@ -40,7 +59,7 @@ class UserRepository {
     }
   }
 
-  async createUser(userData: RegistrationInput): Promise<RegistrationResponse> {
+  async createUser(userData: RegistrationInput, db: DBClient = prisma): Promise<RegistrationResponse> {
     try {
       if (userData.password !== userData.confirmPassword) {
         return { success: false, error: "Passwords do not match" };
@@ -105,6 +124,39 @@ class UserRepository {
       throw new Error("Failed to fetch user from database");
     }
   }
+
+  async updateNotificationsMedia(userId: string, telegram: string | null, email: string | null, removeTelegram:boolean): Promise<RegistrationResponse> {
+  
+    try {
+      if(telegram === null && email === null && removeTelegram === false) {
+        return { success: false, error: "At least one contact method must be provided" };
+      }
+      const data: any = {};
+
+      if (email !== null) {
+        data.email = email;
+      }
+
+      if (removeTelegram) {
+        data.telegram = null;
+      } else if (telegram !== null) {
+        data.telegram = telegram;
+      }
+
+      await prisma.user.update({
+        where: { username: userId },
+        data,
+      });
+      return {
+        success: true,
+        data: userId,
+      };
+    }catch (error) {
+      throw new Error("Failed to update user in database");
+    }
+  }
+
+
 }
 
 export { UserRepository };

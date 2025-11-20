@@ -1,5 +1,8 @@
 // test/setup.ts
 import { PrismaClient } from '@prisma/client';
+import path from 'path';
+
+process.env.UPLOADS_DIR = path.join(process.cwd(), 'test_uploads');
 
 // Determina l'URL del database basato sull'ambiente
 let testDatabaseUrl: string;
@@ -62,6 +65,14 @@ afterAll(async () => {
     
     await prisma.$disconnect();
     console.log('Test database cleanup completed');
+    
+    // Clean up test uploads directory
+    const { rm } = require('fs/promises');
+    try {
+      await rm(process.env.UPLOADS_DIR!, { recursive: true, force: true });
+    } catch (error) {
+      // Directory might not exist, that's ok
+    }
   } catch (error) {
     console.error('Test cleanup failed:', error);
   }

@@ -1,5 +1,5 @@
 import { ReportRepository } from "@/repositories/report.repository";
-import { AssignReportToOfficerResponse } from "../dtos/report.dto";
+import { AssignReportToOfficerResponse } from "@/dtos/report.dto";
 
 class ReportAssignmentService {
   private static instance: ReportAssignmentService;
@@ -20,8 +20,6 @@ class ReportAssignmentService {
     reportId: number,
     department: string
   ): Promise<AssignReportToOfficerResponse> {
-    // Implementation goes here
-    // I'll just assign it to the officer with the least reports in the given department
     try {
       const officer = await this.reportRepository.getOfficerWithLeastReports(
         department

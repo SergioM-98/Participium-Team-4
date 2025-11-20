@@ -1,5 +1,5 @@
 import { prisma } from "@/prisma/db";
-import { Category, Report } from "@prisma/client";
+import { Category, Report, Offices, ReportStatus, Role } from "@prisma/client";
 import {
   ReportByOfficer,
   ReportRegistrationResponse,
@@ -67,6 +67,60 @@ class ReportRepository {
         },
       },
     });
+  }
+
+  public async getOfficerWithLeastReports(department: string) {
+    const office = this.normalizeOffice(department);
+
+    if (!office) {
+      return null;
+    }
+
+    return await prisma.user.findFirst({
+      where: {
+        role: Role.OFFICER,
+        office,
+      },
+      orderBy: {
+        managedReports: {
+          _count: "asc",
+        },
+      },
+    });
+  }
+
+  public async assignReportToOfficer(
+    reportId: number,
+    officerId: number
+  ): Promise<Report> {
+    return await prisma.report.update({
+      where: {
+        id: BigInt(reportId),
+      },
+      data: {
+        officerId: BigInt(officerId),
+        status: ReportStatus.ASSIGNED,
+      },
+    });
+  }
+
+  private normalizeOffice(department: string): Offices | null {
+    if (!department) {
+      return null;
+    }
+
+    const normalized = department
+      .trim()
+      .toUpperCase()
+      .replace(/[\s-]+/g, "_");
+
+    const officeValues = Object.values(Offices) as Offices[];
+
+    if (officeValues.includes(normalized as Offices)) {
+      return normalized as Offices;
+    }
+
+    return null;
   }
 }
 

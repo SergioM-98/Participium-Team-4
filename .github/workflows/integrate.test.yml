@@ -1,0 +1,82 @@
+name: Run Integration Tests on PR
+
+on:
+  pull_request:
+    branches: [ QA,  ]
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+ 
+    container:
+      image: node:20
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: integration_test_db
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install system dependencies
+      run: |
+        apt-get update
+        apt-get install -y postgresql-client
+
+    - name: Cache node modules
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install dependencies
+      run: npm i
+
+    - name: Wait for Postgres
+      run: |
+        until pg_isready -h postgres -p 5432 -U postgres; do
+          echo "Waiting for postgres..."
+          sleep 2
+        done
+
+    - name: Setup test database
+      run: |
+        npx prisma migrate deploy
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@postgres:5432/integration_test_db
+
+    - name: Run integration tests with coverage
+      run: npm run test:ci:integration
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@postgres:5432/integration_test_db
+        NODE_ENV: test
+        CI: true
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        file: ./coverage/lcov.info
+        flags: integration-tests
+        name: integration-test-coverage
+
+    - name: Cleanup test database
+      if: always()
+      run: |
+        npx prisma migrate reset --force
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@postgres:5432/integration_test_db

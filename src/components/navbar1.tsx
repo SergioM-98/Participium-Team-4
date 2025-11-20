@@ -1,7 +1,8 @@
 "use client";
 
-import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { Menu } from "lucide-react";
+import { useNavbarMenu } from "@/app/lib/hooks/useNavbarMenu";
+import Link from "next/link";
 
 import {
   Accordion,
@@ -26,6 +27,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { ProfileButton } from "./ProfileButton";
 
 interface MenuItem {
   title: string;
@@ -66,42 +68,14 @@ function Navbar1({
     alt: "Participium",
     title: "Participium",
   },
-  menu = [
-    { title: "Home", url: "/" },
-    { title: "Reports", url: "/reports" },
-  ],
   auth = {
     login: { title: "Login", url: "/login" },
     signup: { title: "Sign up", url: "/register" },
     logout: { title: "Logout", url: "/api/auth/signout?callbackUrl=/" },
   },
 }: Navbar1Props) {
-  const { data: session } = useSession();
 
-  // Costruisci il menu in base al ruolo dell'utente
-  let filteredMenu = menu.filter((item) => {
-    
-    if (session?.user?.role === "ADMIN") {
-      return false;
-    }
-    
-    if (item.url === "/reports") {
-      return session?.user?.role === "CITIZEN" || session?.user?.role === "MUNICIPALITY_OFFICER";
-    }
-    // Mostra tutti gli altri item
-    return true;
-  });
-
-  // Aggiungi "Create Officer" per gli admin (come unico link)
-  if (session?.user?.role === "ADMIN") {
-    filteredMenu = [
-      { title: "Create Officer", url: "/admin/officers/registration" }
-    ];
-  }
-
-  const logoUrl = session?.user?.role === "ADMIN" 
-    ? "/admin/officers/registration" 
-    : logo.url;
+  const { menu: filteredMenu, logoUrl, role, username } = useNavbarMenu();
 
   return (
     <section className="py-4">
@@ -110,11 +84,11 @@ function Navbar1({
         <nav className="hidden lg:flex items-center w-full">
           <div className="flex items-center gap-6 flex-1 min-w-0">
             {/* Logo */}
-            <a href={logoUrl} className="flex items-center gap-2 shrink-0">
+            <Link href={logoUrl} className="flex items-center gap-2 shrink-0">
               <span className="text-lg font-semibold tracking-tighter">
                 {logo.title}
               </span>
-            </a>
+            </Link>
 
             <div className="flex items-center min-w-0">
               <NavigationMenu>
@@ -127,7 +101,7 @@ function Navbar1({
 
           {/* Buttons */}
           <div className="flex gap-2">
-            {!session ? (
+            {!role ? (
               <>
                 <Button asChild variant="outline" size="sm">
                   <a href={auth.login.url}>{auth.login.title}</a>
@@ -137,8 +111,12 @@ function Navbar1({
                 </Button>
               </>
             ) : (
-              <LogoutButton variant="outline" size="sm" />
+              <>
+                <LogoutButton variant="outline" size="sm" />
+                <ProfileButton variant="outline" size="sm" showName={true} username={username}/>
+              </>
             )}
+
           </div>
         </nav>
 
@@ -146,9 +124,9 @@ function Navbar1({
         <div className="block lg:hidden">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <a href={logoUrl} className="flex items-center gap-2">
+            <Link href={logoUrl} className="flex items-center gap-2">
               <img src={logo.src} className="max-h-8 dark:invert" alt={logo.alt} />
-            </a>
+            </Link>
 
             <Sheet>
               <SheetTrigger asChild>
@@ -157,12 +135,12 @@ function Navbar1({
                 </Button>
               </SheetTrigger>
 
-              <SheetContent className="overflow-y-auto">
+              <SheetContent className="overflow-y-auto z-[9999]">
                 <SheetHeader>
                   <SheetTitle>
-                    <a href={logoUrl} className="flex items-center gap-2">
+                    <Link href={logoUrl} className="flex items-center gap-2">
                       <img src={logo.src} className="max-h-8 dark:invert" alt={logo.alt} />
-                    </a>
+                    </Link>
                   </SheetTitle>
                 </SheetHeader>
 
@@ -173,7 +151,7 @@ function Navbar1({
 
                   {/* Mobile buttons */}
                   <div className="flex flex-col gap-3">
-                    {!session ? (
+                    {!role ? (
                       <>
                         <Button asChild variant="outline">
                           <a href={auth.login.url}>{auth.login.title}</a>
@@ -183,7 +161,10 @@ function Navbar1({
                         </Button>
                       </>
                     ) : (
-                      <LogoutButton variant="outline" className="w-full" />
+                      <>
+                        <LogoutButton variant="outline" size="sm" className="w-full" />
+                        <ProfileButton variant="outline" size="sm" className="w-full" showName={false} username={username}/>
+                      </>
                     )}
                   </div>
                 </div>
@@ -215,11 +196,8 @@ const renderMenuItem = (item: MenuItem) => {
 
   return (
     <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink
-        href={item.url}
-        className="bg-background hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
-      >
-        {item.title}
+      <NavigationMenuLink asChild className="bg-background hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors">
+        <Link href={item.url}>{item.title}</Link>
       </NavigationMenuLink>
     </NavigationMenuItem>
   );
@@ -242,15 +220,15 @@ const renderMobileMenuItem = (item: MenuItem) => {
   }
 
   return (
-    <a key={item.title} href={item.url} className="text-md font-semibold">
+    <Link key={item.title} href={item.url} className="text-md font-semibold">
       {item.title}
-    </a>
+    </Link>
   );
 };
 
 const SubMenuLink = ({ item }: { item: MenuItem }) => {
   return (
-    <a
+    <Link
       className="hover:bg-muted hover:text-accent-foreground flex min-w-80 select-none flex-row gap-4 rounded-md p-3 leading-none no-underline outline-none transition-colors"
       href={item.url}
     >
@@ -263,7 +241,7 @@ const SubMenuLink = ({ item }: { item: MenuItem }) => {
           </p>
         )}
       </div>
-    </a>
+    </Link>
   );
 };
 

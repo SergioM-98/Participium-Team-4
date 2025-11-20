@@ -67,3 +67,7 @@ export type RetriveReportResponse =
 export type ReportsByOfficerIdResponse =
   | { success: true; data: ReportByOfficer[] }
   | { success: false; error: string };
+
+export type AssignReportToOfficerResponse =
+  | { success: true; data: string }
+  | { success: false; error: string };

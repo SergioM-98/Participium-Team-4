@@ -101,6 +101,31 @@ model User {
 
   createdReports  Report[] @relation("createdBy")
   managedReports  Report[] @relation("managedBy")
+  reports Report[]
+  notificationPreferences NotificationPreferences?
+  profilePhoto ProfilePhoto?
 
   @@map("user")
+}
+
+
+model NotificationPreferences {
+  id           BigInt   @id
+  emailEnabled Boolean  @default(true)
+  telegramEnabled Boolean @default(false)
+
+
+  citizen     User         @relation(fields: [id], references: [id])
+  @@map("notifications_preferences")
+}
+
+model ProfilePhoto {
+  id       String  @id @default(uuid())
+  url      String
+  size     BigInt  @default(0)
+  offset   BigInt  @default(0)
+  filename String?
+  userId    BigInt? @unique
+  user   User? @relation(fields: [userId], references: [id])
+  @@map("profile_photos")
 }
