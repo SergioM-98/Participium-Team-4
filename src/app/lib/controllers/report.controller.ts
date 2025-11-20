@@ -1,4 +1,4 @@
-("use server");
+"use server";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
   ReportRegistrationResponse,

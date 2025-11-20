@@ -63,7 +63,7 @@ class ReportRepository {
       },
       include: {
         photos: {
-          select: { url: true },
+          select: { filename: true },
         },
       },
     });
