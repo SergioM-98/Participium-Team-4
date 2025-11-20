@@ -84,7 +84,6 @@ export default function ReportsList() {
           return;
         }
         
-        // @ts-ignore - TypeScript narrowing issue with discriminated union
         setReports(response.data);
       } catch (err) {
         setError("An unexpected error occurred");
