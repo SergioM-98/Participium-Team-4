@@ -5,7 +5,7 @@ import {
     Lightbulb, 
     Trash2, 
     TrafficCone, 
-    Signpost, 
+    UtilityPole, 
     Trees, 
     AlertTriangle 
 } from 'lucide-react';
@@ -26,7 +26,7 @@ const getIconByCategory = (category: string) => {
         case 'ROADS_SIGNS_AND_TRAFFIC_LIGHTS':
             return <TrafficCone className="w-5 h-5 text-black" />;
         case 'ROADS_AND_URBAN_FURNISHINGS':
-            return <Signpost className="w-5 h-5 text-black" />;
+            return <UtilityPole className="w-5 h-5 text-black" />;
         case 'PUBLIC_GREEN_AREAS_AND_BACKGROUNDS':
             return <Trees className="w-5 h-5 text-black" />;
         case 'OTHER':

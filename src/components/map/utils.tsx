@@ -1,10 +1,8 @@
-// src/components/map/map-utils.tsx
 import { LatLng, divIcon, Point } from "leaflet";
 import L from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ReportMarkerIcon, ClusterMarkerIcon } from './MapIcons';
 
-// --- GEOMETRY UTILS (from utils.ts) ---
 
 // extract from a GeoJSON object the polygons to be visualized on the map
 export function extractVisualizationPolygons(geoJson: any): [number, number][][] {
@@ -62,7 +60,7 @@ export function isPointInPolygon(point: LatLng, polygon: [number, number][]): bo
     return inside;
 }
 
-// --- LAYER & ICON UTILS (from layer-utils.tsx) ---
+
 
 // Cache to avoid regenerating HTML for the same icon multiple times
 const iconCache: Record<string, L.DivIcon> = {};
