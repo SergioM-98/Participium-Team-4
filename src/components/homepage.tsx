@@ -4,8 +4,9 @@ import Link from "next/link";
 import { Megaphone, User } from "lucide-react";
 import { useSession } from "next-auth/react";
 
-
-export default function StartingPage({ role: propRole }: { role?: string } = {}) {
+export default function StartingPage({
+  role: propRole,
+}: { role?: string } = {}) {
   const { data: session, status } = useSession();
   const role = propRole ?? session?.user?.role ?? "";
   const isLoggedIn = role && role !== "";
@@ -77,7 +78,14 @@ export default function StartingPage({ role: propRole }: { role?: string } = {})
       description:
         "Already a member? Use our tool to signal a problem to our operators",
       items: ["Potholes", "Broken lights", "Garbage displacement"],
-  route: role == "" ? "/login" : role == "CITIZEN" ? "/reports" : "/",
+      route:
+        role == ""
+          ? "/login"
+          : role == "CITIZEN"
+          ? "/reports"
+          : role == "OFFICER"
+          ? "/officer/reports"
+          : "/",
     },
   ];
 

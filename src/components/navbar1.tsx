@@ -1,8 +1,7 @@
 "use client";
 
-import { Menu } from "lucide-react";
-import { useNavbarMenu } from "@/app/lib/hooks/useNavbarMenu";
-import Link from "next/link";
+import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 import {
   Accordion,
@@ -27,7 +26,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ProfileButton } from "./ProfileButton";
 
 interface MenuItem {
   title: string;
@@ -57,7 +55,7 @@ interface Navbar1Props {
     logout: {
       title: string;
       url: string;
-    }
+    };
   };
 }
 
@@ -68,14 +66,45 @@ function Navbar1({
     alt: "Participium",
     title: "Participium",
   },
+  menu = [
+    { title: "Home", url: "/" },
+    { title: "Reports", url: "/reports" },
+  ],
   auth = {
     login: { title: "Login", url: "/login" },
     signup: { title: "Sign up", url: "/register" },
     logout: { title: "Logout", url: "/api/auth/signout?callbackUrl=/" },
   },
 }: Navbar1Props) {
+  const { data: session } = useSession();
 
-  const { menu: filteredMenu, logoUrl, role, username } = useNavbarMenu();
+  // Costruisci il menu in base al ruolo dell'utente
+  let filteredMenu = menu.filter((item) => {
+    if (session?.user?.role === "ADMIN") {
+      return false;
+    }
+
+    if (item.url === "/reports") {
+      return (
+        session?.user?.role === "CITIZEN" ||
+        session?.user?.role === "MUNICIPALITY_OFFICER"
+      );
+    }
+    // Mostra tutti gli altri item
+    return true;
+  });
+
+  // Aggiungi menu specifici per ruolo
+  if (session?.user?.role === "ADMIN") {
+    filteredMenu = [
+      { title: "Create Officer", url: "/admin/officers/registration" },
+    ];
+  } else if (session?.user?.role === "OFFICER") {
+    filteredMenu = [{ title: "My Reports", url: "/officer/reports" }];
+  }
+
+  const logoUrl =
+    session?.user?.role === "ADMIN" ? "/admin/officers/registration" : logo.url;
 
   return (
     <section className="py-4">
@@ -84,11 +113,11 @@ function Navbar1({
         <nav className="hidden lg:flex items-center w-full">
           <div className="flex items-center gap-6 flex-1 min-w-0">
             {/* Logo */}
-            <Link href={logoUrl} className="flex items-center gap-2 shrink-0">
+            <a href={logoUrl} className="flex items-center gap-2 shrink-0">
               <span className="text-lg font-semibold tracking-tighter">
                 {logo.title}
               </span>
-            </Link>
+            </a>
 
             <div className="flex items-center min-w-0">
               <NavigationMenu>
@@ -101,7 +130,7 @@ function Navbar1({
 
           {/* Buttons */}
           <div className="flex gap-2">
-            {!role ? (
+            {!session ? (
               <>
                 <Button asChild variant="outline" size="sm">
                   <a href={auth.login.url}>{auth.login.title}</a>
@@ -111,12 +140,8 @@ function Navbar1({
                 </Button>
               </>
             ) : (
-              <>
-                <LogoutButton variant="outline" size="sm" />
-                <ProfileButton variant="outline" size="sm" showName={true} username={username}/>
-              </>
+              <LogoutButton variant="outline" size="sm" />
             )}
-
           </div>
         </nav>
 
@@ -124,9 +149,13 @@ function Navbar1({
         <div className="block lg:hidden">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link href={logoUrl} className="flex items-center gap-2">
-              <img src={logo.src} className="max-h-8 dark:invert" alt={logo.alt} />
-            </Link>
+            <a href={logoUrl} className="flex items-center gap-2">
+              <img
+                src={logo.src}
+                className="max-h-8 dark:invert"
+                alt={logo.alt}
+              />
+            </a>
 
             <Sheet>
               <SheetTrigger asChild>
@@ -135,23 +164,31 @@ function Navbar1({
                 </Button>
               </SheetTrigger>
 
-              <SheetContent className="overflow-y-auto z-[9999]">
+              <SheetContent className="overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>
-                    <Link href={logoUrl} className="flex items-center gap-2">
-                      <img src={logo.src} className="max-h-8 dark:invert" alt={logo.alt} />
-                    </Link>
+                    <a href={logoUrl} className="flex items-center gap-2">
+                      <img
+                        src={logo.src}
+                        className="max-h-8 dark:invert"
+                        alt={logo.alt}
+                      />
+                    </a>
                   </SheetTitle>
                 </SheetHeader>
 
                 <div className="flex flex-col gap-6 p-4">
-                  <Accordion type="single" collapsible className="flex w-full flex-col gap-4">
+                  <Accordion
+                    type="single"
+                    collapsible
+                    className="flex w-full flex-col gap-4"
+                  >
                     {filteredMenu.map((item) => renderMobileMenuItem(item))}
                   </Accordion>
 
                   {/* Mobile buttons */}
                   <div className="flex flex-col gap-3">
-                    {!role ? (
+                    {!session ? (
                       <>
                         <Button asChild variant="outline">
                           <a href={auth.login.url}>{auth.login.title}</a>
@@ -161,10 +198,7 @@ function Navbar1({
                         </Button>
                       </>
                     ) : (
-                      <>
-                        <LogoutButton variant="outline" size="sm" className="w-full" />
-                        <ProfileButton variant="outline" size="sm" className="w-full" showName={false} username={username}/>
-                      </>
+                      <LogoutButton variant="outline" className="w-full" />
                     )}
                   </div>
                 </div>
@@ -176,7 +210,6 @@ function Navbar1({
     </section>
   );
 }
-
 
 const renderMenuItem = (item: MenuItem) => {
   if (item.items) {
@@ -196,8 +229,11 @@ const renderMenuItem = (item: MenuItem) => {
 
   return (
     <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink asChild className="bg-background hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors">
-        <Link href={item.url}>{item.title}</Link>
+      <NavigationMenuLink
+        href={item.url}
+        className="bg-background hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
+      >
+        {item.title}
       </NavigationMenuLink>
     </NavigationMenuItem>
   );
@@ -220,15 +256,15 @@ const renderMobileMenuItem = (item: MenuItem) => {
   }
 
   return (
-    <Link key={item.title} href={item.url} className="text-md font-semibold">
+    <a key={item.title} href={item.url} className="text-md font-semibold">
       {item.title}
-    </Link>
+    </a>
   );
 };
 
 const SubMenuLink = ({ item }: { item: MenuItem }) => {
   return (
-    <Link
+    <a
       className="hover:bg-muted hover:text-accent-foreground flex min-w-80 select-none flex-row gap-4 rounded-md p-3 leading-none no-underline outline-none transition-colors"
       href={item.url}
     >
@@ -241,7 +277,7 @@ const SubMenuLink = ({ item }: { item: MenuItem }) => {
           </p>
         )}
       </div>
-    </Link>
+    </a>
   );
 };
 
