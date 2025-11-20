@@ -1,5 +1,8 @@
+"use server";
 import { ReportMapService } from "@/services/reportMap.service";
 import { z } from "zod";
+import fs from "fs/promises";
+import path from "path";
 
 const idSchema = z.string();
 
@@ -35,6 +38,36 @@ export async function getReportById(params: { id: string }) {
     return { success: false, error: repoResult?.error || "Report not found" };
   }
 
+
+  const processedPhotos = await Promise.all(
+    repoResult.data.photos.map(async (p: any) => {
+      try {
+        console.log('Processing photo URL:', p.url);
+        const filename = path.basename(p.url);
+        const uploadsDir = process.env.UPLOADS_DIR || path.join(process.cwd(), 'uploads');
+        console.log('Uploads Directory:', uploadsDir);
+        const filePath = path.join(uploadsDir, filename);
+        const fileBuffer = await fs.readFile(filePath);
+        const ext = path.extname(filename).toLowerCase();
+        let mime: string;
+        if (ext === ".jpg" || ext === ".jpeg") {
+          mime = "image/jpeg";
+        } else if (ext === ".webp") {
+          mime = "image/webp";
+        } else {
+          mime = "image/png";
+        }
+
+        return `data:${mime};base64,${fileBuffer.toString("base64")}`;
+      } catch (error) {
+        console.error(`Failed to load report photo ${p.url}:`, error);
+        return null;
+      }
+    })
+  );
+
+  
+
   const data = {
     id: repoResult.data.id.toString(),
     title: repoResult.data.title,
@@ -45,7 +78,7 @@ export async function getReportById(params: { id: string }) {
     category: repoResult.data.category,
     status: repoResult.data.status,
     username: repoResult.data.citizen?.username,
-    photos: repoResult.data.photos.map((p: any) => p.url)
+    photos: processedPhotos.filter((url) => url !== null) as string[]
   };
 
   return { success: true, data };

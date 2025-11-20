@@ -1,5 +1,4 @@
-// src/components/map/ClusterReportsSheet.tsx
-import { Report } from "@/app/lib/dtos/map.dto"; // Assicurati che l'import sia corretto
+import { Report } from "@/app/lib/dtos/map.dto"; 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -32,12 +31,12 @@ export default function ClusterReportsSheet({
 
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
-            {/* 👇 MODIFICA QUI: Aggiunto z-[9999] */}
+
             <SheetContent side="right" className="w-full sm:max-w-md flex flex-col z-[9999]">
                 <SheetHeader>
-                    <SheetTitle>Report nel Cluster ({isLoading ? '...' : reports.length})</SheetTitle>
+                    <SheetTitle>Reports in Cluster ({isLoading ? '...' : reports.length})</SheetTitle>
                     <SheetDescription>
-                        Clicca su un report per visualizzare i dettagli.
+                        Click on a report to view details.
                     </SheetDescription>
                 </SheetHeader>
                 <Separator />
@@ -47,10 +46,10 @@ export default function ClusterReportsSheet({
                         {isLoading ? (
                             <div className="flex flex-col items-center justify-center h-40">
                                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                <p className="text-sm text-muted-foreground mt-3">Caricamento report...</p>
+                                <p className="text-sm text-muted-foreground mt-3">Loading reports...</p>
                             </div>
                         ) : reports.length === 0 ? (
-                            <p className="text-center text-muted-foreground pt-4">Nessun report trovato in questa area.</p>
+                            <p className="text-center text-muted-foreground pt-4">No reports found in this area.</p>
                         ) : (
                             reports.map((report) => (
                                 <Card 
@@ -61,7 +60,7 @@ export default function ClusterReportsSheet({
                                     <CardContent className="p-4">
                                         <h4 className="font-semibold truncate">{report.title}</h4>
                                         <p className="text-sm text-muted-foreground mt-1">
-                                            Categoria: {report.category.replace(/_/g, ' ')}
+                                            Category: {report.category.replace(/_/g, ' ')}
                                         </p>
                                     </CardContent>
                                 </Card>

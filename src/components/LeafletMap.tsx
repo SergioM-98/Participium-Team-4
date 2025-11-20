@@ -1,4 +1,3 @@
-// src/components/LeafletMap.tsx
 "use client";
 
 import { LatLngExpression } from "leaflet";
@@ -83,7 +82,7 @@ export default function LeafletMap({
         )}
         <MapPolygons cityPolygons={cityPolygons} borderColor={COLOR} />
         
-        {/* 1. Layer dei Report Esistenti (Cluster) */}
+
         {reportsLayer && (
             <ReportsClusterLayer 
                 reports={reportsLayer.reports}
@@ -92,7 +91,7 @@ export default function LeafletMap({
             />
         )}
 
-        {/* 2. Layer di Selezione (Nuovo Marker) - Ora è indipendente! */}
+
         {onLocationSelect && (
             <MapMarkers
                 markers={markers}

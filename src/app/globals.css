@@ -116,7 +116,7 @@
 @layer base {
   /* --- LEAFLET CUSTOMIZATIONS --- */
 
-  /* FIX: Rimuove l'anello blu/shadow da marker e cluster al focus/hover */
+  
   .leaflet-marker-icon:focus,
   .leaflet-marker-icon:hover,
   .leaflet-marker-icon:focus-visible,
@@ -127,47 +127,46 @@
       box-shadow: none !important;
   }
   @layer base {
-  /* Rimuove stili di default fastidiosi di Leaflet sui div */
+
   .leaflet-marker-cluster-custom {
       background: none;
       border: none;
   }
   
-  /* Reset tap highlight per mobile */
+
   .leaflet-interactive, 
   .report-marker-icon {
       -webkit-tap-highlight-color: transparent !important;
   }
 }
   
-  /* Stili wrapper per l'icona del cluster */
+
   .leaflet-marker-cluster-custom {
       background-color: transparent; 
   }
-  
-  /* Stile interno del cerchio del Cluster */
+
   .leaflet-marker-cluster-custom div {
-      /* Sfondo Bianco semi-trasparente (0.9 alpha) */
+
       background-color: rgba(255, 255, 255, 0.9); 
       
-      /* Colore testo e bordi presi dal tema (Primary color) */
+
       color: oklch(var(--primary)); 
       border: 2px solid oklch(var(--primary));
       
       transition: all 0.2s ease-in-out;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
       
-      /* Layout */
+
       display: flex;
       flex-direction: column; 
       align-items: center;
       justify-content: center;
       text-align: center;
-      border-radius: 9999px; /* rounded-full */
+      border-radius: 9999px; 
       padding: 4px;
   }
   
-  /* Dimensioni dinamiche per i cluster */
+
   .leaflet-marker-cluster-custom div.size-8 {
       width: 32px;
       height: 32px;
@@ -189,12 +188,12 @@
       height: 64px;
   }
 
-  /* Spaziatura icona interna */
+
   .leaflet-marker-cluster-custom div svg {
       margin-bottom: 2px;
   }
 
-  /* Reset generali di Shadcn/Tailwind */
+
   * {
     @apply border-border outline-ring/50;
   }
@@ -204,14 +203,12 @@
 }
 
 @layer components {
-    /* Stili per l'icona del marker singolo (Mega phone) */
     .report-marker-icon {
         background: transparent;
         border: none;
     }
 }
 @layer utilities {
-  /* FIX CRITICO: Forza le Sheet ad essere sopra la mappa Leaflet (che arriva a z-1000) */
   .z-\[9999\] {
     z-index: 9999 !important;
   }
