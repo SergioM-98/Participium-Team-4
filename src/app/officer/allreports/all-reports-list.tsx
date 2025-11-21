@@ -1,8 +1,7 @@
 "use client";
 
-// --- IMPORTS (Simplified) ---
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -13,10 +12,16 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
-  VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, Search, Filter, FileText } from "lucide-react";
+import {
+  ArrowUpDown,
+  Search,
+  Filter,
+  FileText,
+  Eye, // Added Eye icon
+} from "lucide-react";
 
+// UI Components
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,32 +34,46 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CardDescription, CardTitle } from "@/components/ui/card";
+// Tooltip Imports for functionality
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 import { ReportDetailsDialog } from "./report-details-dialog";
 
-// --- END IMPORTS ---
-
 // ====================================================================
-// A. DUMMY DATA AND TYPES
+// TYPES & CONSTANTS
 // ====================================================================
 
-// Constants for Status
+const categoryLabels: Record<string, string> = {
+  WATER_SUPPLY: "Water Supply",
+  ARCHITECTURAL_BARRIERS: "Architectural Barriers",
+  SEWER_SYSTEM: "Sewer System",
+  PUBLIC_LIGHTING: "Public Lighting",
+  WASTE: "Waste",
+  ROADS_SIGNS_AND_TRAFFIC_LIGHTS: "Roads, Signs & Traffic Lights",
+  ROADS_AND_URBAN_FURNISHINGS: "Roads & Urban Furnishings",
+  PUBLIC_GREEN_AREAS_AND_BACKGROUNDS: "Public Green Areas",
+  OTHER: "Other",
+};
+
 export const STATUS = {
   PENDING: "PENDING",
   IN_PROGRESS: "IN_PROGRESS",
   RESOLVED: "RESOLVED",
   REJECTED: "REJECTED",
 } as const;
-
 export type ReportStatus = keyof typeof STATUS;
 
-// Report Type Definition (Updated for details view)
 export interface User {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
-  username: string; // Added to satisfy ReportDetailsClient usage
+  username: string;
 }
 
 export interface Report {
@@ -72,8 +91,22 @@ export interface Report {
   longitude: number;
 }
 
-// Dummy Data (Kept the same)
-export const dummyReports: Report[] = [
+// Status Colors Helper
+const getStatusClasses = (status: ReportStatus): string => {
+  switch (status) {
+    case STATUS.RESOLVED:
+      return "bg-green-600 text-white";
+    case STATUS.REJECTED:
+      return "bg-red-600 text-white";
+    case STATUS.PENDING:
+      return "bg-yellow-500 text-black";
+    default: // IN_PROGRESS
+      return "bg-blue-500 text-white";
+  }
+};
+
+// Dummy Data (Kept outside the component)
+const DUMMY_REPORTS: Report[] = [
   {
     id: "r1",
     title: "Pothole on Main Street near Library",
@@ -204,26 +237,10 @@ export const dummyReports: Report[] = [
 ];
 
 // ====================================================================
-// B. CONSTANTS (Styling)
+// COLUMN DEFINITIONS
 // ====================================================================
 
-const categoryLabels: Record<string, string> = {
-  WATER_SUPPLY: "Water Supply",
-  ARCHITECTURAL_BARRIERS: "Architectural Barriers",
-  SEWER_SYSTEM: "Sewer System",
-  PUBLIC_LIGHTING: "Public Lighting",
-  WASTE: "Waste",
-  ROADS_SIGNS_AND_TRAFFIC_LIGHTS: "Roads, Signs & Traffic Lights",
-  ROADS_AND_URBAN_FURNISHINGS: "Roads & Urban Furnishings",
-  PUBLIC_GREEN_AREAS_AND_BACKGROUNDS: "Public Green Areas",
-  OTHER: "Other",
-};
-
-// ====================================================================
-// 1. COLUMN DEFINITIONS (Kept the same)
-// ====================================================================
-
-export const columns: ColumnDef<Report>[] = [
+const columns: ColumnDef<Report>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -250,6 +267,7 @@ export const columns: ColumnDef<Report>[] = [
   {
     accessorKey: "title",
     header: "Title",
+    enableSorting: true,
     cell: ({ row }) => (
       <div className="max-w-[250px] truncate font-medium">
         {row.getValue("title")}
@@ -262,17 +280,8 @@ export const columns: ColumnDef<Report>[] = [
       row.isAnonymous
         ? "Anonymous"
         : `${row.submitter.firstName} ${row.submitter.lastName}`,
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Submitter
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: "Submitter",
+    enableSorting: false,
     cell: ({ row }) => {
       const submitter = row.original.submitter;
       const isAnonymous = row.original.isAnonymous;
@@ -297,164 +306,144 @@ export const columns: ColumnDef<Report>[] = [
     accessorKey: "category",
     header: "Category",
     filterFn: "equals",
+    enableSorting: true,
     cell: ({ row }) => {
       const categoryKey = row.getValue(
         "category"
       ) as keyof typeof categoryLabels;
       const label = categoryLabels[categoryKey] || categoryKey;
-
-      // Category rendered as plain text (no colors/badges)
       return <div className="text-sm font-medium">{label}</div>;
     },
   },
   {
     accessorKey: "status",
     header: "Status",
+    enableSorting: true,
     cell: ({ row }) => {
       const status = row.getValue("status") as ReportStatus;
-
-      let className = "text-xs px-2 py-1";
-
-      switch (status) {
-        case STATUS.RESOLVED:
-          className += " bg-green-600 hover:bg-green-600/80 text-white";
-          break;
-        case STATUS.REJECTED:
-          className += " bg-red-600 hover:bg-red-600/80 text-white";
-          break;
-        case STATUS.PENDING:
-          className += " bg-yellow-500 hover:bg-yellow-500/80 text-black";
-          break;
-        default: // IN_PROGRESS
-          className += " bg-blue-500 hover:bg-blue-500/80 text-white";
-          break;
-      }
+      const className = `text-xs px-2 py-1 ${getStatusClasses(status)}`;
 
       return <Badge className={className}>{status.replace("_", " ")}</Badge>;
     },
   },
   {
     accessorKey: "dateSubmitted",
-    header: () => <div className="text-right">Submitted On</div>,
+    header: () => "Submitted On",
+    enableSorting: true,
     cell: ({ row }) => {
       const date = new Date(row.getValue("dateSubmitted"));
-      // Formatting matches original component's locale style
       const formatted = date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
       });
-      return (
-        <div className="text-right text-sm text-muted-foreground">
-          {formatted}
-        </div>
-      ); // Kept the subtle text styling
+      return <div className="text-sm text-muted-foreground">{formatted}</div>;
     },
   },
-  // The 'actions' column remains empty
+  // NEW COLUMN FOR ACTIONS
+  {
+    id: "actions",
+    header: () => <div className="text-center">Details</div>,
+    enableSorting: false,
+    cell: ({ row, table }) => {
+      const report = row.original;
+      const { setSelectedReport } = table.options.meta as {
+        setSelectedReport: (report: Report) => void;
+      };
+
+      return (
+        <div className="flex justify-center">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-auto h-8 p-2"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent row click event
+                    setSelectedReport(report);
+                  }}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View Details</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      );
+    },
+  },
 ];
 
 // ====================================================================
-// 2. TABLE COMPONENT
+// TABLE COMPONENT
 // ====================================================================
 
 interface AllReportsListProps {
   data?: Report[];
 }
 
-export function AllReportsList({ data = dummyReports }: AllReportsListProps) {
-  const router = useRouter();
+export function AllReportsList({ data = DUMMY_REPORTS }: AllReportsListProps) {
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
-  // State for the modal dialog
-  const [selectedReport, setSelectedReport] = React.useState<Report | null>(
-    null
-  );
-
-  const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "dateSubmitted", desc: true }, // Default sorting: most recent first
+  // Default sorting remains on Date Submitted (newest first)
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "dateSubmitted", desc: true },
   ]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [globalFilter, setGlobalFilter] = React.useState("");
+
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [rowSelection, setRowSelection] = useState({});
 
   const table = useReactTable({
     data,
     columns,
+    state: {
+      sorting,
+      columnFilters,
+      rowSelection,
+      globalFilter,
+    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    // MODIFICATION: Update globalFilterFn to search by submitter name or email
+
     globalFilterFn: (row, columnId, filterValue) => {
       const lowerFilter = filterValue.toLowerCase();
       const submitter = row.original.submitter;
 
-      // Check for anonymous reports
-      if (row.original.isAnonymous) {
-        return false; // Anonymous reports cannot be filtered by name/email
-      }
+      if (row.original.isAnonymous) return false;
 
-      // Check full name, first name, last name, and email
       const fullName =
         `${submitter.firstName} ${submitter.lastName}`.toLowerCase();
-      const firstName = submitter.firstName.toLowerCase();
-      const lastName = submitter.lastName.toLowerCase();
       const email = submitter.email.toLowerCase();
 
-      return (
-        fullName.includes(lowerFilter) ||
-        firstName.includes(lowerFilter) ||
-        lastName.includes(lowerFilter) ||
-        email.includes(lowerFilter)
-      );
+      return fullName.includes(lowerFilter) || email.includes(lowerFilter);
     },
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-      globalFilter,
+    // Pass setSelectedReport via meta data so the cell renderer can use it.
+    meta: {
+      setSelectedReport: setSelectedReport,
     },
   });
 
-  const handleRowClick = (report: Report) => {
-    // Row click opens the details dialog
-    setSelectedReport(report);
+  const handleCategoryFilter = (categoryKey: string) => {
+    table
+      .getColumn("category")
+      ?.setFilterValue(categoryKey === "ALL" ? undefined : categoryKey);
   };
 
   const currentCategoryFilter =
     (table.getColumn("category")?.getFilterValue() as string) ?? "ALL";
-
-  const handleCategoryFilter = (categoryKey: string) => {
-    if (categoryKey === "ALL") {
-      table.getColumn("category")?.setFilterValue(undefined);
-    } else {
-      table.getColumn("category")?.setFilterValue(categoryKey);
-    }
-  };
-
-  const categoryKeys = Object.keys(categoryLabels);
-  const totalButtons = categoryKeys.length + 1;
-
-  const getGridClasses = () => {
-    // Find the best fit for all buttons (max 6 columns)
-    const lgCols = Math.min(totalButtons, 6);
-    const mdCols = Math.min(totalButtons, 5);
-    const smCols = Math.min(totalButtons, 4);
-    const xsCols = Math.min(totalButtons, 3);
-
-    // We use explicit grid styles to force equal width distribution, maximizing horizontal usage.
-    return `grid grid-cols-${xsCols} sm:grid-cols-${smCols} md:grid-cols-${mdCols} lg:grid-cols-${lgCols} gap-2`;
-  };
+  const filteredCount = table.getFilteredRowModel().rows.length;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -467,20 +456,20 @@ export function AllReportsList({ data = dummyReports }: AllReportsListProps) {
         </p>
       </div>
 
-      {/* Filters and Search - Ensures full width alignment */}
+      {/* Filters and Search */}
       <div className="mb-6 space-y-4 w-full">
-        {/* Search Input - MODIFIED placeholder text */}
+        {/* Search Input */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             placeholder="Search by submitter name or email..."
-            value={globalFilter ?? ""}
+            value={globalFilter}
             onChange={(event) => setGlobalFilter(event.target.value)}
             className="pl-10 w-full"
           />
         </div>
 
-        {/* Category Filters - Uses a responsive grid to distribute button width equally */}
+        {/* Category Filters */}
         <div className="space-y-3 w-full">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
@@ -489,7 +478,6 @@ export function AllReportsList({ data = dummyReports }: AllReportsListProps) {
 
           {/* Single-line flex container with equal width distribution */}
           <div className="flex gap-2 w-full [&>button]:flex-1">
-            {/* All Button */}
             <Button
               variant={currentCategoryFilter === "ALL" ? "default" : "outline"}
               size="sm"
@@ -498,8 +486,6 @@ export function AllReportsList({ data = dummyReports }: AllReportsListProps) {
             >
               All
             </Button>
-
-            {/* Category Buttons */}
             {Object.entries(categoryLabels).map(([key, label]) => (
               <Button
                 key={key}
@@ -518,9 +504,7 @@ export function AllReportsList({ data = dummyReports }: AllReportsListProps) {
 
       <div className="mb-4">
         <p className="text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length}{" "}
-          {table.getFilteredRowModel().rows.length === 1 ? "report" : "reports"}{" "}
-          found
+          {filteredCount} {filteredCount === 1 ? "report" : "reports"} found
         </p>
       </div>
 
@@ -530,18 +514,16 @@ export function AllReportsList({ data = dummyReports }: AllReportsListProps) {
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -551,7 +533,7 @@ export function AllReportsList({ data = dummyReports }: AllReportsListProps) {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  onClick={() => handleRowClick(row.original)}
+                  onClick={() => setSelectedReport(row.original)}
                   className="cursor-pointer"
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -585,10 +567,11 @@ export function AllReportsList({ data = dummyReports }: AllReportsListProps) {
           </TableBody>
         </Table>
       </div>
+
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+          {table.getFilteredSelectedRowModel().rows.length} of {filteredCount}{" "}
+          row(s) selected.
         </div>
         <div className="space-x-2">
           <Button
