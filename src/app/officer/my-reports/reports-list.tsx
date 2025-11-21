@@ -19,10 +19,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { getReportsByOfficerId } from "@/controllers/report.controller";
-import type { ReportByOfficer } from "@/dtos/report.dto";
+import type { RetrieveReportByOfficer } from "@/dtos/report.dto";
 import { getPhoto } from "@/controllers/photo.controller";
 
-type Report = ReportByOfficer;
+type Report = RetrieveReportByOfficer;
 
 interface ReportsListProps {
   officerId: string;

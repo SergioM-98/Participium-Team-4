@@ -101,7 +101,6 @@ model User {
 
   createdReports  Report[] @relation("createdBy")
   managedReports  Report[] @relation("managedBy")
-  reports Report[]
   notificationPreferences NotificationPreferences?
   profilePhoto ProfilePhoto?
 
