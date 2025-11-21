@@ -1,4 +1,8 @@
-import { ReportsByOfficerIdResponse } from "@/dtos/report.dto";
+import {
+  ReportListResponse,
+  ReportsUnassignedResponse,
+  ReportsByOfficerResponse,
+} from "@/dtos/report.dto";
 import { ReportRepository } from "@/repositories/report.repository";
 
 class ReportRetrievalService {
@@ -18,7 +22,7 @@ class ReportRetrievalService {
 
   public async retrieveReportsByOfficerId(
     officerId: number
-  ): Promise<ReportsByOfficerIdResponse> {
+  ): Promise<ReportsByOfficerResponse> {
     try {
       const reports = await this.reportRepository.getReportsByOfficerId(
         officerId
@@ -43,6 +47,37 @@ class ReportRetrievalService {
       return {
         success: false,
         error: "Failed to retrieve reports for the given officer ID",
+      };
+    }
+  }
+
+  public async retrievePendingApprovalReports(
+    status: string
+  ): Promise<ReportsUnassignedResponse> {
+    try {
+      const reports = await this.reportRepository.getPendingApprovalReports(
+        status
+      );
+
+      const transformedReports = reports.map((r) => ({
+        id: r.id.toString(),
+        title: r.title,
+        description: r.description,
+        photos: r.photos.map((p) => p.url),
+        category: r.category,
+        longitude: Number(r.longitude),
+        latitude: Number(r.latitude),
+        userId: r.citizenId.toString(),
+      }));
+
+      return {
+        success: true,
+        data: transformedReports,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: "Failed to retrieve pending approval reports",
       };
     }
   }

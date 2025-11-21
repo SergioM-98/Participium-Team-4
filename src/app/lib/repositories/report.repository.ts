@@ -69,6 +69,28 @@ class ReportRepository {
     });
   }
 
+  public async getPendingApprovalReports(status: string) {
+    return await prisma.report.findMany({
+      where: {
+        status: status as ReportStatus,
+      },
+      include: {
+        photos: {
+          select: { url: true },
+        },
+        citizen: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            username: true,
+          },
+        },
+      },
+    });
+  }
+
   public async getOfficerWithLeastReports(department: string) {
     const office = this.normalizeOffice(department);
 
