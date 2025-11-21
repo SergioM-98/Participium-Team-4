@@ -1,7 +1,6 @@
 "use client";
 
-import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -14,11 +13,12 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import {
-  ArrowUpDown,
   Search,
   Filter,
   FileText,
   Eye, // Added Eye icon
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 
 // UI Components
@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import { ReportDetailsDialog } from "./report-details-dialog";
+import { getPendingApprovalReports } from "@/controllers/report.controller";
 
 // ====================================================================
 // TYPES & CONSTANTS
@@ -104,137 +105,6 @@ const getStatusClasses = (status: ReportStatus): string => {
       return "bg-blue-500 text-white";
   }
 };
-
-// Dummy Data (Kept outside the component)
-const DUMMY_REPORTS: Report[] = [
-  {
-    id: "r1",
-    title: "Pothole on Main Street near Library",
-    description:
-      "Large, deep pothole has formed right in front of the public library entrance, causing traffic disruption and vehicle damage risk.",
-    category: "ROADS_AND_URBAN_FURNISHINGS",
-    status: STATUS.PENDING,
-    dateSubmitted: "2024-10-20T10:00:00Z",
-    isAnonymous: false,
-    submitter: {
-      id: "u1",
-      firstName: "Alice",
-      lastName: "Smith",
-      email: "alice.s@example.com",
-      username: "alicesmith",
-    },
-    rejectionReason: undefined,
-    photos: ["/img/r1_p1.jpg"],
-    latitude: 40.7128,
-    longitude: -74.006,
-  },
-  {
-    id: "r2",
-    title: "Broken Traffic Light at Oak & Elm",
-    description:
-      "The traffic light facing East on the corner of Oak and Elm has been stuck on red for the past two hours. Major congestion.",
-    category: "ROADS_SIGNS_AND_TRAFFIC_LIGHTS",
-    status: STATUS.IN_PROGRESS,
-    dateSubmitted: "2024-10-21T14:30:00Z",
-    isAnonymous: true,
-    submitter: {
-      id: "u2",
-      firstName: "Bob",
-      lastName: "Johnson",
-      email: "bob.j@example.com",
-      username: "bobj",
-    },
-    rejectionReason: undefined,
-    photos: ["/img/r2_p1.jpg", "/img/r2_p2.jpg"],
-    latitude: 34.0522,
-    longitude: -118.2437,
-  },
-  {
-    id: "r3",
-    title: "Overflowing Public Trash Bin at Park",
-    description:
-      "Trash bin near the playground is completely full, and waste is spilling out onto the grass. Needs immediate collection.",
-    category: "WASTE",
-    status: STATUS.RESOLVED,
-    dateSubmitted: "2024-10-18T08:15:00Z",
-    isAnonymous: false,
-    submitter: {
-      id: "u3",
-      firstName: "Charlie",
-      lastName: "Brown",
-      email: "charlie.b@example.com",
-      username: "charlieb",
-    },
-    rejectionReason: undefined,
-    photos: ["/img/r3_p1.jpg"],
-    latitude: 41.8781,
-    longitude: -87.6298,
-  },
-  {
-    id: "r4",
-    title: "Non-functional street lamp on River Road",
-    description:
-      "Street lamp 34B is out. Area is very dark at night, creating a safety issue for pedestrians.",
-    category: "PUBLIC_LIGHTING",
-    status: STATUS.PENDING,
-    dateSubmitted: "2024-10-22T16:00:00Z",
-    isAnonymous: true,
-    submitter: {
-      id: "u4",
-      firstName: "Diana",
-      lastName: "Prince",
-      email: "dianap",
-      username: "",
-    },
-    rejectionReason: undefined,
-    photos: [],
-    latitude: 32.7767,
-    longitude: -96.797,
-  },
-  {
-    id: "r5",
-    title: "Illegal dumping behind supermarket",
-    description:
-      "Someone dumped several old mattresses and construction debris behind the new supermarket location.",
-    category: "WASTE",
-    status: STATUS.REJECTED,
-    dateSubmitted: "2024-10-23T11:45:00Z",
-    isAnonymous: false,
-    submitter: {
-      id: "u5",
-      firstName: "Evan",
-      lastName: "Taylor",
-      email: "evan.t@example.com",
-      username: "evant",
-    },
-    rejectionReason:
-      "The reported debris is on private property, not public land.",
-    photos: ["/img/r5_p1.jpg"],
-    latitude: 29.7604,
-    longitude: -95.3698,
-  },
-  {
-    id: "r6",
-    title: "Fountain leaking excessively",
-    description:
-      "The main decorative fountain in the town square is leaking a significant amount of water from its base.",
-    category: "WATER_SUPPLY",
-    status: STATUS.IN_PROGRESS,
-    dateSubmitted: "2024-10-24T09:30:00Z",
-    isAnonymous: false,
-    submitter: {
-      id: "u6",
-      firstName: "Fiona",
-      lastName: "Green",
-      email: "fiona.g@example.com",
-      username: "fionag",
-    },
-    rejectionReason: undefined,
-    photos: ["/img/r6_p1.jpg", "/img/r6_p2.jpg", "/img/r6_p3.jpg"],
-    latitude: 33.4484,
-    longitude: -112.074,
-  },
-];
 
 // ====================================================================
 // COLUMN DEFINITIONS
@@ -387,8 +257,12 @@ interface AllReportsListProps {
   data?: Report[];
 }
 
-export function AllReportsList({ data = DUMMY_REPORTS }: AllReportsListProps) {
+export function AllReportsList({ data }: AllReportsListProps) {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [reports, setReports] = useState<Report[]>(data || []);
+  const [isLoading, setIsLoading] = useState(!data);
+  const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Default sorting remains on Date Submitted (newest first)
   const [sorting, setSorting] = useState<SortingState>([
@@ -399,8 +273,79 @@ export function AllReportsList({ data = DUMMY_REPORTS }: AllReportsListProps) {
   const [globalFilter, setGlobalFilter] = useState("");
   const [rowSelection, setRowSelection] = useState({});
 
+  // Function to fetch reports
+  const fetchReports = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await getPendingApprovalReports("PENDING_APPROVAL");
+
+      if (!response.success) {
+        setError(response.error || "Failed to load reports");
+        setReports([]);
+        return;
+      }
+
+      // Transform the response data to match Report interface
+      const transformedReports = response.data.map((r) => ({
+        id: r.id,
+        title: r.title,
+        description: r.description,
+        category: r.category as keyof typeof categoryLabels,
+        status: STATUS.PENDING,
+        dateSubmitted: new Date().toISOString(), // Use current date if not provided
+        isAnonymous: !r.citizen,
+        submitter: r.citizen
+          ? {
+              id: r.citizen.id,
+              firstName: r.citizen.firstName,
+              lastName: r.citizen.lastName,
+              email: r.citizen.email,
+              username: r.citizen.username,
+            }
+          : {
+              id: "anon",
+              firstName: "Anonymous",
+              lastName: "User",
+              email: "",
+              username: "",
+            },
+        rejectionReason: undefined,
+        photos: r.photos,
+        latitude: r.latitude,
+        longitude: r.longitude,
+      }));
+
+      setReports(transformedReports);
+    } catch (err) {
+      setError("An unexpected error occurred");
+      setReports([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch reports from backend on component mount and when refreshTrigger changes
+  useEffect(() => {
+    if (data && data.length > 0) {
+      // If data is provided as prop, use it
+      setReports(data);
+      setIsLoading(false);
+    } else {
+      // Otherwise, fetch from backend
+      fetchReports();
+    }
+  }, [refreshTrigger]);
+
+  const handleDialogClose = () => {
+    setSelectedReport(null);
+    // Trigger a refresh of the reports list
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
   const table = useReactTable({
-    data,
+    data: reports,
     columns,
     state: {
       sorting,
@@ -508,65 +453,92 @@ export function AllReportsList({ data = DUMMY_REPORTS }: AllReportsListProps) {
         </p>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="text-muted-foreground">Loading reports...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-4">
+          <div className="flex items-start gap-4">
+            <AlertCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
+            <div>
+              <h3 className="font-semibold text-destructive">
+                Error Loading Reports
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* TanStack Table */}
-      <div className="overflow-hidden rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  onClick={() => setSelectedReport(row.original)}
-                  className="cursor-pointer"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
+      {!isLoading && (
+        <div className="overflow-hidden rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <FileText className="h-10 w-10 text-muted-foreground mb-2" />
-                    <h3 className="text-md font-semibold mb-1">
-                      No reports match your filters
-                    </h3>
-                    <p className="text-muted-foreground max-w-md text-sm">
-                      Try adjusting your search query or category filters.
-                    </p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    onClick={() => setSelectedReport(row.original)}
+                    className="cursor-pointer"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <FileText className="h-10 w-10 text-muted-foreground mb-2" />
+                      <h3 className="text-md font-semibold mb-1">
+                        No reports match your filters
+                      </h3>
+                      <p className="text-muted-foreground max-w-md text-sm">
+                        Try adjusting your search query or category filters.
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="text-muted-foreground flex-1 text-sm">
@@ -597,7 +569,7 @@ export function AllReportsList({ data = DUMMY_REPORTS }: AllReportsListProps) {
       {selectedReport && (
         <ReportDetailsDialog
           report={selectedReport}
-          onClose={() => setSelectedReport(null)}
+          onClose={handleDialogClose}
         />
       )}
     </div>
