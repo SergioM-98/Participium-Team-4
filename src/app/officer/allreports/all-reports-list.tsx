@@ -15,23 +15,11 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Search,
-  Filter,
-  FileText,
-} from "lucide-react";
+import { ArrowUpDown, Search, Filter, FileText } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -41,7 +29,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// Card components imported for styling consistency, though the summary cards are removed.
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import { ReportDetailsDialog } from "./report-details-dialog";
 
@@ -85,7 +72,7 @@ export interface Report {
   longitude: number;
 }
 
-// Dummy Data
+// Dummy Data (Kept the same)
 export const dummyReports: Report[] = [
   {
     id: "r1",
@@ -163,8 +150,8 @@ export const dummyReports: Report[] = [
       id: "u4",
       firstName: "Diana",
       lastName: "Prince",
-      email: "diana.p@example.com",
-      username: "dianap",
+      email: "dianap",
+      username: "",
     },
     rejectionReason: undefined,
     photos: [],
@@ -232,21 +219,8 @@ const categoryLabels: Record<string, string> = {
   OTHER: "Other",
 };
 
-// **CATEGORY COLORS REMOVED (No longer used in the table, but kept for status)**
-const categoryColors: Record<string, string> = {
-  WATER_SUPPLY: "bg-blue-100 text-blue-800",
-  ARCHITECTURAL_BARRIERS: "bg-purple-100 text-purple-800",
-  SEWER_SYSTEM: "bg-amber-100 text-amber-800",
-  PUBLIC_LIGHTING: "bg-yellow-100 text-yellow-800",
-  WASTE: "bg-green-100 text-green-800",
-  ROADS_SIGNS_AND_TRAFFIC_LIGHTS: "bg-red-100 text-red-800",
-  ROADS_AND_URBAN_FURNISHINGS: "bg-orange-100 text-orange-800",
-  PUBLIC_GREEN_AREAS_AND_BACKGROUNDS: "bg-emerald-100 text-emerald-800",
-  OTHER: "bg-gray-100 text-gray-800",
-};
-
 // ====================================================================
-// 1. COLUMN DEFINITIONS (Category cell updated)
+// 1. COLUMN DEFINITIONS (Kept the same)
 // ====================================================================
 
 export const columns: ColumnDef<Report>[] = [
@@ -329,7 +303,7 @@ export const columns: ColumnDef<Report>[] = [
       ) as keyof typeof categoryLabels;
       const label = categoryLabels[categoryKey] || categoryKey;
 
-      // --- BADGE/COLOR LOGIC REMOVED HERE ---
+      // Category rendered as plain text (no colors/badges)
       return <div className="text-sm font-medium">{label}</div>;
     },
   },
@@ -364,12 +338,17 @@ export const columns: ColumnDef<Report>[] = [
     header: () => <div className="text-right">Submitted On</div>,
     cell: ({ row }) => {
       const date = new Date(row.getValue("dateSubmitted"));
+      // Formatting matches original component's locale style
       const formatted = date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
         day: "numeric",
       });
-      return <div className="text-right font-medium">{formatted}</div>;
+      return (
+        <div className="text-right text-sm text-muted-foreground">
+          {formatted}
+        </div>
+      ); // Kept the subtle text styling
     },
   },
   // The 'actions' column remains empty
@@ -391,7 +370,9 @@ export function AllReportsList({ data = dummyReports }: AllReportsListProps) {
     null
   );
 
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "dateSubmitted", desc: true }, // Default sorting: most recent first
+  ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
@@ -412,14 +393,28 @@ export function AllReportsList({ data = dummyReports }: AllReportsListProps) {
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
+    // MODIFICATION: Update globalFilterFn to search by submitter name or email
     globalFilterFn: (row, columnId, filterValue) => {
-      const title = row.getValue("title") as string;
-      const description = row.original.description as string;
       const lowerFilter = filterValue.toLowerCase();
+      const submitter = row.original.submitter;
+
+      // Check for anonymous reports
+      if (row.original.isAnonymous) {
+        return false; // Anonymous reports cannot be filtered by name/email
+      }
+
+      // Check full name, first name, last name, and email
+      const fullName =
+        `${submitter.firstName} ${submitter.lastName}`.toLowerCase();
+      const firstName = submitter.firstName.toLowerCase();
+      const lastName = submitter.lastName.toLowerCase();
+      const email = submitter.email.toLowerCase();
 
       return (
-        title.toLowerCase().includes(lowerFilter) ||
-        description.toLowerCase().includes(lowerFilter)
+        fullName.includes(lowerFilter) ||
+        firstName.includes(lowerFilter) ||
+        lastName.includes(lowerFilter) ||
+        email.includes(lowerFilter)
       );
     },
     state: {
@@ -447,6 +442,20 @@ export function AllReportsList({ data = dummyReports }: AllReportsListProps) {
     }
   };
 
+  const categoryKeys = Object.keys(categoryLabels);
+  const totalButtons = categoryKeys.length + 1;
+
+  const getGridClasses = () => {
+    // Find the best fit for all buttons (max 6 columns)
+    const lgCols = Math.min(totalButtons, 6);
+    const mdCols = Math.min(totalButtons, 5);
+    const smCols = Math.min(totalButtons, 4);
+    const xsCols = Math.min(totalButtons, 3);
+
+    // We use explicit grid styles to force equal width distribution, maximizing horizontal usage.
+    return `grid grid-cols-${xsCols} sm:grid-cols-${smCols} md:grid-cols-${mdCols} lg:grid-cols-${lgCols} gap-2`;
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-8">
@@ -458,54 +467,29 @@ export function AllReportsList({ data = dummyReports }: AllReportsListProps) {
         </p>
       </div>
 
-      {/* Filters and Search */}
-      <div className="mb-6 space-y-4">
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search by title or description..."
-              value={globalFilter ?? ""}
-              onChange={(event) => setGlobalFilter(event.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                Columns <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id === "dateSubmitted"
-                        ? "Submitted On"
-                        : column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+      {/* Filters and Search - Ensures full width alignment */}
+      <div className="mb-6 space-y-4 w-full">
+        {/* Search Input - MODIFIED placeholder text */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Search by submitter name or email..."
+            value={globalFilter ?? ""}
+            onChange={(event) => setGlobalFilter(event.target.value)}
+            className="pl-10 w-full"
+          />
         </div>
 
-        <div className="space-y-3">
+        {/* Category Filters - Uses a responsive grid to distribute button width equally */}
+        <div className="space-y-3 w-full">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Filter by category:</span>
           </div>
-          <div className="flex gap-2 flex-wrap">
+
+          {/* Single-line flex container with equal width distribution */}
+          <div className="flex gap-2 w-full [&>button]:flex-1">
+            {/* All Button */}
             <Button
               variant={currentCategoryFilter === "ALL" ? "default" : "outline"}
               size="sm"
@@ -514,6 +498,8 @@ export function AllReportsList({ data = dummyReports }: AllReportsListProps) {
             >
               All
             </Button>
+
+            {/* Category Buttons */}
             {Object.entries(categoryLabels).map(([key, label]) => (
               <Button
                 key={key}
