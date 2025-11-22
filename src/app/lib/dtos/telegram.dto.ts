@@ -13,3 +13,7 @@ export type LinkTelegramAccountRequest = z.infer<
 export type LinkTelegramAccountResponse =
   | { success: true; data: string }
   | { success: false; error: string };
+
+export type AuthenticationCheckResponse =
+  | { success: true; data: string }
+  | { success: false; error: string };

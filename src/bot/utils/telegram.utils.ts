@@ -5,6 +5,34 @@ export function extractAuthTokenFromStartCommand(
   return parts.length > 1 ? parts[1] : null;
 }
 
+export async function fetchJson<T>(
+  url: string,
+  options?: RequestInit
+): Promise<T> {
+  const response = await fetch(url, options);
+
+  if (!response.ok) {
+    throw new Error(
+      `API request failed with status ${response.status}: ${response.statusText}`
+    );
+  }
+
+  return response.json();
+}
+
+export async function callTelegramApi<T>(
+  endpoint: string,
+  options?: RequestInit
+): Promise<T> {
+  const backendUrl = process.env.BACKEND_URL;
+
+  if (!backendUrl) {
+    throw new Error("BACKEND_URL environment variable is not set");
+  }
+
+  return fetchJson<T>(`${backendUrl}${endpoint}`, options);
+}
+
 export function formatWelcomeMessage(username: string): string {
   return (
     `Account connected successfully!\n\n` +
@@ -36,3 +64,9 @@ export function formatAuthInstructionsMessage(): string {
     `You will be automatically redirected to Telegram to complete the authentication.`
   );
 }
+
+export const TELEGRAM_API = {
+  IS_AUTHENTICATED: "/api/telegram/isAuthenticated",
+  REGISTER: "/api/telegram/register",
+  SEND_REPORT: "/api/telegram",
+};

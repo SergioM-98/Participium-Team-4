@@ -1,29 +1,35 @@
 import { Context } from "grammy";
 import {
+  callTelegramApi,
   extractAuthTokenFromStartCommand,
   formatAuthErrorMessage,
   formatAuthInstructionsMessage,
   formatWelcomeBackMessage,
   formatWelcomeMessage,
-} from "../utils/telegramAuth.utils";
+  TELEGRAM_API,
+} from "../utils/telegram.utils";
 import {
+  AuthenticationCheckResponse,
   LinkTelegramAccountRequest,
   LinkTelegramAccountResponse,
-} from "@/app/lib/dtos/telegram.dto";
+} from "@/dtos/telegram.dto";
 
 export async function handleStart(ctx: Context) {
   try {
     const chatId = ctx.chatId!;
 
-    const isAuthenticated = await fetch(
-      `${process.env.BACKEND_URL}/api/telegram/isAuthenticated?chatId=${chatId}`
-    ).then((res) => res.json());
+    const isAuthenticated = await callTelegramApi<AuthenticationCheckResponse>(
+      TELEGRAM_API.IS_AUTHENTICATED,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chatId }),
+      }
+    );
 
-    if (isAuthenticated) {
+    if (isAuthenticated.success && isAuthenticated.data) {
       return await ctx.reply(
-        formatWelcomeBackMessage(
-          ctx.from?.username ?? isAuthenticated.data.username
-        )
+        formatWelcomeBackMessage(ctx.from?.username ?? isAuthenticated.data)
       );
     }
 
@@ -34,20 +40,22 @@ export async function handleStart(ctx: Context) {
       return await ctx.reply(formatAuthInstructionsMessage());
     }
 
+    const username = ctx.from?.username?.trim() ?? "";
+
     const telegramInfo: LinkTelegramAccountRequest = {
       authToken,
       chatId,
-      username: ctx.from?.username ?? "",
+      username,
     };
 
-    const result: LinkTelegramAccountResponse = await fetch(
-      `${process.env.BACKEND_URL}/api/telegram/auth`,
+    const result = await callTelegramApi<LinkTelegramAccountResponse>(
+      TELEGRAM_API.REGISTER,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(telegramInfo),
       }
-    ).then((res) => res.json());
+    );
 
     if (result.success) {
       await ctx.reply(formatWelcomeMessage(result.data));
@@ -55,6 +63,9 @@ export async function handleStart(ctx: Context) {
       await ctx.reply(formatAuthErrorMessage(result.error));
     }
   } catch (error) {
-    await ctx.reply("An unexpected error occurred. Please try again later.");
+    console.error("Error in handleStart:", error);
+    await ctx.reply(
+      "An unexpected error occurred. Please try again later or contact support."
+    );
   }
 }
