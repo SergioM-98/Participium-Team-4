@@ -1,33 +1,33 @@
 import { registerTelegram } from "@/app/lib/controllers/telegramBot.controller";
-import { telegramRegistrationSchema } from "@/app/lib/dtos/telegramBot.dto";
+import { LinkTelegramAccountRequest } from "@/dtos/telegram.dto";
 
 export async function POST(req: Request) {
   try {
-    const secret = req.headers.get("X-Telegram-Bot-Api-Secret-Token");
-    if (secret !== process.env.TELEGRAM_WEBHOOK_SECRET) {
-      return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const body: LinkTelegramAccountRequest = await req.json();
+    console.log("Registration endpoint called with body:", body);
+
+    if (!body.authToken || !body.chatId) {
+      console.log("Invalid body - missing authToken or chatId");
+      return Response.json(
+        { success: false, error: "Invalid body" },
+        { status: 400 }
+      );
     }
 
-    const body = await req.json();
-    const parsed = telegramRegistrationSchema.safeParse(body);
-
-    if (!parsed.success) {
-      return Response.json({ success: false, error: "Invalid body" }, { status: 400 });
-    }
-
-    const result = await registerTelegram(
-      parsed.data.token,
-      parsed.data.telegramId
-    );
+    console.log("Calling registerTelegram with:", body.authToken, body.chatId);
+    const result = await registerTelegram(body.authToken, body.chatId);
+    console.log("Registration result:", result);
 
     if (!result.success) {
       return Response.json(result, { status: 400 });
     }
 
     return Response.json(result);
-
   } catch (error) {
     console.error("Unexpected error:", error);
-    return Response.json({ success: false, error: "Internal server error" }, { status: 500 });
+    return Response.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

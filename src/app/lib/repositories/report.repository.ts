@@ -65,21 +65,27 @@ class ReportRepository {
           title: title,
           description: description,
           photos: {
-            connect: photos.map((photoId) => ({ id: photoId })),
+            create: photos.map((photoId) => ({
+              url: `/uploads/${photoId}`,
+              size: 0,
+              offset: 0,
+              filename: photoId,
+            })),
           },
           category: Object.values(Category).includes(category as Category)
             ? (category as Category)
             : Category.OTHER,
           longitude: longitude,
           latitude: latitude,
-          citizenId: Number(userId),
+          citizenId: userId,
         },
       });
       return {
         success: true,
         data: `Report with id: ${report.id} succesfuly created`,
       };
-    } catch {
+    } catch (error) {
+      console.error("[createReport] Error creating report:", error);
       return {
         success: false,
         error: "Failed to add the report to the database",

@@ -28,7 +28,7 @@ class UserService {
         if (!result.success) return result;
 
         if (userData.role === "CITIZEN") {
-            const res = await this.notificationsRepository.updateNotificationsPreferences(userData.username, {
+            const res = await this.notificationsRepository.updateNotificationsPreferences(userData.id, {
                 emailEnabled: true,
                 telegramEnabled: false,
             }, tx);

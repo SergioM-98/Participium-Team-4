@@ -103,6 +103,7 @@ export async function getMe(): Promise<MeType | RegistrationResponse> {
         return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
       } 
     }
+    
     return {
       id: session.user.id,
       firstName: session.user.firstName,

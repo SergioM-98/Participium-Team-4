@@ -11,24 +11,19 @@ import { prisma } from "@/prisma/db";
 import bcrypt from "bcrypt";
 import { Prisma, PrismaClient } from "@prisma/client";
 
-
 type DBClient = PrismaClient | Prisma.TransactionClient;
 
 class UserRepository {
-  
-    private static instance: UserRepository;
+  private static instance: UserRepository;
 
-    private constructor() {}
+  private constructor() {}
 
-    public static getInstance(): UserRepository {
-        if (!UserRepository.instance) {
-            UserRepository.instance = new UserRepository();
-        }
-        return UserRepository.instance;
+  public static getInstance(): UserRepository {
+    if (!UserRepository.instance) {
+      UserRepository.instance = new UserRepository();
     }
-
-
-
+    return UserRepository.instance;
+  }
 
   async checkDuplicates(
     userData: RegistrationInput
@@ -59,7 +54,10 @@ class UserRepository {
     }
   }
 
-  async createUser(userData: RegistrationInput, db: DBClient = prisma): Promise<RegistrationResponse> {
+  async createUser(
+    userData: RegistrationInput,
+    db: DBClient = prisma
+  ): Promise<RegistrationResponse> {
     try {
       if (userData.password !== userData.confirmPassword) {
         return { success: false, error: "Passwords do not match" };
@@ -73,9 +71,10 @@ class UserRepository {
           lastName: userData.lastName,
           email: userData.email ?? undefined,
           username: userData.username,
+          id: userData.id,
           role: userData.role,
           office: userData.office ?? undefined,
-          passwordHash: hashedPassword
+          passwordHash: hashedPassword,
         },
       });
 
@@ -120,7 +119,7 @@ class UserRepository {
           lastName: rest.lastName,
           username: rest.username,
           role: rest.role,
-          telegram: rest.telegram ?? undefined
+          telegram: rest.telegram ?? undefined,
         },
       };
     } catch (error) {
@@ -128,11 +127,17 @@ class UserRepository {
     }
   }
 
-  async updateNotificationsMedia(userId: string, email: string | null, removeTelegram:boolean): Promise<RegistrationResponse> {
-  
+  async updateNotificationsMedia(
+    userId: string,
+    email: string | null,
+    removeTelegram: boolean
+  ): Promise<RegistrationResponse> {
     try {
-      if(email === null && removeTelegram === false) {
-        return { success: false, error: "At least one contact method must be provided" };
+      if (email === null && removeTelegram === false) {
+        return {
+          success: false,
+          error: "At least one contact method must be provided",
+        };
       }
       const data: any = {};
 
@@ -142,7 +147,7 @@ class UserRepository {
 
       if (removeTelegram) {
         data.telegram = null;
-      } 
+      }
 
       await prisma.user.update({
         where: { username: userId },
@@ -152,12 +157,12 @@ class UserRepository {
         success: true,
         data: userId,
       };
-    }catch (error) {
+    } catch (error) {
       throw new Error("Failed to update user in database");
     }
   }
 
-  async getUserByTelegramId(telegramId: string) : Promise<RegistrationResponse> {
+  async getUserByTelegramId(telegramId: string): Promise<RegistrationResponse> {
     try {
       const user = await prisma.user.findUnique({
         where: {
@@ -166,20 +171,20 @@ class UserRepository {
       });
 
       if (!user) {
-        return { success: false, error: "No user found with the provided telegram ID." };
+        return {
+          success: false,
+          error: "No user found with the provided telegram ID.",
+        };
       }
 
-      const { passwordHash, ...rest } = user;
       return {
         success: true,
-        data: rest.username,
+        data: user.id,
       };
     } catch (error) {
       return { success: false, error: "Failed to fetch user from database" };
     }
   }
-
-
 }
 
 export { UserRepository };

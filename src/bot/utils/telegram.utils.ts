@@ -9,9 +9,15 @@ export async function fetchJson<T>(
   url: string,
   options?: RequestInit
 ): Promise<T> {
+  console.log("Fetching URL:", url);
   const response = await fetch(url, options);
 
+  console.log("Response status:", response.status);
+  console.log("Response statusText:", response.statusText);
+
   if (!response.ok) {
+    const text = await response.text();
+    console.log("Response body:", text);
     throw new Error(
       `API request failed with status ${response.status}: ${response.statusText}`
     );
@@ -25,6 +31,9 @@ export async function callTelegramApi<T>(
   options?: RequestInit
 ): Promise<T> {
   const backendUrl = process.env.BACKEND_URL;
+
+  console.log("BACKEND_URL:", backendUrl);
+  console.log("Full API URL:", `${backendUrl}${endpoint}`);
 
   if (!backendUrl) {
     throw new Error("BACKEND_URL environment variable is not set");

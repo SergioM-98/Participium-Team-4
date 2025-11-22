@@ -1,12 +1,9 @@
 "use server";
-import {
-  ControllerSuccessResponse,
-  CreateUploadRequest,
-} from "../dtos/tus.dto";
-import { TusCreateDataSchema } from "../dtos/tus.header.dto";
+import { ControllerSuccessResponse, CreateUploadRequest } from "@/dtos/tus.dto";
+import { TusCreateDataSchema } from "@/dtos/tus.header.dto";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
-import { ProfilePhotoService } from "../services/profilePhoto.service";
+import { ProfilePhotoService } from "@/services/profilePhoto.service";
 import fs from "fs/promises";
 import path, { parse } from "path";
 
@@ -112,22 +109,36 @@ export async function getProfilePhotoUrl() {
 
     return `data:${mime};base64,${img.toString("base64")}`;
   }
-
   /*client implementation example:
-            "use client";
-            import { getProfilePhotoUrl } from "@/components/ProfilePhoto.controller";
-            import { useEffect, useState } from "react";
+  "use client";
 
-            export default function ProfilePhoto() {
-            const [url, setUrl] = useState<string | null>(null);
+  import { getProfilePhotoUrl } from "@/components/ProfilePhoto.controller";
 
-            useEffect(() => {
-                getProfilePhotoUrl().then(setUrl).catch(console.error);
-            }, []);
+  import { useEffect, useState } from "react";
 
-            if (!url) return <p>Loading...</p>;
 
-            return <img src={url} alt="Profile Photo" className="w-32 h-32 rounded-full" />;
-            }
-        */
+
+  export default function ProfilePhoto() {
+
+  const [url, setUrl] = useState<string | null>(null);
+
+
+
+  useEffect(() => {
+
+      getProfilePhotoUrl().then(setUrl).catch(console.error);
+
+  }, []);
+
+
+
+  if (!url) return <p>Loading...</p>;
+
+
+
+  return <img src={url} alt="Profile Photo" className="w-32 h-32 rounded-full" />;
+
+  }
+
+*/
 }
