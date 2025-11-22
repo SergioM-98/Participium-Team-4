@@ -86,7 +86,7 @@ export async function newReport(
   await ctx.reply("Sending your report...");
 
   try {
-    const response = await fetch("http://localhost:3000/api/reports", {
+    const response = await fetch("http://localhost:3000/api/telegram", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -95,7 +95,6 @@ export async function newReport(
     });
 
     if (response.ok) {
-      const result = await response.json();
       await ctx.reply(`Report sent successfully!`);
     } else {
       await ctx.reply("Error sending the report. Please try again later.");

@@ -1,6 +1,5 @@
-import { Bot, Context, session } from "grammy";
+import { Bot, Context } from "grammy";
 import {
-  type Conversation,
   type ConversationFlavor,
   conversations,
   createConversation,
