@@ -10,9 +10,9 @@ import {
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { UserService } from "../services/user.service";
-import { updateNotificationsPreferences } from "./notifications.controller";
+import { updateNotificationsPreferences } from "./notification.controller";
 import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
-import { NotificationsService } from "../services/notifications.service";
+import { NotificationService } from "../services/notification.service";
 
 
 
@@ -96,7 +96,7 @@ export async function getMe(username: string): Promise<MeType | RegistrationResp
     let notifications: NotificationsResponse;
 
     if(session.user.role === "CITIZEN"){
-      notifications = await NotificationsService.getInstance().getNotificationsPreferences(session.user.username);
+      notifications = await NotificationService.getInstance().getNotificationsPreferences(session.user.username);
       if(!notifications.success){
         return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
       } 
