@@ -41,12 +41,8 @@ import path, { parse } from "path";
             throw new Error("Unauthorized access");
         }
 
-        let userId: number;
-        try {
-            userId = parseInt(session.user.id);
-        } catch {
-            throw new Error("Invalid user ID");
-        }
+        let userId = session.user.id;
+        
 
         const result = await ProfilePhotoService.getInstance().createUploadPhoto(serviceRequest, userId);
 
@@ -81,12 +77,7 @@ import path, { parse } from "path";
             throw new Error("Unauthorized access");
         }
 
-        let userId: number;
-        try {
-            userId = parseInt(session.user.id);
-        } catch {
-            throw new Error("Invalid user ID");
-        }
+        let userId = session.user.id;
 
         const result = await ProfilePhotoService.getInstance().deletePhoto(userId);
 
@@ -101,7 +92,7 @@ import path, { parse } from "path";
             throw new Error("Unauthorized access");
         }
 
-        const photo = await ProfilePhotoService.getInstance().getPhotoOfUser(parseInt(session.user.id));
+        const photo = await ProfilePhotoService.getInstance().getPhotoOfUser(session.user.id);
 
         if (!photo) {
             throw new Error("Profile photo not found");

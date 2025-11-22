@@ -26,6 +26,7 @@ import { NotificationsService } from "../services/notifications.service";
     const session = await getServerSession(authOptions);
 
     const validatedData = RegistrationInputSchema.safeParse({
+      id:  crypto.randomUUID(),
       firstName: formData.get("firstName"),
       lastName: formData.get("lastName"),
       email: formData.get("email") || undefined,
@@ -34,7 +35,6 @@ import { NotificationsService } from "../services/notifications.service";
       confirmPassword: formData.get("confirmPassword"),
       role: formData.get("role"),
       office: formData.get("office") || undefined,
-      telegram: formData.get("telegram") || undefined,
     });
 
     if (!validatedData.success) {
@@ -68,7 +68,7 @@ import { NotificationsService } from "../services/notifications.service";
   export async function updateNotificationsMedia(telegram: string | null, email: string | null, removeTelegram:boolean, notifications: NotificationsData): Promise<RegistrationResponse> {
 
     const session = await getServerSession(authOptions);
-    if (!session || !session.user?.username || session.user?.role !== "CITIZEN") {
+    if (!session || !session.user?.id || session.user?.role !== "CITIZEN") {
       return { success: false, error: "Unauthorized access" };
     }
 
@@ -76,7 +76,9 @@ import { NotificationsService } from "../services/notifications.service";
         return { success: false, error: "Cannot enable telegram notifications when removing telegram media" };
     }
 
-    const updateMediaResponse = await UserService.getInstance().updateNotificationsMedia(session.user.username, telegram, email, removeTelegram);
+
+    //need to connect the transaction!!!!
+    const updateMediaResponse = await UserService.getInstance().updateNotificationsMedia(session.user.id, email, removeTelegram);
 
     const notificationsResponse = await updateNotificationsPreferences(notifications);
 
@@ -87,21 +89,22 @@ import { NotificationsService } from "../services/notifications.service";
     }
   }
 
-export async function getMe(username: string): Promise<MeType | RegistrationResponse> {
+export async function getMe(): Promise<MeType | RegistrationResponse> {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user?.username) {
+    if (!session || !session.user?.id) {
       return { success: false, error: "Unauthorized access" };
     }
 
     let notifications: NotificationsResponse;
 
     if(session.user.role === "CITIZEN"){
-      notifications = await NotificationsService.getInstance().getNotificationsPreferences(session.user.username);
+      notifications = await NotificationsService.getInstance().getNotificationsPreferences(session.user.id);
       if(!notifications.success){
         return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
       } 
     }
     return {
+      id: session.user.id,
       firstName: session.user.firstName,
       lastName: session.user.lastName,
       email: session.user.email ?? undefined,

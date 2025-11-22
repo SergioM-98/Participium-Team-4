@@ -15,7 +15,7 @@ export class ProfilePhotoRepository {
     public async create(data: {
             id: string;
             url: string;
-            userId: number;
+            userId: string;
             size?: bigint;
             offset?: bigint;
             filename?: string;
@@ -59,17 +59,7 @@ export class ProfilePhotoRepository {
         });
     }
 
-    public async getPhotoOfUser(userId: number | string) {
-
-        if (typeof userId === 'string') {
-            const user = await prisma.user.findUnique({
-                where: { username: userId }
-            });
-            if (!user) {
-                throw new Error("User not found");
-            }
-            userId = Number(user.id);
-        }
+    public async getPhotoOfUser(userId: string) {
 
         return await prisma.profilePhoto.findUnique({
             where: { userId }

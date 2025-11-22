@@ -15,11 +15,11 @@ class NotificationsService {
     }
 
 
-    public async getNotificationsPreferences(userId: number | string) : Promise<NotificationsResponse>{
+    public async getNotificationsPreferences(userId: string) : Promise<NotificationsResponse>{
         return this.notificationsRepository.retrieveNotificationsPreferences(userId);
     }
     
-    public async updateNotificationsPreferences(userId: number | string, notifications: NotificationsData) : Promise<NotificationsResponse>{
+    public async updateNotificationsPreferences(userId: string, notifications: NotificationsData) : Promise<NotificationsResponse>{
         return this.notificationsRepository.updateNotificationsPreferences(userId, notifications);
     }
 

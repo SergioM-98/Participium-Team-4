@@ -33,7 +33,7 @@ class ReportRepository {
                         : Category.OTHER,
                     longitude: longitude,
                     latitude: latitude,
-                    citizenId: Number(userId)
+                    citizenId: userId
                 }
             });
             return {

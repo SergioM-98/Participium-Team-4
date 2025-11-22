@@ -24,7 +24,7 @@ import { getServerSession } from 'next-auth/next';
             category: category,
             longitude,
             latitude,
-            userId: isAnonymous? 2 : session.user.id,
+            userId: isAnonymous? "2" : session.user.id,
             isAnonymous
         });
         if(!reportData.success){
