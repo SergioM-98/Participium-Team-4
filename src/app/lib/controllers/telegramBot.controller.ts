@@ -1,3 +1,4 @@
+"use server";
 import { RegistrationResponse } from "../dtos/user.dto";
 import { TelegramService } from "../services/telegramBot.service";
 import { getServerSession } from "next-auth/next";

@@ -73,6 +73,7 @@ class UserRepository {
           lastName: userData.lastName,
           email: userData.email ?? undefined,
           username: userData.username,
+          id: userData.id,
           role: userData.role,
           office: userData.office ?? undefined,
           passwordHash: hashedPassword
