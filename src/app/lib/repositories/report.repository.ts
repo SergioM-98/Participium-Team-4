@@ -1,10 +1,6 @@
 import { prisma } from "@/prisma/db";
 import { Category, Report, Offices, ReportStatus, Role } from "@prisma/client";
-import {
-  RetrieveReportByOfficer,
-  ReportRegistrationResponse,
-  ReportsByOfficerResponse,
-} from "@/dtos/report.dto";
+import { ReportRegistrationResponse } from "@/dtos/report.dto";
 
 class ReportRepository {
   private static instance: ReportRepository;
@@ -98,7 +94,7 @@ class ReportRepository {
       },
       include: {
         photos: {
-          select: { url: true },
+          select: { filename: true },
         },
       },
     });
