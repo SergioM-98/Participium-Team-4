@@ -40,12 +40,9 @@ export async function handleStart(ctx: Context) {
       return await ctx.reply(formatAuthInstructionsMessage());
     }
 
-    const username = ctx.from?.username?.trim() ?? "";
-
     const telegramInfo: LinkTelegramAccountRequest = {
       authToken,
       chatId,
-      username,
     };
 
     const result = await callTelegramApi<LinkTelegramAccountResponse>(

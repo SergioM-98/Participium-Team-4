@@ -249,12 +249,9 @@ export async function newReport(
   conversation: Conversation<Context>,
   ctx: Context
 ) {
-  const userId = ctx.from?.id;
   const chatId = ctx.chatId!;
 
   try {
-    console.log(`[Report] Checking authentication for user ${userId}`);
-
     const isAuthenticated = await callTelegramApi<AuthenticationCheckResponse>(
       TELEGRAM_API.IS_AUTHENTICATED,
       {
@@ -265,16 +262,9 @@ export async function newReport(
     );
 
     if (!isAuthenticated.success) {
-      console.warn(
-        `[Report] User ${userId} is not authenticated, denying report creation`
-      );
       await ctx.reply(MESSAGES.NOT_AUTHENTICATED);
       return;
     }
-
-    console.log(
-      `[Report] User ${userId} is authenticated, proceeding with report`
-    );
 
     await ctx.reply(MESSAGES.TITLE);
     let title = await conversation.form.text();
@@ -318,7 +308,6 @@ export async function newReport(
 
     if (!location) {
       await ctx.reply(MESSAGES.LOCATION_ERROR);
-      console.warn(`[Report] No location provided by user ${userId}`);
       return;
     }
 
@@ -350,6 +339,7 @@ export async function newReport(
     try {
       const formData = new FormData();
 
+      formData.append("chatId", String(chatId));
       formData.append("title", title.trim());
       formData.append("description", description.trim());
       formData.append("latitude", String(location.latitude));

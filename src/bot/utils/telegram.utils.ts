@@ -67,6 +67,6 @@ export function formatAuthInstructionsMessage(): string {
 
 export const TELEGRAM_API = {
   IS_AUTHENTICATED: "/api/telegram/isAuthenticated",
-  REGISTER: "/api/telegram/register",
-  SEND_REPORT: "/api/telegram",
+  REGISTER: "/api/telegram/registration",
+  SEND_REPORT: "/api/telegram/reports",
 };
