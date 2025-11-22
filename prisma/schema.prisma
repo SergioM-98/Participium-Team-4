@@ -23,8 +23,8 @@ model Report {
   createdAt   DateTime     @default(now())
   longitude   Float
   latitude    Float
-  citizenId   BigInt
-  officerId   BigInt?
+  citizenId   String
+  officerId   String?
   rejectionReason String?
 
   citizen   User  @relation("createdBy", fields: [citizenId], references: [id])
@@ -89,12 +89,13 @@ enum Offices {
 }
 
 model User {
-  id           BigInt   @id @default(autoincrement())
+  id           String   @id @default(uuid())
   firstName    String   @db.VarChar(100)
   lastName     String   @db.VarChar(100)
   email        String?  @unique @db.VarChar(100)
   username     String   @unique @db.VarChar(100)
   telegram     String?  @unique @db.VarChar(100)
+  telegramRequestPending Boolean @default(false)
   role         Role     @default(CITIZEN)
   office       Offices?
   passwordHash String   @db.VarChar(255)
@@ -110,8 +111,8 @@ model User {
 
 
 model NotificationPreferences {
-  id           BigInt   @id
-  emailEnabled Boolean  @default(true)
+  id              String   @id
+  emailEnabled    Boolean  @default(true)
   telegramEnabled Boolean @default(false)
 
 
@@ -125,7 +126,7 @@ model ProfilePhoto {
   size     BigInt  @default(0)
   offset   BigInt  @default(0)
   filename String?
-  userId    BigInt? @unique
+  userId    String? @unique
   user   User? @relation(fields: [userId], references: [id])
   @@map("profile_photos")
 }

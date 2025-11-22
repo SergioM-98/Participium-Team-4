@@ -20,7 +20,7 @@ class ProfilePhotoService {
         return ProfilePhotoService.instance;
     }
 
-    public async deletePhoto(userId: number): Promise<TusDeleteResponse> {
+    public async deletePhoto(userId: string): Promise<TusDeleteResponse> {
         try {
             
             // Get photo record from database
@@ -62,7 +62,7 @@ class ProfilePhotoService {
         }
     }
     
-   public async createUploadPhoto(request: CreateUploadRequest, userId: number): Promise<TusCreateResponse> {
+   public async createUploadPhoto(request: CreateUploadRequest, userId: string): Promise<TusCreateResponse> {
     try {
         const validatedRequest = CreateUploadRequestSchema.parse(request);
 
@@ -204,7 +204,7 @@ class ProfilePhotoService {
     }
 
 
-    async getPhotoOfUser(userId: number | string) {
+    async getPhotoOfUser(userId: string) {
         return await this.profilePhotoRepository.getPhotoOfUser(userId);
     }
 

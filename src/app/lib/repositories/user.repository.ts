@@ -75,8 +75,7 @@ class UserRepository {
           username: userData.username,
           role: userData.role,
           office: userData.office ?? undefined,
-          passwordHash: hashedPassword,
-          telegram: userData.telegram ?? undefined,
+          passwordHash: hashedPassword
         },
       });
 
@@ -114,10 +113,14 @@ class UserRepository {
       return {
         success: true,
         data: {
-          ...rest,
           email: rest.email ?? undefined,
           office: rest.office ?? undefined,
-          telegram: rest.telegram ?? undefined,
+          id: rest.id,
+          firstName: rest.firstName,
+          lastName: rest.lastName,
+          username: rest.username,
+          role: rest.role,
+          telegram: rest.telegram ?? undefined
         },
       };
     } catch (error) {
@@ -125,10 +128,10 @@ class UserRepository {
     }
   }
 
-  async updateNotificationsMedia(userId: string, telegram: string | null, email: string | null, removeTelegram:boolean): Promise<RegistrationResponse> {
+  async updateNotificationsMedia(userId: string, email: string | null, removeTelegram:boolean): Promise<RegistrationResponse> {
   
     try {
-      if(telegram === null && email === null && removeTelegram === false) {
+      if(email === null && removeTelegram === false) {
         return { success: false, error: "At least one contact method must be provided" };
       }
       const data: any = {};
@@ -139,9 +142,7 @@ class UserRepository {
 
       if (removeTelegram) {
         data.telegram = null;
-      } else if (telegram !== null) {
-        data.telegram = telegram;
-      }
+      } 
 
       await prisma.user.update({
         where: { username: userId },
@@ -153,6 +154,28 @@ class UserRepository {
       };
     }catch (error) {
       throw new Error("Failed to update user in database");
+    }
+  }
+
+  async getUserByTelegramId(telegramId: string) : Promise<RegistrationResponse> {
+    try {
+      const user = await prisma.user.findUnique({
+        where: {
+          telegram: telegramId,
+        },
+      });
+
+      if (!user) {
+        return { success: false, error: "No user found with the provided telegram ID." };
+      }
+
+      const { passwordHash, ...rest } = user;
+      return {
+        success: true,
+        data: rest.username,
+      };
+    } catch (error) {
+      return { success: false, error: "Failed to fetch user from database" };
     }
   }
 

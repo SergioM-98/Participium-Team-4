@@ -17,6 +17,11 @@ export async function createUploadPhoto(
   const uploadLength = formData.get("upload-length") as string;
   const uploadMetadata = formData.get("upload-metadata") as string | null;
   const file = formData.get("file") as File | null;
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user?.id) {
+    throw new Error("Unauthorized access");
+  }
 
   const data = {
     "tus-resumable": tusResumable,
@@ -39,17 +44,7 @@ export async function createUploadPhoto(
     photoId: photoId,
   };
 
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id || session.user?.role !== "CITIZEN") {
-    throw new Error("Unauthorized access");
-  }
-
-  let userId: number;
-  try {
-    userId = parseInt(session.user.id);
-  } catch {
-    throw new Error("Invalid user ID");
-  }
+  let userId = session.user.id;
 
   const result = await ProfilePhotoService.getInstance().createUploadPhoto(
     serviceRequest,
@@ -86,12 +81,7 @@ export async function deletePhoto() {
     throw new Error("Unauthorized access");
   }
 
-  let userId: number;
-  try {
-    userId = parseInt(session.user.id);
-  } catch {
-    throw new Error("Invalid user ID");
-  }
+  let userId = session.user.id;
 
   const result = await ProfilePhotoService.getInstance().deletePhoto(userId);
 
@@ -104,9 +94,9 @@ export async function getProfilePhotoUrl() {
     throw new Error("Unauthorized access");
   }
 
-  const photo = await ProfilePhotoService.getInstance().getPhotoOfUser(
-    parseInt(session.user.id)
-  );
+  let userId = session.user.id;
+
+  const photo = await ProfilePhotoService.getInstance().getPhotoOfUser(userId);
 
   if (!photo) {
     throw new Error("Profile photo not found");

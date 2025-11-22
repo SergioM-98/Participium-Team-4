@@ -18,22 +18,16 @@ class NotificationsRepository {
         return NotificationsRepository.instance;
     }
 
-  async retrieveNotificationsPreferences(userId: number | string): Promise<NotificationsResponse> {
+  async retrieveNotificationsPreferences(userId: string): Promise<NotificationsResponse> {
         try {
             let user;
-            if(typeof userId === "number") {
-                user = await prisma.user.findUnique({
-                    where: {
-                        id: userId,
-                    },
-                });
-            } else {
-                user = await prisma.user.findUnique({
-                    where: {
-                        username: userId,
-                    },
-                });
-            }
+            
+            user = await prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+        
 
             if (!user) {
                 return { success: false, error: "Invalid credentials" };
@@ -70,22 +64,15 @@ class NotificationsRepository {
         }
     }
 
-    async updateNotificationsPreferences(userId: number | string, notifications: NotificationsData, db: DBClient = prisma): Promise<NotificationsResponse> {
+    async updateNotificationsPreferences(userId: string, notifications: NotificationsData, db: DBClient = prisma): Promise<NotificationsResponse> {
         try {
             let user;
-            if(typeof userId === "number") {
-                user = await prisma.user.findUnique({
-                    where: {
-                        id: userId,
-                    },
-                });
-            } else {
-                user = await prisma.user.findUnique({
-                    where: {
-                        username: userId,
-                    },
-                });
-            }
+            user = await prisma.user.findUnique({
+                where: {
+                    id: userId,
+                },
+            });
+        
 
             if (!user) {
                 return { success: false, error: "User not found" };

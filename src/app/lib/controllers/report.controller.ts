@@ -2,12 +2,10 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
   AssignReportToOfficerResponse,
-  ReportListResponse,
   ReportRegistrationResponse,
   reportRequestSchema,
   ReportsByOfficerResponse,
   ReportsUnassignedResponse,
-  AssignReportToOfficerResponse,
 } from "@/dtos/report.dto";
 import { ReportCreationService } from "@/services/reportCreation.service";
 import { getServerSession } from "next-auth/next";
