@@ -6,11 +6,13 @@ import { register } from "@/app/lib/controllers/user.controller";
 
 export default function OfficerRegistrationPage() {
   const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (payload: MunicipalityUserFormData) => {
     try {
       setError("");
+      setSuccess("");
       setSubmitting(true);
 
       const formData = new FormData();
@@ -26,6 +28,8 @@ export default function OfficerRegistrationPage() {
 
       if (result.success) {
         setError("");
+        setSuccess(`Officer ${payload.username} created successfully!`);
+        setTimeout(() => setSuccess(""), 5000);
         return true;
       } else {
         setError(result.error ?? "Unknown error");
@@ -48,6 +52,14 @@ export default function OfficerRegistrationPage() {
             role="alert"
           >
             <span className="block sm:inline">{error}</span>
+          </div>
+        )}
+        {success && (
+          <div
+            className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative text-sm animate-in fade-in duration-300"
+            role="alert"
+          >
+            <span className="block sm:inline">{success}</span>
           </div>
         )}
         <MunicipalityUserForm

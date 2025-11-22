@@ -20,6 +20,10 @@ class ReportRetrievalService {
     return ReportRetrievalService.instance;
   }
 
+  private normalizeStatus(status: string): string {
+    return status.toLowerCase().replace(/_/g, "_");
+  }
+
   public async retrieveReportsByOfficerId(
     officerId: number
   ): Promise<ReportsByOfficerResponse> {
@@ -41,6 +45,7 @@ class ReportRetrievalService {
         longitude: Number(r.longitude),
         latitude: Number(r.latitude),
         userId: r.citizenId.toString(),
+        status: this.normalizeStatus(r.status),
       }));
 
       return {

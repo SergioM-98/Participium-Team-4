@@ -11,7 +11,7 @@ interface Report {
   title: string;
   description: string;
   category: string;
-  status: "pending" | "approved" | "rejected" | "resolved";
+  status: "pending_approval" | "assigned" | "in_progress" | "suspended" | "rejected" | "resolved";
   latitude: number;
   longitude: number;
   reporterName: string;
@@ -26,7 +26,7 @@ const mockReportData: Report = {
   description:
     "The hedges belonging to the property at 123 Main St are severely overgrown and force pedestrians to walk into the street, creating a safety hazard near the school crossing.\n\nThis needs urgent attention as school starts next week.",
   category: "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS",
-  status: "resolved" as const, // Use 'approved', 'rejected', 'pending', or 'resolved' to test badge colors
+  status: "resolved",
   latitude: 40.7128,
   longitude: -74.006,
   reporterName: "Jane Smith",

@@ -1,9 +1,9 @@
 import { prisma } from "@/prisma/db";
 import { Category, Report, Offices, ReportStatus, Role } from "@prisma/client";
 import {
-  ReportByOfficer,
+  RetrieveReportByOfficer,
   ReportRegistrationResponse,
-  ReportsByOfficerIdResponse,
+  ReportsByOfficerResponse,
 } from "@/dtos/report.dto";
 
 class ReportRepository {

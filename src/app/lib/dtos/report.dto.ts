@@ -37,13 +37,15 @@ export const retrieveReportsByOfficerResponseSchema = reportBaseSchema.extend({
 
 export const rertieveUnassignedReportResponseSchema = reportBaseSchema.extend({
   id: z.string(),
-  citizen: z.object({
-    id: z.string(),
-    firstName: z.string(),
-    lastName: z.string(),
-    username: z.string(),
-    email: z.email(),
-  }),
+  citizen: z
+    .object({
+      id: z.string(),
+      firstName: z.string(),
+      lastName: z.string(),
+      username: z.string(),
+      email: z.email(),
+    })
+    .nullable(),
 });
 
 export const reportResponseSchema = z.object({

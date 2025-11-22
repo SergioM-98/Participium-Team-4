@@ -25,6 +25,7 @@ model Report {
   latitude    Float
   citizenId   BigInt
   officerId   BigInt?
+  rejectionReason String?
 
   citizen   User  @relation("createdBy", fields: [citizenId], references: [id])
   officer   User? @relation("managedBy", fields: [officerId], references: [id])
