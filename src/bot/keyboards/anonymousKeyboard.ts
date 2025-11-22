@@ -5,10 +5,15 @@ const ANONYMOUS_OPTIONS = [
   { text: "No", callback_data: "NO" },
 ];
 
-const anonymousKeyboard = new InlineKeyboard();
-
-for (const option of ANONYMOUS_OPTIONS) {
-  anonymousKeyboard.text(option.text, option.callback_data);
+function createAnonymousKeyboard(): InlineKeyboard {
+  const keyboard = new InlineKeyboard();
+  for (const option of ANONYMOUS_OPTIONS) {
+    keyboard.text(option.text, option.callback_data);
+  }
+  return keyboard;
 }
 
-export { anonymousKeyboard, ANONYMOUS_OPTIONS };
+// Keep for backward compatibility
+const anonymousKeyboard = createAnonymousKeyboard();
+
+export { anonymousKeyboard, ANONYMOUS_OPTIONS, createAnonymousKeyboard };

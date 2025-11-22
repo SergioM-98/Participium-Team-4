@@ -2,14 +2,18 @@ import { Conversation } from "@grammyjs/conversations";
 import { Context } from "grammy";
 import { PhotoSize } from "grammy/types";
 import { Category } from "../../app/lib/dtos/report.dto";
-import { categoryKeyboard } from "../keyboards/categoryKeyboard";
+import { createCategoryKeyboard } from "../keyboards/categoryKeyboard";
 import { locationKeyboard } from "../keyboards/locationKeyboard";
 import {
   ANONYMOUS_OPTIONS,
-  anonymousKeyboard,
+  createAnonymousKeyboard,
 } from "../keyboards/anonymousKeyboard";
 import { callTelegramApi, TELEGRAM_API } from "../utils/telegram.utils";
 import { AuthenticationCheckResponse } from "@/dtos/telegram.dto";
+import {
+  cancelKeyboard,
+  CANCEL_CALLBACK_DATA,
+} from "../keyboards/cancelKeyboard";
 
 const MAX_PHOTOS = 3;
 const MIN_TITLE_LENGTH = 5;
@@ -48,6 +52,7 @@ const MESSAGES = {
   PHOTO_COUNT: (count: number) => `Received ${count} photos in total!`,
   NOT_AUTHENTICATED:
     "You must link your Telegram account first. Use /start to authenticate.",
+  CANCELLED: "Report creation cancelled.",
 };
 
 function validateTitle(title: string): { valid: boolean; error?: string } {
@@ -134,7 +139,7 @@ async function downloadAndProcessPhoto(
 async function collectPhotos(
   conversation: Conversation<Context>,
   ctx: Context
-): Promise<PhotoSize[][]> {
+): Promise<PhotoSize[][] | null> {
   const photos: PhotoSize[][] = [];
   const IMAGE_MIMETYPES = [
     "image/jpeg",
@@ -147,7 +152,15 @@ async function collectPhotos(
 
   while (photos.length < MAX_PHOTOS) {
     try {
-      const nextCtx = await conversation.waitFor("message");
+      const nextCtx = await conversation.wait();
+
+      // Check for cancellation
+      if (nextCtx.callbackQuery?.data === CANCEL_CALLBACK_DATA) {
+        await nextCtx.answerCallbackQuery();
+        await ctx.reply(MESSAGES.CANCELLED);
+        return null;
+      }
+
       const message = nextCtx.message;
 
       console.log(`[Photos] Received message type:`, {
@@ -271,35 +284,102 @@ export async function newReport(
       return;
     }
 
-    await ctx.reply(MESSAGES.ANONYMOUS, { reply_markup: anonymousKeyboard });
-    const anonymousCtx = await conversation.waitFor("callback_query:data");
+    await ctx.reply(MESSAGES.ANONYMOUS, {
+      reply_markup: createAnonymousKeyboard()
+        .row()
+        .text("❌ Cancel", CANCEL_CALLBACK_DATA),
+    });
+    const anonymousCtx = await conversation.wait();
+
+    if (anonymousCtx.callbackQuery?.data === CANCEL_CALLBACK_DATA) {
+      await anonymousCtx.answerCallbackQuery();
+      await ctx.reply(MESSAGES.CANCELLED);
+      return;
+    }
+
     const isAnonymous =
       anonymousCtx.callbackQuery?.data === ANONYMOUS_OPTIONS[0].callback_data;
 
-    await ctx.reply(MESSAGES.TITLE);
-    let title = await conversation.form.text();
+    await ctx.reply(MESSAGES.TITLE, { reply_markup: cancelKeyboard });
+
+    let title = "";
     while (true) {
-      const validation = validateTitle(title);
+      const titleCtx = await conversation.wait();
+
+      if (titleCtx.callbackQuery?.data === CANCEL_CALLBACK_DATA) {
+        await titleCtx.answerCallbackQuery();
+        await ctx.reply(MESSAGES.CANCELLED);
+        return;
+      }
+
+      if (!titleCtx.message?.text) {
+        if (titleCtx.message?.photo) {
+          await ctx.reply("Please send only text for the title, not photos.", {
+            reply_markup: cancelKeyboard,
+          });
+        } else {
+          await ctx.reply("Please send a valid title.", {
+            reply_markup: cancelKeyboard,
+          });
+        }
+        continue;
+      }
+
+      const validation = validateTitle(titleCtx.message.text);
       if (validation.valid) {
+        title = titleCtx.message.text;
         break;
       }
-      await ctx.reply(validation.error!);
-      title = await conversation.form.text();
+      await ctx.reply(validation.error!, { reply_markup: cancelKeyboard });
     }
 
-    await ctx.reply(MESSAGES.DESCRIPTION);
-    let description = await conversation.form.text();
+    await ctx.reply(MESSAGES.DESCRIPTION, { reply_markup: cancelKeyboard });
+
+    let description = "";
     while (true) {
-      const validation = validateDescription(description);
+      const descCtx = await conversation.wait();
+
+      if (descCtx.callbackQuery?.data === CANCEL_CALLBACK_DATA) {
+        await descCtx.answerCallbackQuery();
+        await ctx.reply(MESSAGES.CANCELLED);
+        return;
+      }
+
+      if (!descCtx.message?.text) {
+        if (descCtx.message?.photo) {
+          await ctx.reply(
+            "Please send only text for the description, not photos.",
+            { reply_markup: cancelKeyboard }
+          );
+        } else {
+          await ctx.reply("Please send a valid description.", {
+            reply_markup: cancelKeyboard,
+          });
+        }
+        continue;
+      }
+
+      const validation = validateDescription(descCtx.message.text);
       if (validation.valid) {
+        description = descCtx.message.text;
         break;
       }
-      await ctx.reply(validation.error!);
-      description = await conversation.form.text();
+      await ctx.reply(validation.error!, { reply_markup: cancelKeyboard });
     }
 
-    await ctx.reply(MESSAGES.CATEGORY, { reply_markup: categoryKeyboard });
-    const categoryCtx = await conversation.waitFor("callback_query:data");
+    await ctx.reply(MESSAGES.CATEGORY, {
+      reply_markup: createCategoryKeyboard()
+        .row()
+        .text("❌ Cancel", CANCEL_CALLBACK_DATA),
+    });
+    const categoryCtx = await conversation.wait();
+
+    if (categoryCtx.callbackQuery?.data === CANCEL_CALLBACK_DATA) {
+      await categoryCtx.answerCallbackQuery();
+      await ctx.reply(MESSAGES.CANCELLED);
+      return;
+    }
+
     const categoryData = categoryCtx.callbackQuery?.data;
 
     if (!isValidCategory(categoryData)) {
@@ -310,38 +390,67 @@ export async function newReport(
     await ctx.reply(MESSAGES.LOCATION, {
       reply_markup: locationKeyboard,
     });
-    const location = await conversation.form.location({
-      otherwise: async (ctx) => {
-        await ctx.reply(MESSAGES.LOCATION_ERROR);
-      },
+    await ctx.reply("Or tap the cancel button:", {
+      reply_markup: cancelKeyboard,
     });
 
-    if (!location) {
-      await ctx.reply(MESSAGES.LOCATION_ERROR);
-      return;
-    }
+    let location = null;
+    while (!location) {
+      const locationCtx = await conversation.wait();
 
-    while (!isLocationWithinTurin(location.latitude, location.longitude)) {
-      await ctx.reply(MESSAGES.LOCATION_OUT_OF_BOUNDS);
-      const newLocation = await conversation.form.location({
-        otherwise: async (ctx) => {
-          await ctx.reply(MESSAGES.LOCATION_ERROR);
-        },
-      });
-
-      if (!newLocation) {
-        await ctx.reply(MESSAGES.LOCATION_ERROR);
+      if (locationCtx.callbackQuery?.data === CANCEL_CALLBACK_DATA) {
+        await locationCtx.answerCallbackQuery();
+        await ctx.reply(MESSAGES.CANCELLED);
         return;
       }
 
-      location.latitude = newLocation.latitude;
-      location.longitude = newLocation.longitude;
+      if (!locationCtx.message?.location) {
+        await ctx.reply(MESSAGES.LOCATION_ERROR, {
+          reply_markup: cancelKeyboard,
+        });
+        continue;
+      }
+
+      location = locationCtx.message.location;
+    }
+
+    while (!isLocationWithinTurin(location.latitude, location.longitude)) {
+      await ctx.reply(MESSAGES.LOCATION_OUT_OF_BOUNDS, {
+        reply_markup: cancelKeyboard,
+      });
+
+      const newLocationCtx = await conversation.wait();
+
+      if (newLocationCtx.callbackQuery?.data === CANCEL_CALLBACK_DATA) {
+        await newLocationCtx.answerCallbackQuery();
+        await ctx.reply(MESSAGES.CANCELLED);
+        return;
+      }
+
+      if (!newLocationCtx.message?.location) {
+        await ctx.reply(MESSAGES.LOCATION_ERROR, {
+          reply_markup: cancelKeyboard,
+        });
+        continue;
+      }
+
+      location = newLocationCtx.message.location;
     }
 
     await ctx.reply(MESSAGES.PHOTOS, {
       reply_markup: { remove_keyboard: true },
     });
+    await ctx.reply("Or tap the cancel button:", {
+      reply_markup: cancelKeyboard,
+    });
+
     const photos = await collectPhotos(conversation, ctx);
+
+    if (!photos) {
+      // User cancelled during photo collection
+      return;
+    }
+
     await ctx.reply(MESSAGES.PHOTO_COUNT(photos.length));
 
     await ctx.reply(MESSAGES.SENDING);

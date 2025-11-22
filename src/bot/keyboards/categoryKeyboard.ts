@@ -30,16 +30,21 @@ const CATEGORY_CONFIG: Array<{
 
 import { InlineKeyboard } from "grammy";
 
-const categoryKeyboard = new InlineKeyboard();
-
-for (let i = 0; i < CATEGORY_CONFIG.length; i += 1) {
-  const row = CATEGORY_CONFIG.slice(i, i + 1);
-  categoryKeyboard.row(
-    ...row.map((config) => ({
-      text: config.label,
-      callback_data: config.value,
-    }))
-  );
+function createCategoryKeyboard(): InlineKeyboard {
+  const keyboard = new InlineKeyboard();
+  for (let i = 0; i < CATEGORY_CONFIG.length; i += 1) {
+    const row = CATEGORY_CONFIG.slice(i, i + 1);
+    keyboard.row(
+      ...row.map((config) => ({
+        text: config.label,
+        callback_data: config.value,
+      }))
+    );
+  }
+  return keyboard;
 }
 
-export { categoryKeyboard, CATEGORY_CONFIG };
+// Keep for backward compatibility
+const categoryKeyboard = createCategoryKeyboard();
+
+export { categoryKeyboard, CATEGORY_CONFIG, createCategoryKeyboard };
