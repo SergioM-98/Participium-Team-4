@@ -4,6 +4,10 @@ import { PhotoSize } from "grammy/types";
 import { Category } from "../../app/lib/dtos/report.dto";
 import { categoryKeyboard } from "../keyboards/categoryKeyboard";
 import { locationKeyboard } from "../keyboards/locationKeyboard";
+import {
+  ANONYMOUS_OPTIONS,
+  anonymousKeyboard,
+} from "../keyboards/anonymousKeyboard";
 import { callTelegramApi, TELEGRAM_API } from "../utils/telegram.utils";
 import { AuthenticationCheckResponse } from "@/dtos/telegram.dto";
 
@@ -20,6 +24,7 @@ const TURIN_BOUNDS = {
 };
 
 const MESSAGES = {
+  ANONYMOUS: "Do you want to submit the report anonymously?",
   TITLE: "Please provide the title of the report:",
   DESCRIPTION: "Please describe the problem in detail:",
   CATEGORY: "What is the category of the report?",
@@ -266,6 +271,11 @@ export async function newReport(
       return;
     }
 
+    await ctx.reply(MESSAGES.ANONYMOUS, { reply_markup: anonymousKeyboard });
+    const anonymousCtx = await conversation.waitFor("callback_query:data");
+    const isAnonymous =
+      anonymousCtx.callbackQuery?.data === ANONYMOUS_OPTIONS[0].callback_data;
+
     await ctx.reply(MESSAGES.TITLE);
     let title = await conversation.form.text();
     while (true) {
@@ -340,11 +350,14 @@ export async function newReport(
       const formData = new FormData();
 
       formData.append("chatId", String(chatId));
+      formData.append("isAnonymous", String(isAnonymous));
       formData.append("title", title.trim());
       formData.append("description", description.trim());
       formData.append("latitude", String(location.latitude));
       formData.append("longitude", String(location.longitude));
       formData.append("category", categoryData);
+
+      console.log(`[Report] Current report data: ${formData}`);
 
       let photosAdded = 0;
       for (let i = 0; i < photos.length; i++) {
