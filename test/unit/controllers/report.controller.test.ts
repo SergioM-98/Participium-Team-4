@@ -1,17 +1,30 @@
-import { createReport } from "@/app/lib/controllers/report.controller";
+import { createReport, approveReport, rejectReport } from "@/app/lib/controllers/report.controller";
 import { ReportRegistrationResponse, ReportRequest } from "@/app/lib/dtos/report.dto";
 import { ReportCreationService } from "@/app/lib/services/reportCreation.service";
+import { ReportAssignmentService } from "@/app/lib/services/reportAssignment.service";
 
 const mockService = {
   createReport: jest.fn(),
+};
+
+const mockAssignmentService = {
+  assignReportToOfficer: jest.fn(),
+  rejectReport: jest.fn(),
 };
 
 jest.mock('next-auth/next', () => ({
     getServerSession: jest.fn(),
 }));
 
-jest.mock('@/auth', () => ({
-    authOptions: {}
+jest.mock('next-auth', () => ({
+  default: jest.fn(() => ({
+    GET: jest.fn(),
+    POST: jest.fn(),
+  })),
+}));
+
+jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
+  authOptions: {},
 }));
 
 import { getServerSession } from 'next-auth/next';
@@ -28,12 +41,15 @@ jest.mock('@/app/lib/services/reportCreation.service', () => {
   };
 });
 
+jest.mock('@/app/lib/services/reportAssignment.service', () => {
+  return {
+    ReportAssignmentService: {
+      getInstance: jest.fn(),
+    },
+  };
+});
+
 describe('ReportController Story 4', () => {
-
-
-  
-
-
     const citizenSession = {
         user: {
             id: '2', 
@@ -51,9 +67,17 @@ describe('ReportController Story 4', () => {
         },
         expires: '2024-12-31T23:59:59.999Z'
     };
+
+    const adminSession = {
+        user: {
+            id: '3', 
+            name: 'Admin User',
+            role: 'ADMIN'
+        },
+        expires: '2024-12-31T23:59:59.999Z'
+    };
     
     beforeEach(() => {
-
         jest.clearAllMocks();
     });
 
@@ -193,8 +217,159 @@ describe('ReportController Story 4', () => {
                 expect(response.error).toBe("Failed to add the report to the database");
             }
         });
+  });
 
+  describe('approveReport - Story 6', () => {
+    beforeEach(() => {
+        (ReportAssignmentService.getInstance as jest.Mock).mockReturnValue(mockAssignmentService);
+    });
 
+    it("should approve report successfully when user is OFFICER", async () => {
+        (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+        mockAssignmentService.assignReportToOfficer.mockResolvedValue({ 
+            success: true, 
+            data: "Report assigned to officer ID: 5" 
+        });
 
+        const response = await approveReport(1, 'DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES');
+
+        expect(response.success).toBe(true);
+        expect(mockAssignmentService.assignReportToOfficer).toHaveBeenCalledWith(
+            1,
+            'DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES'
+        );
+        if (response.success) {
+            expect(response.data).toBe("Report assigned to officer ID: 5");
+        }
+    });
+
+    it("should approve report successfully when user is ADMIN", async () => {
+        (getServerSession as jest.Mock).mockResolvedValue(adminSession);
+        mockAssignmentService.assignReportToOfficer.mockResolvedValue({ 
+            success: true, 
+            data: "Report assigned to officer ID: 5" 
+        });
+
+        const response = await approveReport(1, 'DEPARTMENT_OF_COMMERCE');
+
+        expect(response.success).toBe(true);
+        expect(mockAssignmentService.assignReportToOfficer).toHaveBeenCalled();
+    });
+
+    it("should return error when user is not authorized (CITIZEN)", async () => {
+        (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
+
+        const response = await approveReport(1, 'DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES');
+
+        expect(response.success).toBe(false);
+        expect(mockAssignmentService.assignReportToOfficer).not.toHaveBeenCalled();
+        if (!response.success) {
+            expect(response.error).toBe("Unauthorized access");
+        }
+    });
+
+    it("should return error when no session exists", async () => {
+        (getServerSession as jest.Mock).mockResolvedValue(null);
+
+        const response = await approveReport(1, 'DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES');
+
+        expect(response.success).toBe(false);
+        expect(mockAssignmentService.assignReportToOfficer).not.toHaveBeenCalled();
+        if (!response.success) {
+            expect(response.error).toBe("Unauthorized access");
+        }
+    });
+
+    it("should return error when service fails", async () => {
+        (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+        mockAssignmentService.assignReportToOfficer.mockResolvedValue({ 
+            success: false, 
+            error: "No officers available in the specified department" 
+        });
+
+        const response = await approveReport(1, 'DEPARTMENT_OF_COMMERCE');
+
+        expect(response.success).toBe(false);
+        if (!response.success) {
+            expect(response.error).toBe("No officers available in the specified department");
+        }
+    });
+  });
+
+  describe('rejectReport - Story 6', () => {
+    beforeEach(() => {
+        (ReportAssignmentService.getInstance as jest.Mock).mockReturnValue(mockAssignmentService);
+    });
+
+    it("should reject report successfully when user is OFFICER", async () => {
+        (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+        mockAssignmentService.rejectReport.mockResolvedValue({ 
+            success: true, 
+            data: "Report rejected with reason: Insufficient information" 
+        });
+
+        const response = await rejectReport(1, 'Insufficient information');
+
+        expect(response.success).toBe(true);
+        expect(mockAssignmentService.rejectReport).toHaveBeenCalledWith(
+            1,
+            'Insufficient information'
+        );
+        if (response.success) {
+            expect(response.data).toContain("Report rejected with reason");
+        }
+    });
+
+    it("should reject report successfully when user is ADMIN", async () => {
+        (getServerSession as jest.Mock).mockResolvedValue(adminSession);
+        mockAssignmentService.rejectReport.mockResolvedValue({ 
+            success: true, 
+            data: "Report rejected with reason: Duplicate report" 
+        });
+
+        const response = await rejectReport(1, 'Duplicate report');
+
+        expect(response.success).toBe(true);
+        expect(mockAssignmentService.rejectReport).toHaveBeenCalled();
+    });
+
+    it("should return error when user is not authorized (CITIZEN)", async () => {
+        (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
+
+        const response = await rejectReport(1, 'Test reason');
+
+        expect(response.success).toBe(false);
+        expect(mockAssignmentService.rejectReport).not.toHaveBeenCalled();
+        if (!response.success) {
+            expect(response.error).toBe("Unauthorized access");
+        }
+    });
+
+    it("should return error when no session exists", async () => {
+        (getServerSession as jest.Mock).mockResolvedValue(null);
+
+        const response = await rejectReport(1, 'Test reason');
+
+        expect(response.success).toBe(false);
+        expect(mockAssignmentService.rejectReport).not.toHaveBeenCalled();
+        if (!response.success) {
+            expect(response.error).toBe("Unauthorized access");
+        }
+    });
+
+    it("should return error when service fails", async () => {
+        (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+        mockAssignmentService.rejectReport.mockResolvedValue({ 
+            success: false, 
+            error: "Failed to reject report" 
+        });
+
+        const response = await rejectReport(1, 'Test reason');
+
+        expect(response.success).toBe(false);
+        if (!response.success) {
+            expect(response.error).toBe("Failed to reject report");
+        }
+    });
   });
 });

@@ -9,6 +9,11 @@ jest.mock('@/db/db', () => ({
     prisma: {
         report: {
             create: jest.fn(),
+            update: jest.fn(),
+        },
+        user: {
+            findMany: jest.fn(),
+            findFirst: jest.fn(),
         },
     },
 }));
@@ -82,9 +87,125 @@ describe('ReportRepository Story 4', () => {
                 expect(response.error).toBe("Failed to add the report to the database");
             }
         });
+    })
 
+    describe('getOfficerWithLeastReports - Story 6', () => {
+        it("should return officer with least reports", async () => {
+            const mockOfficer = { 
+                id: BigInt(2), 
+                firstName: 'Officer', 
+                lastName: 'Two', 
+                _count: { reports: 1 } 
+            };
+            
+            mockedPrisma.user.findFirst.mockResolvedValue(mockOfficer);
+            
+            const response = await reportRepository.getOfficerWithLeastReports('DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES');
+            
+            expect(response).not.toBeNull();
+            expect(response!.id).toBe(BigInt(2));
+            expect(response!._count.reports).toBe(1);
+        });
 
+        it("should return null when no officers found in department", async () => {
+            mockedPrisma.user.findFirst.mockResolvedValue(null);
+            
+            const response = await reportRepository.getOfficerWithLeastReports('DEPARTMENT_OF_COMMERCE');
+            
+            expect(response).toBeNull();
+        });
 
+        it("should throw error when database fails", async () => {
+            mockedPrisma.user.findFirst.mockRejectedValue(new Error('Database error'));
+            
+            await expect(
+                reportRepository.getOfficerWithLeastReports('DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES')
+            ).rejects.toThrow('Database error');
+        });
+    })
+
+    describe('assignReportToOfficer - Story 6', () => {
+        it("should assign report to officer successfully", async () => {
+            const mockUpdatedReport = {
+                id: BigInt(1),
+                officerId: BigInt(2),
+                status: 'ASSIGNED',
+                title: 'Test Report',
+                description: 'Test',
+                category: 'WASTE',
+                createdAt: new Date(),
+                longitude: 7.6869,
+                latitude: 45.0703,
+                citizenId: BigInt(10),
+                rejectionReason: null,
+            };
+            
+            mockedPrisma.report.update.mockResolvedValue(mockUpdatedReport);
+            
+            const response = await reportRepository.assignReportToOfficer(1, 2);
+            
+            expect(response).toBeDefined();
+            expect(response.id).toBe(BigInt(1));
+            expect(response.officerId).toBe(BigInt(2));
+            expect(response.status).toBe('ASSIGNED');
+            expect(mockedPrisma.report.update).toHaveBeenCalledWith({
+                where: { id: BigInt(1) },
+                data: {
+                    officerId: BigInt(2),
+                    status: 'ASSIGNED',
+                },
+            });
+        });
+
+        it("should throw error when database fails", async () => {
+            mockedPrisma.report.update.mockRejectedValue(new Error('Database error'));
+            
+            await expect(
+                reportRepository.assignReportToOfficer(1, 2)
+            ).rejects.toThrow('Database error');
+        });
+    })
+
+    describe('rejectReport - Story 6', () => {
+        it("should reject report with reason successfully", async () => {
+            const mockRejectedReport = {
+                id: BigInt(1),
+                status: 'REJECTED',
+                rejectionReason: 'Insufficient information',
+                title: 'Test Report',
+                description: 'Test',
+                category: 'WASTE',
+                createdAt: new Date(),
+                longitude: 7.6869,
+                latitude: 45.0703,
+                citizenId: BigInt(10),
+                officerId: null,
+            };
+            
+            mockedPrisma.report.update.mockResolvedValue(mockRejectedReport);
+            
+            const response = await reportRepository.rejectReport(1, 'Insufficient information');
+            
+            expect(response).toBeDefined();
+            expect(response.id).toBe(BigInt(1));
+            expect(response.status).toBe('REJECTED');
+            expect(response.rejectionReason).toBe('Insufficient information');
+            expect(mockedPrisma.report.update).toHaveBeenCalledWith({
+                where: { id: BigInt(1) },
+                data: {
+                    status: 'REJECTED',
+                    rejectionReason: 'Insufficient information',
+                },
+            });
+        });
+
+        it("should throw error when database fails", async () => {
+            mockedPrisma.report.update.mockRejectedValue(new Error('Database error'));
+            
+            await expect(
+                reportRepository.rejectReport(1, 'Test reason')
+            ).rejects.toThrow('Database error');
+        });
     })
 
     })
