@@ -17,9 +17,7 @@ import {
 export async function handleStart(ctx: Context) {
   try {
     const chatId = ctx.chatId!;
-    console.log("handleStart called with chatId:", chatId);
 
-    // Check if user is already authenticated
     const isAuthenticated = await callTelegramApi<AuthenticationCheckResponse>(
       TELEGRAM_API.IS_AUTHENTICATED,
       {
@@ -29,19 +27,14 @@ export async function handleStart(ctx: Context) {
       }
     );
 
-    console.log("Authentication check result:", isAuthenticated);
-
     if (isAuthenticated.success && isAuthenticated.data) {
       return await ctx.reply(
         formatWelcomeBackMessage(ctx.from?.username ?? isAuthenticated.data)
       );
     }
 
-    // User not authenticated, check if they provided a token
     const messageText = ctx.message?.text || "";
     const authToken = extractAuthTokenFromStartCommand(messageText);
-
-    console.log("Auth token extracted:", authToken);
 
     if (!authToken) {
       return await ctx.reply(formatAuthInstructionsMessage());
@@ -52,8 +45,6 @@ export async function handleStart(ctx: Context) {
       chatId,
     };
 
-    console.log("Calling registration API with:", telegramInfo);
-
     const result = await callTelegramApi<LinkTelegramAccountResponse>(
       TELEGRAM_API.REGISTER,
       {
@@ -63,15 +54,12 @@ export async function handleStart(ctx: Context) {
       }
     );
 
-    console.log("Registration API result:", result);
-
     if (result.success) {
       await ctx.reply(formatWelcomeMessage(result.data));
     } else {
       await ctx.reply(formatAuthErrorMessage(result.error));
     }
   } catch (error) {
-    console.error("Error in handleStart:", error);
     await ctx.reply(
       "An unexpected error occurred. Please try again later or contact support."
     );

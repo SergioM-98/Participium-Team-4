@@ -13,7 +13,6 @@ function createAnonymousKeyboard(): InlineKeyboard {
   return keyboard;
 }
 
-// Keep for backward compatibility
 const anonymousKeyboard = createAnonymousKeyboard();
 
 export { anonymousKeyboard, ANONYMOUS_OPTIONS, createAnonymousKeyboard };

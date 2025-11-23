@@ -97,41 +97,25 @@ async function downloadAndProcessPhoto(
 ): Promise<Blob | null> {
   try {
     if (!fileId) {
-      console.error(
-        `[Photo ${photoIndex}] Missing file_id - photo data may be corrupted`
-      );
       return null;
     }
-
-    console.log(
-      `[Photo ${photoIndex}] Starting download with file_id: ${fileId}`
-    );
     const file = await ctx.api.getFile(fileId);
 
     if (!file.file_path) {
-      console.error(`[Photo ${photoIndex}] No file path returned from getFile`);
       return null;
     }
 
     const fileUrl = `https://api.telegram.org/file/bot${ctx.api.token}/${file.file_path}`;
-    console.log(`[Photo ${photoIndex}] Downloading from URL: ${fileUrl}`);
 
     const response = await fetch(fileUrl);
 
     if (!response.ok) {
-      console.error(
-        `[Photo ${photoIndex}] Download failed with status ${response.status}: ${response.statusText}`
-      );
       return null;
     }
 
     const blob = await response.blob();
-    console.log(
-      `[Photo ${photoIndex}] Downloaded successfully, size: ${blob.size} bytes`
-    );
     return blob;
   } catch (error) {
-    console.error(`[Photo ${photoIndex}] Error during download:`, error);
     return null;
   }
 }
@@ -148,8 +132,6 @@ async function collectPhotos(
     "image/gif",
   ];
 
-  console.log(`[Photos] Starting photo collection, max: ${MAX_PHOTOS}`);
-
   while (photos.length < MAX_PHOTOS) {
     try {
       const nextCtx = await conversation.wait();
@@ -163,17 +145,7 @@ async function collectPhotos(
 
       const message = nextCtx.message;
 
-      console.log(`[Photos] Received message type:`, {
-        hasPhoto: !!message?.photo,
-        photoLength: message?.photo?.length ?? 0,
-        hasDocument: !!message?.document,
-        documentMimetype: message?.document?.mime_type,
-        hasText: !!message?.text,
-        textContent: message?.text,
-      });
-
       if (message?.text === "/done") {
-        console.log(`[Photos] User sent /done command`);
         if (photos.length === 0) {
           await ctx.reply(
             "You must upload at least one photo. Send /done when finished."
@@ -184,17 +156,10 @@ async function collectPhotos(
       }
 
       if (message?.photo && message.photo.length > 0) {
-        console.log(
-          `[Photos] Photo detected with ${message.photo.length} quality versions`
-        );
         photos.push(message.photo);
-        console.log(
-          `[Photos] Photo added, total: ${photos.length}/${MAX_PHOTOS}`
-        );
         await ctx.reply(MESSAGES.PHOTO_RECEIVED(photos.length, MAX_PHOTOS));
 
         if (photos.length === MAX_PHOTOS) {
-          console.log(`[Photos] Maximum photos reached`);
           await ctx.reply("Maximum photos reached. Processing report...");
           break;
         }
@@ -207,11 +172,6 @@ async function collectPhotos(
         message.document.mime_type &&
         IMAGE_MIMETYPES.includes(message.document.mime_type)
       ) {
-        console.log(
-          `[Photos] Image document detected: ${message.document.mime_type}`
-        );
-        // Convert document to PhotoSize-like array for consistency
-        // Document has file_id which we can use in downloadAndProcessPhoto
         const photoArray = [
           {
             file_id: message.document.file_id,
@@ -221,13 +181,10 @@ async function collectPhotos(
           },
         ];
         photos.push(photoArray as PhotoSize[]);
-        console.log(
-          `[Photos] Image document added, total: ${photos.length}/${MAX_PHOTOS}`
-        );
+
         await ctx.reply(MESSAGES.PHOTO_RECEIVED(photos.length, MAX_PHOTOS));
 
         if (photos.length === MAX_PHOTOS) {
-          console.log(`[Photos] Maximum photos reached`);
           await ctx.reply("Maximum photos reached. Processing report...");
           break;
         }
@@ -236,30 +193,21 @@ async function collectPhotos(
           await ctx.reply(MESSAGES.SEND_MORE_PHOTOS);
         }
       } else if (message?.text) {
-        console.log(`[Photos] Received non-/done text: "${message.text}"`);
         await ctx.reply(
           "Please send a photo or type /done to finish uploading photos."
         );
       } else {
-        console.log(
-          `[Photos] Received unsupported message type (document: ${!!message?.document})`
-        );
         await ctx.reply(
           "Please send a photo or image file. Type /done when finished."
         );
       }
     } catch (error) {
-      console.error(`[Photos] Error collecting photos:`, error);
       await ctx.reply(
         "An error occurred while collecting photos. Please try again."
       );
       break;
     }
   }
-
-  console.log(
-    `[Photos] Photo collection complete, total photos: ${photos.length}`
-  );
   return photos;
 }
 
@@ -466,33 +414,20 @@ export async function newReport(
       formData.append("longitude", String(location.longitude));
       formData.append("category", categoryData);
 
-      console.log(`[Report] Current report data: ${formData}`);
-
       let photosAdded = 0;
       for (let i = 0; i < photos.length; i++) {
         const fileId = photos[i][photos[i].length - 1]?.file_id;
 
-        console.log(`[Report] Processing photo ${i + 1}/${photos.length}`);
         const blob = await downloadAndProcessPhoto(ctx, fileId, i + 1);
 
         if (blob) {
           formData.append("photos", blob, `photo_${photosAdded + 1}.jpg`);
           photosAdded++;
-          console.log(
-            `[Report] Photo ${i + 1} added to form data (${photosAdded} total)`
-          );
-        } else {
-          console.warn(`[Report] Photo ${i + 1} could not be downloaded`);
         }
       }
 
-      console.log(
-        `[Report] Sending report with ${photosAdded}/${photos.length} photos`
-      );
-
       const backendUrl = process.env.BACKEND_URL;
       if (!backendUrl) {
-        console.error(`[Report] BACKEND_URL environment variable is not set`);
         await ctx.reply(
           "Server configuration error. Please contact the administrator."
         );
@@ -500,7 +435,6 @@ export async function newReport(
       }
 
       const apiUrl = `${backendUrl}${TELEGRAM_API.SEND_REPORT}`;
-      console.log(`[Report] Sending to URL: ${apiUrl}`);
 
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -508,20 +442,14 @@ export async function newReport(
       });
 
       if (!response.ok) {
-        console.error(
-          `[Report] Failed to send report: ${response.status} ${response.statusText}`
-        );
         const errorText = await response.text();
-        console.error(`[Report] Error response: ${errorText}`);
         await ctx.reply(MESSAGES.ERROR);
         return;
       }
 
       const responseData = await response.json();
-      console.log(`[Report] Report sent successfully, response:`, responseData);
       await ctx.reply(MESSAGES.SUCCESS);
     } catch (error) {
-      console.error(`[Report] Error sending report:`, error);
       await ctx.reply(MESSAGES.CONNECTION_ERROR);
     }
   } catch (error) {

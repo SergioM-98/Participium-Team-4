@@ -44,7 +44,6 @@ function createCategoryKeyboard(): InlineKeyboard {
   return keyboard;
 }
 
-// Keep for backward compatibility
 const categoryKeyboard = createCategoryKeyboard();
 
 export { categoryKeyboard, CATEGORY_CONFIG, createCategoryKeyboard };
