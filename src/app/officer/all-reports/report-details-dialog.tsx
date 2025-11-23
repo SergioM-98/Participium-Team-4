@@ -18,7 +18,7 @@ export function ReportDetailsDialog({
     title: report.title,
     description: report.description,
     category: report.category,
-    status: report.status.toLowerCase(), // Ensure this matches what ReportDetailsCard expects
+    status: report.status, // Ensure this matches what ReportDetailsCard expects
     latitude: report.latitude,
     longitude: report.longitude,
     reporterName: report.isAnonymous

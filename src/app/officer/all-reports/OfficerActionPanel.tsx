@@ -32,7 +32,7 @@ export default function OfficerActionPanel({
 
   // Check if actionable
   const canModerate =
-    currentStatus === "pending_approval" || currentStatus === "PENDING";
+    currentStatus === "PENDING_APPROVAL" || currentStatus === "PENDING";
 
   const handleApprove = async () => {
     if (!selectedDepartment) return;
