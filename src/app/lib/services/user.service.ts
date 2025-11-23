@@ -28,7 +28,7 @@ class UserService {
         if (!result.success) return result;
 
         if (userData.role === "CITIZEN") {
-            const res = await this.notificationsRepository.updateNotificationsPreferences(userData.username, {
+            const res = await this.notificationsRepository.updateNotificationsPreferences(userData.id, {
                 emailEnabled: true,
                 telegramEnabled: false,
             }, tx);
@@ -46,8 +46,12 @@ class UserService {
         return this.userRepository.retrieveUser(userData);
     }   
 
-    public async updateNotificationsMedia(userId: string, telegram: string | null, email: string | null, removeTelegram:boolean) {
-        return this.userRepository.updateNotificationsMedia(userId, telegram, email, removeTelegram);
+    public async updateNotificationsMedia(userId: string, email: string | null, removeTelegram:boolean) {
+        return this.userRepository.updateNotificationsMedia(userId, email, removeTelegram);
+    }
+
+    public async getUserByTelegramId(telegramId: string): Promise<RegistrationResponse> {
+        return this.userRepository.getUserByTelegramId(telegramId);
     }
 
 }

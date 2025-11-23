@@ -34,6 +34,6 @@ import { NotificationsService } from "../services/notifications.service";
         }
         return {
             success: true,
-            data: session.user.username,
+            data: session.user.id,
         };
     }

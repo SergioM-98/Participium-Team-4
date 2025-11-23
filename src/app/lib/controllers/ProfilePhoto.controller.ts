@@ -1,12 +1,9 @@
 "use server";
-import {
-  ControllerSuccessResponse,
-  CreateUploadRequest,
-} from "../dtos/tus.dto";
-import { TusCreateDataSchema } from "../dtos/tus.header.dto";
+import { ControllerSuccessResponse, CreateUploadRequest } from "@/dtos/tus.dto";
+import { TusCreateDataSchema } from "@/dtos/tus.header.dto";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
-import { ProfilePhotoService } from "../services/profilePhoto.service";
+import { ProfilePhotoService } from "@/services/profilePhoto.service";
 import fs from "fs/promises";
 import path, { parse } from "path";
 
@@ -17,6 +14,11 @@ export async function createUploadPhoto(
   const uploadLength = formData.get("upload-length") as string;
   const uploadMetadata = formData.get("upload-metadata") as string | null;
   const file = formData.get("file") as File | null;
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user?.id) {
+    throw new Error("Unauthorized access");
+  }
 
   const data = {
     "tus-resumable": tusResumable,
@@ -39,17 +41,7 @@ export async function createUploadPhoto(
     photoId: photoId,
   };
 
-  const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id || session.user?.role !== "CITIZEN") {
-    throw new Error("Unauthorized access");
-  }
-
-  let userId: number;
-  try {
-    userId = parseInt(session.user.id);
-  } catch {
-    throw new Error("Invalid user ID");
-  }
+  let userId = session.user.id;
 
   const result = await ProfilePhotoService.getInstance().createUploadPhoto(
     serviceRequest,
@@ -86,12 +78,7 @@ export async function deletePhoto() {
     throw new Error("Unauthorized access");
   }
 
-  let userId: number;
-  try {
-    userId = parseInt(session.user.id);
-  } catch {
-    throw new Error("Invalid user ID");
-  }
+  let userId = session.user.id;
 
   const result = await ProfilePhotoService.getInstance().deletePhoto(userId);
 
@@ -100,13 +87,13 @@ export async function deletePhoto() {
 
 export async function getProfilePhotoUrl() {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id || session.user?.role !== "CITIZEN") {
+  if (!session || !session.user?.id) {
     throw new Error("Unauthorized access");
   }
 
-  const photo = await ProfilePhotoService.getInstance().getPhotoOfUser(
-    parseInt(session.user.id)
-  );
+  let userId = session.user.id;
+
+  const photo = await ProfilePhotoService.getInstance().getPhotoOfUser(userId);
 
   if (!photo) {
     throw new Error("Profile photo not found");
@@ -122,22 +109,36 @@ export async function getProfilePhotoUrl() {
 
     return `data:${mime};base64,${img.toString("base64")}`;
   }
-
   /*client implementation example:
-            "use client";
-            import { getProfilePhotoUrl } from "@/components/ProfilePhoto.controller";
-            import { useEffect, useState } from "react";
+  "use client";
 
-            export default function ProfilePhoto() {
-            const [url, setUrl] = useState<string | null>(null);
+  import { getProfilePhotoUrl } from "@/components/ProfilePhoto.controller";
 
-            useEffect(() => {
-                getProfilePhotoUrl().then(setUrl).catch(console.error);
-            }, []);
+  import { useEffect, useState } from "react";
 
-            if (!url) return <p>Loading...</p>;
 
-            return <img src={url} alt="Profile Photo" className="w-32 h-32 rounded-full" />;
-            }
-        */
+
+  export default function ProfilePhoto() {
+
+  const [url, setUrl] = useState<string | null>(null);
+
+
+
+  useEffect(() => {
+
+      getProfilePhotoUrl().then(setUrl).catch(console.error);
+
+  }, []);
+
+
+
+  if (!url) return <p>Loading...</p>;
+
+
+
+  return <img src={url} alt="Profile Photo" className="w-32 h-32 rounded-full" />;
+
+  }
+
+*/
 }

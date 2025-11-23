@@ -1,5 +1,4 @@
 import {
-  ReportListResponse,
   ReportsUnassignedResponse,
   ReportsByOfficerResponse,
 } from "@/dtos/report.dto";

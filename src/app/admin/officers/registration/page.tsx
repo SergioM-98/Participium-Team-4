@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import MunicipalityUserForm, { MunicipalityUserFormData } from "@/components/MunicipalityUserForm";
+import MunicipalityUserForm, {
+  MunicipalityUserFormData,
+} from "@/components/MunicipalityUserForm";
 import { register } from "@/app/lib/controllers/user.controller";
 
 export default function OfficerRegistrationPage() {
@@ -44,7 +46,7 @@ export default function OfficerRegistrationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {error && (
           <div
