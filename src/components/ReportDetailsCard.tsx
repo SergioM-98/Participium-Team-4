@@ -175,33 +175,29 @@ export default function ReportDetailsCard({
             {evidencePhotos.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {evidencePhotos.map((url, index) => (
-                  // Using 'relative' and 'aspect-video' ensures the box always has height
                   <div
                     key={index}
                     className="relative aspect-video overflow-hidden rounded-lg border border-border bg-muted/50 group"
                   >
+                    {/* Placeholder Icon (always sits behind the image) */}
+                    <div className="absolute inset-0 flex items-center justify-center z-0">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                    </div>
+
                     <img
                       src={url}
                       alt={`Report Photo ${index + 1}`}
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 z-10"
                       loading="lazy"
                       onError={(e) => {
-                        // Fallback if image fails to load
-                        e.currentTarget.style.display = "none";
-                        e.currentTarget.parentElement?.classList.add(
-                          "flex",
-                          "items-center",
-                          "justify-center"
-                        );
+                        // FIX: Don't set display: none, just make it invisible so the icon behind it shows
+                        e.currentTarget.style.opacity = "0";
                       }}
                     />
-                    {/* Fallback Icon (shown if image fails or while loading) */}
-                    <div className="hidden group-hover:flex absolute inset-0 bg-black/40 items-center justify-center pointer-events-none">
+
+                    {/* Hover Overlay */}
+                    <div className="hidden group-hover:flex absolute inset-0 bg-black/40 items-center justify-center pointer-events-none z-20">
                       {/* Optional hover effect */}
-                    </div>
-                    {/* Empty state placeholder behind image */}
-                    <div className="absolute inset-0 flex items-center justify-center -z-10">
-                      <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
                     </div>
                   </div>
                 ))}
