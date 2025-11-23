@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,10 +11,13 @@ import {
   FileText,
   X,
   Image as ImageIcon,
+  MessageSquare, // Added icon
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
+// Import your sub-components
 import OfficerActionPanel from "../app/officer/all-reports/OfficerActionPanel";
+import ChatPanel, { ChatMessage } from "./ChatPanel"; // Ensure this path is correct
 
 // --- Type Definitions ---
 interface Report {
@@ -33,7 +37,6 @@ interface Report {
   longitude: number;
   reporterName: string;
   createdAt: string;
-  // Make these optional so we can handle both data shapes safely
   photoUrls?: string[];
   photos?: string[];
 }
@@ -104,6 +107,39 @@ export default function ReportDetailsCard({
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  // --- CHAT STATE (MOCK) ---
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: "1",
+      senderName: "Mario Rossi",
+      senderRole: "CITIZEN",
+      content:
+        "Hi, I just wanted to add that the situation is getting worse with the rain.",
+      timestamp: new Date(Date.now() - 86400000).toISOString(),
+    },
+    {
+      id: "2",
+      senderName: "Officer Smith",
+      senderRole: "OFFICER",
+      content: "Thank you for the update. We are prioritizing this now.",
+      timestamp: new Date(Date.now() - 43200000).toISOString(),
+    },
+  ]);
+
+  const currentUserRole = isOfficerMode ? "OFFICER" : "CITIZEN";
+
+  const handleSendMessage = (text: string) => {
+    // In a real app, you would make an API call here.
+    const newMsg: ChatMessage = {
+      id: Date.now().toString(),
+      senderName: isOfficerMode ? "Officer Smith" : "You", // Replace with actual user name
+      senderRole: currentUserRole,
+      content: text,
+      timestamp: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, newMsg]);
+  };
 
   return (
     <div className="w-full flex items-start justify-center">
@@ -221,6 +257,22 @@ export default function ReportDetailsCard({
               />
             </>
           )}
+
+          {/* === CHAT SYSTEM === */}
+          <Separator className="my-6" />
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              <h3 className="text-lg font-semibold">Discussion</h3>
+            </div>
+
+            <ChatPanel
+              reportId={report.id}
+              currentUserRole={currentUserRole}
+              messages={messages}
+              onSendMessage={handleSendMessage}
+            />
+          </div>
         </CardContent>
 
         {/* === Footer === */}

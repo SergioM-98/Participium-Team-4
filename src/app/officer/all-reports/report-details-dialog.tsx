@@ -23,27 +23,16 @@ export function ReportDetailsDialog({
     let isMounted = true;
 
     const fetchDetails = async () => {
-      // 1. Log what we are sending to debug the ID
-      console.log(
-        "Fetching details for Report ID:",
-        report.id,
-        typeof report.id
-      );
-
       try {
         setIsLoading(true);
         setErrorMsg(null);
 
-        // 2. FORCE ID TO STRING to match the working Reports.tsx behavior
-        // The controller likely expects a string ID.
+        // Force ID to string to match controller expectations
         const response = await getReportById({ id: String(report.id) });
 
         if (!isMounted) return;
 
-        // 3. Robust check: Success AND Data must exist
         if (response.success && response.data) {
-          console.log("Report Details Found:", response.data);
-
           setFullReportData({
             id: response.data.id,
             title: response.data.title,
@@ -58,10 +47,8 @@ export function ReportDetailsDialog({
             photos: response.data.photos || [],
           });
         } else {
-          // 4. Better error handling for the "Success but no Data" case
           const message =
             response.error || "Report not found (ID mismatch or deleted)";
-          console.error("Fetch failed:", message, "Full Response:", response);
           setErrorMsg(message);
         }
       } catch (err) {
@@ -83,39 +70,42 @@ export function ReportDetailsDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      // Styling matched from Reports.tsx (Z-index 9999, duration-300)
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl animate-in zoom-in-95 duration-200 bg-background"
+        // Container styling matched from Reports.tsx (max-w-3xl, zoom-in-95)
+        className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        {isLoading ? (
-          <div className="flex h-64 w-full items-center justify-center">
+        {isLoading && (
+          // Loading state matched: bg-background, rounded border
+          <div className="flex h-64 w-full items-center justify-center bg-background rounded-xl border border-border">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
           </div>
-        ) : fullReportData ? (
+        )}
+
+        {!isLoading && fullReportData && (
           <ReportDetailsCard
             // @ts-ignore
             report={fullReportData}
             onClose={onClose}
             isOfficerMode={true}
             onOfficerActionComplete={() => {
-              // Optional: You might want to refresh the table here
               alert("Action successful!");
               onClose();
             }}
           />
-        ) : (
-          <div className="p-8 text-center text-muted-foreground">
-            <p>Unable to load report details.</p>
-            {errorMsg && (
-              <p className="text-xs text-red-500 mt-2">{errorMsg}</p>
-            )}
-            <button
-              onClick={onClose}
-              className="block mx-auto mt-4 underline text-sm"
-            >
+        )}
+
+        {!isLoading && !fullReportData && (
+          // Error state matched: bg-background, rounded border
+          <div className="flex h-64 items-center justify-center p-6 flex-col gap-4 bg-background rounded-xl border border-border">
+            <p className="text-muted-foreground">
+              {errorMsg || "Impossible to load details."}
+            </p>
+            <button onClick={onClose} className="text-sm underline">
               Close
             </button>
           </div>
