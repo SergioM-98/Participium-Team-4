@@ -3,11 +3,17 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Tag, FileText, X } from "lucide-react";
+import {
+  MapPin,
+  Calendar,
+  Tag,
+  FileText,
+  X,
+  Image as ImageIcon,
+} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
-// Import sub-components
-import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
+import OfficerActionPanel from "../app/officer/all-reports/OfficerActionPanel";
 
 // --- Type Definitions ---
 interface Report {
@@ -27,7 +33,9 @@ interface Report {
   longitude: number;
   reporterName: string;
   createdAt: string;
-  photoUrls: string[];
+  // Make these optional so we can handle both data shapes safely
+  photoUrls?: string[];
+  photos?: string[];
 }
 
 interface ReportDetailsCardProps {
@@ -39,6 +47,7 @@ interface ReportDetailsCardProps {
 
 // --- Helpers ---
 const formatCategory = (category: string) => {
+  if (!category) return "Uncategorized";
   return category
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -46,8 +55,10 @@ const formatCategory = (category: string) => {
 };
 
 const getStatusBadge = (status: Report["status"]) => {
-  switch (status) {
+  const normalizedStatus = status ? status.toLowerCase() : "unknown";
+  switch (normalizedStatus) {
     case "pending_approval":
+    case "pending":
       return <Badge variant="secondary">Pending Approval</Badge>;
     case "assigned":
       return (
@@ -70,17 +81,21 @@ const getStatusBadge = (status: Report["status"]) => {
         <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>
       );
     default:
-      return <Badge variant="secondary">{status.replace(/_/g, " ")}</Badge>;
+      return (
+        <Badge variant="secondary">{normalizedStatus.replace(/_/g, " ")}</Badge>
+      );
   }
 };
 
-// --- Main Component ---
 export default function ReportDetailsCard({
   report,
   onClose,
   isOfficerMode = false,
   onOfficerActionComplete,
 }: ReportDetailsCardProps) {
+  // FAILSAFE: robustly check for photos regardless of property name
+  const evidencePhotos = report.photoUrls || report.photos || [];
+
   const validDate = report.createdAt || new Date().toISOString();
   const formattedDate = new Date(validDate).toLocaleDateString("en-US", {
     year: "numeric",
@@ -114,7 +129,8 @@ export default function ReportDetailsCard({
             {getStatusBadge(report.status)}
             <p className="text-sm text-muted-foreground flex items-center whitespace-nowrap overflow-hidden text-ellipsis">
               <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-              Loc: ({report.latitude.toFixed(4)}, {report.longitude.toFixed(4)})
+              Loc: ({Number(report.latitude).toFixed(4)},{" "}
+              {Number(report.longitude).toFixed(4)})
             </p>
           </div>
         </CardHeader>
@@ -133,7 +149,7 @@ export default function ReportDetailsCard({
             </div>
             <div className="flex items-center col-span-2">
               <FileText className="h-4 w-4 mr-2 text-primary" />
-              Reported By: {report.reporterName}
+              Reported By: {report.reporterName || "Anonymous"}
             </div>
           </div>
 
@@ -147,30 +163,57 @@ export default function ReportDetailsCard({
             </p>
           </div>
 
-          {/* Photos */}
-          {report.photoUrls.length > 0 && (
-            <div>
-              <h3 className="text-base font-semibold mb-3">
-                Evidence Photos ({report.photoUrls.length})
-              </h3>
+          {/* Photos Section */}
+          <div>
+            <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
+              Evidence Photos{" "}
+              <span className="text-muted-foreground font-normal">
+                ({evidencePhotos.length})
+              </span>
+            </h3>
+
+            {evidencePhotos.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {report.photoUrls.map((url, index) => (
+                {evidencePhotos.map((url, index) => (
+                  // Using 'relative' and 'aspect-video' ensures the box always has height
                   <div
                     key={index}
-                    className="aspect-video overflow-hidden rounded-lg border border-border"
+                    className="relative aspect-video overflow-hidden rounded-lg border border-border bg-muted/50 group"
                   >
                     <img
                       src={url}
                       alt={`Report Photo ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                      onError={(e) => {
+                        // Fallback if image fails to load
+                        e.currentTarget.style.display = "none";
+                        e.currentTarget.parentElement?.classList.add(
+                          "flex",
+                          "items-center",
+                          "justify-center"
+                        );
+                      }}
                     />
+                    {/* Fallback Icon (shown if image fails or while loading) */}
+                    <div className="hidden group-hover:flex absolute inset-0 bg-black/40 items-center justify-center pointer-events-none">
+                      {/* Optional hover effect */}
+                    </div>
+                    {/* Empty state placeholder behind image */}
+                    <div className="absolute inset-0 flex items-center justify-center -z-10">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="p-4 border border-dashed rounded-lg bg-muted/30 text-center text-sm text-muted-foreground">
+                No photos provided.
+              </div>
+            )}
+          </div>
 
-          {/* === OFFICER ACTIONS (Only if Officer) === */}
+          {/* === OFFICER ACTIONS === */}
           {isOfficerMode && (
             <>
               <Separator className="my-6" />
@@ -184,7 +227,7 @@ export default function ReportDetailsCard({
           )}
         </CardContent>
 
-        {/* === Footer (Only for Citizen view Back button) === */}
+        {/* === Footer === */}
         {!isOfficerMode && onClose && (
           <div className="px-6 py-3 border-t border-border bg-muted rounded-b-lg flex justify-end">
             <Button
