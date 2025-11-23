@@ -3,12 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Tag, FileText } from "lucide-react";
+import { MapPin, Calendar, Tag, FileText, X } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import OfficerActionPanel from "../app/officer/all-reports/OfficerActionPanel"; // Import the panel
 
 // Define the shape of a Report object for display
-// NOTE: These interfaces are necessary for the component to function,
-// but the data will be mocked or passed in when you test it.
 interface Report {
   id: string;
   title: string;
@@ -20,21 +19,24 @@ interface Report {
     | "in_progress"
     | "suspended"
     | "rejected"
-    | "resolved";
+    | "resolved"
+    | string; // Added string to be safe with incoming data, but logic favors specific keys
   latitude: number;
   longitude: number;
-  reporterName: string; // Could be 'Anonymous'
-  createdAt: string; // ISO date string
-  photoUrls: string[]; // URLs of the uploaded images
+  reporterName: string;
+  createdAt: string;
+  photoUrls: string[];
 }
 
 interface ReportDetailsCardProps {
   report: Report;
-  // Function to handle a back/close action
   onClose?: () => void;
+  // New props for Officer Mode
+  isOfficerMode?: boolean;
+  onOfficerActionComplete?: () => void;
 }
 
-// Function to format the category string (e.g., 'WATER_SUPPLY' -> 'Water Supply')
+// Function to format the category string
 const formatCategory = (category: string) => {
   return category
     .split("_")
@@ -42,29 +44,41 @@ const formatCategory = (category: string) => {
     .join(" ");
 };
 
-// Helper function for status badge styling
 const getStatusBadge = (status: Report["status"]) => {
   switch (status) {
     case "pending_approval":
       return <Badge variant="secondary">Pending Approval</Badge>;
     case "assigned":
-      return <Badge className="bg-yellow-500 hover:bg-yellow-500/90">Assigned</Badge>;
+      return (
+        <Badge className="bg-yellow-500 hover:bg-yellow-500/90">Assigned</Badge>
+      );
     case "in_progress":
-      return <Badge className="bg-orange-500 hover:bg-orange-500/90">In Progress</Badge>;
+      return (
+        <Badge className="bg-orange-500 hover:bg-orange-500/90">
+          In Progress
+        </Badge>
+      );
     case "suspended":
-      return <Badge className="bg-gray-500 hover:bg-gray-500/90">Suspended</Badge>;
+      return (
+        <Badge className="bg-gray-500 hover:bg-gray-500/90">Suspended</Badge>
+      );
     case "rejected":
       return <Badge className="bg-red-500 hover:bg-red-500/90">Rejected</Badge>;
     case "resolved":
-      return <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>;
+      return (
+        <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>
+      );
     default:
-      return <Badge variant="secondary">Unknown</Badge>;
+      // Fallback for unmatched statuses (e.g., if data comes in as "PENDING")
+      return <Badge variant="secondary">{status.replace(/_/g, " ")}</Badge>;
   }
 };
 
 export default function ReportDetailsCard({
   report,
   onClose,
+  isOfficerMode = false,
+  onOfficerActionComplete,
 }: ReportDetailsCardProps) {
   // Use a sensible default date for testing if the passed prop is invalid/missing
   const validDate = report.createdAt || new Date().toISOString();
@@ -84,7 +98,6 @@ export default function ReportDetailsCard({
         <CardHeader className="p-6 pb-4 border-b border-border">
           <div className="flex justify-between items-start">
             <CardTitle className="text-xl font-bold text-foreground max-w-[85%] truncate">
-              {/* Report Title */}
               {report.title}
             </CardTitle>
             {/* Close Button (if onClose function is provided) */}
@@ -95,17 +108,7 @@ export default function ReportDetailsCard({
                 onClick={onClose}
                 className="text-muted-foreground hover:text-foreground h-8 w-8"
               >
-                <svg
-                  className="h-5 w-5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <X className="h-5 w-5" />
               </Button>
             )}
           </div>
@@ -160,7 +163,6 @@ export default function ReportDetailsCard({
                     className="aspect-video overflow-hidden rounded-lg border border-border"
                   >
                     <img
-                      // NOTE: Replace 'src' with your actual image host URL when integrating
                       src={url}
                       alt={`Report Photo ${index + 1}`}
                       className="w-full h-full object-cover"
@@ -170,10 +172,24 @@ export default function ReportDetailsCard({
               </div>
             </div>
           )}
+
+          {/* === OFFICER ACTIONS === */}
+          {isOfficerMode && (
+            <>
+              <Separator className="my-6" />
+              <OfficerActionPanel
+                reportId={report.id}
+                currentStatus={report.status}
+                onActionComplete={onOfficerActionComplete}
+              />
+            </>
+          )}
         </CardContent>
 
         {/* === Footer Section (Back/Close Button) === */}
-        {onClose && (
+        {/* Only show "Back" button if NOT in Officer Mode (officers have their own actions) 
+            AND if an onClose handler was provided. */}
+        {!isOfficerMode && onClose && (
           <div className="px-6 py-3 border-t border-border bg-muted rounded-b-lg flex justify-end">
             <Button
               variant="default"
