@@ -5,9 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Calendar, Tag, FileText, X } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import OfficerActionPanel from "../app/officer/all-reports/OfficerActionPanel"; // Import the panel
 
-// Define the shape of a Report object for display
+// Import sub-components
+import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
+
+// --- Type Definitions ---
 interface Report {
   id: string;
   title: string;
@@ -20,7 +22,7 @@ interface Report {
     | "suspended"
     | "rejected"
     | "resolved"
-    | string; // Added string to be safe with incoming data, but logic favors specific keys
+    | string;
   latitude: number;
   longitude: number;
   reporterName: string;
@@ -31,12 +33,11 @@ interface Report {
 interface ReportDetailsCardProps {
   report: Report;
   onClose?: () => void;
-  // New props for Officer Mode
   isOfficerMode?: boolean;
   onOfficerActionComplete?: () => void;
 }
 
-// Function to format the category string
+// --- Helpers ---
 const formatCategory = (category: string) => {
   return category
     .split("_")
@@ -69,20 +70,18 @@ const getStatusBadge = (status: Report["status"]) => {
         <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>
       );
     default:
-      // Fallback for unmatched statuses (e.g., if data comes in as "PENDING")
       return <Badge variant="secondary">{status.replace(/_/g, " ")}</Badge>;
   }
 };
 
+// --- Main Component ---
 export default function ReportDetailsCard({
   report,
   onClose,
   isOfficerMode = false,
   onOfficerActionComplete,
 }: ReportDetailsCardProps) {
-  // Use a sensible default date for testing if the passed prop is invalid/missing
   const validDate = report.createdAt || new Date().toISOString();
-
   const formattedDate = new Date(validDate).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -94,13 +93,12 @@ export default function ReportDetailsCard({
   return (
     <div className="w-full flex items-start justify-center">
       <Card className="w-full bg-background rounded-lg p-0 shadow-md">
-        {/* === Header Section === */}
+        {/* === Header === */}
         <CardHeader className="p-6 pb-4 border-b border-border">
           <div className="flex justify-between items-start">
             <CardTitle className="text-xl font-bold text-foreground max-w-[85%] truncate">
               {report.title}
             </CardTitle>
-            {/* Close Button (if onClose function is provided) */}
             {onClose && (
               <Button
                 variant="ghost"
@@ -112,7 +110,6 @@ export default function ReportDetailsCard({
               </Button>
             )}
           </div>
-          {/* Status and Location */}
           <div className="flex items-center space-x-3 mt-2">
             {getStatusBadge(report.status)}
             <p className="text-sm text-muted-foreground flex items-center whitespace-nowrap overflow-hidden text-ellipsis">
@@ -122,9 +119,9 @@ export default function ReportDetailsCard({
           </div>
         </CardHeader>
 
-        {/* === Content Section === */}
+        {/* === Content === */}
         <CardContent className="p-6 space-y-5">
-          {/* Metadata Grid */}
+          {/* Metadata */}
           <div className="grid grid-cols-2 gap-4 text-sm text-foreground">
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-2 text-primary" />
@@ -150,7 +147,7 @@ export default function ReportDetailsCard({
             </p>
           </div>
 
-          {/* Images/Gallery Section */}
+          {/* Photos */}
           {report.photoUrls.length > 0 && (
             <div>
               <h3 className="text-base font-semibold mb-3">
@@ -173,22 +170,21 @@ export default function ReportDetailsCard({
             </div>
           )}
 
-          {/* === OFFICER ACTIONS === */}
+          {/* === OFFICER ACTIONS (Only if Officer) === */}
           {isOfficerMode && (
             <>
               <Separator className="my-6" />
               <OfficerActionPanel
                 reportId={report.id}
                 currentStatus={report.status}
+                currentCategory={report.category}
                 onActionComplete={onOfficerActionComplete}
               />
             </>
           )}
         </CardContent>
 
-        {/* === Footer Section (Back/Close Button) === */}
-        {/* Only show "Back" button if NOT in Officer Mode (officers have their own actions) 
-            AND if an onClose handler was provided. */}
+        {/* === Footer (Only for Citizen view Back button) === */}
         {!isOfficerMode && onClose && (
           <div className="px-6 py-3 border-t border-border bg-muted rounded-b-lg flex justify-end">
             <Button
