@@ -24,7 +24,13 @@ model Report {
   longitude   Float
   latitude    Float
   citizenId   BigInt
-  citizen     User         @relation(fields: [citizenId], references: [id])
+  officerId   BigInt?
+  rejectionReason String?
+
+  citizen   User  @relation("createdBy", fields: [citizenId], references: [id])
+  officer   User? @relation("managedBy", fields: [officerId], references: [id])
+  
+  @@map("report")
 }
 
 model Photo {
@@ -35,6 +41,8 @@ model Photo {
   filename String?
   reportId BigInt?
   report   Report? @relation(fields: [reportId], references: [id])
+
+  @@map("photo")
 }
 
 enum Category {
@@ -92,7 +100,8 @@ model User {
   passwordHash String   @db.VarChar(255)
 
 
-  reports Report[]
+  createdReports  Report[] @relation("createdBy")
+  managedReports  Report[] @relation("managedBy")
   notificationPreferences NotificationPreferences?
   profilePhoto ProfilePhoto?
 

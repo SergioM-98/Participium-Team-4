@@ -34,11 +34,15 @@ export class PhotoRepository {
 
     public async update(id: string, data: {
             offset?: bigint;
+            url?: string;
+            filename?: string;
         }) {
             return await prisma.photo.update({
                 where: { id },
                 data: {
                     ...(data.offset !== undefined && { offset: data.offset }),
+                    ...(data.url !== undefined && { url: data.url }),
+                    ...(data.filename !== undefined && { filename: data.filename }),
                 }
             });
     }

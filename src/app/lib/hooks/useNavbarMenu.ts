@@ -15,16 +15,19 @@ export function useNavbarMenu() {
   const getMenuByRole = (): MenuItem[] => {
     switch (role) {
       case "ADMIN":
-        return [{ title: "Create Officer", url: "/admin/officers/registration" }];
+        return [
+          { title: "Create Officer", url: "/admin/officers/registration" },
+        ];
       case "CITIZEN":
         return [
           { title: "Home", url: "/" },
-          { title: "Reports", url: "/reports" }
+          { title: "Reports", url: "/reports" },
         ];
-      case "MUNICIPALITY_OFFICER":
+      case "OFFICER":
         return [
           { title: "Home", url: "/" },
-          { title: "Reports", url: "/reports" }
+          { title: "My Reports", url: "/officer/my-reports" },
+          { title: "All Reports", url: "/officer/all-reports" },
         ];
       default:
         return [{ title: "Home", url: "/" }];

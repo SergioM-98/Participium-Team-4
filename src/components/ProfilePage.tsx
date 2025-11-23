@@ -89,23 +89,33 @@ export default function ProfilePage() {
         };
         let imageUrl: string | null = null;
 
-        // Solo i CITTADINI hanno notifiche e foto modificabile
-        if (userData.role === "CITIZEN") {
+  
+        if ("role" in userData && userData.role === "CITIZEN") {
           try {
             const notifResponse = await getNotificationsPreferences();
             if (notifResponse.success) {
-                notifications = notifResponse.data;
+                notifications = {
+                  emailEnabled: notifResponse.data.emailEnabled,
+                  telegramEnabled: notifResponse.data.telegramEnabled ?? false,
+                };
             }
           } catch (e) { console.warn("Failed to load notifications", e); }
 
           try {
             imageUrl = await getProfilePhotoUrl();
           } catch (e) {
-            // Foto non trovata, usa default
+
           }
         }
 
-        const loadedUser: UserProfileData = {
+        let loadedUser: UserProfileData;
+        if (
+          "username" in userData &&
+          "firstName" in userData &&
+          "lastName" in userData &&
+          "role" in userData
+        ) {
+          loadedUser = {
             username: userData.username || session.user.username,
             firstName: userData.firstName || "",
             lastName: userData.lastName || "",
@@ -115,10 +125,26 @@ export default function ProfilePage() {
             office: userData.office || undefined,
             image: imageUrl,
             notifications: {
-                emailEnabled: notifications.emailEnabled,
-                telegramEnabled: notifications.telegramEnabled ?? false
-            }
-        };
+              emailEnabled: notifications.emailEnabled,
+              telegramEnabled: notifications.telegramEnabled ?? false,
+            },
+          };
+        } else {
+          loadedUser = {
+            username: session.user.username,
+            firstName: "",
+            lastName: "",
+            email: "",
+            telegram: "",
+            role: session.user.role,
+            office: undefined,
+            image: imageUrl,
+            notifications: {
+              emailEnabled: notifications.emailEnabled,
+              telegramEnabled: notifications.telegramEnabled ?? false,
+            },
+          };
+        }
 
         setUser(loadedUser);
         
