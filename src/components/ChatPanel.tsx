@@ -30,12 +30,17 @@ export default function ChatPanel({
 }: ChatPanelProps) {
   const [newMessage, setNewMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const prevMessageCountRef = useRef(0);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    // Scrolla solo se ci sono nuovi messaggi (numero di messaggi aumentato)
+    if (messages.length > prevMessageCountRef.current) {
+      if (scrollRef.current) {
+        scrollRef.current.scrollIntoView({ behavior: "smooth" });
+      }
     }
-  }, [messages]);
+    prevMessageCountRef.current = messages.length;
+  }, [messages.length]);
 
   const handleSend = () => {
     if (!newMessage.trim()) return;
@@ -61,8 +66,8 @@ export default function ChatPanel({
         </span>
       </div>
 
-      <ScrollArea className="flex-1 p-4 bg-slate-50/50 dark:bg-slate-900/50">
-        <div className="flex flex-col gap-4">
+      <ScrollArea className="flex-1 min-h-0 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="flex flex-col gap-4 p-4 pr-3 min-h-full justify-between">
           {messages.length === 0 && (
             <div className="text-center py-10 text-muted-foreground text-sm">
               No messages yet. Start the conversation.

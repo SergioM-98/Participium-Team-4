@@ -42,7 +42,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import { ReportDetailsDialog } from "./report-details-dialog";
+import ReportDetailsCard from "@/components/ReportDetailsCard";
 import { getPendingApprovalReports } from "@/controllers/report.controller";
 
 // ====================================================================
@@ -569,10 +569,38 @@ export function AllReportsList({ data }: AllReportsListProps) {
 
       {/* The Dialog Component is rendered here when a report is selected */}
       {selectedReport && (
-        <ReportDetailsDialog
-          report={selectedReport}
-          onClose={handleDialogClose}
-        />
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300"
+          onClick={handleDialogClose}
+        >
+          <div
+            className="w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] rounded-xl shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ReportDetailsCard
+              report={{
+                id: selectedReport.id.toString(),
+                title: selectedReport.title,
+                description: selectedReport.description,
+                category: selectedReport.category,
+                status: selectedReport.status,
+                latitude: selectedReport.latitude,
+                longitude: selectedReport.longitude,
+                reporterName: selectedReport.citizen?.username || "Anonymous",
+                createdAt: selectedReport.createdAt?.toISOString() || new Date().toISOString(),
+                photoUrls: selectedReport.photos || [],
+                citizenId: selectedReport.citizenId,
+                officerId: selectedReport.officerId,
+              }}
+              onClose={handleDialogClose}
+              isOfficerMode={true}
+              onOfficerActionComplete={() => {
+                alert("Action successful!");
+                handleDialogClose();
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

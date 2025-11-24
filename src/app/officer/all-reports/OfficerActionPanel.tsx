@@ -205,7 +205,7 @@ export default function OfficerActionPanel({
 
       {showRejectInput && (
         <div className="space-y-3 animate-in fade-in slide-in-from-top-1 p-3 bg-red-50 dark:bg-red-900/10 rounded border border-red-100 dark:border-red-900/30">
-          <label className="text-xs font-medium text-destructive">
+          <label className="text-sm font-semibold text-destructive">
             Reason for Rejection
           </label>
           <Textarea
@@ -216,7 +216,7 @@ export default function OfficerActionPanel({
           />
           <div className="flex gap-2">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => setShowRejectInput(false)}
               disabled={isLoading}
