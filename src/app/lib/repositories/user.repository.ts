@@ -129,6 +129,7 @@ class UserRepository {
 
   async updateNotificationsMedia(
     userId: string,
+    telegram: string | null,
     email: string | null,
     removeTelegram: boolean
   ): Promise<RegistrationResponse> {

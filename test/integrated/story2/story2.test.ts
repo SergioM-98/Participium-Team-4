@@ -26,7 +26,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     user: {
       id: "2",
       name: "Officer User",
-      role: "OFFICER",
+      role: "TECHNICAL_OFFICER",
     },
     expires: "2024-12-31T23:59:59.999Z",
   };
@@ -49,15 +49,15 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       (getServerSession as jest.Mock).mockResolvedValue(adminSession);
 
       const formData = new FormData();
-  formData.append("firstName", "Mario");
-  formData.append("lastName", "Rossi");
-  formData.append("email", "");
-  formData.append("username", "mariorossi");
-  formData.append("password", "SecurePass123!");
-  formData.append("confirmPassword", "SecurePass123!");
-  formData.append("role", "OFFICER");
-  formData.append("office", "DEPARTMENT_OF_COMMERCE");
-  formData.append("telegram", "");
+      formData.append("firstName", "Mario");
+      formData.append("lastName", "Rossi");
+      formData.append("email", "");
+      formData.append("username", "mariorossi");
+      formData.append("password", "SecurePass123!");
+      formData.append("confirmPassword", "SecurePass123!");
+      formData.append("role", "TECHNICAL_OFFICER");
+      formData.append("office", "DEPARTMENT_OF_COMMERCE");
+      formData.append("telegram", "");
 
       const response: RegistrationResponse = await register(formData);
 
@@ -76,13 +76,13 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
         lastName: "Rossi",
         email: null,
         username: "mariorossi",
-        role: "OFFICER",
+        role: "TECHNICAL_OFFICER",
         office: "DEPARTMENT_OF_COMMERCE",
         telegram: null,
       });
 
       expect(savedUser!.passwordHash).not.toBe("SecurePass123!");
-      expect(savedUser!.passwordHash).toMatch(/^\$2[aby]\$\d+\$/); 
+      expect(savedUser!.passwordHash).toMatch(/^\$2[aby]\$\d+\$/);
     });
 
     it("should successfully register OFFICER with different office departments", async () => {
@@ -97,15 +97,15 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
 
       for (const office of offices) {
         const formData = new FormData();
-  formData.append("firstName", "Officer");
-  formData.append("lastName", office);
-  formData.append("email", "");
-  formData.append("username", `officer${office.toLowerCase()}`);
-  formData.append("password", "SecurePass123!");
-  formData.append("confirmPassword", "SecurePass123!");
-  formData.append("role", "OFFICER");
-  formData.append("office", office);
-  formData.append("telegram", "");
+        formData.append("firstName", "Officer");
+        formData.append("lastName", office);
+        formData.append("email", "");
+        formData.append("username", `officer${office.toLowerCase()}`);
+        formData.append("password", "SecurePass123!");
+        formData.append("confirmPassword", "SecurePass123!");
+        formData.append("role", "OFFICER");
+        formData.append("office", office);
+        formData.append("telegram", "");
 
         const response: RegistrationResponse = await register(formData);
 
@@ -129,7 +129,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
           lastName: "Officer",
           username: "existingofficer",
           passwordHash: "hashedpassword",
-          role: "OFFICER",
+          role: "TECHNICAL_OFFICER",
           office: "DEPARTMENT_OF_COMMERCE",
         },
       });
@@ -138,10 +138,10 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("firstName", "New");
       formData.append("lastName", "Officer");
       formData.append("email", "");
-      formData.append("username", "existingofficer"); 
+      formData.append("username", "existingofficer");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "OFFICER");
+      formData.append("role", "TECHNICAL_OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
@@ -162,12 +162,12 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       (getServerSession as jest.Mock).mockResolvedValue(adminSession);
 
       const formData = new FormData();
-      formData.append("firstName", ""); 
+      formData.append("firstName", "");
       formData.append("lastName", "Officer");
       formData.append("email", "");
-      formData.append("username", "ab"); 
-      formData.append("password", "123"); 
-      formData.append("role", "OFFICER");
+      formData.append("username", "ab");
+      formData.append("password", "123");
+      formData.append("role", "TECHNICAL_OFFICER");
       formData.append("office", "INVALID_OFFICE");
       formData.append("telegram", "");
 
@@ -191,8 +191,8 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("email", "");
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
-      formData.append("role", "OFFICER");
-      formData.append("office", ""); 
+      formData.append("role", "TECHNICAL_OFFICER");
+      formData.append("office", "");
       formData.append("telegram", "");
 
       const response: RegistrationResponse = await register(formData);
@@ -216,7 +216,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "OFFICER");
+      formData.append("role", "TECHNICAL_OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
@@ -241,7 +241,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "OFFICER");
+      formData.append("role", "TECHNICAL_OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
@@ -266,7 +266,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "OFFICER");
+      formData.append("role", "TECHNICAL_OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
@@ -290,7 +290,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("email", "test.officer@example.com");
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
-      formData.append("role", "OFFICER");
+      formData.append("role", "TECHNICAL_OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
@@ -314,9 +314,9 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("email", "");
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
-      formData.append("role", "OFFICER");
+      formData.append("role", "TECHNICAL_OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
-      formData.append("telegram", "@testofficer"); 
+      formData.append("telegram", "@testofficer");
 
       const response: RegistrationResponse = await register(formData);
 

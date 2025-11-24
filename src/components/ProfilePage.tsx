@@ -400,6 +400,7 @@ export default function ProfilePage() {
               ? {
                   ...prev,
                   email: formData.email,
+                  telegram: formData.telegram,
                   notifications: {
                     emailEnabled: formData.emailEnabled,
                     telegramEnabled: formData.telegramEnabled,
@@ -517,7 +518,8 @@ export default function ProfilePage() {
           <div className="space-y-1">
             <CardTitle className="text-2xl font-bold">My Profile</CardTitle>
             <CardDescription>
-              {user.role === "OFFICER"
+              {user.role === "TECHNICAL_OFFICER" ||
+              user.role === "PUBLIC_RELATIONS_OFFICER"
                 ? "View your officer details and office assignment."
                 : user.role === "ADMIN"
                 ? "System administrator profile."
@@ -615,21 +617,24 @@ export default function ProfilePage() {
                 <span
                   className={cn(
                     "px-2.5 py-0.5 rounded-full text-xs font-semibold border flex items-center gap-1 w-fit",
-                    user.role === "OFFICER"
+                    user.role === "TECHNICAL_OFFICER" ||
+                      user.role === "PUBLIC_RELATIONS_OFFICER"
                       ? "bg-blue-50 text-blue-700 border-blue-200"
                       : user.role === "ADMIN"
                       ? "bg-purple-50 text-purple-700 border-purple-200"
                       : "bg-secondary text-secondary-foreground"
                   )}
                 >
-                  {user.role === "OFFICER" ? (
+                  {user.role === "TECHNICAL_OFFICER" ||
+                  user.role === "PUBLIC_RELATIONS_OFFICER" ? (
                     <ShieldAlert className="h-3 w-3" />
                   ) : user.role === "ADMIN" ? (
                     <ShieldCheck className="h-3 w-3" />
                   ) : (
                     <UserCheck className="h-3 w-3" />
                   )}
-                  {user.role === "OFFICER"
+                  {user.role === "TECHNICAL_OFFICER" ||
+                  user.role === "PUBLIC_RELATIONS_OFFICER"
                     ? "Officer"
                     : user.role === "ADMIN"
                     ? "Administrator"
@@ -736,7 +741,9 @@ export default function ProfilePage() {
             )}
 
             {/* Office */}
-            {(user.role === "OFFICER" || user.role === "ADMIN") &&
+            {(user.role === "TECHNICAL_OFFICER" ||
+              user.role === "PUBLIC_RELATIONS_OFFICER" ||
+              user.role === "ADMIN") &&
               user.office && (
                 <div className="space-y-2 md:col-span-2">
                   <Label className="flex items-center gap-2 text-muted-foreground">

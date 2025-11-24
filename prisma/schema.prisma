@@ -68,7 +68,8 @@ enum ReportStatus {
 
 enum Role {
   ADMIN
-  OFFICER
+  TECHNICAL_OFFICER
+  PUBLIC_RELATIONS_OFFICER
   CITIZEN
 }
 
