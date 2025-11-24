@@ -101,7 +101,7 @@ model User {
 
 
   createdReports  Report[] @relation("createdBy")
-  managedReports  Report[] @relation("managedBy")
+  managedReports  Report[] @relation("managedBy") 
   notificationPreferences NotificationPreferences?
   profilePhoto ProfilePhoto?
 
@@ -115,7 +115,7 @@ model NotificationPreferences {
   telegramEnabled Boolean @default(false)
 
 
-  citizen     User         @relation(fields: [id], references: [id])
+  citizen     User         @relation(fields: [id], references: [id], onDelete: Cascade)
   @@map("notifications_preferences")
 }
 
@@ -126,6 +126,6 @@ model ProfilePhoto {
   offset   BigInt  @default(0)
   filename String?
   userId    BigInt? @unique
-  user   User? @relation(fields: [userId], references: [id])
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@map("profile_photos")
 }
