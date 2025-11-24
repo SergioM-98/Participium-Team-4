@@ -24,7 +24,7 @@ import { NotificationsData } from "@/app/lib/dtos/notificationPreferences.dto";
 
 import { updateNotificationsMedia, getMe } from "@/app/lib/controllers/user.controller";
 import { createUploadPhoto, getProfilePhotoUrl } from "@/app/lib/controllers/ProfilePhoto.controller";
-import { getNotificationsPreferences } from "@/app/lib/controllers/notifications.controller";
+import { getNotificationsPreferences } from "@/app/lib/controllers/notification.controller";
 
 type UserProfileData = {
   username: string;

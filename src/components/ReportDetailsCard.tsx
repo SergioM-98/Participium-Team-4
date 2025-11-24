@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,11 +16,9 @@ import {
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
-// Import your sub-components
 import OfficerActionPanel from "../app/officer/all-reports/OfficerActionPanel";
-import ChatPanel, { ChatMessage } from "./ChatPanel"; // Ensure this path is correct
-
-// --- Type Definitions ---
+import ChatPanel, { ChatMessage } from "./ChatPanel";
+import { getReportMessages, sendMessage } from "@/app/lib/controllers/message.controller";
 interface Report {
   id: string;
   title: string;
@@ -96,7 +95,8 @@ export default function ReportDetailsCard({
   isOfficerMode = false,
   onOfficerActionComplete,
 }: ReportDetailsCardProps) {
-  // FAILSAFE: robustly check for photos regardless of property name
+  const { data: session } = useSession();
+  
   const evidencePhotos = report.photoUrls || report.photos || [];
 
   const validDate = report.createdAt || new Date().toISOString();
@@ -108,43 +108,74 @@ export default function ReportDetailsCard({
     minute: "2-digit",
   });
 
-  // --- CHAT STATE (MOCK) ---
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "1",
-      senderName: "Mario Rossi",
-      senderRole: "CITIZEN",
-      content:
-        "Hi, I just wanted to add that the situation is getting worse with the rain.",
-      timestamp: new Date(Date.now() - 86400000).toISOString(),
-    },
-    {
-      id: "2",
-      senderName: "Officer Smith",
-      senderRole: "OFFICER",
-      content: "Thank you for the update. We are prioritizing this now.",
-      timestamp: new Date(Date.now() - 43200000).toISOString(),
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
+  const [isSending, setIsSending] = useState(false);
 
   const currentUserRole = isOfficerMode ? "OFFICER" : "CITIZEN";
 
-  const handleSendMessage = (text: string) => {
-    // In a real app, you would make an API call here.
-    const newMsg: ChatMessage = {
-      id: Date.now().toString(),
-      senderName: isOfficerMode ? "Officer Smith" : "You", // Replace with actual user name
-      senderRole: currentUserRole,
-      content: text,
-      timestamp: new Date().toISOString(),
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        setIsLoadingMessages(true);
+        const reportIdBigInt = BigInt(report.id);
+        const response = await getReportMessages(reportIdBigInt);
+        
+        if (response && Array.isArray(response)) {
+          const transformedMessages: ChatMessage[] = response.map((msg: any) => ({
+            id: msg.id.toString(),
+            senderName: msg.author?.firstName && msg.author?.lastName 
+              ? `${msg.author.firstName} ${msg.author.lastName}`
+              : msg.author?.username || "Unknown",
+            senderRole: msg.author?.role === "OFFICER" ? "OFFICER" : "CITIZEN",
+            content: msg.content,
+            timestamp: msg.createdAt,
+          }));
+          setMessages(transformedMessages);
+        }
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+      } finally {
+        setIsLoadingMessages(false);
+      }
     };
-    setMessages((prev) => [...prev, newMsg]);
+
+    loadMessages();
+  }, [report.id]);
+
+  const handleSendMessage = async (text: string) => {
+    if (!session?.user?.id) {
+      console.error("User not authenticated");
+      return;
+    }
+
+    try {
+      setIsSending(true);
+      const authorId = BigInt(session.user.id);
+      const reportIdBigInt = BigInt(report.id);
+
+      const response = await sendMessage(text, authorId, reportIdBigInt);
+
+      if (response) {
+        const newMsg: ChatMessage = {
+          id: response.id?.toString() || Date.now().toString(),
+          senderName: session.user.name || "You",
+          senderRole: currentUserRole,
+          content: text,
+          timestamp: response.createdAt ? new Date(response.createdAt).toISOString() : new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, newMsg]);
+      }
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
     <div className="w-full flex items-start justify-center">
       <Card className="w-full bg-background rounded-lg p-0 shadow-md">
-        {/* === Header === */}
         <CardHeader className="p-6 pb-4 border-b border-border">
           <div className="flex justify-between items-start">
             <CardTitle className="text-xl font-bold text-foreground max-w-[85%] truncate">
@@ -171,9 +202,7 @@ export default function ReportDetailsCard({
           </div>
         </CardHeader>
 
-        {/* === Content === */}
         <CardContent className="p-6 space-y-5">
-          {/* Metadata */}
           <div className="grid grid-cols-2 gap-4 text-sm text-foreground">
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-2 text-primary" />
@@ -245,7 +274,6 @@ export default function ReportDetailsCard({
             )}
           </div>
 
-          {/* === OFFICER ACTIONS === */}
           {isOfficerMode && (
             <>
               <Separator className="my-6" />
@@ -258,7 +286,6 @@ export default function ReportDetailsCard({
             </>
           )}
 
-          {/* === CHAT SYSTEM === */}
           <Separator className="my-6" />
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -266,16 +293,21 @@ export default function ReportDetailsCard({
               <h3 className="text-lg font-semibold">Discussion</h3>
             </div>
 
-            <ChatPanel
-              reportId={report.id}
-              currentUserRole={currentUserRole}
-              messages={messages}
-              onSendMessage={handleSendMessage}
-            />
+            {isLoadingMessages ? (
+              <div className="flex h-[400px] items-center justify-center border rounded-md bg-muted/30">
+                <p className="text-sm text-muted-foreground">Loading messages...</p>
+              </div>
+            ) : (
+              <ChatPanel
+                reportId={report.id}
+                currentUserRole={currentUserRole}
+                messages={messages}
+                onSendMessage={handleSendMessage}
+              />
+            )}
           </div>
         </CardContent>
 
-        {/* === Footer === */}
         {!isOfficerMode && onClose && (
           <div className="px-6 py-3 border-t border-border bg-muted rounded-b-lg flex justify-end">
             <Button

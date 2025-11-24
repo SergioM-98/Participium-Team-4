@@ -1,7 +1,7 @@
 import { prisma } from "@/prisma/db";
 import { Message } from "@prisma/client";
 
-class MessageRepository {
+export class MessageRepository {
     private static instance: MessageRepository;
 
     private constructor() { }
@@ -25,5 +25,3 @@ class MessageRepository {
         });
     }
 }
-
-export { MessageRepository };
