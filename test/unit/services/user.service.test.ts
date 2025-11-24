@@ -80,7 +80,7 @@ describe("User service - Role setup Story 3", () => {
       username: "testuser",
       password: "Test@1234",
       confirmPassword: "Test@1234",
-      role: "OFFICER",
+      role: "PUBLIC_RELATIONS_OFFICER",
       office: "DEPARTMENT_OF_COMMERCE",
       telegram: undefined,
     };
@@ -115,7 +115,7 @@ describe("User service - OFFICER registration by ADMIN Story 2", () => {
       username: "testofficer",
       password: "Test@1234",
       confirmPassword: "Test@1234",
-      role: "OFFICER",
+      role: "PUBLIC_RELATIONS_OFFICER",
       office: "DEPARTMENT_OF_COMMERCE",
       telegram: undefined,
     };

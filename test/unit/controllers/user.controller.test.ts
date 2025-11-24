@@ -120,7 +120,7 @@ describe("UserController Story 3", () => {
       firstName: "Test",
       lastName: "User",
       email: undefined,
-      role: "OFFICER",
+      role: "PUBLIC_RELATIONS_OFFICER",
       office: "DEPARTMENT_OF_COMMERCE",
       telegram: undefined,
     };
@@ -219,7 +219,7 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
       firstName: "Test",
       lastName: "Officer",
       email: undefined,
-      role: "OFFICER",
+      role: "PUBLIC_RELATIONS_OFFICER",
       office: "DEPARTMENT_OF_COMMERCE",
       telegram: undefined,
     }

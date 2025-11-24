@@ -13,8 +13,8 @@ const BaseUserSchema = z
   })
   .refine(
     (data) =>
-      (data.role === "OFFICER" && data.office) ||
-      (data.role !== "OFFICER" && !data.office),
+      ((data.role === "PUBLIC_RELATIONS_OFFICER" || data.role === "TECHNICAL_OFFICER") && data.office) ||
+      ((data.role !== "PUBLIC_RELATIONS_OFFICER" && data.role !== "TECHNICAL_OFFICER") && !data.office),
     {
       message: "Only OFFICER can have an office",
       path: ["office"],
@@ -72,8 +72,8 @@ export const RetrievedUserDataSchema = z
   })
   .refine(
     (data) =>
-      (data.role === "OFFICER" && data.office) ||
-      (data.role !== "OFFICER" && !data.office),
+      ((data.role === "PUBLIC_RELATIONS_OFFICER" || data.role === "TECHNICAL_OFFICER") && data.office) ||
+      ((data.role !== "PUBLIC_RELATIONS_OFFICER" && data.role !== "TECHNICAL_OFFICER") && !data.office),
     {
       message: "Only OFFICER can and must have an office",
       path: ["office"],

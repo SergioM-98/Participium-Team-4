@@ -38,7 +38,7 @@ import { NotificationsService } from "../services/notifications.service";
     });
 
     if (!validatedData.success) {
-      return { success: false, error: "Invalid input data" };
+      return { success: false, error: validatedData.error.message };
     }
 
     if (session || (!session && validatedData.data?.role !== "CITIZEN")) {
