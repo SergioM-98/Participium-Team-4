@@ -10,6 +10,7 @@ export type MunicipalityUserFormData = {
   username: string;
   firstName: string;
   lastName: string;
+  role: string;
   office: string;
   password: string;
   confirmPassword: string;
@@ -30,6 +31,7 @@ export default function MunicipalityUserForm({
     username: "",
     firstName: "",
     lastName: "",
+    role: "",
     office: "",
     password: "",
     confirmPassword: "",
@@ -44,6 +46,7 @@ export default function MunicipalityUserForm({
       setData((prev) => ({
         ...prev,
         ...initialData,
+        role: initialData.role ?? "",
         office: initialData.office ?? "",
       }));
       setErrors({});
@@ -80,6 +83,8 @@ export default function MunicipalityUserForm({
     } else if (data.password !== data.confirmPassword) {
       next.confirmPassword = "Passwords do not match. Please verify both passwords are identical.";
     }
+    if (!data.role || data.role.trim() === "")
+      next.role = "Role selection is required.";
     if (!data.office || data.office.trim() === "")
       next.office = "Office selection is required.";
     setErrors(next);
@@ -91,6 +96,7 @@ export default function MunicipalityUserForm({
       username: "",
       firstName: "",
       lastName: "",
+      role: "",
       office: "",
       password: "",
       confirmPassword: "",
@@ -107,6 +113,7 @@ export default function MunicipalityUserForm({
         username: data.username.trim().toLowerCase(),
         firstName: data.firstName.trim(),
         lastName: data.lastName.trim(),
+        role: data.role?.trim() ?? "",
         office: data.office?.trim() ?? "",
         password: data.password,
         confirmPassword: data.confirmPassword,
@@ -199,36 +206,76 @@ export default function MunicipalityUserForm({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="office">Office</Label>
+                    <Label htmlFor="role">Role</Label>
                     <Select
                       required
-                      value={data.office}
+                      value={data.role}
                       onValueChange={(value) => {
-                        setData((prev) => ({ ...prev, office: value }));
-                        setErrors((prev) => ({ ...prev, office: undefined }));
+                        setData((prev) => ({ 
+                          ...prev, 
+                          role: value,
+                          office: (value === "MUNICIPAL_PUBLIC_RELATIONS_OFFICER" || value === "MUNICIPAL_ADMINISTRATOR") 
+                            ? "ORGANIZATION_OFFICE" 
+                            : ""
+                        }));
+                        setErrors((prev) => ({ ...prev, role: undefined }));
                       }}
                     >
-                      <SelectTrigger id="office" className="ps-2 w-full" aria-invalid={!!errors.office} aria-describedby="office-error">
-                        <SelectValue placeholder="Select Office" />
+                      <SelectTrigger id="role" className="ps-2 w-full" aria-invalid={!!errors.role} aria-describedby="role-error">
+                        <SelectValue placeholder="Select Role" />
                       </SelectTrigger>
                       <SelectContent className="w-screen sm:w-auto max-w-[90vw]" style={{ maxWidth: "90vw" }}>
                         <SelectGroup>
-                          <SelectItem value="DEPARTMENT_OF_COMMERCE">Department of Commerce</SelectItem>
-                          <SelectItem value="DEPARTMENT_OF_EDUCATIONAL_SERVICES">Department of Educational Services</SelectItem>
-                          <SelectItem value="DEPARTMENT_OF_DECENTRALIZATION_AND_CIVIC_SERVICES">Department of Decentralization and Civic Services</SelectItem>
-                          <SelectItem value="DEPARTMENT_OF_SOCIAL_HEALTH_AND_HOUSING_SERVICES">Department of Social Health and Housing Services</SelectItem>
-                          <SelectItem value="DEPARTMENT_OF_INTERNAL_SERVICES">Department of Internal Services</SelectItem>
-                          <SelectItem value="DEPARTMENT_OF_CULTURE_SPORT_MAJOR_EVENTS_AND_TOURISM_PROMOTION">Department of Culture Sport Major Events and Tourism Promotion</SelectItem>
-                          <SelectItem value="DEPARTMENT_OF_FINANCIAL_RESOURCES">Department of Financial Resources</SelectItem>
-                          <SelectItem value="DEPARTMENT_OF_GENERAL_SERVICES_PROCUREMENT_AND_SUPPLIES">Department of General Services Procurement and Supplies</SelectItem>
-                          <SelectItem value="DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES">Department of Maintenance and Technical Services</SelectItem>
-                          <SelectItem value="DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING">Department of Urban Planning and Private Building</SelectItem>
-                          <SelectItem value="DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY">Department of Environment Major Projects Infras and Mobility</SelectItem>
-                          <SelectItem value="DEPARTMENT_OF_LOCAL_POLICE">Department of Local Police</SelectItem>
-                          <SelectItem value="OTHER">Other</SelectItem>
+                          <SelectItem value="MUNICIPAL_PUBLIC_RELATIONS_OFFICER">Municipal public relations officer</SelectItem>
+                          <SelectItem value="MUNICIPAL_ADMINISTRATOR">Municipal administrator</SelectItem>
+                          <SelectItem value="TECHNICAL_OFFICE_STAFF_MEMBER">Technical office staff member</SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
+                    {errors.role && <p id="role-error" className="text-xs text-red-500 mt-1">{errors.role}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="office">Office</Label>
+                    {(data.role === "MUNICIPAL_PUBLIC_RELATIONS_OFFICER" || data.role === "MUNICIPAL_ADMINISTRATOR") ? (
+                      <Input
+                        id="office"
+                        value="Organization Office"
+                        disabled
+                        className="bg-muted"
+                      />
+                    ) : (
+                      <Select
+                        required
+                        value={data.office}
+                        disabled={!data.role || data.role === ""}
+                        onValueChange={(value) => {
+                          setData((prev) => ({ ...prev, office: value }));
+                          setErrors((prev) => ({ ...prev, office: undefined }));
+                        }}
+                      >
+                        <SelectTrigger id="office" className="ps-2 w-full" aria-invalid={!!errors.office} aria-describedby="office-error">
+                          <SelectValue placeholder="Select Office" />
+                        </SelectTrigger>
+                        <SelectContent className="w-screen sm:w-auto max-w-[90vw]" style={{ maxWidth: "90vw" }}>
+                          <SelectGroup>
+                            <SelectItem value="DEPARTMENT_OF_COMMERCE">Department of Commerce</SelectItem>
+                            <SelectItem value="DEPARTMENT_OF_EDUCATIONAL_SERVICES">Department of Educational Services</SelectItem>
+                            <SelectItem value="DEPARTMENT_OF_DECENTRALIZATION_AND_CIVIC_SERVICES">Department of Decentralization and Civic Services</SelectItem>
+                            <SelectItem value="DEPARTMENT_OF_SOCIAL_HEALTH_AND_HOUSING_SERVICES">Department of Social Health and Housing Services</SelectItem>
+                            <SelectItem value="DEPARTMENT_OF_INTERNAL_SERVICES">Department of Internal Services</SelectItem>
+                            <SelectItem value="DEPARTMENT_OF_CULTURE_SPORT_MAJOR_EVENTS_AND_TOURISM_PROMOTION">Department of Culture Sport Major Events and Tourism Promotion</SelectItem>
+                            <SelectItem value="DEPARTMENT_OF_FINANCIAL_RESOURCES">Department of Financial Resources</SelectItem>
+                            <SelectItem value="DEPARTMENT_OF_GENERAL_SERVICES_PROCUREMENT_AND_SUPPLIES">Department of General Services Procurement and Supplies</SelectItem>
+                            <SelectItem value="DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES">Department of Maintenance and Technical Services</SelectItem>
+                            <SelectItem value="DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING">Department of Urban Planning and Private Building</SelectItem>
+                            <SelectItem value="DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY">Department of Environment Major Projects Infras and Mobility</SelectItem>
+                            <SelectItem value="DEPARTMENT_OF_LOCAL_POLICE">Department of Local Police</SelectItem>
+                            <SelectItem value="OTHER">Other</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    )}
                     {errors.office && <p id="office-error" className="text-xs text-red-500 mt-1">{errors.office}</p>}
                   </div>
                 </div>

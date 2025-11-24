@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,22 +8,21 @@ datasource db {
 }
 
 model Report {
-  id          BigInt       @id  @default(autoincrement())
-  title       String
-  description String       @db.Text
-  status      ReportStatus @default(PENDING_APPROVAL)
-  photos      Photo[]
-  category    Category     @default(OTHER)
-  createdAt   DateTime     @default(now())
-  longitude   Float
-  latitude    Float
-  citizenId   BigInt
-  officerId   BigInt?
+  id              BigInt       @id @default(autoincrement())
+  title           String
+  description     String
+  status          ReportStatus @default(PENDING_APPROVAL)
+  category        Category     @default(OTHER)
+  createdAt       DateTime     @default(now())
+  longitude       Float
+  latitude        Float
+  citizenId       BigInt
+  officerId       BigInt?
   rejectionReason String?
+  photos          Photo[]
+  citizen         User         @relation("createdBy", fields: [citizenId], references: [id])
+  officer         User?        @relation("managedBy", fields: [officerId], references: [id])
 
-  citizen   User  @relation("createdBy", fields: [citizenId], references: [id])
-  officer   User? @relation("managedBy", fields: [officerId], references: [id])
-  
   @@map("report")
 }
 
@@ -43,6 +36,45 @@ model Photo {
   report   Report? @relation(fields: [reportId], references: [id])
 
   @@map("photo")
+}
+
+model User {
+  id                      BigInt                   @id @default(autoincrement())
+  firstName               String                   @db.VarChar(100)
+  lastName                String                   @db.VarChar(100)
+  email                   String?                  @unique @db.VarChar(100)
+  username                String                   @unique @db.VarChar(100)
+  telegram                String?                  @unique @db.VarChar(100)
+  role                    Role                     @default(CITIZEN)
+  office                  Offices?
+  passwordHash            String                   @db.VarChar(255)
+  notificationPreferences NotificationPreferences?
+  profilePhoto            ProfilePhoto?
+  createdReports          Report[]                 @relation("createdBy")
+  managedReports          Report[]                 @relation("managedBy")
+
+  @@map("user")
+}
+
+model NotificationPreferences {
+  id              BigInt  @id
+  emailEnabled    Boolean @default(true)
+  telegramEnabled Boolean @default(false)
+  citizen         User    @relation(fields: [id], references: [id])
+
+  @@map("notifications_preferences")
+}
+
+model ProfilePhoto {
+  id       String  @id @default(uuid())
+  url      String
+  size     BigInt  @default(0)
+  offset   BigInt  @default(0)
+  filename String?
+  userId   BigInt? @unique
+  user     User?   @relation(fields: [userId], references: [id])
+
+  @@map("profile_photos")
 }
 
 enum Category {
@@ -86,46 +118,4 @@ enum Offices {
   DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY
   DEPARTMENT_OF_LOCAL_POLICE
   OTHER
-}
-
-model User {
-  id           BigInt   @id @default(autoincrement())
-  firstName    String   @db.VarChar(100)
-  lastName     String   @db.VarChar(100)
-  email        String?  @unique @db.VarChar(100)
-  username     String   @unique @db.VarChar(100)
-  telegram     String?  @unique @db.VarChar(100)
-  role         Role     @default(CITIZEN)
-  office       Offices?
-  passwordHash String   @db.VarChar(255)
-
-
-  createdReports  Report[] @relation("createdBy")
-  managedReports  Report[] @relation("managedBy")
-  notificationPreferences NotificationPreferences?
-  profilePhoto ProfilePhoto?
-
-  @@map("user")
-}
-
-
-model NotificationPreferences {
-  id           BigInt   @id
-  emailEnabled Boolean  @default(true)
-  telegramEnabled Boolean @default(false)
-
-
-  citizen     User         @relation(fields: [id], references: [id])
-  @@map("notifications_preferences")
-}
-
-model ProfilePhoto {
-  id       String  @id @default(uuid())
-  url      String
-  size     BigInt  @default(0)
-  offset   BigInt  @default(0)
-  filename String?
-  userId    BigInt? @unique
-  user   User? @relation(fields: [userId], references: [id])
-  @@map("profile_photos")
 }
