@@ -50,7 +50,7 @@ export async function getReportsByOfficerId(
 ): Promise<ReportsByOfficerResponse> {
   const session = await getServerSession(authOptions);
 
-  if (!session || (session && session.user.role !== "OFFICER")) {
+  if (!session || (session && session.user.role !== "TECHNICAL_OFFICER")) {
     return { success: false, error: "Unauthorized access" };
   }
 
@@ -63,7 +63,10 @@ export async function getPendingApprovalReports(
 ): Promise<ReportsUnassignedResponse> {
   const session = await getServerSession(authOptions);
 
-  if (!session || (session && session.user.role !== "OFFICER")) {
+  if (
+    !session ||
+    (session && session.user.role !== "PUBLIC_RELATIONS_OFFICER")
+  ) {
     return { success: false, error: "Unauthorized access" };
   }
 
@@ -79,7 +82,8 @@ export async function approveReport(
 
   if (
     !session ||
-    (session.user.role !== "OFFICER" && session.user.role !== "ADMIN")
+    (session.user.role !== "PUBLIC_RELATIONS_OFFICER" &&
+      session.user.role !== "ADMIN")
   ) {
     return { success: false, error: "Unauthorized access" };
   }
@@ -96,7 +100,8 @@ export async function rejectReport(
 
   if (
     !session ||
-    (session.user.role !== "OFFICER" && session.user.role !== "ADMIN")
+    (session.user.role !== "PUBLIC_RELATIONS_OFFICER" &&
+      session.user.role !== "ADMIN")
   ) {
     return { success: false, error: "Unauthorized access" };
   }

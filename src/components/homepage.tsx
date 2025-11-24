@@ -83,7 +83,7 @@ export default function StartingPage({
           ? "/login"
           : role == "CITIZEN"
           ? "/reports"
-          : role == "OFFICER"
+          : role == "TECHNICAL_OFFICER" || role == "PUBLIC_RELATIONS_OFFICER"
           ? "/officer/reports"
           : "/",
     },

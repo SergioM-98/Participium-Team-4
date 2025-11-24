@@ -135,7 +135,7 @@ class ReportRepository {
 
     return await prisma.user.findFirst({
       where: {
-        role: Role.OFFICER,
+        role: Role.TECHNICAL_OFFICER,
         office,
       },
       orderBy: {

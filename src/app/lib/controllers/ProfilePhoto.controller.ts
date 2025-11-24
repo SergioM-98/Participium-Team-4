@@ -100,7 +100,7 @@ export async function deletePhoto() {
 
 export async function getProfilePhotoUrl() {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id || session.user?.role !== "CITIZEN") {
+  if (!session || !session.user?.id) {
     throw new Error("Unauthorized access");
   }
 

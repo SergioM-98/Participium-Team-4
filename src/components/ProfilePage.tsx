@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useRef, useTransition, useMemo, useCallback, useEffect } from "react";
+import {
+  useState,
+  useRef,
+  useTransition,
+  useMemo,
+  useCallback,
+  useEffect,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Cropper from "react-easy-crop";
@@ -8,22 +15,53 @@ import { getCroppedImg } from "@/app/lib/utils/canvasUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Pencil, Save, X, Camera, Mail, Send, User as UserIcon, Bell, AlertCircle, Loader2, Info, UserCheck, ZoomIn, ZoomOut, Building2, ShieldAlert, ShieldCheck } from "lucide-react";
+import {
+  Pencil,
+  Save,
+  X,
+  Camera,
+  Mail,
+  Send,
+  User as UserIcon,
+  Bell,
+  AlertCircle,
+  Loader2,
+  Info,
+  UserCheck,
+  ZoomIn,
+  ZoomOut,
+  Building2,
+  ShieldAlert,
+  ShieldCheck,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NotificationsData } from "@/app/lib/dtos/notificationPreferences.dto";
 
-import { updateNotificationsMedia, getMe } from "@/app/lib/controllers/user.controller";
-import { createUploadPhoto, getProfilePhotoUrl } from "@/app/lib/controllers/ProfilePhoto.controller";
+import {
+  updateNotificationsMedia,
+  getMe,
+} from "@/app/lib/controllers/user.controller";
+import {
+  createUploadPhoto,
+  getProfilePhotoUrl,
+} from "@/app/lib/controllers/ProfilePhoto.controller";
 import { getNotificationsPreferences } from "@/app/lib/controllers/notifications.controller";
 
 type UserProfileData = {
@@ -44,14 +82,14 @@ type UserProfileData = {
 export default function ProfilePage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  
+
   const [user, setUser] = useState<UserProfileData | null>(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -76,36 +114,35 @@ export default function ProfilePage() {
       setIsLoadingData(true);
       try {
         const userDataResponse = await getMe(session.user.username);
-        
-        if ('error' in userDataResponse) {
+
+        if ("error" in userDataResponse) {
           throw new Error(userDataResponse.error);
         }
 
         const userData = userDataResponse;
-        
+
         let notifications = {
           emailEnabled: false,
-          telegramEnabled: false
+          telegramEnabled: false,
         };
         let imageUrl: string | null = null;
 
-  
         if ("role" in userData && userData.role === "CITIZEN") {
           try {
             const notifResponse = await getNotificationsPreferences();
             if (notifResponse.success) {
-                notifications = {
-                  emailEnabled: notifResponse.data.emailEnabled,
-                  telegramEnabled: notifResponse.data.telegramEnabled ?? false,
-                };
+              notifications = {
+                emailEnabled: notifResponse.data.emailEnabled,
+                telegramEnabled: notifResponse.data.telegramEnabled ?? false,
+              };
             }
-          } catch (e) { console.warn("Failed to load notifications", e); }
+          } catch (e) {
+            console.warn("Failed to load notifications", e);
+          }
 
           try {
             imageUrl = await getProfilePhotoUrl();
-          } catch (e) {
-
-          }
+          } catch (e) {}
         }
 
         let loadedUser: UserProfileData;
@@ -147,14 +184,13 @@ export default function ProfilePage() {
         }
 
         setUser(loadedUser);
-        
-        setFormData({
-            email: loadedUser.email,
-            telegram: loadedUser.telegram,
-            emailEnabled: loadedUser.notifications.emailEnabled,
-            telegramEnabled: loadedUser.notifications.telegramEnabled ?? false,
-        });
 
+        setFormData({
+          email: loadedUser.email,
+          telegram: loadedUser.telegram,
+          emailEnabled: loadedUser.notifications.emailEnabled,
+          telegramEnabled: loadedUser.notifications.telegramEnabled ?? false,
+        });
       } catch (err: any) {
         console.error("Error fetching profile:", err);
         setError("Failed to load profile data.");
@@ -169,16 +205,21 @@ export default function ProfilePage() {
   const avatarStyle = useMemo(() => {
     if (!user?.username) return {};
     const chartColors = [
-      "var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"
+      "var(--chart-1)",
+      "var(--chart-2)",
+      "var(--chart-3)",
+      "var(--chart-4)",
+      "var(--chart-5)",
     ];
     const name = user.username;
     let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < name.length; i++)
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
     const colorVar = chartColors[Math.abs(hash % chartColors.length)];
-    
+
     return {
-        backgroundColor: `oklch(${colorVar})`,
-        color: "oklch(var(--primary-foreground))"
+      backgroundColor: `oklch(${colorVar})`,
+      color: "oklch(var(--primary-foreground))",
     };
   }, [user?.username]);
 
@@ -202,7 +243,7 @@ export default function ProfilePage() {
       const imageDataUrl = await readFile(file);
       setImageSrc(imageDataUrl as string);
       setIsCropModalOpen(true);
-      e.target.value = ""; 
+      e.target.value = "";
     }
   };
 
@@ -214,9 +255,12 @@ export default function ProfilePage() {
     });
   };
 
-  const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  const onCropComplete = useCallback(
+    (croppedArea: any, croppedAreaPixels: any) => {
+      setCroppedAreaPixels(croppedAreaPixels);
+    },
+    []
+  );
 
   const handleUploadCroppedImage = async () => {
     if (!imageSrc || !croppedAreaPixels) return;
@@ -225,33 +269,36 @@ export default function ProfilePage() {
       const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
       if (!croppedImageBlob) return;
 
-      const file = new File([croppedImageBlob], "avatar.jpg", { type: "image/jpeg" });
-      
+      const file = new File([croppedImageBlob], "avatar.jpg", {
+        type: "image/jpeg",
+      });
+
       setIsCropModalOpen(false);
 
       const data = new FormData();
       const filenameBase64 = btoa(file.name);
       const metadata = `filename ${filenameBase64}`;
 
-      data.append('tus-resumable', '1.0.0');
-      data.append('upload-length', file.size.toString());
-      data.append('upload-metadata', metadata);
-      data.append('file', file);
+      data.append("tus-resumable", "1.0.0");
+      data.append("upload-length", file.size.toString());
+      data.append("upload-metadata", metadata);
+      data.append("file", file);
 
       startTransition(async () => {
-          try {
-            const result = await createUploadPhoto(data);
-            if (result?.success) {
-               window.location.reload(); 
-            } else {
-               setError(typeof result?.error === 'string' ? result.error : "Upload failed");
-            }
-          } catch (err) {
-            console.error(err);
-            setError("Error during upload");
+        try {
+          const result = await createUploadPhoto(data);
+          if (result?.success) {
+            window.location.reload();
+          } else {
+            setError(
+              typeof result?.error === "string" ? result.error : "Upload failed"
+            );
           }
+        } catch (err) {
+          console.error(err);
+          setError("Error during upload");
+        }
       });
-
     } catch (e) {
       console.error(e);
       setError("Error processing image");
@@ -259,48 +306,54 @@ export default function ProfilePage() {
   };
 
   const handleSave = () => {
-    if (!user || user.role !== 'CITIZEN' || !validate()) return;
+    if (!user || user.role !== "CITIZEN" || !validate()) return;
     setError(null);
 
     startTransition(async () => {
       try {
         const removeTelegram = user.telegram !== "" && formData.telegram === "";
-        
+
         const notificationsData: NotificationsData = {
-            emailEnabled: formData.emailEnabled,
-            telegramEnabled: formData.telegramEnabled
+          emailEnabled: formData.emailEnabled,
+          telegramEnabled: formData.telegramEnabled,
         };
 
         const result = await updateNotificationsMedia(
-            formData.telegram || null,
-            formData.email || null,
-            removeTelegram,
-            notificationsData
+          formData.telegram || null,
+          formData.email || null,
+          removeTelegram,
+          notificationsData
         );
 
         if (result.success) {
-            setIsEditing(false);
-            setUser(prev => prev ? ({
-                ...prev,
-                email: formData.email,
-                telegram: formData.telegram,
-                notifications: {
+          setIsEditing(false);
+          setUser((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  email: formData.email,
+                  telegram: formData.telegram,
+                  notifications: {
                     emailEnabled: formData.emailEnabled,
-                    telegramEnabled: formData.telegramEnabled
+                    telegramEnabled: formData.telegramEnabled,
+                  },
                 }
-            }) : null);
-            router.refresh();
+              : null
+          );
+          router.refresh();
         } else {
-            const errorMessage = typeof result.error === 'string' ? result.error : "Failed to update profile";
-            setError(errorMessage);
+          const errorMessage =
+            typeof result.error === "string"
+              ? result.error
+              : "Failed to update profile";
+          setError(errorMessage);
         }
-
       } catch (err: any) {
         setError(err.message || "An unexpected error occurred");
       }
     });
   };
-  
+
   const handleCancel = () => {
     if (!user) return;
     setFormData({
@@ -314,7 +367,6 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
-
   const getInitials = () => {
     if (!user?.username) return "U";
     return user.username.substring(0, 2).toUpperCase();
@@ -322,18 +374,18 @@ export default function ProfilePage() {
 
   if (status === "loading" || isLoadingData) {
     return (
-        <div className="flex items-center justify-center min-h-[60vh]">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
   if (!user) {
-      return (
-        <div className="flex items-center justify-center min-h-[60vh]">
-            <p className="text-muted-foreground">Profile not found.</p>
-        </div>
-      );
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-muted-foreground">Profile not found.</p>
+      </div>
+    );
   }
 
   const isCitizen = user.role === "CITIZEN";
@@ -342,64 +394,72 @@ export default function ProfilePage() {
 
   return (
     <div className="w-full flex items-start justify-center p-4 md:py-10">
-      
       {isCropModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4 animate-in fade-in">
           <div className="bg-background w-full max-w-md rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-             <div className="p-4 border-b">
-                <h3 className="font-semibold text-lg">Adjust Profile Picture</h3>
-                <p className="text-sm text-muted-foreground">Drag to position, use slider to zoom.</p>
-             </div>
-             <div className="relative w-full h-64 bg-black">
-                <Cropper
-                  image={imageSrc || ""}
-                  crop={crop}
-                  zoom={zoom}
-                  aspect={1}
-                  onCropChange={setCrop}
-                  onCropComplete={onCropComplete}
-                  onZoomChange={setZoom}
-                  cropShape="round"
-                  showGrid={false}
+            <div className="p-4 border-b">
+              <h3 className="font-semibold text-lg">Adjust Profile Picture</h3>
+              <p className="text-sm text-muted-foreground">
+                Drag to position, use slider to zoom.
+              </p>
+            </div>
+            <div className="relative w-full h-64 bg-black">
+              <Cropper
+                image={imageSrc || ""}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+                cropShape="round"
+                showGrid={false}
+              />
+            </div>
+            <div className="p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <ZoomOut className="h-4 w-4 text-muted-foreground" />
+                <input
+                  type="range"
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                 />
-             </div>
-             <div className="p-4 space-y-4">
-                <div className="flex items-center gap-2">
-                    <ZoomOut className="h-4 w-4 text-muted-foreground" />
-                    <input
-                      type="range"
-                      value={zoom}
-                      min={1}
-                      max={3}
-                      step={0.1}
-                      onChange={(e) => setZoom(Number(e.target.value))}
-                      className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                    />
-                    <ZoomIn className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setIsCropModalOpen(false)}>Cancel</Button>
-                    <Button onClick={handleUploadCroppedImage}>Save & Upload</Button>
-                </div>
-             </div>
+                <ZoomIn className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCropModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleUploadCroppedImage}>
+                  Save & Upload
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       <Card className="w-full max-w-3xl shadow-md bg-background rounded-xl">
-        
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-6">
           <div className="space-y-1">
             <CardTitle className="text-2xl font-bold">My Profile</CardTitle>
             <CardDescription>
-              {user.role === 'OFFICER' 
-                ? 'View your officer details and office assignment.' 
-                : user.role === 'ADMIN'
-                ? 'System administrator profile.'
-                : 'Manage your contact information and notification preferences.'}
+              {user.role === "TECHNICAL_OFFICER" ||
+              user.role === "PUBLIC_RELATIONS_OFFICER"
+                ? "View your officer details and office assignment."
+                : user.role === "ADMIN"
+                ? "System administrator profile."
+                : "Manage your contact information and notification preferences."}
             </CardDescription>
           </div>
-          
+
           {canEdit && (
             <Button
               variant={isEditing ? "ghost" : "outline"}
@@ -420,11 +480,10 @@ export default function ProfilePage() {
             </Button>
           )}
         </CardHeader>
-        
+
         <Separator />
 
         <CardContent className="space-y-8 pt-6">
-            
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2 text-sm">
               <AlertCircle className="h-4 w-4" />
@@ -435,216 +494,297 @@ export default function ProfilePage() {
           <div className="flex flex-col items-center sm:flex-row sm:items-start gap-6">
             <div className="relative group">
               <Avatar className="h-24 w-24 border-2 border-muted shadow-sm">
-                <AvatarImage src={user.image || ""} alt={user.username} className="object-cover" />
-                <AvatarFallback 
-                    className="text-2xl font-bold"
-                    style={avatarStyle}
+                <AvatarImage
+                  src={user.image || ""}
+                  alt={user.username}
+                  className="object-cover"
+                />
+                <AvatarFallback
+                  className="text-2xl font-bold"
+                  style={avatarStyle}
                 >
                   {getInitials()}
                 </AvatarFallback>
               </Avatar>
 
               {isEditing && (
-                <div 
+                <div
                   className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Camera className="h-8 w-8 text-white" />
-                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileSelect} />
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                  />
                 </div>
               )}
             </div>
 
             <div className="space-y-1 text-center sm:text-left flex-1 pt-2 w-full">
               <div className="grid grid-cols-2 gap-8 mb-3 px-1">
-                 <div className="flex flex-col items-center sm:items-start gap-1">
-                    <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                        First Name
-                    </Label>
-                    <span className="text-lg font-semibold text-foreground leading-none">
-                        {user.firstName || "-"}
-                    </span>
-                 </div>
-                 <div className="flex flex-col items-center sm:items-start gap-1">
-                    <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                        Last Name
-                    </Label>
-                    <span className="text-lg font-semibold text-foreground leading-none">
-                        {user.lastName || "-"}
-                    </span>
-                 </div>
+                <div className="flex flex-col items-center sm:items-start gap-1">
+                  <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                    First Name
+                  </Label>
+                  <span className="text-lg font-semibold text-foreground leading-none">
+                    {user.firstName || "-"}
+                  </span>
+                </div>
+                <div className="flex flex-col items-center sm:items-start gap-1">
+                  <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                    Last Name
+                  </Label>
+                  <span className="text-lg font-semibold text-foreground leading-none">
+                    {user.lastName || "-"}
+                  </span>
+                </div>
               </div>
               <div className="flex flex-col items-center sm:items-start gap-2 mt-2 px-1">
-                 <span className="text-muted-foreground text-sm font-medium flex items-center gap-1.5 font-mono">
-                    <UserIcon className="h-3.5 w-3.5" /> @{user.username}
-                 </span>
-                 <span className={cn(
+                <span className="text-muted-foreground text-sm font-medium flex items-center gap-1.5 font-mono">
+                  <UserIcon className="h-3.5 w-3.5" /> @{user.username}
+                </span>
+                <span
+                  className={cn(
                     "px-2.5 py-0.5 rounded-full text-xs font-semibold border flex items-center gap-1 w-fit",
-                    user.role === 'OFFICER' 
-                        ? "bg-blue-50 text-blue-700 border-blue-200" 
-                        : user.role === 'ADMIN'
-                        ? "bg-purple-50 text-purple-700 border-purple-200"
-                        : "bg-secondary text-secondary-foreground"
-                 )}>
-                    {user.role === 'OFFICER' ? <ShieldAlert className="h-3 w-3" /> : user.role === 'ADMIN' ? <ShieldCheck className="h-3 w-3"/> : <UserCheck className="h-3 w-3" />} 
-                    {user.role === 'OFFICER' ? 'Officer' : user.role === 'ADMIN' ? 'Administrator' : 'Citizen'}
-                 </span>
+                    user.role === "TECHNICAL_OFFICER" ||
+                      user.role === "PUBLIC_RELATIONS_OFFICER"
+                      ? "bg-blue-50 text-blue-700 border-blue-200"
+                      : user.role === "ADMIN"
+                      ? "bg-purple-50 text-purple-700 border-purple-200"
+                      : "bg-secondary text-secondary-foreground"
+                  )}
+                >
+                  {user.role === "TECHNICAL_OFFICER" ||
+                  user.role === "PUBLIC_RELATIONS_OFFICER" ? (
+                    <ShieldAlert className="h-3 w-3" />
+                  ) : user.role === "ADMIN" ? (
+                    <ShieldCheck className="h-3 w-3" />
+                  ) : (
+                    <UserCheck className="h-3 w-3" />
+                  )}
+                  {user.role === "TECHNICAL_OFFICER" ||
+                  user.role === "PUBLIC_RELATIONS_OFFICER"
+                    ? "Officer"
+                    : user.role === "ADMIN"
+                    ? "Administrator"
+                    : "Citizen"}
+                </span>
               </div>
             </div>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            
             {/* Email*/}
             {isCitizen && (
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="email" className={cn("flex items-center gap-2", isEditing && "text-primary")}>
-                 <Mail className="h-4 w-4" /> Email Address
-              </Label>
-              {isEditing ? (
-                <>
-                    <Input 
-                        id="email" 
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => {
-                            setFormData({...formData, email: e.target.value});
-                            if (validationError) setValidationError(null);
-                        }}
-                        placeholder="your@email.com"
-                        disabled={isPending}
-                        className={cn(validationError && "border-red-500 focus-visible:ring-red-500")}
+              <div className="space-y-2 md:col-span-2">
+                <Label
+                  htmlFor="email"
+                  className={cn(
+                    "flex items-center gap-2",
+                    isEditing && "text-primary"
+                  )}
+                >
+                  <Mail className="h-4 w-4" /> Email Address
+                </Label>
+                {isEditing ? (
+                  <>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => {
+                        setFormData({ ...formData, email: e.target.value });
+                        if (validationError) setValidationError(null);
+                      }}
+                      placeholder="your@email.com"
+                      disabled={isPending}
+                      className={cn(
+                        validationError &&
+                          "border-red-500 focus-visible:ring-red-500"
+                      )}
                     />
-                    {validationError && <p className="text-xs text-red-500 font-medium animate-pulse">{validationError}</p>}
-                </>
-              ) : (
-                <div className="flex items-center h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm">
-                  {user.email || <span className="text-muted-foreground italic">Not provided</span>}
-                </div>
-              )}
-            </div>
+                    {validationError && (
+                      <p className="text-xs text-red-500 font-medium animate-pulse">
+                        {validationError}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex items-center h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm">
+                    {user.email || (
+                      <span className="text-muted-foreground italic">
+                        Not provided
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Telegram */}
             {isCitizen && (
-                <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="telegram" className={cn("flex items-center gap-2", isEditing && "text-primary")}>
-                    <Send className="h-4 w-4" /> Telegram Username
+              <div className="space-y-2 md:col-span-2">
+                <Label
+                  htmlFor="telegram"
+                  className={cn(
+                    "flex items-center gap-2",
+                    isEditing && "text-primary"
+                  )}
+                >
+                  <Send className="h-4 w-4" /> Telegram Username
                 </Label>
                 {isEditing ? (
-                    <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">@</span>
-                    <Input 
-                        id="telegram" 
-                        className="pl-7"
-                        value={formData.telegram}
-                        onChange={(e) => {
-                            const val = e.target.value.replace('@', '');
-                            setFormData(prev => ({
-                                ...prev, 
-                                telegram: val,
-                                telegramEnabled: val === "" ? false : prev.telegramEnabled
-                            }));
-                        }}
-                        placeholder="username"
-                        disabled={isPending}
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">
+                      @
+                    </span>
+                    <Input
+                      id="telegram"
+                      className="pl-7"
+                      value={formData.telegram}
+                      onChange={(e) => {
+                        const val = e.target.value.replace("@", "");
+                        setFormData((prev) => ({
+                          ...prev,
+                          telegram: val,
+                          telegramEnabled:
+                            val === "" ? false : prev.telegramEnabled,
+                        }));
+                      }}
+                      placeholder="username"
+                      disabled={isPending}
                     />
-                    </div>
+                  </div>
                 ) : (
-                    <div className="flex items-center h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm">
+                  <div className="flex items-center h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm">
                     {user.telegram ? (
-                        <span className="text-blue-600 font-medium hover:underline cursor-pointer">@{user.telegram.replace('@', '')}</span>
+                      <span className="text-blue-600 font-medium hover:underline cursor-pointer">
+                        @{user.telegram.replace("@", "")}
+                      </span>
                     ) : (
-                        <span className="text-muted-foreground italic">No account linked</span>
+                      <span className="text-muted-foreground italic">
+                        No account linked
+                      </span>
                     )}
-                    </div>
+                  </div>
                 )}
-                </div>
+              </div>
             )}
 
             {/* Office */}
-            {(user.role === 'OFFICER' || user.role === 'ADMIN') && user.office && (
-                 <div className="space-y-2 md:col-span-2">
-                    <Label className="flex items-center gap-2 text-muted-foreground">
-                        <Building2 className="h-4 w-4" /> Department / Office
-                    </Label>
-                    <div className="flex items-center h-12 w-full rounded-md border border-input bg-muted/30 px-3 text-sm font-medium text-foreground shadow-sm">
-                        {user.office.replace(/_/g, ' ')}
-                    </div>
-                 </div>
-            )}
+            {(user.role === "TECHNICAL_OFFICER" ||
+              user.role === "PUBLIC_RELATIONS_OFFICER" ||
+              user.role === "ADMIN") &&
+              user.office && (
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="flex items-center gap-2 text-muted-foreground">
+                    <Building2 className="h-4 w-4" /> Department / Office
+                  </Label>
+                  <div className="flex items-center h-12 w-full rounded-md border border-input bg-muted/30 px-3 text-sm font-medium text-foreground shadow-sm">
+                    {user.office.replace(/_/g, " ")}
+                  </div>
+                </div>
+              )}
           </div>
 
           {/* Notifications */}
           {isCitizen && (
-          <>
-          <Separator />
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-                <Bell className="h-5 w-5 text-muted-foreground" />
-                <h3 className="text-lg font-medium">Notification Preferences</h3>
-            </div>
-            
-            <div className="grid gap-4 sm:grid-cols-2">
-                <div className={cn(
-                    "flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm transition-colors",
-                    isEditing ? "bg-card" : "bg-muted/20 opacity-80"
-                )}>
-                    <Checkbox 
-                        id="emailNotif" 
-                        checked={formData.emailEnabled}
-                        disabled={!isEditing || isPending}
-                        onCheckedChange={(checked) => 
-                            setFormData({...formData, emailEnabled: checked as boolean})
-                        }
-                    />
-                    <div className="space-y-1 leading-none">
-                        <Label htmlFor="emailNotif" className="cursor-pointer">Email Notifications</Label>
-                        <p className="text-xs text-muted-foreground pt-1">
-                            Receive updates about reports via email.
-                        </p>
-                    </div>
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Bell className="h-5 w-5 text-muted-foreground" />
+                  <h3 className="text-lg font-medium">
+                    Notification Preferences
+                  </h3>
                 </div>
 
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className={cn(
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div
+                    className={cn(
+                      "flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm transition-colors",
+                      isEditing ? "bg-card" : "bg-muted/20 opacity-80"
+                    )}
+                  >
+                    <Checkbox
+                      id="emailNotif"
+                      checked={formData.emailEnabled}
+                      disabled={!isEditing || isPending}
+                      onCheckedChange={(checked) =>
+                        setFormData({
+                          ...formData,
+                          emailEnabled: checked as boolean,
+                        })
+                      }
+                    />
+                    <div className="space-y-1 leading-none">
+                      <Label htmlFor="emailNotif" className="cursor-pointer">
+                        Email Notifications
+                      </Label>
+                      <p className="text-xs text-muted-foreground pt-1">
+                        Receive updates about reports via email.
+                      </p>
+                    </div>
+                  </div>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={cn(
                             "flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm transition-colors",
                             isEditing ? "bg-card" : "bg-muted/20 opacity-80",
-                            (!formData.telegram && isEditing) && "opacity-50 cursor-not-allowed"
-                        )}>
-                            <Checkbox 
-                                id="telegramNotif" 
-                                checked={formData.telegramEnabled}
-                                disabled={!isEditing || isPending || !formData.telegram} 
-                                onCheckedChange={(checked) => 
-                                    setFormData({...formData, telegramEnabled: checked as boolean})
-                                }
-                            />
-                            <div className="space-y-1 leading-none w-full">
-                                <div className="flex items-center justify-between">
-                                    <Label htmlFor="telegramNotif" className="cursor-pointer">Telegram Notifications</Label>
-                                    {(!formData.telegram && isEditing) && <Info className="h-3 w-3 text-muted-foreground" />}
-                                </div>
-                                <p className="text-xs text-muted-foreground pt-1">
-                                    Receive real-time updates on Telegram.
-                                </p>
+                            !formData.telegram &&
+                              isEditing &&
+                              "opacity-50 cursor-not-allowed"
+                          )}
+                        >
+                          <Checkbox
+                            id="telegramNotif"
+                            checked={formData.telegramEnabled}
+                            disabled={
+                              !isEditing || isPending || !formData.telegram
+                            }
+                            onCheckedChange={(checked) =>
+                              setFormData({
+                                ...formData,
+                                telegramEnabled: checked as boolean,
+                              })
+                            }
+                          />
+                          <div className="space-y-1 leading-none w-full">
+                            <div className="flex items-center justify-between">
+                              <Label
+                                htmlFor="telegramNotif"
+                                className="cursor-pointer"
+                              >
+                                Telegram Notifications
+                              </Label>
+                              {!formData.telegram && isEditing && (
+                                <Info className="h-3 w-3 text-muted-foreground" />
+                              )}
                             </div>
+                            <p className="text-xs text-muted-foreground pt-1">
+                              Receive real-time updates on Telegram.
+                            </p>
+                          </div>
                         </div>
-                    </TooltipTrigger>
-                    {(!formData.telegram && isEditing) && (
+                      </TooltipTrigger>
+                      {!formData.telegram && isEditing && (
                         <TooltipContent>
                           <p>Add a Telegram username to enable this option.</p>
                         </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
-            </div>
-          </div>
-          </>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+            </>
           )}
-
         </CardContent>
 
         {isEditing && (
@@ -652,7 +792,7 @@ export default function ProfilePage() {
             <Button onClick={handleSave} disabled={isPending}>
               {isPending ? (
                 <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
                 </>
               ) : (
                 <>
