@@ -88,7 +88,7 @@ export async function deletePhoto() {
 export async function getProfilePhotoUrl() {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.id) {
-    throw new Error("Unauthorized access");
+    return null;
   }
 
   let userId = session.user.id;
@@ -96,18 +96,22 @@ export async function getProfilePhotoUrl() {
   const photo = await ProfilePhotoService.getInstance().getPhotoOfUser(userId);
 
   if (!photo) {
-    throw new Error("Profile photo not found");
+    return null;
   } else {
-    const img = await fs.readFile(photo.url);
-    const ext = path.extname(photo.url).toLowerCase(); // '.png'
-    const mime =
-      ext === ".jpg" || ext === ".jpeg"
-        ? "image/jpeg"
-        : ext === ".webp"
-        ? "image/webp"
-        : "image/png";
+    try {
+      const img = await fs.readFile(photo.url);
+      const ext = path.extname(photo.url).toLowerCase(); // '.png'
+      const mime =
+        ext === ".jpg" || ext === ".jpeg"
+          ? "image/jpeg"
+          : ext === ".webp"
+          ? "image/webp"
+          : "image/png";
 
-    return `data:${mime};base64,${img.toString("base64")}`;
+      return `data:${mime};base64,${img.toString("base64")}`;
+    } catch (error) {
+      return null;
+    }
   }
   /*client implementation example:
   "use client";

@@ -32,10 +32,7 @@ class ReportAssignmentService {
         };
       }
 
-      await this.reportRepository.assignReportToOfficer(
-        reportId,
-        Number(officer.id)
-      );
+      await this.reportRepository.assignReportToOfficer(reportId, officer.id);
 
       return {
         success: true,

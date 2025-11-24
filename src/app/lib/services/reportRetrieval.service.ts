@@ -24,7 +24,7 @@ class ReportRetrievalService {
   }
 
   public async retrieveReportsByOfficerId(
-    officerId: number
+    officerId: string
   ): Promise<ReportsByOfficerResponse> {
     try {
       const reports = await this.reportRepository.getReportsByOfficerId(

@@ -67,7 +67,7 @@ export default function ReportsList({ officerId }: ReportsListProps) {
         setIsLoading(true);
         setError(null);
 
-        const response = await getReportsByOfficerId(parseInt(officerId));
+        const response = await getReportsByOfficerId(officerId);
 
         if (!response.success) {
           setError(response.error || "Failed to load reports");

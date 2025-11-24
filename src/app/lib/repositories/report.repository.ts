@@ -93,7 +93,7 @@ class ReportRepository {
     }
   }
 
-  public async getReportsByOfficerId(officerId: number) {
+  public async getReportsByOfficerId(officerId: string) {
     return await prisma.report.findMany({
       where: {
         officerId,
@@ -150,14 +150,14 @@ class ReportRepository {
 
   public async assignReportToOfficer(
     reportId: number,
-    officerId: number
+    officerId: string
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
         id: BigInt(reportId),
       },
       data: {
-        officerId: BigInt(officerId),
+        officerId,
         status: ReportStatus.ASSIGNED,
       },
     });

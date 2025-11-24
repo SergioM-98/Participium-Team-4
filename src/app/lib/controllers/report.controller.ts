@@ -46,7 +46,7 @@ export async function createReport(
 }
 
 export async function getReportsByOfficerId(
-  officerId: number
+  officerId: string
 ): Promise<ReportsByOfficerResponse> {
   const session = await getServerSession(authOptions);
 

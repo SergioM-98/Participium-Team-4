@@ -12,16 +12,15 @@ export class ProfilePhotoRepository {
     return ProfilePhotoRepository.instance;
   }
 
-    public async create(data: {
-            id: string;
-            url: string;
-            userId: string;
-            size?: bigint;
-            offset?: bigint;
-            filename?: string;
-        }) {
-
-    if (!user) {
+  public async create(data: {
+    id: string;
+    url: string;
+    userId: string;
+    size?: bigint;
+    offset?: bigint;
+    filename?: string;
+  }) {
+    if (!data.userId) {
       throw new Error("User not found");
     }
 

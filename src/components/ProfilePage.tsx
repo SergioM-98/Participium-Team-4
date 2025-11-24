@@ -104,6 +104,7 @@ export default function ProfilePage() {
 
   const [formData, setFormData] = useState({
     email: "",
+    telegram: "",
     emailEnabled: false,
     telegramEnabled: false,
   });
@@ -195,6 +196,7 @@ export default function ProfilePage() {
 
         setFormData({
           email: loadedUser.email,
+          telegram: loadedUser.telegram || "",
           emailEnabled: loadedUser.notifications.emailEnabled,
           telegramEnabled: loadedUser.notifications.telegramEnabled ?? false,
         });
@@ -426,6 +428,7 @@ export default function ProfilePage() {
     if (!user) return;
     setFormData({
       email: user.email,
+      telegram: user.telegram || "",
       emailEnabled: user.notifications.emailEnabled,
       telegramEnabled: user.notifications.telegramEnabled ?? false,
     });
