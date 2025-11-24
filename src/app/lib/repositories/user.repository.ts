@@ -71,10 +71,10 @@ class UserRepository {
           lastName: userData.lastName,
           email: userData.email ?? undefined,
           username: userData.username,
+          id: userData.id,
           role: userData.role,
           office: userData.office ?? undefined,
           passwordHash: hashedPassword,
-          telegram: userData.telegram ?? undefined,
         },
       });
 
@@ -112,9 +112,13 @@ class UserRepository {
       return {
         success: true,
         data: {
-          ...rest,
           email: rest.email ?? undefined,
           office: rest.office ?? undefined,
+          id: rest.id,
+          firstName: rest.firstName,
+          lastName: rest.lastName,
+          username: rest.username,
+          role: rest.role,
           telegram: rest.telegram ?? undefined,
         },
       };
@@ -130,7 +134,7 @@ class UserRepository {
     removeTelegram: boolean
   ): Promise<RegistrationResponse> {
     try {
-      if (telegram === null && email === null && removeTelegram === false) {
+      if (email === null && removeTelegram === false) {
         return {
           success: false,
           error: "At least one contact method must be provided",
@@ -144,8 +148,6 @@ class UserRepository {
 
       if (removeTelegram) {
         data.telegram = null;
-      } else if (telegram !== null) {
-        data.telegram = telegram;
       }
 
       await prisma.user.update({
@@ -158,6 +160,30 @@ class UserRepository {
       };
     } catch (error) {
       throw new Error("Failed to update user in database");
+    }
+  }
+
+  async getUserByTelegramId(telegramId: string): Promise<RegistrationResponse> {
+    try {
+      const user = await prisma.user.findUnique({
+        where: {
+          telegram: telegramId,
+        },
+      });
+
+      if (!user) {
+        return {
+          success: false,
+          error: "No user found with the provided telegram ID.",
+        };
+      }
+
+      return {
+        success: true,
+        data: user.id,
+      };
+    } catch (error) {
+      return { success: false, error: "Failed to fetch user from database" };
     }
   }
 }

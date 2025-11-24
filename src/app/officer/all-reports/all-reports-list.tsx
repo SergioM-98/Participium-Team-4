@@ -288,13 +288,14 @@ export function AllReportsList({ data }: AllReportsListProps) {
       }
 
       // Transform the response data to match Report interface
+      // inside fetchReports function (~line 200)
       const transformedReports = response.data.map((r) => ({
         id: r.id,
         title: r.title,
         description: r.description,
         category: r.category as keyof typeof categoryLabels,
         status: STATUS.PENDING,
-        dateSubmitted: new Date().toISOString(), // Use current date if not provided
+        dateSubmitted: new Date().toISOString(),
         isAnonymous: !r.citizen,
         submitter: r.citizen
           ? {
@@ -312,7 +313,8 @@ export function AllReportsList({ data }: AllReportsListProps) {
               username: "",
             },
         rejectionReason: undefined,
-        photos: r.photos,
+        // FIX: Force this to be an array if r.photos is null/undefined
+        photos: Array.isArray(r.photos) ? r.photos : [],
         latitude: r.latitude,
         longitude: r.longitude,
       }));

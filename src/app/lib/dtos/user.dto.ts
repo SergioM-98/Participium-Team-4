@@ -48,6 +48,7 @@ const BaseUserSchema = z
   );
 
 export const RegistrationInputSchema = BaseUserSchema.safeExtend({
+  id: z.string(),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z
     .string()
@@ -55,7 +56,7 @@ export const RegistrationInputSchema = BaseUserSchema.safeExtend({
 });
 
 export const CitizenSchema = BaseUserSchema.safeExtend({
-  id: z.coerce.bigint(),
+  id: z.string(),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
@@ -65,7 +66,7 @@ export const CheckDuplicatesResponseSchema = z.object({
 
 export const RetrievedUserDataSchema = z
   .object({
-    id: z.bigint(),
+    id: z.string(),
     firstName: z.string(),
     lastName: z.string(),
     email: z.email().optional(),
@@ -116,7 +117,7 @@ export const LoginInputSchema = z.object({
 });
 
 type RetrievedUserData = z.infer<typeof RetrievedUserDataSchema>;
-export type MeType = z.infer<typeof BaseUserSchema>;
+export type MeType = z.infer<typeof RetrievedUserDataSchema>
 export type Citizen = z.infer<typeof CitizenSchema>;
 export type RegistrationInput = z.infer<typeof RegistrationInputSchema>;
 export type CheckDuplicatesResponse = z.infer<

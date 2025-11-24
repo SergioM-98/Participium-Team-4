@@ -12,17 +12,14 @@ export class ProfilePhotoRepository {
     return ProfilePhotoRepository.instance;
   }
 
-  public async create(data: {
-    id: string;
-    url: string;
-    userId: string;
-    size?: bigint;
-    offset?: bigint;
-    filename?: string;
-  }) {
-    const user = await prisma.user.findUnique({
-      where: { id: data.userId },
-    });
+    public async create(data: {
+            id: string;
+            url: string;
+            userId: string;
+            size?: bigint;
+            offset?: bigint;
+            filename?: string;
+        }) {
 
     if (!user) {
       throw new Error("User not found");

@@ -50,6 +50,8 @@ import {
   Building2,
   ShieldAlert,
   ShieldCheck,
+  Link as LinkIcon,
+  CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NotificationsData } from "@/app/lib/dtos/notificationPreferences.dto";
@@ -63,6 +65,7 @@ import {
   getProfilePhotoUrl,
 } from "@/app/lib/controllers/ProfilePhoto.controller";
 import { getNotificationsPreferences } from "@/app/lib/controllers/notifications.controller";
+import { startTelegramRegistration } from "@/app/lib/controllers/telegramBot.controller";
 
 type UserProfileData = {
   username: string;
@@ -101,10 +104,13 @@ export default function ProfilePage() {
 
   const [formData, setFormData] = useState({
     email: "",
-    telegram: "",
     emailEnabled: false,
     telegramEnabled: false,
   });
+
+  const [telegramStatus, setTelegramStatus] = useState<
+    "idle" | "opening" | "opened"
+  >("idle");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -113,7 +119,7 @@ export default function ProfilePage() {
 
       setIsLoadingData(true);
       try {
-        const userDataResponse = await getMe(session.user.username);
+        const userDataResponse = await getMe();
 
         if ("error" in userDataResponse) {
           throw new Error(userDataResponse.error);
@@ -142,7 +148,9 @@ export default function ProfilePage() {
 
           try {
             imageUrl = await getProfilePhotoUrl();
-          } catch (e) {}
+          } catch (e) {
+            console.warn("Failed to fetch profile photo", e);
+          }
         }
 
         let loadedUser: UserProfileData;
@@ -187,7 +195,6 @@ export default function ProfilePage() {
 
         setFormData({
           email: loadedUser.email,
-          telegram: loadedUser.telegram,
           emailEnabled: loadedUser.notifications.emailEnabled,
           telegramEnabled: loadedUser.notifications.telegramEnabled ?? false,
         });
@@ -201,6 +208,34 @@ export default function ProfilePage() {
 
     fetchData();
   }, [session, status]);
+
+  useEffect(() => {
+    const handleFocus = async () => {
+      if (telegramStatus === "opened" && !user?.telegram) {
+        try {
+          const userDataResponse = await getMe();
+
+          if ("error" in userDataResponse) return;
+
+          if ("telegram" in userDataResponse && userDataResponse.telegram) {
+            setUser((prev) =>
+              prev ? { ...prev, telegram: userDataResponse.telegram! } : null
+            );
+            setTelegramStatus("idle");
+            router.refresh();
+          }
+        } catch (e) {
+          console.error("Error fetching profile on focus", e);
+        }
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [telegramStatus, user?.telegram, router]);
 
   const avatarStyle = useMemo(() => {
     if (!user?.username) return {};
@@ -305,13 +340,46 @@ export default function ProfilePage() {
     }
   };
 
+  const handleConnectTelegram = () => {
+    setTelegramStatus("opening");
+
+    startTransition(async () => {
+      try {
+        const result = await startTelegramRegistration();
+        if (result.success) {
+          const token = result.data;
+          const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+
+          if (!botName) {
+            setError("Bot username configuration missing on client.");
+            setTelegramStatus("idle");
+            return;
+          }
+
+          const telegramUrl = `https://t.me/${botName}?start=${token}`;
+          window.open(telegramUrl, "_blank", "noopener,noreferrer");
+
+          setError(null);
+          setTelegramStatus("opened");
+        } else {
+          setError(result.error || "Failed to start Telegram registration");
+          setTelegramStatus("idle");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("An unexpected error occurred connecting Telegram");
+        setTelegramStatus("idle");
+      }
+    });
+  };
+
   const handleSave = () => {
     if (!user || user.role !== "CITIZEN" || !validate()) return;
     setError(null);
 
     startTransition(async () => {
       try {
-        const removeTelegram = user.telegram !== "" && formData.telegram === "";
+        const removeTelegram = false;
 
         const notificationsData: NotificationsData = {
           emailEnabled: formData.emailEnabled,
@@ -319,7 +387,7 @@ export default function ProfilePage() {
         };
 
         const result = await updateNotificationsMedia(
-          formData.telegram || null,
+          user.telegram || null,
           formData.email || null,
           removeTelegram,
           notificationsData
@@ -358,7 +426,6 @@ export default function ProfilePage() {
     if (!user) return;
     setFormData({
       email: user.email,
-      telegram: user.telegram,
       emailEnabled: user.notifications.emailEnabled,
       telegramEnabled: user.notifications.telegramEnabled ?? false,
     });
@@ -389,13 +456,13 @@ export default function ProfilePage() {
   }
 
   const isCitizen = user.role === "CITIZEN";
-
   const canEdit = isCitizen;
+  const isTelegramConnected = !!user.telegram;
 
   return (
     <div className="w-full flex items-start justify-center p-4 md:py-10">
       {isCropModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4 animate-in fade-in">
+        <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/80 p-4 animate-in fade-in">
           <div className="bg-background w-full max-w-md rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
             <div className="p-4 border-b">
               <h3 className="font-semibold text-lg">Adjust Profile Picture</h3>
@@ -625,50 +692,48 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {/* Telegram */}
+            {/* Telegram Section */}
             {isCitizen && (
               <div className="space-y-2 md:col-span-2">
-                <Label
-                  htmlFor="telegram"
-                  className={cn(
-                    "flex items-center gap-2",
-                    isEditing && "text-primary"
-                  )}
-                >
-                  <Send className="h-4 w-4" /> Telegram Username
-                </Label>
-                {isEditing ? (
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">
-                      @
+                {isTelegramConnected ? (
+                  <div className="flex items-center h-9 gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <span className="text-green-600 font-medium text-sm">
+                      Telegram Connected
                     </span>
-                    <Input
-                      id="telegram"
-                      className="pl-7"
-                      value={formData.telegram}
-                      onChange={(e) => {
-                        const val = e.target.value.replace("@", "");
-                        setFormData((prev) => ({
-                          ...prev,
-                          telegram: val,
-                          telegramEnabled:
-                            val === "" ? false : prev.telegramEnabled,
-                        }));
-                      }}
-                      placeholder="username"
-                      disabled={isPending}
-                    />
                   </div>
                 ) : (
-                  <div className="flex items-center h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm">
-                    {user.telegram ? (
-                      <span className="text-blue-600 font-medium hover:underline cursor-pointer">
-                        @{user.telegram.replace("@", "")}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground italic">
-                        No account linked
-                      </span>
+                  <div>
+                    <Button
+                      size="sm"
+                      className="w-full sm:w-auto gap-2 bg-[#0088cc] hover:bg-[#0077b5] text-white"
+                      onClick={handleConnectTelegram}
+                      disabled={isPending || telegramStatus === "opening"}
+                    >
+                      {telegramStatus === "opening" ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" /> Opening
+                          Telegram...
+                        </>
+                      ) : telegramStatus === "opened" ? (
+                        <>
+                          <LinkIcon className="h-4 w-4" /> Telegram Opened
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4" /> Connect with Telegram
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-[11px] text-muted-foreground mt-2">
+                      Click to be redirected to Telegram and link your account
+                      to receive notifications.
+                    </p>
+                    {telegramStatus === "opened" && (
+                      <p className="text-[11px] text-green-600 mt-2 font-medium">
+                        ✓ Telegram opened in new window. Complete the
+                        registration there and return here.
+                      </p>
                     )}
                   </div>
                 )}
@@ -738,7 +803,7 @@ export default function ProfilePage() {
                           className={cn(
                             "flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm transition-colors",
                             isEditing ? "bg-card" : "bg-muted/20 opacity-80",
-                            !formData.telegram &&
+                            !isTelegramConnected &&
                               isEditing &&
                               "opacity-50 cursor-not-allowed"
                           )}
@@ -747,7 +812,7 @@ export default function ProfilePage() {
                             id="telegramNotif"
                             checked={formData.telegramEnabled}
                             disabled={
-                              !isEditing || isPending || !formData.telegram
+                              !isEditing || isPending || !isTelegramConnected
                             }
                             onCheckedChange={(checked) =>
                               setFormData({
@@ -764,7 +829,7 @@ export default function ProfilePage() {
                               >
                                 Telegram Notifications
                               </Label>
-                              {!formData.telegram && isEditing && (
+                              {!isTelegramConnected && isEditing && (
                                 <Info className="h-3 w-3 text-muted-foreground" />
                               )}
                             </div>
@@ -774,9 +839,12 @@ export default function ProfilePage() {
                           </div>
                         </div>
                       </TooltipTrigger>
-                      {!formData.telegram && isEditing && (
+                      {!isTelegramConnected && isEditing && (
                         <TooltipContent>
-                          <p>Add a Telegram username to enable this option.</p>
+                          <p>
+                            Connect your Telegram account above to enable this
+                            option.
+                          </p>
                         </TooltipContent>
                       )}
                     </Tooltip>

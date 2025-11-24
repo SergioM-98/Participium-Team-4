@@ -3,12 +3,19 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Tag, FileText } from "lucide-react";
+import {
+  MapPin,
+  Calendar,
+  Tag,
+  FileText,
+  X,
+  Image as ImageIcon,
+} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
-// Define the shape of a Report object for display
-// NOTE: These interfaces are necessary for the component to function,
-// but the data will be mocked or passed in when you test it.
+import OfficerActionPanel from "../app/officer/all-reports/OfficerActionPanel";
+
+// --- Type Definitions ---
 interface Report {
   id: string;
   title: string;
@@ -20,55 +27,76 @@ interface Report {
     | "in_progress"
     | "suspended"
     | "rejected"
-    | "resolved";
+    | "resolved"
+    | string;
   latitude: number;
   longitude: number;
-  reporterName: string; // Could be 'Anonymous'
-  createdAt: string; // ISO date string
-  photoUrls: string[]; // URLs of the uploaded images
+  reporterName: string;
+  createdAt: string;
+  // Make these optional so we can handle both data shapes safely
+  photoUrls?: string[];
+  photos?: string[];
 }
 
 interface ReportDetailsCardProps {
   report: Report;
-  // Function to handle a back/close action
   onClose?: () => void;
+  isOfficerMode?: boolean;
+  onOfficerActionComplete?: () => void;
 }
 
-// Function to format the category string (e.g., 'WATER_SUPPLY' -> 'Water Supply')
+// --- Helpers ---
 const formatCategory = (category: string) => {
+  if (!category) return "Uncategorized";
   return category
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 };
 
-// Helper function for status badge styling
 const getStatusBadge = (status: Report["status"]) => {
-  switch (status) {
+  const normalizedStatus = status ? status.toLowerCase() : "unknown";
+  switch (normalizedStatus) {
     case "pending_approval":
+    case "pending":
       return <Badge variant="secondary">Pending Approval</Badge>;
     case "assigned":
-      return <Badge className="bg-yellow-500 hover:bg-yellow-500/90">Assigned</Badge>;
+      return (
+        <Badge className="bg-yellow-500 hover:bg-yellow-500/90">Assigned</Badge>
+      );
     case "in_progress":
-      return <Badge className="bg-orange-500 hover:bg-orange-500/90">In Progress</Badge>;
+      return (
+        <Badge className="bg-orange-500 hover:bg-orange-500/90">
+          In Progress
+        </Badge>
+      );
     case "suspended":
-      return <Badge className="bg-gray-500 hover:bg-gray-500/90">Suspended</Badge>;
+      return (
+        <Badge className="bg-gray-500 hover:bg-gray-500/90">Suspended</Badge>
+      );
     case "rejected":
       return <Badge className="bg-red-500 hover:bg-red-500/90">Rejected</Badge>;
     case "resolved":
-      return <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>;
+      return (
+        <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>
+      );
     default:
-      return <Badge variant="secondary">Unknown</Badge>;
+      return (
+        <Badge variant="secondary">{normalizedStatus.replace(/_/g, " ")}</Badge>
+      );
   }
 };
 
 export default function ReportDetailsCard({
   report,
   onClose,
+  isOfficerMode = false,
+  onOfficerActionComplete,
 }: ReportDetailsCardProps) {
-  // Use a sensible default date for testing if the passed prop is invalid/missing
-  const validDate = report.createdAt || new Date().toISOString();
+  // FAILSAFE: robustly check for photos regardless of property name
+  const evidencePhotos = report.photoUrls || report.photos || [];
 
+  const validDate = report.createdAt || new Date().toISOString();
   const formattedDate = new Date(validDate).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -80,14 +108,12 @@ export default function ReportDetailsCard({
   return (
     <div className="w-full flex items-start justify-center">
       <Card className="w-full bg-background rounded-lg p-0 shadow-md">
-        {/* === Header Section === */}
+        {/* === Header === */}
         <CardHeader className="p-6 pb-4 border-b border-border">
           <div className="flex justify-between items-start">
             <CardTitle className="text-xl font-bold text-foreground max-w-[85%] truncate">
-              {/* Report Title */}
               {report.title}
             </CardTitle>
-            {/* Close Button (if onClose function is provided) */}
             {onClose && (
               <Button
                 variant="ghost"
@@ -95,33 +121,23 @@ export default function ReportDetailsCard({
                 onClick={onClose}
                 className="text-muted-foreground hover:text-foreground h-8 w-8"
               >
-                <svg
-                  className="h-5 w-5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <X className="h-5 w-5" />
               </Button>
             )}
           </div>
-          {/* Status and Location */}
           <div className="flex items-center space-x-3 mt-2">
             {getStatusBadge(report.status)}
             <p className="text-sm text-muted-foreground flex items-center whitespace-nowrap overflow-hidden text-ellipsis">
               <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-              Loc: ({report.latitude.toFixed(4)}, {report.longitude.toFixed(4)})
+              Loc: ({Number(report.latitude).toFixed(4)},{" "}
+              {Number(report.longitude).toFixed(4)})
             </p>
           </div>
         </CardHeader>
 
-        {/* === Content Section === */}
+        {/* === Content === */}
         <CardContent className="p-6 space-y-5">
-          {/* Metadata Grid */}
+          {/* Metadata */}
           <div className="grid grid-cols-2 gap-4 text-sm text-foreground">
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-2 text-primary" />
@@ -133,7 +149,7 @@ export default function ReportDetailsCard({
             </div>
             <div className="flex items-center col-span-2">
               <FileText className="h-4 w-4 mr-2 text-primary" />
-              Reported By: {report.reporterName}
+              Reported By: {report.reporterName || "Anonymous"}
             </div>
           </div>
 
@@ -147,33 +163,68 @@ export default function ReportDetailsCard({
             </p>
           </div>
 
-          {/* Images/Gallery Section */}
-          {report.photoUrls.length > 0 && (
-            <div>
-              <h3 className="text-base font-semibold mb-3">
-                Evidence Photos ({report.photoUrls.length})
-              </h3>
+          {/* Photos Section */}
+          <div>
+            <h3 className="text-base font-semibold mb-3 flex items-center gap-2">
+              Evidence Photos{" "}
+              <span className="text-muted-foreground font-normal">
+                ({evidencePhotos.length})
+              </span>
+            </h3>
+
+            {evidencePhotos.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {report.photoUrls.map((url, index) => (
+                {evidencePhotos.map((url, index) => (
                   <div
                     key={index}
-                    className="aspect-video overflow-hidden rounded-lg border border-border"
+                    className="relative aspect-video overflow-hidden rounded-lg border border-border bg-muted/50 group"
                   >
+                    {/* Placeholder Icon (always sits behind the image) */}
+                    <div className="absolute inset-0 flex items-center justify-center z-0">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                    </div>
+
                     <img
-                      // NOTE: Replace 'src' with your actual image host URL when integrating
                       src={url}
                       alt={`Report Photo ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 z-10"
+                      loading="lazy"
+                      onError={(e) => {
+                        // FIX: Don't set display: none, just make it invisible so the icon behind it shows
+                        e.currentTarget.style.opacity = "0";
+                      }}
                     />
+
+                    {/* Hover Overlay */}
+                    <div className="hidden group-hover:flex absolute inset-0 bg-black/40 items-center justify-center pointer-events-none z-20">
+                      {/* Optional hover effect */}
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
+            ) : (
+              <div className="p-4 border border-dashed rounded-lg bg-muted/30 text-center text-sm text-muted-foreground">
+                No photos provided.
+              </div>
+            )}
+          </div>
+
+          {/* === OFFICER ACTIONS === */}
+          {isOfficerMode && (
+            <>
+              <Separator className="my-6" />
+              <OfficerActionPanel
+                reportId={report.id}
+                currentStatus={report.status}
+                currentCategory={report.category}
+                onActionComplete={onOfficerActionComplete}
+              />
+            </>
           )}
         </CardContent>
 
-        {/* === Footer Section (Back/Close Button) === */}
-        {onClose && (
+        {/* === Footer === */}
+        {!isOfficerMode && onClose && (
           <div className="px-6 py-3 border-t border-border bg-muted rounded-b-lg flex justify-end">
             <Button
               variant="default"

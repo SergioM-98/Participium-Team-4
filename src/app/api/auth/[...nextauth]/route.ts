@@ -62,7 +62,7 @@ export const authOptions: AuthOptions = {
         session.user.firstName = token.firstName as string;
         session.user.lastName = token.lastName as string;
         session.user.office = token.office as string | undefined;
-        session.user.telegram = token.telegram as string | undefined;
+        session.user.telegram = token.telegram as boolean;
       }
       return session;
     },

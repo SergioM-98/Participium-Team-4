@@ -37,7 +37,49 @@ class ProfilePhotoService {
     return ProfilePhotoService.instance;
   }
 
-  public async deletePhoto(userId: number): Promise<TusDeleteResponse> {
+    public async deletePhoto(userId: string): Promise<TusDeleteResponse> {
+        try {
+            
+            // Get photo record from database
+            const photo = await this.profilePhotoRepository.getPhotoOfUser(userId);
+            if (!photo) {
+                throw new Error(`Photo for user ID ${userId} not found`);
+            }
+
+            
+
+            try {
+                // Delete file from filesystem
+                await unlink(photo.url.replace('/uploads/', ''));
+                console.log(`File deleted: ${photo.url}`);
+            } catch (fileError) {
+                // Log file deletion error but continue with database deletion
+                console.warn(`Failed to delete file ${photo.url}:`, fileError);
+            }
+
+            // Delete photo record from database
+            await this.profilePhotoRepository.delete(photo.id);
+            console.log(`Photo record deleted from database: ${photo.id}`);
+
+            const response: TusDeleteResponse = TusDeleteResponseSchema.parse({
+                success: true,
+                message: 'Photo deleted successfully'
+            });
+
+            return response;
+        } catch (error) {
+            console.error('Error in deletePhoto:', error);
+            
+            const response: TusDeleteResponse = TusDeleteResponseSchema.parse({
+                success: false,
+                message: `Failed to delete photo: ${error instanceof Error ? error.message : 'Unknown error'}`
+            });
+
+            return response;
+        }
+    }
+    
+   public async createUploadPhoto(request: CreateUploadRequest, userId: string): Promise<TusCreateResponse> {
     try {
       // Get photo record from database
       const photo = await this.profilePhotoRepository.getPhotoOfUser(userId);
