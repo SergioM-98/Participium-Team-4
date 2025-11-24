@@ -16,7 +16,6 @@ describe("Story 12 - Integration Test: registerTelegramReport", () => {
   beforeEach(async () => {
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
-    // حذف رکوردهای جدول notifications_preferences قبل از حذف کاربران
     if (prisma.notificationPreferences) {
       await prisma.notificationPreferences.deleteMany({});
     }
