@@ -113,10 +113,11 @@ function Navbar1({
               </>
             ) : (
               <>
-                {/* --- NOTIFICATION BELL (DESKTOP) --- */}
-                <div className="mr-1">
-                  <NotificationBell />
-                </div>
+                {role === "CITIZEN" && (
+                  <div className="mr-1">
+                    <NotificationBell />
+                  </div>
+                )}
 
                 <LogoutButton variant="outline" size="sm" />
                 <ProfileButton
@@ -144,9 +145,8 @@ function Navbar1({
 
             {/* Right side group: Notification + Menu Trigger */}
             <div className="flex items-center gap-3">
-              {/* --- NOTIFICATION BELL (MOBILE) --- */}
-              {/* Only show if logged in (role exists) */}
-              {role && <NotificationBell />}
+              {/* --- NOTIFICATION BELL (MOBILE) - Only for CITIZEN --- */}
+              {role === "CITIZEN" && <NotificationBell />}
 
               <Sheet>
                 <SheetTrigger asChild>

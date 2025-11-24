@@ -156,6 +156,17 @@ class UserRepository {
     }
   }
 
+  async getUserById(userId: bigint) {
+    try {
+      return await prisma.user.findUnique({
+        where: { id: userId },
+      });
+    } catch (error) {
+      console.error("Failed to fetch user from database", error);
+      return null;
+    }
+  }
+
 
 }
 

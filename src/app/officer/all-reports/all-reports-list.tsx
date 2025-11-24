@@ -90,6 +90,10 @@ export interface Report {
   photos: string[];
   latitude: number;
   longitude: number;
+  citizen?: { username: string };
+  citizenId?: string | number;
+  officerId?: string | number | null | undefined;
+  createdAt?: string;
 }
 
 // Status Colors Helper
@@ -587,10 +591,10 @@ export function AllReportsList({ data }: AllReportsListProps) {
                 latitude: selectedReport.latitude,
                 longitude: selectedReport.longitude,
                 reporterName: selectedReport.citizen?.username || "Anonymous",
-                createdAt: selectedReport.createdAt?.toISOString() || new Date().toISOString(),
+                createdAt: selectedReport.createdAt || new Date().toISOString(),
                 photoUrls: selectedReport.photos || [],
                 citizenId: selectedReport.citizenId,
-                officerId: selectedReport.officerId,
+                officerId: selectedReport.officerId || undefined,
               }}
               onClose={handleDialogClose}
               isOfficerMode={true}

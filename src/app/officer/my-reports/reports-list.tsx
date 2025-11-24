@@ -331,14 +331,14 @@ export default function ReportsList({ officerId }: ReportsListProps) {
                 title: selectedReport.title,
                 description: selectedReport.description,
                 category: selectedReport.category,
-                status: selectedReport.status,
+                status: selectedReport.status || "PENDING_APPROVAL",
                 latitude: selectedReport.latitude,
                 longitude: selectedReport.longitude,
                 reporterName: selectedReport.citizen?.username || "Anonymous",
-                createdAt: selectedReport.createdAt?.toISOString() || new Date().toISOString(),
+                createdAt: selectedReport.createdAt || new Date().toISOString(),
                 photoUrls: selectedReport.photos.map((filename) => photoCache[filename]).filter(Boolean),
                 citizenId: selectedReport.citizenId,
-                officerId: selectedReport.officerId,
+                officerId: selectedReport.officerId || undefined,
               }}
               onClose={() => setSelectedReport(null)}
               showChat={true}
