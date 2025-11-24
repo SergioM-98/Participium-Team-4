@@ -423,8 +423,8 @@ export function AllReportsList({ data }: AllReportsListProps) {
             <span className="text-sm font-medium">Filter by category:</span>
           </div>
 
-          {/* Single-line flex container with equal width distribution */}
-          <div className="flex gap-2 w-full [&>button]:flex-1">
+          {/* Flex container with wrapping for responsive layout */}
+          <div className="flex flex-wrap gap-2 w-full">
             <Button
               variant={currentCategoryFilter === "ALL" ? "default" : "outline"}
               size="sm"

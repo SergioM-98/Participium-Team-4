@@ -70,18 +70,15 @@ export function ReportDetailsDialog({
 
   return (
     <div
-      // Styling matched from Reports.tsx (Z-index 9999, duration-300)
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300"
       onClick={onClose}
     >
       <div
-        // Container styling matched from Reports.tsx (max-w-3xl, zoom-in-95)
-        className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300"
+        className="relative w-full max-w-6xl overflow-hidden rounded-xl shadow-2xl bg-background animate-in fade-in zoom-in-95 duration-300 flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {isLoading && (
-          // Loading state matched: bg-background, rounded border
-          <div className="flex h-64 w-full items-center justify-center bg-background rounded-xl border border-border">
+          <div className="flex h-full w-full items-center justify-center bg-background">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
           </div>
         )}
@@ -100,12 +97,11 @@ export function ReportDetailsDialog({
         )}
 
         {!isLoading && !fullReportData && (
-          // Error state matched: bg-background, rounded border
-          <div className="flex h-64 items-center justify-center p-6 flex-col gap-4 bg-background rounded-xl border border-border">
+          <div className="flex h-full items-center justify-center p-6 flex-col gap-4 bg-background">
             <p className="text-muted-foreground">
               {errorMsg || "Impossible to load details."}
             </p>
-            <button onClick={onClose} className="text-sm underline">
+            <button onClick={onClose} className="text-sm underline hover:text-primary">
               Close
             </button>
           </div>

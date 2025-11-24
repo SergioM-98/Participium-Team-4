@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-// Define message type
 export interface ChatMessage {
   id: string;
   senderName: string;
@@ -32,7 +31,6 @@ export default function ChatPanel({
   const [newMessage, setNewMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new message
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
@@ -53,8 +51,7 @@ export default function ChatPanel({
   };
 
   return (
-    <div className="flex flex-col h-[400px] border rounded-md bg-background overflow-hidden shadow-sm">
-      {/* Header */}
+    <div className="flex flex-col h-full min-h-0 bg-background overflow-hidden shadow-sm">
       <div className="p-3 border-b bg-muted/30 flex items-center justify-between">
         <h4 className="text-sm font-semibold flex items-center gap-2">
           Report Discussion
@@ -64,7 +61,6 @@ export default function ChatPanel({
         </span>
       </div>
 
-      {/* Messages Area */}
       <ScrollArea className="flex-1 p-4 bg-slate-50/50 dark:bg-slate-900/50">
         <div className="flex flex-col gap-4">
           {messages.length === 0 && (
@@ -81,7 +77,6 @@ export default function ChatPanel({
                   isMe ? "flex-row-reverse" : "flex-row"
                 }`}
               >
-                {/* Avatar */}
                 <Avatar className="h-8 w-8 mt-1 border bg-background">
                   <AvatarFallback
                     className={
@@ -98,7 +93,6 @@ export default function ChatPanel({
                   </AvatarFallback>
                 </Avatar>
 
-                {/* Bubble */}
                 <div
                   className={`flex flex-col max-w-[80%] ${
                     isMe ? "items-end" : "items-start"
@@ -128,11 +122,10 @@ export default function ChatPanel({
               </div>
             );
           })}
-          <div ref={scrollRef} /> {/* Scroll anchor */}
+          <div ref={scrollRef} />
         </div>
       </ScrollArea>
 
-      {/* Input Area */}
       <div className="p-3 border-t bg-background flex gap-2 items-end">
         <Textarea
           value={newMessage}
