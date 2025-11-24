@@ -1,6 +1,7 @@
 import { createReport } from "@/app/lib/controllers/report.controller";
-import { ReportRegistrationResponse, ReportRequest } from "@/app/lib/dtos/report.dto";
+import { ReportRegistrationResponse } from "@/app/lib/dtos/report.dto";
 import { ReportCreationService } from "@/app/lib/services/reportCreation.service";
+import { getServerSession } from 'next-auth/next';
 
 const mockService = {
   createReport: jest.fn(),
@@ -14,7 +15,6 @@ jest.mock('@/auth', () => ({
     authOptions: {}
 }));
 
-import { getServerSession } from 'next-auth/next';
 
 const mockReportController = {
     createReport: jest.fn(),
@@ -29,10 +29,6 @@ jest.mock('@/app/lib/services/reportCreation.service', () => {
 });
 
 describe('ReportController Story 4', () => {
-
-
-  
-
 
     const citizenSession = {
         user: {
@@ -53,7 +49,6 @@ describe('ReportController Story 4', () => {
     };
     
     beforeEach(() => {
-
         jest.clearAllMocks();
     });
 
