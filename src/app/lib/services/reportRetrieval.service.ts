@@ -44,6 +44,10 @@ class ReportRetrievalService {
         longitude: Number(r.longitude),
         latitude: Number(r.latitude),
         userId: r.citizenId.toString(),
+        citizenId: r.citizenId.toString(),
+        officerId: r.officerId?.toString(),
+        citizen: r.citizen,
+        createdAt: r.createdAt,
         status: this.normalizeStatus(r.status),
       }));
 
@@ -71,12 +75,7 @@ class ReportRetrievalService {
         id: r.id.toString(),
         title: r.title,
         description: r.description,
-        photos: r.photos
-          .map((p: { url?: string | null } | null | undefined) => p?.url)
-          .filter(
-            (filename: unknown): filename is string =>
-              typeof filename === "string"
-          ),
+        photos: r.photos,
         category: r.category,
         longitude: Number(r.longitude),
         latitude: Number(r.latitude),
@@ -90,7 +89,6 @@ class ReportRetrievalService {
             }
           : null,
       }));
-
       return {
         success: true,
         data: transformedReports,

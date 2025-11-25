@@ -118,15 +118,21 @@ export default function MunicipalityUserForm({
     if (!validate()) return;
     setSubmitting(true);
     try {
-      const result = await onSubmit({
+      const submitData: any = {
         username: data.username.trim().toLowerCase(),
         firstName: data.firstName.trim(),
         lastName: data.lastName.trim(),
         role: data.role?.trim() ?? "",
-        office: data.office?.trim() ?? "",
         password: data.password,
         confirmPassword: data.confirmPassword,
-      });
+      };
+
+      // Only include office if not ADMIN
+      if (data.role !== "ADMIN") {
+        submitData.office = data.office?.trim() ?? "";
+      }
+
+      const result = await onSubmit(submitData);
       if (!initialData && result !== false) {
         resetForm();
       }
@@ -305,11 +311,10 @@ export default function MunicipalityUserForm({
 
                 <div className="space-y-2">
                   <Label htmlFor="office">Office</Label>
-                  {data.role === "MUNICIPAL_PUBLIC_RELATIONS_OFFICER" ||
-                  data.role === "MUNICIPAL_ADMINISTRATOR" ? (
+                  {data.role === "ADMIN" ? (
                     <Input
                       id="office"
-                      value="Organization Office"
+                      value="N/A"
                       disabled
                       className="bg-muted"
                     />

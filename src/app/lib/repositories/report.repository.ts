@@ -27,6 +27,8 @@ class ReportRepository {
           createdAt: true,
           category: true,
           status: true,
+          citizenId: true,
+          officerId: true,
           citizen: {
             select: {
               username: true,
@@ -65,11 +67,8 @@ class ReportRepository {
           title: title,
           description: description,
           photos: {
-            create: photos.map((photoId) => ({
-              url: `/uploads/${photoId}`,
-              size: 0,
-              offset: 0,
-              filename: photoId,
+            connect: photos.map((photoId) => ({
+              id: photoId,
             })),
           },
           category: Object.values(Category).includes(category as Category)
@@ -96,11 +95,17 @@ class ReportRepository {
   public async getReportsByOfficerId(officerId: string) {
     return await prisma.report.findMany({
       where: {
-        officerId,
+        officerId: officerId,
       },
       include: {
         photos: {
-          select: { filename: true },
+          select: { url: true, filename: true },
+        },
+        citizen: {
+          select: {
+            id: true,
+            username: true,
+          },
         },
       },
     });
@@ -113,7 +118,9 @@ class ReportRepository {
       },
       include: {
         photos: {
-          select: { filename: true },
+          select: { filename: true,
+            url: true
+          },
         },
         citizen: {
           select: {
@@ -137,7 +144,7 @@ class ReportRepository {
 
     return await prisma.user.findFirst({
       where: {
-        role: Role.TECHNICAL_OFFICER,
+        role: "TECHNICAL_OFFICER" as Role,
         office,
       },
       orderBy: {
@@ -157,7 +164,7 @@ class ReportRepository {
         id: BigInt(reportId),
       },
       data: {
-        officerId,
+        officerId: officerId,
         status: ReportStatus.ASSIGNED,
       },
     });

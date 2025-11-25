@@ -21,6 +21,7 @@ import {
 import { getReportsByOfficerId } from "@/controllers/report.controller";
 import type { RetrieveReportByOfficer } from "@/dtos/report.dto";
 import { getPhoto } from "@/controllers/photo.controller";
+import ReportDetailsCard from "@/components/ReportDetailsCard";
 
 type Report = RetrieveReportByOfficer;
 
@@ -317,92 +318,33 @@ export default function ReportsList({ officerId }: ReportsListProps) {
 
       {selectedReport && (
         <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300"
           onClick={() => setSelectedReport(null)}
         >
-          <Card
-            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+          <div
+            className="relative w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] max-h-[85vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <CardHeader>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <CardTitle className="text-xl mb-2">
-                    {selectedReport.title}
-                  </CardTitle>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      categoryColors[selectedReport.category]
-                    }`}
-                  >
-                    {categoryLabels[selectedReport.category]}
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedReport(null)}
-                  className="shrink-0"
-                >
-                  ✕
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h4 className="font-semibold mb-2">Description</h4>
-                <p className="text-sm text-muted-foreground">
-                  {selectedReport.description}
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold mb-2">
-                  Photos ({selectedReport.photos.length})
-                </h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {selectedReport.photos.map((photoFileName, index) => (
-                    <div
-                      key={index}
-                      className="aspect-square bg-muted rounded-lg flex items-center justify-center border overflow-hidden"
-                    >
-                      {photoCache[photoFileName] ? (
-                        <img
-                          src={photoCache[photoFileName]}
-                          alt={`Report photo ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <FileText className="h-12 w-12 text-muted-foreground" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-semibold mb-2">Location</h4>
-                <div className="flex items-start gap-2 text-sm">
-                  <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                  <div>
-                    <p className="text-muted-foreground">
-                      Latitude: {selectedReport.latitude.toFixed(6)}
-                    </p>
-                    <p className="text-muted-foreground">
-                      Longitude: {selectedReport.longitude.toFixed(6)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button className="flex-1">Mark as In Progress</Button>
-                <Button className="flex-1" variant="outline">
-                  Mark as Complete
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            <ReportDetailsCard
+              report={{
+                id: selectedReport.id.toString(),
+                title: selectedReport.title,
+                description: selectedReport.description,
+                category: selectedReport.category,
+                status: selectedReport.status || "PENDING_APPROVAL",
+                latitude: selectedReport.latitude,
+                longitude: selectedReport.longitude,
+                reporterName: selectedReport.citizen?.username || "Anonymous",
+                createdAt: selectedReport.createdAt || new Date().toISOString(),
+                photoUrls: selectedReport.photos.map((filename) => photoCache[filename]).filter(Boolean),
+                citizenId: selectedReport.citizenId,
+                officerId: selectedReport.officerId || undefined,
+              }}
+              onClose={() => setSelectedReport(null)}
+              showChat={true}
+              isOfficerMode={false}
+            />
+          </div>
         </div>
       )}
     </div>

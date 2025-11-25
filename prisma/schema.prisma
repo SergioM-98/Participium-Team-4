@@ -19,6 +19,8 @@ model Report {
   description String       @db.Text
   status      ReportStatus @default(PENDING_APPROVAL)
   photos      Photo[]
+  messages    Message[]
+  notifications Notification[]
   category    Category     @default(OTHER)
   createdAt   DateTime     @default(now())
   longitude   Float
@@ -104,6 +106,8 @@ model User {
 
   createdReports  Report[] @relation("createdBy")
   managedReports  Report[] @relation("managedBy")
+  messages        Message[]
+  notifications   Notification[]
   notificationPreferences NotificationPreferences?
   profilePhoto ProfilePhoto?
 
@@ -130,4 +134,33 @@ model ProfilePhoto {
   userId    String? @unique
   user   User? @relation(fields: [userId], references: [id])
   @@map("profile_photos")
+}
+
+enum NotificationType {
+  STATUS_CHANGE
+  NEW_MESSAGE
+}
+
+model Notification {
+  id        BigInt           @id @default(autoincrement())
+  type      NotificationType
+  message   String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  recipient User             @relation(fields: [recipientId], references: [id])
+  recipientId String
+  report    Report           @relation(fields: [reportId], references: [id])
+  reportId  BigInt
+  @@map("notification")
+}
+
+model Message {
+  id        BigInt   @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  report    Report   @relation(fields: [reportId], references: [id])
+  reportId  BigInt
+  @@map("message")
 }

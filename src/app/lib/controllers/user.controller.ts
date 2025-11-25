@@ -10,12 +10,11 @@ import {
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { UserService } from "../services/user.service";
-import { updateNotificationsPreferences } from "./notifications.controller";
-import {
-  NotificationsData,
-  NotificationsResponse,
-} from "../dtos/notificationPreferences.dto";
-import { NotificationsService } from "../services/notifications.service";
+import { updateNotificationsPreferences } from "./notification.controller";
+import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
+import { NotificationService } from "../services/notification.service";
+
+
 
 export async function checkDuplicates(userData: RegistrationInput) {
   return await UserService.getInstance().checkDuplicates(userData);
@@ -35,11 +34,16 @@ export async function register(
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
     role: formData.get("role"),
-    office: formData.get("office") || undefined,
+    office: formData.get("office")?.toString().trim() || undefined,
   });
 
   if (!validatedData.success) {
-    return { success: false, error: "Invalid input data" };
+    console.error("Validation errors:", validatedData.error);
+    // Zod error format
+    const errorMessages = validatedData.error.issues?.length 
+      ? validatedData.error.issues.map((issue: any) => `${issue.path?.join('.') || 'unknown'} - ${issue.message}`).join('; ')
+      : "Invalid input data";
+    return { success: false, error: errorMessages };
   }
 
   if (session || (!session && validatedData.data?.role !== "CITIZEN")) {
@@ -120,19 +124,12 @@ export async function getMe(): Promise<MeType | RegistrationResponse> {
 
   let notifications: NotificationsResponse;
 
-  if (session.user.role === "CITIZEN") {
-    notifications =
-      await NotificationsService.getInstance().getNotificationsPreferences(
-        session.user.id
-      );
-    if (!notifications.success) {
-      return {
-        success: false,
-        error:
-          notifications.error ?? "Failed to retrieve notification preferences",
-      };
+    if(session.user.role === "CITIZEN"){
+      notifications = await NotificationService.getInstance().getNotificationsPreferences(session.user.username);
+      if(!notifications.success){
+        return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
+      } 
     }
-  }
 
   return {
     id: session.user.id,

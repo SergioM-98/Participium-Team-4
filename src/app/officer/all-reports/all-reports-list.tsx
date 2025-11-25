@@ -42,8 +42,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import { ReportDetailsDialog } from "./report-details-dialog";
+import ReportDetailsCard from "@/components/ReportDetailsCard";
 import { getPendingApprovalReports } from "@/controllers/report.controller";
+import { getPhoto } from "@/controllers/photo.controller";
 
 // ====================================================================
 // TYPES & CONSTANTS
@@ -87,9 +88,13 @@ export interface Report {
   isAnonymous: boolean;
   submitter: User;
   rejectionReason?: string;
-  photos: string[];
+  photos: { filename: string; url: string }[]; 
   latitude: number;
   longitude: number;
+  citizen?: { username: string };
+  citizenId?: string | number;
+  officerId?: string | number | null | undefined;
+  createdAt?: string;
 }
 
 // Status Colors Helper
@@ -263,6 +268,9 @@ export function AllReportsList({ data }: AllReportsListProps) {
   const [isLoading, setIsLoading] = useState(!data);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  
+  const [photoCache, setPhotoCache] = useState<Record<string, string>>({});
 
   // Default sorting remains on Date Submitted (newest first)
   const [sorting, setSorting] = useState<SortingState>([
@@ -289,7 +297,7 @@ export function AllReportsList({ data }: AllReportsListProps) {
 
       // Transform the response data to match Report interface
       // inside fetchReports function (~line 200)
-      const transformedReports = response.data.map((r) => ({
+      const transformedReports = response.data.map((r: any) => ({
         id: r.id,
         title: r.title,
         description: r.description,
@@ -312,8 +320,12 @@ export function AllReportsList({ data }: AllReportsListProps) {
               email: "",
               username: "",
             },
+        citizen: r.citizen
+          ? {
+              username: r.citizen.username,
+            }
+          : undefined,
         rejectionReason: undefined,
-        // FIX: Force this to be an array if r.photos is null/undefined
         photos: Array.isArray(r.photos) ? r.photos : [],
         latitude: r.latitude,
         longitude: r.longitude,
@@ -340,10 +352,46 @@ export function AllReportsList({ data }: AllReportsListProps) {
     }
   }, [refreshTrigger]);
 
+  useEffect(() => {
+    async function fetchSelectedReportPhotos() {
+      if (!selectedReport || !selectedReport.photos || !Array.isArray(selectedReport.photos)) return;
+
+      const cacheUpdates: Record<string, string> = {};
+      let hasUpdates = false;
+
+      for (const photo of selectedReport.photos) {
+        const filename = photo.filename;
+        
+        if (!photoCache[filename] && filename) {
+           try {
+             const res = await getPhoto(filename);
+             if (res.success && res.data) {
+                cacheUpdates[filename] = res.data;
+                hasUpdates = true;
+             }
+           } catch (err) {
+             console.error(`Failed to load photo ${filename}`, err);
+           }
+        }
+      }
+
+      if (hasUpdates) {
+        setPhotoCache(prev => ({ ...prev, ...cacheUpdates }));
+      }
+    }
+
+    fetchSelectedReportPhotos();
+  }, [selectedReport]); 
+
   const handleDialogClose = () => {
     setSelectedReport(null);
     // Trigger a refresh of the reports list
     setRefreshTrigger((prev) => prev + 1);
+  };
+
+  const showToast = (type: 'success' | 'error', text: string) => {
+    setToast({ type, text });
+    setTimeout(() => setToast(null), 3000);
   };
 
   const table = useReactTable({
@@ -423,8 +471,8 @@ export function AllReportsList({ data }: AllReportsListProps) {
             <span className="text-sm font-medium">Filter by category:</span>
           </div>
 
-          {/* Single-line flex container with equal width distribution */}
-          <div className="flex gap-2 w-full [&>button]:flex-1">
+          {/* Flex container with wrapping for responsive layout */}
+          <div className="flex flex-wrap gap-2 w-full">
             <Button
               variant={currentCategoryFilter === "ALL" ? "default" : "outline"}
               size="sm"
@@ -569,10 +617,53 @@ export function AllReportsList({ data }: AllReportsListProps) {
 
       {/* The Dialog Component is rendered here when a report is selected */}
       {selectedReport && (
-        <ReportDetailsDialog
-          report={selectedReport}
-          onClose={handleDialogClose}
-        />
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300"
+          onClick={handleDialogClose}
+        >
+          <div
+            className="w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] rounded-xl shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ReportDetailsCard
+              report={{
+                id: selectedReport.id.toString(),
+                title: selectedReport.title,
+                description: selectedReport.description,
+                category: selectedReport.category,
+                status: selectedReport.status,
+                latitude: selectedReport.latitude,
+                longitude: selectedReport.longitude,
+                reporterName: selectedReport.citizen?.username || "Anonymous",
+                createdAt: selectedReport.createdAt || new Date().toISOString(),
+                photoUrls: (selectedReport.photos || [])
+                  .map((photo) => photoCache[photo.filename])
+                  .filter(Boolean),
+                citizenId: selectedReport.citizenId,
+                officerId: selectedReport.officerId || undefined,
+              }}
+              onClose={handleDialogClose}
+              isOfficerMode={true}
+              onOfficerActionComplete={() => {
+                showToast('success', 'Report assigned successfully!');
+                handleDialogClose();
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-sm font-medium z-[9000] animate-in fade-in slide-in-from-top-2 duration-300 ${
+            toast.type === 'success'
+              ? 'bg-green-100 border border-green-400 text-green-700'
+              : 'bg-red-100 border border-red-400 text-red-700'
+          }`}
+        >
+          {toast.text}
+        </div>
       )}
     </div>
   );

@@ -64,8 +64,8 @@ import {
   createUploadPhoto,
   getProfilePhotoUrl,
 } from "@/app/lib/controllers/ProfilePhoto.controller";
-import { getNotificationsPreferences } from "@/app/lib/controllers/notifications.controller";
 import { startTelegramRegistration } from "@/app/lib/controllers/telegramBot.controller";
+import { getNotificationsPreferences } from "@/app/lib/controllers/notification.controller";
 
 type UserProfileData = {
   username: string;

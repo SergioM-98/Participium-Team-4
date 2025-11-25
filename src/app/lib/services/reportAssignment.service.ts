@@ -1,12 +1,15 @@
 import { ReportRepository } from "@/repositories/report.repository";
 import { AssignReportToOfficerResponse } from "@/dtos/report.dto";
+import { NotificationService } from "./notification.service";
 
 class ReportAssignmentService {
   private static instance: ReportAssignmentService;
   private reportRepository: ReportRepository;
+  private notificationService: NotificationService;
 
   private constructor() {
     this.reportRepository = ReportRepository.getInstance();
+    this.notificationService = NotificationService.getInstance();
   }
 
   public static getInstance(): ReportAssignmentService {
@@ -32,7 +35,21 @@ class ReportAssignmentService {
         };
       }
 
-      await this.reportRepository.assignReportToOfficer(reportId, officer.id);
+      const report = await this.reportRepository.assignReportToOfficer(
+        reportId,
+        officer.id
+      );
+
+      // Notify the citizen that their report has been assigned
+      try {
+        await this.notificationService.notifyStatusChange(
+          report.citizenId,
+          BigInt(reportId),
+          "ASSIGNED"
+        );
+      } catch (error) {
+        console.error("Failed to send notification:", error);
+      }
 
       return {
         success: true,
@@ -48,7 +65,18 @@ class ReportAssignmentService {
     rejectionReason: string
   ): Promise<AssignReportToOfficerResponse> {
     try {
-      await this.reportRepository.rejectReport(reportId, rejectionReason);
+      const report = await this.reportRepository.rejectReport(reportId, rejectionReason);
+
+      // Notify the citizen that their report has been rejected
+      try {
+        await this.notificationService.notifyStatusChange(
+          report.citizenId,
+          BigInt(reportId),
+          "REJECTED"
+        );
+      } catch (error) {
+        console.error("Failed to send notification:", error);
+      }
 
       return {
         success: true,

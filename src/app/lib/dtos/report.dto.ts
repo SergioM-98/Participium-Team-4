@@ -33,6 +33,17 @@ export const retrieveReportResponseSchema = reportBaseSchema.extend({
 export const retrieveReportsByOfficerResponseSchema = reportBaseSchema.extend({
   id: z.string(),
   userId: z.string(),
+  status: z.string().optional(),
+  citizenId: z.string().or(z.number()).optional(),
+  officerId: z.string().or(z.number()).nullable().optional(),
+  createdAt: z.string().optional(),
+  citizen: z
+    .object({
+      id: z.string().or(z.number()),
+      username: z.string(),
+    })
+    .optional()
+    .nullable(),
 });
 
 export const rertieveUnassignedReportResponseSchema = reportBaseSchema.extend({
