@@ -27,6 +27,7 @@ export default function OfficerActionPanel({
   onActionComplete,
 }: OfficerActionPanelProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const [selectedCategory, setSelectedCategory] = useState<string>(currentCategory);
   const [selectedDepartment, setSelectedDepartment] = useState<string>("");
@@ -39,6 +40,7 @@ export default function OfficerActionPanel({
   const handleApprove = async () => {
     if (!selectedDepartment) return;
     setIsLoading(true);
+    setFeedbackMessage(null);
     try {
       const response = await approveReport(
         Number(reportId),
@@ -47,11 +49,12 @@ export default function OfficerActionPanel({
       if (response.success) {
         onActionComplete?.();
       } else {
-        alert(`Error: ${response.error}`);
+        setFeedbackMessage({ type: 'error', text: response.error || 'Error assigning report' });
+        setIsLoading(false);
       }
     } catch (error) {
       console.error(error);
-    } finally {
+      setFeedbackMessage({ type: 'error', text: 'An error occurred' });
       setIsLoading(false);
     }
   };
@@ -59,18 +62,19 @@ export default function OfficerActionPanel({
   const handleReject = async () => {
     if (!rejectionReason.trim()) return;
     setIsLoading(true);
+    setFeedbackMessage(null);
     try {
       const response = await rejectReport(Number(reportId), rejectionReason);
       if (response.success) {
         onActionComplete?.();
       } else {
-        alert(`Error: ${response.error}`);
+        setFeedbackMessage({ type: 'error', text: response.error || 'Error rejecting report' });
+        setIsLoading(false);
       }
     } catch (error) {
       console.error(error);
-    } finally {
+      setFeedbackMessage({ type: 'error', text: 'An error occurred' });
       setIsLoading(false);
-      setShowRejectInput(false);
     }
   };
 
@@ -86,6 +90,15 @@ export default function OfficerActionPanel({
 
   return (
     <div className="space-y-4 w-full">
+      {feedbackMessage && (
+        <div className={`p-3 rounded-md text-sm ${
+          feedbackMessage.type === 'success' 
+            ? 'bg-green-100 border border-green-400 text-green-700'
+            : 'bg-red-100 border border-red-400 text-red-700'
+        }`}>
+          {feedbackMessage.text}
+        </div>
+      )}
       <h3 className="text-lg font-semibold text-foreground">
         Officer Actions
       </h3>

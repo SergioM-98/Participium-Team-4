@@ -34,11 +34,16 @@ export async function register(
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
     role: formData.get("role"),
-    office: formData.get("office") || undefined,
+    office: formData.get("office")?.toString().trim() || undefined,
   });
 
   if (!validatedData.success) {
-    return { success: false, error: "Invalid input data" };
+    console.error("Validation errors:", validatedData.error);
+    // Zod error format
+    const errorMessages = validatedData.error.issues?.length 
+      ? validatedData.error.issues.map((issue: any) => `${issue.path?.join('.') || 'unknown'} - ${issue.message}`).join('; ')
+      : "Invalid input data";
+    return { success: false, error: errorMessages };
   }
 
   if (session || (!session && validatedData.data?.role !== "CITIZEN")) {

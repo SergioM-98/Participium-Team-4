@@ -107,9 +107,9 @@ class NotificationsRepository {
         db: DBClient = prisma
     ): Promise<NotificationsResponse> {
         try {
-            const user = await prisma.user.findUnique({
+            const user = await db.user.findUnique({
                 where: {
-                    username: userId,
+                    id: userId,
                 },
             });
 
@@ -125,7 +125,7 @@ class NotificationsRepository {
                 return { success: false, error: "Cannot enable telegram notifications without telegram media" };
             }
 
-            const updatedPreferences = await prisma.notificationPreferences.upsert({
+            const updatedPreferences = await db.notificationPreferences.upsert({
                 where: {
                     id: user.id,
                 },

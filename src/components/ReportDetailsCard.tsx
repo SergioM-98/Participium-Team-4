@@ -125,6 +125,7 @@ export default function ReportDetailsCard({
             senderName: msg.author?.firstName && msg.author?.lastName 
               ? `${msg.author.firstName} ${msg.author.lastName}`
               : msg.author?.username || "Unknown",
+            senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
             senderRole: msg.author?.role === "OFFICER" ? "OFFICER" : "CITIZEN",
             content: msg.content,
             timestamp: msg.createdAt,
@@ -163,6 +164,7 @@ export default function ReportDetailsCard({
         const newMsg: ChatMessage = {
           id: response.id?.toString() || Date.now().toString(),
           senderName: session.user.name || "You",
+          senderId: session.user.id,
           senderRole: currentUserRole,
           content: text,
           timestamp: response.createdAt ? new Date(response.createdAt).toISOString() : new Date().toISOString(),
@@ -284,6 +286,7 @@ export default function ReportDetailsCard({
             <ChatPanel
               reportId={report.id}
               currentUserRole={currentUserRole}
+              currentUserId={session?.user?.id || ""}
               messages={messages}
               onSendMessage={handleSendMessage}
             />

@@ -267,6 +267,7 @@ export function AllReportsList({ data }: AllReportsListProps) {
   const [isLoading, setIsLoading] = useState(!data);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Default sorting remains on Date Submitted (newest first)
   const [sorting, setSorting] = useState<SortingState>([
@@ -316,6 +317,11 @@ export function AllReportsList({ data }: AllReportsListProps) {
               email: "",
               username: "",
             },
+        citizen: r.citizen
+          ? {
+              username: r.citizen.username,
+            }
+          : undefined,
         rejectionReason: undefined,
         // FIX: Force this to be an array if r.photos is null/undefined
         photos: Array.isArray(r.photos) ? r.photos : [],
@@ -348,6 +354,11 @@ export function AllReportsList({ data }: AllReportsListProps) {
     setSelectedReport(null);
     // Trigger a refresh of the reports list
     setRefreshTrigger((prev) => prev + 1);
+  };
+
+  const showToast = (type: 'success' | 'error', text: string) => {
+    setToast({ type, text });
+    setTimeout(() => setToast(null), 3000);
   };
 
   const table = useReactTable({
@@ -599,11 +610,24 @@ export function AllReportsList({ data }: AllReportsListProps) {
               onClose={handleDialogClose}
               isOfficerMode={true}
               onOfficerActionComplete={() => {
-                alert("Action successful!");
+                showToast('success', 'Report assigned successfully!');
                 handleDialogClose();
               }}
             />
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-sm font-medium z-[9000] animate-in fade-in slide-in-from-top-2 duration-300 ${
+            toast.type === 'success'
+              ? 'bg-green-100 border border-green-400 text-green-700'
+              : 'bg-red-100 border border-red-400 text-red-700'
+          }`}
+        >
+          {toast.text}
         </div>
       )}
     </div>

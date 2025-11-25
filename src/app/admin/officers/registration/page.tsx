@@ -23,7 +23,9 @@ export default function OfficerRegistrationPage() {
       formData.append("username", payload.username);
       formData.append("role", payload.role);
       formData.append("password", payload.password);
-      formData.append("office", payload.office);
+      if (payload.office) {
+        formData.append("office", payload.office);
+      }
       formData.append("confirmPassword", payload.confirmPassword);
 
       const result = await register(formData);
@@ -50,7 +52,7 @@ export default function OfficerRegistrationPage() {
       <div className="w-full max-w-md">
         {error && (
           <div
-            className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative text-sm"
+            className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative text-sm whitespace-pre-wrap break-words"
             role="alert"
           >
             <span className="block sm:inline">{error}</span>

@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 export interface ChatMessage {
   id: string;
   senderName: string;
+  senderId: string;
   senderRole: "CITIZEN" | "OFFICER";
   content: string;
   timestamp: string;
@@ -18,6 +19,7 @@ export interface ChatMessage {
 interface ChatPanelProps {
   reportId: string;
   currentUserRole: "CITIZEN" | "OFFICER";
+  currentUserId: string;
   messages: ChatMessage[];
   onSendMessage: (text: string) => void;
 }
@@ -25,6 +27,7 @@ interface ChatPanelProps {
 export default function ChatPanel({
   reportId,
   currentUserRole,
+  currentUserId,
   messages,
   onSendMessage,
 }: ChatPanelProps) {
@@ -74,7 +77,7 @@ export default function ChatPanel({
             </div>
           )}
           {messages.map((msg) => {
-            const isMe = msg.senderRole === currentUserRole;
+            const isMe = msg.senderId === currentUserId;
             return (
               <div
                 key={msg.id}
