@@ -66,7 +66,7 @@ interface Navbar1Props {
 function Navbar1({
   logo = {
     url: "/",
-    src: "void",
+    src: "/logo.png", // Ensure this points to your actual image in the public folder
     alt: "Participium",
     title: "Participium",
   },
@@ -84,8 +84,15 @@ function Navbar1({
         {/* Desktop Menu */}
         <nav className="hidden lg:flex items-center w-full">
           <div className="flex items-center gap-6 flex-1 min-w-0">
-            {/* Logo */}
+            {/* --- LOGO (DESKTOP) --- */}
             <Link href={logoUrl} className="flex items-center gap-2 shrink-0">
+              {/* 1. The Image */}
+              <img
+                src={logo.src}
+                alt={logo.alt}
+                className="h-8 w-auto object-contain dark:invert"
+              />
+              {/* 2. The Text */}
               <span className="text-lg font-semibold tracking-tighter">
                 {logo.title}
               </span>
@@ -134,13 +141,16 @@ function Navbar1({
         {/* Mobile Menu */}
         <div className="block lg:hidden">
           <div className="flex items-center justify-between">
-            {/* Logo */}
+            {/* --- LOGO (MOBILE TOP BAR) --- */}
             <Link href={logoUrl} className="flex items-center gap-2">
               <img
                 src={logo.src}
-                className="max-h-8 dark:invert"
+                className="h-8 w-auto object-contain dark:invert"
                 alt={logo.alt}
               />
+              <span className="text-lg font-semibold tracking-tighter">
+                {logo.title}
+              </span>
             </Link>
 
             {/* Right side group: Notification + Menu Trigger */}
@@ -158,12 +168,16 @@ function Navbar1({
                 <SheetContent className="overflow-y-auto z-[9999]">
                   <SheetHeader>
                     <SheetTitle>
+                      {/* --- LOGO (INSIDE MOBILE MENU) --- */}
                       <Link href={logoUrl} className="flex items-center gap-2">
                         <img
                           src={logo.src}
-                          className="max-h-8 dark:invert"
+                          className="h-8 w-auto object-contain dark:invert"
                           alt={logo.alt}
                         />
+                        <span className="text-lg font-semibold tracking-tighter">
+                          {logo.title}
+                        </span>
                       </Link>
                     </SheetTitle>
                   </SheetHeader>

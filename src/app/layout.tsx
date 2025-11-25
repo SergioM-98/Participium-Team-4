@@ -34,7 +34,14 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <Navbar1 />
+          <Navbar1
+            logo={{
+              url: "/",
+              src: "logo/participium.png", // Path to your image in public folder
+              alt: "Participium Logo",
+              title: "Participium",
+            }}
+          />
           {children}
         </Providers>
       </body>
