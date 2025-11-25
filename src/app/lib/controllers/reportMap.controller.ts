@@ -78,6 +78,8 @@ export async function getReportById(params: { id: string }) {
     category: repoResult.data.category,
     status: repoResult.data.status,
     username: repoResult.data.citizen?.username,
+    citizenId: repoResult.data.citizenId,
+    officerId: repoResult.data.officerId,
     photos: processedPhotos.filter((url) => url !== null) as string[]
   };
 

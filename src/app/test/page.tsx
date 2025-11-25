@@ -52,10 +52,10 @@ export default function TestPage() {
   };
 
   return (
-    <main className="flex flex-col w-full min-h-screen p-4">
-      <div className="flex flex-1 w-full justify-center">
+    <main className="flex flex-col w-full h-screen p-4">
+      <div className="flex flex-1 w-full justify-center min-h-0">
         {/* Mimics the width constraint of the right-hand panel so it can be replaced when clicked on the report on the map */}
-        <div className="w-full max-w-lg min-h-0 p-2 md:p-3">
+        <div className="w-full max-w-lg h-full overflow-hidden rounded-lg border">
           <ReportDetailsCard report={report} onClose={handleClose} />
         </div>
       </div>

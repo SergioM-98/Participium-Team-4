@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-import { Navbar1 } from "@/components/navbar1"; 
+import { Navbar1 } from "@/components/navbar1";
 import { init } from "./lib/init";
 import { Providers } from "./providers";
 
@@ -26,7 +26,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   await init();
 
   return (
@@ -35,7 +34,14 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <Navbar1 />
+          <Navbar1
+            logo={{
+              url: "/",
+              src: "logo/participium.png", // Path to your image in public folder
+              alt: "Participium Logo",
+              title: "Participium",
+            }}
+          />
           {children}
         </Providers>
       </body>

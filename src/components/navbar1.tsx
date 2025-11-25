@@ -28,6 +28,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ProfileButton } from "./ProfileButton";
+// Import the new component
+import { NotificationBell } from "@/components/NotificationBell";
 
 interface MenuItem {
   title: string;
@@ -64,7 +66,7 @@ interface Navbar1Props {
 function Navbar1({
   logo = {
     url: "/",
-    src: "void",
+    src: "/logo.png", // Ensure this points to your actual image in the public folder
     alt: "Participium",
     title: "Participium",
   },
@@ -82,8 +84,15 @@ function Navbar1({
         {/* Desktop Menu */}
         <nav className="hidden lg:flex items-center w-full">
           <div className="flex items-center gap-6 flex-1 min-w-0">
-            {/* Logo */}
+            {/* --- LOGO (DESKTOP) --- */}
             <Link href={logoUrl} className="flex items-center gap-2 shrink-0">
+              {/* 1. The Image */}
+              <img
+                src={logo.src}
+                alt={logo.alt}
+                className="h-8 w-auto object-contain dark:invert"
+              />
+              {/* 2. The Text */}
               <span className="text-lg font-semibold tracking-tighter">
                 {logo.title}
               </span>
@@ -99,7 +108,7 @@ function Navbar1({
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             {!role ? (
               <>
                 <Button asChild variant="outline" size="sm">
@@ -111,6 +120,12 @@ function Navbar1({
               </>
             ) : (
               <>
+                {role === "CITIZEN" && (
+                  <div className="mr-1">
+                    <NotificationBell />
+                  </div>
+                )}
+
                 <LogoutButton variant="outline" size="sm" />
                 <ProfileButton
                   variant="outline"
@@ -126,75 +141,88 @@ function Navbar1({
         {/* Mobile Menu */}
         <div className="block lg:hidden">
           <div className="flex items-center justify-between">
-            {/* Logo */}
+            {/* --- LOGO (MOBILE TOP BAR) --- */}
             <Link href={logoUrl} className="flex items-center gap-2">
               <img
                 src={logo.src}
-                className="max-h-8 dark:invert"
+                className="h-8 w-auto object-contain dark:invert"
                 alt={logo.alt}
               />
+              <span className="text-lg font-semibold tracking-tighter">
+                {logo.title}
+              </span>
             </Link>
 
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="size-4" />
-                </Button>
-              </SheetTrigger>
+            {/* Right side group: Notification + Menu Trigger */}
+            <div className="flex items-center gap-3">
+              {/* --- NOTIFICATION BELL (MOBILE) - Only for CITIZEN --- */}
+              {role === "CITIZEN" && <NotificationBell />}
 
-              <SheetContent className="overflow-y-auto z-[9999]">
-                <SheetHeader>
-                  <SheetTitle>
-                    <Link href={logoUrl} className="flex items-center gap-2">
-                      <img
-                        src={logo.src}
-                        className="max-h-8 dark:invert"
-                        alt={logo.alt}
-                      />
-                    </Link>
-                  </SheetTitle>
-                </SheetHeader>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Menu className="size-4" />
+                  </Button>
+                </SheetTrigger>
 
-                <div className="flex flex-col gap-6 p-4">
-                  <Accordion
-                    type="single"
-                    collapsible
-                    className="flex w-full flex-col gap-4"
-                  >
-                    {filteredMenu.map((item) => renderMobileMenuItem(item))}
-                  </Accordion>
-
-                  {/* Mobile buttons */}
-                  <div className="flex flex-col gap-3">
-                    {!role ? (
-                      <>
-                        <Button asChild variant="outline">
-                          <a href={auth.login.url}>{auth.login.title}</a>
-                        </Button>
-                        <Button asChild>
-                          <a href={auth.signup.url}>{auth.signup.title}</a>
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <LogoutButton
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
+                <SheetContent className="overflow-y-auto z-[9999]">
+                  <SheetHeader>
+                    <SheetTitle>
+                      {/* --- LOGO (INSIDE MOBILE MENU) --- */}
+                      <Link href={logoUrl} className="flex items-center gap-2">
+                        <img
+                          src={logo.src}
+                          className="h-8 w-auto object-contain dark:invert"
+                          alt={logo.alt}
                         />
-                        <ProfileButton
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          showName={false}
-                          username={username}
-                        />
-                      </>
-                    )}
+                        <span className="text-lg font-semibold tracking-tighter">
+                          {logo.title}
+                        </span>
+                      </Link>
+                    </SheetTitle>
+                  </SheetHeader>
+
+                  <div className="flex flex-col gap-6 p-4">
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="flex w-full flex-col gap-4"
+                    >
+                      {filteredMenu.map((item) => renderMobileMenuItem(item))}
+                    </Accordion>
+
+                    {/* Mobile buttons */}
+                    <div className="flex flex-col gap-3">
+                      {!role ? (
+                        <>
+                          <Button asChild variant="outline">
+                            <a href={auth.login.url}>{auth.login.title}</a>
+                          </Button>
+                          <Button asChild>
+                            <a href={auth.signup.url}>{auth.signup.title}</a>
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <LogoutButton
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                          />
+                          <ProfileButton
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            showName={false}
+                            username={username}
+                          />
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </div>

@@ -12,8 +12,10 @@ export default async function LoginPage() {
       redirect("/reports");
     } else if (session.user?.role === "ADMIN") {
       redirect("/admin/officers/registration");
-    } else if (session.user?.role === "OFFICER") {
-      redirect("/officer/reports");
+    } else if (session.user?.role === "TECHNICAL_OFFICER") {
+      redirect("/officer/my-reports");
+    } else if (session.user?.role === "PUBLIC_RELATIONS_OFFICER") {
+      redirect("/officer/all-reports");
     } else {
       redirect("/");
     }

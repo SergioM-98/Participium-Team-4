@@ -10,7 +10,7 @@ export default async function createAdmin() {
         console.log("Admin already exists. Skipping creation.");
         return;
     }
-
+    const id = crypto.randomUUID();
     const password = "adminTeam4";
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -19,11 +19,12 @@ export default async function createAdmin() {
 
     await prisma.user.create({
         data: {
+        id: id as string,
         username: "admin",
         passwordHash: hashedPassword,
         firstName: "admin",
         lastName: "admin",
-        role: "ADMIN",
+        role: "ADMIN" as const,
         },
     });
 
