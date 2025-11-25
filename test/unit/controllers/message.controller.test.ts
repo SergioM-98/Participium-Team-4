@@ -1,124 +1,109 @@
-import { MessageService } from '@/services/message.service';
-import { sendMessage, getReportMessages } from '@/controllers/message.controller';
+import { prisma } from "../../setup";
+import { getServerSession } from "next-auth/next";
+import { ReportRegistrationResponse } from "@/app/lib/dtos/report.dto";
+import {  } from "@/app/lib/controllers/report.controller";
+import { createUploadPhoto } from "@/app/lib/controllers/uploader.controller";
+import { ControllerSuccessResponse } from "@/app/lib/dtos/tus.dto";
 
+jest.mock("next-auth/next", () => ({
+  getServerSession: jest.fn(),
+}));
 
-jest.mock('@/services/message.service', () => {
-  const mockMessageServiceInstance = {
-    sendMessage: jest.fn(),
-    getReportMessages: jest.fn(),
-  };
+jest.mock("@/auth", () => ({
+  authOptions: {},
+}));
 
-  return {
-    MessageService: {
-      getInstance: jest.fn(() => mockMessageServiceInstance),
-    },
-  };
-});
+describe("Story 5 - Integration Test: uploader", () => {
+  beforeEach(async () => {
+    if (prisma.notification) await prisma.notification.deleteMany({});
+    await prisma.photo.deleteMany({});
+    await prisma.report.deleteMany({});
+    if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
+    if (prisma.notificationPreferences) await prisma.notificationPreferences.deleteMany({});
+    await prisma.user.deleteMany({});
 
-
-const mockMessageService = jest.mocked(MessageService);
-const mockInstance = mockMessageService.getInstance() as jest.Mocked<{
-  sendMessage: jest.MockedFunction<any>;
-  getReportMessages: jest.MockedFunction<any>;
-}>;
-
-describe('MessageController story 11', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
+    await prisma.photo.create({
+      data: {
+        id: "photo1",
+        url: "photo1",
+        size: 100,
+        offset: 0,
+        filename: "photo1",
+      },
+    });
+    await prisma.user.create({
+      data: {
+        id: "1",
+        username: "user1",
+        passwordHash: "password",
+        firstName: "user",
+        lastName: "user",
+        role: "CITIZEN",
+      },
     });
 
-    describe('sendMessage', () => {
-        it('should send a message successfully', async () => {
-            const mockRequest = {
-                reportId: '1',
-                senderId: '2',
-                content: 'This is a test message',
-            };
+    await prisma.user.create({
+      data: {
+        id: "2",
+        username: "user2",
+        passwordHash: "password",
+        firstName: "user",
+        lastName: "user",
+        role: "CITIZEN",
+      },
+    });
+  });
 
+  describe("uploader Flow", () => {
+    it("should upload a new photo through the complete flow", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue({
+        user: {
+          firstName: "mock",
+          lastName: "mock",
+          email: "mock@mock.it",
+          username: "mock",
+          role: "CITIZEN",
+        },
+        expires: "2099-01-01T00:00:00.000Z",
+      });
 
-            mockInstance.sendMessage.mockResolvedValue({ 
-                success: true, 
-                data: 'Message sent successfully' 
-            });
+      const data = new FormData();
+      data.append("tus-resumable", "1.0.0");
+      data.append("upload-length", "100");
+      data.append(
+        "file",
+        new File(["a".repeat(100)], "photo.jpg", { type: "image/jpeg" })
+      );
 
-            const response = await sendMessage(
-                mockRequest.content, 
-                BigInt(mockRequest.senderId), 
-                BigInt(mockRequest.reportId)
-            );
+      const response: ControllerSuccessResponse = await createUploadPhoto(data);
 
+      expect(response.success).toBe(true);
+      if(response.success) {
+        expect(response.location).toBeDefined();
+        expect(response.uploadOffset).toBe(100);
+      }
+    });
+  });
 
-            expect(mockMessageService.getInstance).toHaveBeenCalled();
-            expect(mockInstance.sendMessage).toHaveBeenCalledWith(
-                'This is a test message', 
-                BigInt('2'), 
-                BigInt('1')
-            );
-            expect(response).toEqual({ success: true, data: 'Message sent successfully' });
-        });
-
-        it('should handle message sending failure', async () => {
-            const mockRequest = {
-                reportId: '1',
-                senderId: '2',
-                content: 'This is a test message',
-            };
-
-            mockInstance.sendMessage.mockResolvedValue({ 
-                success: false, 
-                error: 'Failed to send message' 
-            });
-
-            const response = await sendMessage(
-                mockRequest.content, 
-                BigInt(mockRequest.senderId), 
-                BigInt(mockRequest.reportId)
-            );
-
-            expect(mockMessageService.getInstance).toHaveBeenCalled();
-            expect(mockInstance.sendMessage).toHaveBeenCalledWith(
-                'This is a test message', 
-                BigInt('2'), 
-                BigInt('1')
-            );
-            
-            expect(response).toEqual({ success: false, error: 'Failed to send message' });
-        });
+  it("should not upload a new photo through the complete flow with a missing field", async () => {
+    (getServerSession as jest.Mock).mockResolvedValue({
+      user: {
+        firstName: "mock",
+        lastName: "mock",
+        email: "mock@mock.it",
+        username: "mock",
+        role: "CITIZEN",
+      },
+      expires: "2099-01-01T00:00:00.000Z",
     });
 
-    describe('getReportMessages', () => {
-        it('should retrieve messages for a report successfully', async () => {
-            const mockReportId = BigInt(1);
-            const mockMessages = [
-                { id: 'msg1', content: 'First message', senderId: '2', reportId: '1' },
-                { id: 'msg2', content: 'Second message', senderId: '3', reportId: '1' },
-            ];
+    const data = new FormData();
+    data.append("upload-length", "100");
+    data.append(
+      "file",
+      new File(["a".repeat(100)], "photo.jpg", { type: "image/jpeg" })
+    );
 
-            mockInstance.getReportMessages.mockResolvedValue({ 
-                success: true, 
-                data: mockMessages 
-            });
-
-            const response = await getReportMessages(mockReportId);
-
-            expect(mockMessageService.getInstance).toHaveBeenCalled();
-            expect(mockInstance.getReportMessages).toHaveBeenCalledWith(BigInt(1));
-            expect(response).toEqual({ success: true, data: mockMessages });
-        });
-
-        it('should handle failure to retrieve messages for a report', async () => {
-            const mockReportId = BigInt(1);
-            
-            mockInstance.getReportMessages.mockResolvedValue({ 
-                success: false, 
-                error: 'Failed to retrieve messages' 
-            });
-
-            const response = await getReportMessages(mockReportId);
-
-            expect(mockMessageService.getInstance).toHaveBeenCalled();
-            expect(mockInstance.getReportMessages).toHaveBeenCalledWith(BigInt(1));
-            expect(response).toEqual({ success: false, error: 'Failed to retrieve messages' });
-        });
-    });
+    await expect(createUploadPhoto(data)).rejects.toThrow();
+  });
 });

@@ -77,7 +77,7 @@ describe('NotificationController story 11', () => {
             const response = await getInbox();
 
             expect(mockNotificationService.getInstance().getUserNotifications).toHaveBeenCalled();
-            expect(mockInstance.getUserNotifications).toHaveBeenCalledWith(BigInt("1"));
+            expect(mockInstance.getUserNotifications).toHaveBeenCalledWith("1");
             expect(response).toEqual({ success: true, data: mockNotifications });
         });
 

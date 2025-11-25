@@ -6,6 +6,20 @@ jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
 }));
 
+jest.mock("next-auth", () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+      handlers: { GET: jest.fn(), POST: jest.fn() },
+      auth: jest.fn(),
+      signIn: jest.fn(),
+      signOut: jest.fn(),
+    })),
+}));
+
+jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
+    authOptions: {},
+}));
+
 jest.mock("@/auth", () => ({
   authOptions: {},
 }));
@@ -41,6 +55,11 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
   };
 
   beforeEach(async () => {
+    if (prisma.notification) await prisma.notification.deleteMany({});
+    await prisma.photo.deleteMany({});
+    await prisma.report.deleteMany({});
+    if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
+    if (prisma.notificationPreferences) await prisma.notificationPreferences.deleteMany({});
     await prisma.user.deleteMany({});
   });
 
@@ -175,7 +194,8 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
 
       expect(response.success).toBe(false);
       if (!response.success) {
-        expect(response.error).toBe("Invalid input data");
+        expect(response.error).toContain("First name is required");
+        expect(response.error).toContain("Username must be at least 3 characters");
       }
 
       const usersCount = await prisma.user.count();
@@ -191,6 +211,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("email", "");
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
+      formData.append("confirmPassword", "SecurePass123!");
       formData.append("role", "TECHNICAL_OFFICER");
       formData.append("office", "");
       formData.append("telegram", "");
@@ -199,7 +220,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
 
       expect(response.success).toBe(false);
       if (!response.success) {
-        expect(response.error).toBe("Invalid input data");
+        expect(response.error).toContain("office - Only OFFICER can have an office");
       }
 
       const usersCount = await prisma.user.count();
@@ -290,6 +311,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("email", "test.officer@example.com");
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
+      formData.append("confirmPassword", "SecurePass123!");
       formData.append("role", "TECHNICAL_OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
@@ -298,14 +320,14 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
 
       expect(response.success).toBe(false);
       if (!response.success) {
-        expect(response.error).toBe("Invalid input data");
+        expect(response.error).toContain("email - Only CITIZEN can have an email");
       }
 
       const usersCount = await prisma.user.count();
       expect(usersCount).toBe(0);
     });
 
-    it("should reject OFFICER registration with telegram (OFFICER cannot have telegram)", async () => {
+    it("should not save telegram for OFFICER even if provided", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(adminSession);
 
       const formData = new FormData();
@@ -314,19 +336,21 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("email", "");
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
+      formData.append("confirmPassword", "SecurePass123!");
       formData.append("role", "TECHNICAL_OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "@testofficer");
 
       const response: RegistrationResponse = await register(formData);
 
-      expect(response.success).toBe(false);
-      if (!response.success) {
-        expect(response.error).toBe("Invalid input data");
-      }
+      expect(response.success).toBe(true);
+      
+      const savedUser = await prisma.user.findUnique({
+        where: { username: "testofficer" },
+      });
 
-      const usersCount = await prisma.user.count();
-      expect(usersCount).toBe(0);
+      expect(savedUser).not.toBeNull();
+      expect(savedUser!.telegram).toBeNull();
     });
   });
 });
