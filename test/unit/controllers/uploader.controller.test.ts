@@ -1,4 +1,3 @@
-import { UploaderController } from "@/app/lib/controllers/uploader.controller";
 import type {
   TusCreateData,
   TusUploadData,
@@ -9,6 +8,15 @@ import { PhotoUploaderService } from "@/app/lib/services/photoUpload.service";
 import { PhotoUpdaterService } from "@/app/lib/services/photoUpdate.service";
 import { PhotoStatusService } from "@/app/lib/services/photoStatus.service";
 import { PhotoDeleteService } from "@/app/lib/services/photoDelete.service";
+import { createUploadPhoto, deleteUpload, getUploadStatus, uploadPhotoChunk } from "@/app/lib/controllers/uploader.controller";
+
+jest.mock('next-auth/next', () => ({
+    getServerSession: jest.fn(),
+}));
+
+jest.mock('@/auth', () => ({
+    authOptions: {}
+}));
 
 const mockUploaderService = {
   createUploadPhoto: jest.fn(),
@@ -59,23 +67,25 @@ jest.mock("@/app/lib/services/photoDelete.service", () => {
 });
 
 describe("UploaderController - createUploadPhoto", () => {
-  let uploaderController: UploaderController;
   let mockCreateData: TusCreateData;
+  let mockFormData = new FormData();
 
   beforeEach(() => {
-    uploaderController = new UploaderController();
     mockCreateData = {
       "tus-resumable": "1.0.0",
       "upload-length": 1024,
       "content-length": 1024,
       "upload-metadata": "filename test.jpg",
     };
-
+    mockFormData.append("chunk", new Blob(["test content"], { type: "image/jpeg" }));
+    mockFormData.append("tus-resumable", "1.0.0");
+    mockFormData.append("upload-length", "1024");
+    mockFormData.append("content-length", "1024");
+    mockFormData.append("upload-metadata", "filename test.jpg");
     jest.clearAllMocks();
   });
 
   it("should create upload photo successfully", async () => {
-    const mockBodyBytes = new ArrayBuffer(10);
     (PhotoUploaderService.getInstance as jest.Mock).mockReturnValue(
       mockUploaderService
     );
@@ -84,14 +94,15 @@ describe("UploaderController - createUploadPhoto", () => {
       uploadOffset: 0,
     });
 
-    const response = await uploaderController.createUploadPhoto(
-      mockCreateData,
-      mockBodyBytes
+    const response = await createUploadPhoto(
+      mockFormData
     );
 
     expect(response.success).toBe(true);
-    expect((response as any).location).toBe("/files/upload-123");
-    expect((response as any).uploadOffset).toBe(0);
+    if(response.success){
+    expect(response.location).toBe("/files/upload-123");
+    expect(response.uploadOffset).toBe(0);
+    }
     expect(PhotoUploaderService.getInstance).toHaveBeenCalled();
     expect(mockUploaderService.createUploadPhoto).toHaveBeenCalled();
   });
@@ -106,9 +117,8 @@ describe("UploaderController - createUploadPhoto", () => {
       uploadOffset: 0,
     });
 
-    const response = await uploaderController.createUploadPhoto(
-      mockCreateData,
-      mockBodyBytes
+    const response = await createUploadPhoto(
+      mockFormData
     );
 
     expect(response.success).toBe(true);
@@ -120,41 +130,44 @@ describe("UploaderController - createUploadPhoto", () => {
   });
 
   it("should throw error on invalid data schema", async () => {
-    const mockBodyBytes = new ArrayBuffer(10);
-    const invalidData = {
-      "tus-resumable": "1.0.0",
-      "upload-length": "not-a-number",
-    } as any;
+    const invalidFormData = new FormData();
+    invalidFormData.append("chunk", new Blob(["test content"], { type: "image/jpeg" }));
+    invalidFormData.append("tus-resumable", "1.0.0");
+    invalidFormData.append("upload-length", "not-a-number");
 
     (PhotoUploaderService.getInstance as jest.Mock).mockReturnValue(
       mockUploaderService
     );
 
     await expect(
-      uploaderController.createUploadPhoto(invalidData, mockBodyBytes)
+      createUploadPhoto(invalidFormData)
     ).rejects.toThrow();
   });
 });
 
 describe("UploaderController - uploadPhotoChunk", () => {
-  let uploaderController: UploaderController;
   let mockUploadData: TusUploadData;
+  let mockFormData: FormData;
   const uploadId = "upload-123";
 
   beforeEach(() => {
-    uploaderController = new UploaderController();
     mockUploadData = {
       "tus-resumable": "1.0.0",
       "upload-offset": 0,
       "content-type": "application/offset+octet-stream",
       "content-length": 512,
     };
+    mockFormData = new FormData();
+    mockFormData.append("chunk", new Blob(["chunk content"], { type: "application/offset+octet-stream" }));
+    mockFormData.append("tus-resumable", "1.0.0");
+    mockFormData.append("upload-offset", "0");
+    mockFormData.append("content-type", "application/offset+octet-stream");
+    mockFormData.append("content-length", "512");
 
     jest.clearAllMocks();
   });
 
   it("should upload photo chunk successfully", async () => {
-    const mockChunkBytes = new ArrayBuffer(512);
     (PhotoUpdaterService.getInstance as jest.Mock).mockReturnValue(
       mockUpdaterService
     );
@@ -162,36 +175,27 @@ describe("UploaderController - uploadPhotoChunk", () => {
       uploadOffset: 512,
     });
 
-    const response = await uploaderController.uploadPhotoChunk(
+    const response = await uploadPhotoChunk(
       uploadId,
-      mockUploadData,
-      mockChunkBytes
+      mockFormData
     );
 
     expect(response.success).toBe(true);
-    expect((response as any).uploadOffset).toBe(512);
+    if(response.success){
+      expect(response.uploadOffset).toBe(512);
+    }
     expect(PhotoUpdaterService.getInstance).toHaveBeenCalled();
     expect(mockUpdaterService.updatePhoto).toHaveBeenCalled();
   });
 
-  it("should throw error when chunk size does not match content-length", async () => {
-    const mockChunkBytes = new ArrayBuffer(256); // Size doesn't match content-length
-    (PhotoUpdaterService.getInstance as jest.Mock).mockReturnValue(
-      mockUpdaterService
-    );
-
-    await expect(
-      uploaderController.uploadPhotoChunk(
-        uploadId,
-        mockUploadData,
-        mockChunkBytes
-      )
-    ).rejects.toThrow("Chunk size does not match content-length");
-  });
-
   it("should handle multiple chunks", async () => {
-    const mockChunkBytes = new ArrayBuffer(512);
-    const updatedData = { ...mockUploadData, "upload-offset": 512 };
+
+    const updatedFormData = new FormData();
+    updatedFormData.append("chunk", new Blob(["next chunk content"], { type: "application/offset+octet-stream" }));
+    updatedFormData.append("tus-resumable", "1.0.0");
+    updatedFormData.append("upload-offset", "512");
+    updatedFormData.append("content-type", "application/offset+octet-stream");
+    updatedFormData.append("content-length", "512");
 
     (PhotoUpdaterService.getInstance as jest.Mock).mockReturnValue(
       mockUpdaterService
@@ -200,13 +204,15 @@ describe("UploaderController - uploadPhotoChunk", () => {
       uploadOffset: 1024,
     });
 
-    const response = await uploaderController.uploadPhotoChunk(
+    const response = await uploadPhotoChunk(
       uploadId,
-      updatedData,
-      mockChunkBytes
+      updatedFormData
     );
 
-    expect((response as any).uploadOffset).toBe(1024);
+    expect(response.success).toBe(true);
+    if(response.success){
+      expect(response.uploadOffset).toBe(1024);
+    }
     expect(mockUpdaterService.updatePhoto).toHaveBeenCalledWith(
       expect.objectContaining({
         uploadOffset: 512,
@@ -215,31 +221,29 @@ describe("UploaderController - uploadPhotoChunk", () => {
   });
 
   it("should throw error on invalid data schema", async () => {
-    const mockChunkBytes = new ArrayBuffer(512);
-    const invalidData = {
-      "tus-resumable": "1.0.0",
-      "upload-offset": "not-a-number",
-      "content-type": "image/jpeg",
-      "content-length": 512,
-    } as any;
+
+    const invalidFormData = new FormData();
+    invalidFormData.append("chunk", new Blob(["chunk content"], { type: "image/jpeg" }));
+    invalidFormData.append("tus-resumable", "1.0.0");
+    invalidFormData.append("upload-offset", "not-a-number");
+    invalidFormData.append("content-type", "image/jpeg");
+    invalidFormData.append("content-length", "512");
 
     (PhotoUpdaterService.getInstance as jest.Mock).mockReturnValue(
       mockUpdaterService
     );
 
     await expect(
-      uploaderController.uploadPhotoChunk(uploadId, invalidData, mockChunkBytes)
+      uploadPhotoChunk(uploadId, invalidFormData)
     ).rejects.toThrow();
   });
 });
 
 describe("UploaderController - getUploadStatus", () => {
-  let uploaderController: UploaderController;
   let mockStatusData: TusStatusData;
   const uploadId = "upload-123";
 
   beforeEach(() => {
-    uploaderController = new UploaderController();
     mockStatusData = {
       "tus-resumable": "1.0.0",
     };
@@ -255,13 +259,14 @@ describe("UploaderController - getUploadStatus", () => {
       uploadOffset: 512,
     });
 
-    const response = await uploaderController.getUploadStatus(
-      uploadId,
-      mockStatusData
+    const response = await getUploadStatus(
+      uploadId
     );
 
     expect(response.success).toBe(true);
-    expect((response as any).uploadOffset).toBe(512);
+    if(response.success){
+      expect(response.uploadOffset).toBe(512);
+    }
     expect(PhotoStatusService.getInstance).toHaveBeenCalled();
     expect(mockStatusService.getPhotoStatus).toHaveBeenCalled();
   });
@@ -273,32 +278,27 @@ describe("UploaderController - getUploadStatus", () => {
     mockStatusService.getPhotoStatus.mockResolvedValue(null);
 
     await expect(
-      uploaderController.getUploadStatus(uploadId, mockStatusData)
+      getUploadStatus(uploadId)
     ).rejects.toThrow("Upload not found");
   });
 
   it("should throw error on invalid data schema", async () => {
-    const invalidData = {
-      "tus-resumable": undefined,
-    } as any;
-
+   
     (PhotoStatusService.getInstance as jest.Mock).mockReturnValue(
       mockStatusService
     );
 
     await expect(
-      uploaderController.getUploadStatus(uploadId, invalidData)
+      getUploadStatus(uploadId, "")
     ).rejects.toThrow();
   });
 });
 
 describe("UploaderController - deleteUpload", () => {
-  let uploaderController: UploaderController;
   let mockDeleteData: TusDeleteData;
   const uploadId = "upload-123";
 
   beforeEach(() => {
-    uploaderController = new UploaderController();
     mockDeleteData = {
       "tus-resumable": "1.0.0",
     };
@@ -314,9 +314,8 @@ describe("UploaderController - deleteUpload", () => {
       success: true,
     });
 
-    const response = await uploaderController.deleteUpload(
-      uploadId,
-      mockDeleteData
+    const response = await deleteUpload(
+      uploadId
     );
 
     expect(response.success).toBe(true);
@@ -334,7 +333,7 @@ describe("UploaderController - deleteUpload", () => {
     });
 
     await expect(
-      uploaderController.deleteUpload(uploadId, mockDeleteData)
+      deleteUpload(uploadId)
     ).rejects.toThrow("Failed to delete photo");
   });
 
@@ -347,21 +346,7 @@ describe("UploaderController - deleteUpload", () => {
     });
 
     await expect(
-      uploaderController.deleteUpload(uploadId, mockDeleteData)
+      deleteUpload(uploadId)
     ).rejects.toThrow("Delete operation failed");
-  });
-
-  it("should throw error on invalid data schema", async () => {
-    const invalidData = {
-      "tus-resumable": undefined,
-    } as any;
-
-    (PhotoDeleteService.getInstance as jest.Mock).mockReturnValue(
-      mockDeleteService
-    );
-
-    await expect(
-      uploaderController.deleteUpload(uploadId, invalidData)
-    ).rejects.toThrow();
   });
 });

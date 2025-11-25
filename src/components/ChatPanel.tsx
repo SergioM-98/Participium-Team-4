@@ -11,14 +11,14 @@ export interface ChatMessage {
   id: string;
   senderName: string;
   senderId: string;
-  senderRole: "CITIZEN" | "OFFICER";
+  senderRole: "CITIZEN" | 'TECHNICAL_OFFICER' | 'PUBLIC_RELATIONS_OFFICER';
   content: string;
   timestamp: string;
 }
 
 interface ChatPanelProps {
   reportId: string;
-  currentUserRole: "CITIZEN" | "OFFICER";
+  currentUserRole: "CITIZEN" | 'TECHNICAL_OFFICER' | 'PUBLIC_RELATIONS_OFFICER';
   currentUserId: string;
   messages: ChatMessage[];
   onSendMessage: (text: string) => void;
@@ -88,12 +88,12 @@ export default function ChatPanel({
                 <Avatar className="h-8 w-8 mt-1 border bg-background">
                   <AvatarFallback
                     className={
-                      msg.senderRole === "OFFICER"
+                      msg.senderRole === "PUBLIC_RELATIONS_OFFICER" || msg.senderRole === "TECHNICAL_OFFICER"
                         ? "bg-blue-100 text-blue-700"
                         : "bg-slate-100 text-slate-600"
                     }
                   >
-                    {msg.senderRole === "OFFICER" ? (
+                    {msg.senderRole === "PUBLIC_RELATIONS_OFFICER" || msg.senderRole === "TECHNICAL_OFFICER" ? (
                       <ShieldAlert className="h-4 w-4" />
                     ) : (
                       <User className="h-4 w-4" />

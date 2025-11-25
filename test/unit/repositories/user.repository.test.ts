@@ -27,12 +27,12 @@ describe("UserRepository Story 1", () => {
     telegram: undefined,
   };
 
-  beforeEach(() => {
-    userRepository = new UserRepository();
-  });
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+    beforeEach(() => {
+        userRepository = UserRepository.getInstance();
+    });
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
 
   describe("checkDuplicates", () => {
     it("should return isExisting true when username exists", async () => {
@@ -87,12 +87,12 @@ describe("UserRepository Story 2 - OFFICER Registration by ADMIN", () => {
     telegram: undefined,
   };
 
-  beforeEach(() => {
-    userRepository = new UserRepository();
-  });
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+    beforeEach(() => {
+        userRepository = UserRepository.getInstance();
+    });
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
 
   describe("checkDuplicates", () => {
     it("should return isExisting true when OFFICER username exists", async () => {

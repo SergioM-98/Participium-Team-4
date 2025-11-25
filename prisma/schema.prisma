@@ -121,7 +121,7 @@ model NotificationPreferences {
   telegramEnabled Boolean @default(false)
 
 
-  citizen     User         @relation(fields: [id], references: [id])
+  citizen     User         @relation(fields: [id], references: [id], onDelete: Cascade)
   @@map("notifications_preferences")
 }
 

@@ -1,17 +1,13 @@
-// test/setup.ts
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
 
 process.env.UPLOADS_DIR = path.join(process.cwd(), 'test_uploads');
 
-// Determina l'URL del database basato sull'ambiente
 let testDatabaseUrl: string;
 
 if (process.env.CI) {
-  // Ambiente CI - usa il service container PostgreSQL
   testDatabaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@postgres:5432/test_db?schema=public';
 } else {
-  // Ambiente locale - usa il container Docker locale
   testDatabaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5433/participium_test_db?schema=public';
 }
 
@@ -35,17 +31,18 @@ beforeAll(async () => {
       });
       console.log('Migrations applied successfully');
       
-      // Pulisci i dati solo se le migrazioni sono riuscite (tabelle esistono)
       try {
-        await prisma.report.deleteMany();
+        if (prisma.notification) await prisma.notification.deleteMany();
         await prisma.photo.deleteMany();
+        await prisma.report.deleteMany();
+        if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany();
+        if (prisma.notificationPreferences) await prisma.notificationPreferences.deleteMany();
         await prisma.user.deleteMany();
       } catch (cleanupError) {
         console.warn('Cleanup warning:', cleanupError);
       }
     } catch (migrationError) {
       console.warn('Migration error:', migrationError);
-      // Continua comunque, le tabelle potrebbero già esistere
     }
     
     console.log('Test database setup completed');
@@ -58,20 +55,20 @@ beforeAll(async () => {
 afterAll(async () => {
 
   try {
-
+    if (prisma.notification) await prisma.notification.deleteMany();
+    await prisma.photo.deleteMany();
     await prisma.report.deleteMany();
-    await prisma.photo.deleteMany(); 
+    if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany();
+    if (prisma.notificationPreferences) await prisma.notificationPreferences.deleteMany();
     await prisma.user.deleteMany();
     
     await prisma.$disconnect();
     console.log('Test database cleanup completed');
     
-    // Clean up test uploads directory
     const { rm } = require('fs/promises');
     try {
       await rm(process.env.UPLOADS_DIR!, { recursive: true, force: true });
     } catch (error) {
-      // Directory might not exist, that's ok
     }
   } catch (error) {
     console.error('Test cleanup failed:', error);

@@ -19,7 +19,7 @@ describe("PhotoRepository", () => {
   const mockPhotoData = {
     id: "photo-123",
     url: "https://example.com/photo.jpg",
-    reportId: "report-456",
+    reportId: 6,
     size: BigInt(102400),
     offset: BigInt(0),
     filename: "photo.jpg",
@@ -35,7 +35,7 @@ describe("PhotoRepository", () => {
 
   describe("create", () => {
     it("should create a photo successfully", async () => {
-      mockedPrisma.photo.create.mockResolvedValue(mockPhotoData);
+      mockedPrisma.photo.create = jest.fn().mockResolvedValue(mockPhotoData);
 
       const response = await photoRepository.create(mockPhotoData);
 
@@ -43,7 +43,7 @@ describe("PhotoRepository", () => {
         data: {
           id: mockPhotoData.id,
           url: mockPhotoData.url,
-          reportId: mockPhotoData.reportId,
+          reportId: BigInt(mockPhotoData.reportId),
           size: mockPhotoData.size,
           offset: mockPhotoData.offset,
           filename: mockPhotoData.filename,

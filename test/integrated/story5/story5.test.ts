@@ -5,7 +5,6 @@ import {  } from "@/app/lib/controllers/report.controller";
 import { createUploadPhoto } from "@/app/lib/controllers/uploader.controller";
 import { ControllerSuccessResponse } from "@/app/lib/dtos/tus.dto";
 
-// Mock NextAuth to control sessions
 jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
 }));
@@ -16,9 +15,11 @@ jest.mock("@/auth", () => ({
 
 describe("Story 5 - Integration Test: uploader", () => {
   beforeEach(async () => {
-    // Clean database before each test
-    await prisma.report.deleteMany({});
+    if (prisma.notification) await prisma.notification.deleteMany({});
     await prisma.photo.deleteMany({});
+    await prisma.report.deleteMany({});
+    if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
+    if (prisma.notificationPreferences) await prisma.notificationPreferences.deleteMany({});
     await prisma.user.deleteMany({});
 
     await prisma.photo.create({
@@ -32,7 +33,7 @@ describe("Story 5 - Integration Test: uploader", () => {
     });
     await prisma.user.create({
       data: {
-        id: 1,
+        id: "1",
         username: "user1",
         passwordHash: "password",
         firstName: "user",
@@ -43,7 +44,7 @@ describe("Story 5 - Integration Test: uploader", () => {
 
     await prisma.user.create({
       data: {
-        id: 2,
+        id: "2",
         username: "user2",
         passwordHash: "password",
         firstName: "user",
@@ -55,7 +56,6 @@ describe("Story 5 - Integration Test: uploader", () => {
 
   describe("uploader Flow", () => {
     it("should upload a new photo through the complete flow", async () => {
-      // Simulate logged CITIZEN user
       (getServerSession as jest.Mock).mockResolvedValue({
         user: {
           firstName: "mock",
@@ -67,8 +67,6 @@ describe("Story 5 - Integration Test: uploader", () => {
         expires: "2099-01-01T00:00:00.000Z",
       });
 
-      // Execute upload (complete flow)
-
       const data = new FormData();
       data.append("tus-resumable", "1.0.0");
       data.append("upload-length", "100");
@@ -79,7 +77,6 @@ describe("Story 5 - Integration Test: uploader", () => {
 
       const response: ControllerSuccessResponse = await createUploadPhoto(data);
 
-      // Verify response
       expect(response.success).toBe(true);
       if(response.success) {
         expect(response.location).toBeDefined();
@@ -89,7 +86,6 @@ describe("Story 5 - Integration Test: uploader", () => {
   });
 
   it("should not upload a new photo through the complete flow with a missing field", async () => {
-    // Simulate logged CITIZEN user
     (getServerSession as jest.Mock).mockResolvedValue({
       user: {
         firstName: "mock",
@@ -100,8 +96,6 @@ describe("Story 5 - Integration Test: uploader", () => {
       },
       expires: "2099-01-01T00:00:00.000Z",
     });
-
-    // Execute upload (complete flow)
 
     const data = new FormData();
     data.append("upload-length", "100");

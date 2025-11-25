@@ -31,7 +31,7 @@ describe('ReportAssignment Service - Story 6', () => {
     describe('assignReportToOfficer', () => {
         it("should assign report to officer with least reports successfully", async () => {
             const mockOfficer = {
-                id: BigInt(2),
+                id: "2",
                 firstName: 'Officer',
                 lastName: 'One',
                 _count: { reports: 1 }
@@ -40,7 +40,7 @@ describe('ReportAssignment Service - Story 6', () => {
             mockRepository.getOfficerWithLeastReports.mockResolvedValue(mockOfficer);
             mockRepository.assignReportToOfficer.mockResolvedValue({ 
                 id: BigInt(1),
-                officerId: BigInt(2),
+                officerId: "2",
                 status: 'ASSIGNED'
             });
 
@@ -55,7 +55,7 @@ describe('ReportAssignment Service - Story 6', () => {
             );
             expect(mockRepository.assignReportToOfficer).toHaveBeenCalledWith(
                 1,
-                2
+                "2"
             );
             if (response.success) {
                 expect(response.data).toContain("Report assigned to officer ID");
@@ -80,7 +80,7 @@ describe('ReportAssignment Service - Story 6', () => {
 
         it("should return error when assignment fails", async () => {
             const mockOfficer = {
-                id: BigInt(2),
+                id: "2",
                 firstName: 'Officer',
                 lastName: 'One',
                 _count: { reports: 1 }

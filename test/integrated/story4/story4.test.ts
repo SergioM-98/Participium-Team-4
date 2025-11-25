@@ -3,9 +3,22 @@ import { getServerSession } from "next-auth/next";
 import { ReportRegistrationResponse } from "@/app/lib/dtos/report.dto";
 import { createReport } from "@/app/lib/controllers/report.controller";
 
-// Mock NextAuth to control sessions
 jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
+}));
+
+jest.mock("next-auth", () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+      handlers: { GET: jest.fn(), POST: jest.fn() },
+      auth: jest.fn(),
+      signIn: jest.fn(),
+      signOut: jest.fn(),
+    })),
+}));
+
+jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
+    authOptions: {},
 }));
 
 jest.mock("@/auth", () => ({
@@ -14,9 +27,11 @@ jest.mock("@/auth", () => ({
 
 describe("Story 4 - Integration Test: Report Registration", () => {
   beforeEach(async () => {
-    // Clean database before each test
-    await prisma.report.deleteMany({});
+    if (prisma.notification) await prisma.notification.deleteMany({});
     await prisma.photo.deleteMany({});
+    await prisma.report.deleteMany({});
+    if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
+    if (prisma.notificationPreferences) await prisma.notificationPreferences.deleteMany({});
     await prisma.user.deleteMany({});
 
     await prisma.photo.create({
@@ -30,7 +45,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
     });
     await prisma.user.create({
       data: {
-        id: 1,
+        id: "1",
         username: "user1",
         passwordHash: "password",
         firstName: "user",
@@ -41,7 +56,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
 
     await prisma.user.create({
       data: {
-        id: 2,
+        id: "2",
         username: "user2",
         passwordHash: "password",
         firstName: "user",
@@ -53,7 +68,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
 
   describe("Report Registration Flow", () => {
     it("should successfully register a new anonimous REPORT through the complete flow", async () => {
-      // Simulate logged CITIZEN user
       (getServerSession as jest.Mock).mockResolvedValue({
         user: {
           firstName: "mock",
@@ -65,7 +79,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         expires: "2099-01-01T00:00:00.000Z",
       });
 
-      // Execute registration (complete flow) anonimusly
       const response: ReportRegistrationResponse = await createReport(
         "mockReview",
         "mockDescriptionLongEnough",
@@ -76,7 +89,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         true
       );
 
-      // Verify response
       expect(response.success).toBe(true);
       if (response.success) {
         const match = response.data.match(/id:\s*(\d+)/);
@@ -84,7 +96,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         const id = match![1];
         expect(response.data).toBe(`Report with id: ${id} succesfuly created`);
 
-        // Verify report was actually saved to database
         const savedReport = await prisma.report.findUnique({
           where: { id: parseInt(id) },
         });
@@ -97,15 +108,15 @@ describe("Story 4 - Integration Test: Report Registration", () => {
           createdAt: expect.any(Date),
           longitude: 10,
           latitude: 10,
-          citizenId: BigInt(2),
+          citizenId: "2",
         });
       }
     });
 
     it("should successfully register a new REPORT through the complete flow", async () => {
-      // Simulate logged CITIZEN user
       (getServerSession as jest.Mock).mockResolvedValue({
         user: {
+          id: "1", // Added ID to fix validation failure
           firstName: "mock",
           lastName: "mock",
           email: "mock@mock.it",
@@ -115,7 +126,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         expires: "2099-01-01T00:00:00.000Z",
       });
 
-      // Execute registration (complete flow)
       const response: ReportRegistrationResponse = await createReport(
         "mockReview",
         "mockDescriptionLongEnough",
@@ -126,7 +136,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         false
       );
 
-      // Verify response
       expect(response.success).toBe(true);
       if (response.success) {
         const match = response.data.match(/id:\s*(\d+)/);
@@ -134,7 +143,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         const id = match![1];
         expect(response.data).toBe(`Report with id: ${id} succesfuly created`);
 
-        // Verify report was actually saved to database
         const savedReport = await prisma.report.findUnique({
           where: { id: parseInt(id) },
         });
@@ -147,13 +155,12 @@ describe("Story 4 - Integration Test: Report Registration", () => {
           createdAt: expect.any(Date),
           longitude: 10,
           latitude: 10,
-          citizenId: BigInt(1),
+          citizenId: "1",
         });
       }
     });
 
     it("should reject the registration a new REPORT with invalid fields fields", async () => {
-      // Simulate logged CITIZEN user
       (getServerSession as jest.Mock).mockResolvedValue({
         user: {
           firstName: "mock",
@@ -165,7 +172,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         expires: "2099-01-01T00:00:00.000Z",
       });
 
-      // Execute registration (complete flow)
       const response: ReportRegistrationResponse = await createReport(
         "m",
         "m",
@@ -175,7 +181,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         10,
         true
       );
-      // Verify response
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toBe("Invalid inputs");
@@ -183,7 +188,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
     });
 
     it("should reject the registration a new REPORT without photos", async () => {
-      // Simulate logged CITIZEN user
       (getServerSession as jest.Mock).mockResolvedValue({
         user: {
           firstName: "mock",
@@ -195,7 +199,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         expires: "2099-01-01T00:00:00.000Z",
       });
 
-      // Execute registration (complete flow)
       const response: ReportRegistrationResponse = await createReport(
         "mockReview",
         "mockReviewLongDescription",
@@ -205,7 +208,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         10,
         true
       );
-      // Verify response
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toBe("Invalid inputs");
@@ -213,10 +215,8 @@ describe("Story 4 - Integration Test: Report Registration", () => {
     });
 
     it("should reject the registration a new REPORT without a session", async () => {
-      // Simulate logged CITIZEN user
       (getServerSession as jest.Mock).mockResolvedValue(null);
 
-      // Execute registration (complete flow)
       const response: ReportRegistrationResponse = await createReport(
         "mockReview",
         "mockReviewLongDescription",
@@ -226,7 +226,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         10,
         true
       );
-      // Verify response
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toBe("Unauthorized report");
@@ -234,7 +233,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
     });
 
     it("should reject the registration a new REPORT with a officer user", async () => {
-      // Simulate logged CITIZEN user
       (getServerSession as jest.Mock).mockResolvedValue({
         user: {
           firstName: "mock",
@@ -246,7 +244,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         expires: "2099-01-01T00:00:00.000Z",
       });
 
-      // Execute registration (complete flow)
       const response: ReportRegistrationResponse = await createReport(
         "mockReview",
         "mockReviewLongDescription",
@@ -256,7 +253,6 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         10,
         true
       );
-      // Verify response
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toBe("Unauthorized report");
