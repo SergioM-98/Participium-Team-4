@@ -44,6 +44,7 @@ import {
 
 import ReportDetailsCard from "@/components/ReportDetailsCard";
 import { getPendingApprovalReports } from "@/controllers/report.controller";
+import { getPhoto } from "@/controllers/photo.controller";
 
 // ====================================================================
 // TYPES & CONSTANTS
@@ -87,7 +88,7 @@ export interface Report {
   isAnonymous: boolean;
   submitter: User;
   rejectionReason?: string;
-  photos: string[];
+  photos: { filename: string; url: string }[]; 
   latitude: number;
   longitude: number;
   citizen?: { username: string };
@@ -268,6 +269,8 @@ export function AllReportsList({ data }: AllReportsListProps) {
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  
+  const [photoCache, setPhotoCache] = useState<Record<string, string>>({});
 
   // Default sorting remains on Date Submitted (newest first)
   const [sorting, setSorting] = useState<SortingState>([
@@ -294,7 +297,7 @@ export function AllReportsList({ data }: AllReportsListProps) {
 
       // Transform the response data to match Report interface
       // inside fetchReports function (~line 200)
-      const transformedReports = response.data.map((r) => ({
+      const transformedReports = response.data.map((r: any) => ({
         id: r.id,
         title: r.title,
         description: r.description,
@@ -323,7 +326,6 @@ export function AllReportsList({ data }: AllReportsListProps) {
             }
           : undefined,
         rejectionReason: undefined,
-        // FIX: Force this to be an array if r.photos is null/undefined
         photos: Array.isArray(r.photos) ? r.photos : [],
         latitude: r.latitude,
         longitude: r.longitude,
@@ -349,6 +351,37 @@ export function AllReportsList({ data }: AllReportsListProps) {
       fetchReports();
     }
   }, [refreshTrigger]);
+
+  useEffect(() => {
+    async function fetchSelectedReportPhotos() {
+      if (!selectedReport || !selectedReport.photos || !Array.isArray(selectedReport.photos)) return;
+
+      const cacheUpdates: Record<string, string> = {};
+      let hasUpdates = false;
+
+      for (const photo of selectedReport.photos) {
+        const filename = photo.filename;
+        
+        if (!photoCache[filename] && filename) {
+           try {
+             const res = await getPhoto(filename);
+             if (res.success && res.data) {
+                cacheUpdates[filename] = res.data;
+                hasUpdates = true;
+             }
+           } catch (err) {
+             console.error(`Failed to load photo ${filename}`, err);
+           }
+        }
+      }
+
+      if (hasUpdates) {
+        setPhotoCache(prev => ({ ...prev, ...cacheUpdates }));
+      }
+    }
+
+    fetchSelectedReportPhotos();
+  }, [selectedReport]); 
 
   const handleDialogClose = () => {
     setSelectedReport(null);
@@ -603,7 +636,9 @@ export function AllReportsList({ data }: AllReportsListProps) {
                 longitude: selectedReport.longitude,
                 reporterName: selectedReport.citizen?.username || "Anonymous",
                 createdAt: selectedReport.createdAt || new Date().toISOString(),
-                photoUrls: selectedReport.photos || [],
+                photoUrls: (selectedReport.photos || [])
+                  .map((photo) => photoCache[photo.filename])
+                  .filter(Boolean),
                 citizenId: selectedReport.citizenId,
                 officerId: selectedReport.officerId || undefined,
               }}
