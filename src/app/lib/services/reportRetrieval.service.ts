@@ -1,5 +1,4 @@
 import {
-  ReportListResponse,
   ReportsUnassignedResponse,
   ReportsByOfficerResponse,
 } from "@/dtos/report.dto";
@@ -25,7 +24,7 @@ class ReportRetrievalService {
   }
 
   public async retrieveReportsByOfficerId(
-    officerId: number
+    officerId: string
   ): Promise<ReportsByOfficerResponse> {
     try {
       const reports = await this.reportRepository.getReportsByOfficerId(

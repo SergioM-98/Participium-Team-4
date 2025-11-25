@@ -1,10 +1,6 @@
 import { prisma } from "@/prisma/db";
 import { Category, Report, Offices, ReportStatus, Role } from "@prisma/client";
-import {
-  RetrieveReportByOfficer,
-  ReportRegistrationResponse,
-  ReportsByOfficerResponse,
-} from "@/dtos/report.dto";
+import { ReportRegistrationResponse } from "@/dtos/report.dto";
 
 class ReportRepository {
   private static instance: ReportRepository;
@@ -71,21 +67,27 @@ class ReportRepository {
           title: title,
           description: description,
           photos: {
-            connect: photos.map((photoId) => ({ id: photoId })),
+            create: photos.map((photoId) => ({
+              url: `/uploads/${photoId}`,
+              size: 0,
+              offset: 0,
+              filename: photoId,
+            })),
           },
           category: Object.values(Category).includes(category as Category)
             ? (category as Category)
             : Category.OTHER,
           longitude: longitude,
           latitude: latitude,
-          citizenId: Number(userId),
+          citizenId: userId,
         },
       });
       return {
         success: true,
         data: `Report with id: ${report.id} succesfuly created`,
       };
-    } catch {
+    } catch (error) {
+      console.error("[createReport] Error creating report:", error);
       return {
         success: false,
         error: "Failed to add the report to the database",
@@ -93,7 +95,7 @@ class ReportRepository {
     }
   }
 
-  public async getReportsByOfficerId(officerId: number) {
+  public async getReportsByOfficerId(officerId: string) {
     return await prisma.report.findMany({
       where: {
         officerId,
@@ -143,7 +145,7 @@ class ReportRepository {
 
     return await prisma.user.findFirst({
       where: {
-        role: Role.OFFICER,
+        role: Role.TECHNICAL_OFFICER,
         office,
       },
       orderBy: {
@@ -156,14 +158,14 @@ class ReportRepository {
 
   public async assignReportToOfficer(
     reportId: number,
-    officerId: number
+    officerId: string
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
         id: BigInt(reportId),
       },
       data: {
-        officerId: BigInt(officerId),
+        officerId,
         status: ReportStatus.ASSIGNED,
       },
     });

@@ -20,7 +20,10 @@ export const authOptions: AuthOptions = {
         });
         if (!user) return null;
 
-        const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
+        const isValid = await bcrypt.compare(
+          credentials.password,
+          user.passwordHash
+        );
         if (!isValid) return null;
 
         const userResult = {
