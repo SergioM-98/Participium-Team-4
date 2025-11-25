@@ -9,6 +9,8 @@ jest.mock('@/db/db', () => ({
     prisma: {
         report: {
             create: jest.fn(),
+            findUnique: jest.fn(),
+            findMany: jest.fn(),
         },
     },
 }));

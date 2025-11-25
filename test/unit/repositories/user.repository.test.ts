@@ -31,7 +31,7 @@ describe('UserRepository Story 1', () => {
     }
 
     beforeEach(() => {
-        userRepository = new UserRepository();
+        userRepository = UserRepository.getInstance();
     });
     afterEach(() => {
         jest.clearAllMocks();
@@ -91,7 +91,7 @@ describe('UserRepository Story 2 - OFFICER Registration by ADMIN', () => {
     }
 
     beforeEach(() => {
-        userRepository = new UserRepository();
+        userRepository = UserRepository.getInstance();
     });
     afterEach(() => {
         jest.clearAllMocks();

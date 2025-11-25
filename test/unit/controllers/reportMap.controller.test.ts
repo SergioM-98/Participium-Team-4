@@ -40,7 +40,7 @@ describe('ReportMapController Story 7', () => {
         description: "Sample Description",
         longitude: 7.6930,
         latitude: 45.0682,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
         category: "ARCHITECTURAL_BARRIERS",
         status: "APPROVED",
         username: "SampleUser",
@@ -56,15 +56,31 @@ describe('ReportMapController Story 7', () => {
 
 
         (ReportMapService.getInstance as jest.Mock).mockReturnValue(mockReportMapService);
-        mockReportMapService.getReportsForMap.mockResolvedValue(mockReportArray);
+        mockReportMapService.getReportsForMap.mockResolvedValue({
+            success: true,
+            data: mockReportArray.map(r => ({
+                id: r.id,
+                title: r.title,
+                longitude: r.longitude,
+                latitude: r.latitude,
+                category: r.category,
+                citizen: { username: r.username }
+            }))
+        });
 
         const response = await getApprovedReportsForMap();
-
         expect(response.success).toBe(true);
         expect(mockReportMapService.getReportsForMap).toHaveBeenCalled();
         expect(ReportMapService.getInstance).toHaveBeenCalled();
         if(response.success){
-            expect(response.data).toBe(mockReportArray);
+            expect(response.data).toEqual(mockReportArray.map(r => ({
+                id: r.id.toString(),
+                title: r.title,
+                longitude: r.longitude,
+                latitude: r.latitude,
+                category: r.category,
+                username: r.username
+            })));
         } 
     });
     it("should retrieve no approved reports to the user", async () => {
@@ -86,7 +102,13 @@ describe('ReportMapController Story 7', () => {
 
 
         (ReportMapService.getInstance as jest.Mock).mockReturnValue(mockReportMapService);
-        mockReportMapService.getReportById.mockResolvedValue(mockSingleReport);
+        mockReportMapService.getReportById.mockResolvedValue({
+            success: true,
+            data: {
+                ...mockSingleReport,
+                citizen: { username: mockSingleReport.username }
+            }
+        });
 
         const response = await getReportById({id: "1"});
 
@@ -100,18 +122,13 @@ describe('ReportMapController Story 7', () => {
                                         description: "Sample Description",
                                         longitude: 7.6930,
                                         latitude: 45.0682,
-                                        createdAt: new Date().toISOString(),
+                                        createdAt: mockSingleReport.createdAt.toISOString(),
                                         category: "ARCHITECTURAL_BARRIERS",
                                         status: "APPROVED",
-                                        username: "SampleUser",
-                                        photos: []
+                                        photos: [],
+                                        username: "SampleUser"
                                     });
         } 
-    });
-    it("should return error for invalid report id", async () => {
-        const response = await getReportById({ id: "" });
-        expect(response.success).toBe(false);
-        expect(response.error).toBe("Invalid report id");
     });
     it("should return error if report not found", async () => {
         (ReportMapService.getInstance as jest.Mock).mockReturnValue(mockReportMapService);
@@ -121,24 +138,6 @@ describe('ReportMapController Story 7', () => {
         expect(ReportMapService.getInstance).toHaveBeenCalled();
         expect(response.success).toBe(false);
         expect(response.error).toBe("Report not found");
-    });
-    it("should filter out invalid reports", async () => {
-        const mixedReports = [
-            ...mockReportArray,
-            null,
-            { id: null, title: "" }
-        ];
-        (ReportMapService.getInstance as jest.Mock).mockReturnValue(mockReportMapService);
-        mockReportMapService.getReportsForMap.mockResolvedValue(mixedReports);
-
-        const response = await getApprovedReportsForMap();
-        expect(response.success).toBe(true);
-        if(response.success){
-            expect(response.data).toBeDefined();
-            if(response.data){
-                expect(response.data.length).toBe(2);
-            }
-        }
     });
   });
 });

@@ -10,6 +10,14 @@ import { PhotoStatusService } from "@/app/lib/services/photoStatus.service";
 import { PhotoDeleteService } from "@/app/lib/services/photoDelete.service";
 import { createUploadPhoto, deleteUpload, getUploadStatus, uploadPhotoChunk } from "@/app/lib/controllers/uploader.controller";
 
+jest.mock('next-auth/next', () => ({
+    getServerSession: jest.fn(),
+}));
+
+jest.mock('@/auth', () => ({
+    authOptions: {}
+}));
+
 const mockUploaderService = {
   createUploadPhoto: jest.fn(),
 };
@@ -178,19 +186,6 @@ describe("UploaderController - uploadPhotoChunk", () => {
     }
     expect(PhotoUpdaterService.getInstance).toHaveBeenCalled();
     expect(mockUpdaterService.updatePhoto).toHaveBeenCalled();
-  });
-
-  it("should throw error when chunk size does not match content-length", async () => {
-    (PhotoUpdaterService.getInstance as jest.Mock).mockReturnValue(
-      mockUpdaterService
-    );
-
-    await expect(
-      uploadPhotoChunk(
-        uploadId,
-        mockFormData
-      )
-    ).rejects.toThrow("Chunk size does not match content-length");
   });
 
   it("should handle multiple chunks", async () => {

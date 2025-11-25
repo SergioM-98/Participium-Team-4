@@ -4,13 +4,21 @@ import {
   RegistrationResponse,
 } from "@/app/lib/dtos/user.dto";
 import { UserService } from "@/app/lib/services/user.service";
-import { mock } from "node:test";
+import { getServerSession } from 'next-auth/next';
 
 
 const mockUserService = {
   checkDuplicates: jest.fn(),
   createUser: jest.fn(),
 };
+
+jest.mock('next-auth/next', () => ({
+    getServerSession: jest.fn(),
+}));
+
+jest.mock('@/auth', () => ({
+    authOptions: {}
+}));
 
 jest.mock('@/app/lib/services/user.service', () => {
   return {
@@ -20,12 +28,12 @@ jest.mock('@/app/lib/services/user.service', () => {
   };
 });
 
-(UserService.getInstance as jest.Mock).mockReturnValue(mockUserService);
 
 describe("UserController Story 1", () => {
   let mockFormData: FormData;
   let mockUserData: RegistrationInput;
   beforeEach(() => {
+    (UserService.getInstance as jest.Mock).mockReturnValue(mockUserService);
     mockFormData = new FormData();
     mockUserData = {
       username: "testuser",
@@ -70,6 +78,7 @@ describe("UserController Story 1", () => {
         success: true,
         data: mockUserData.username,
       });
+      mockUserService.checkDuplicates.mockResolvedValue({ isExisting: false });
       const response: RegistrationResponse = await register(
         mockFormData
       );
@@ -79,10 +88,9 @@ describe("UserController Story 1", () => {
       }
     });
     it("should return error on invalid input data", async () => {
-      const invalidFormData = mockFormData;
-      invalidFormData.set("username", "");
+      mockFormData.set("username", "");
       const response: RegistrationResponse = await register(
-        invalidFormData
+        mockFormData
       );
       expect(response.success).toBe(false);
       expect(response).toHaveProperty("error");
@@ -94,8 +102,18 @@ describe("UserController Story 3", () => {
   let mockUserData: RegistrationInput;
   let mockFormData: FormData;
 
+  const adminUserSession = {
+      user: {
+          id: '1',
+          name: 'Admin User',
+          role: 'ADMIN'
+      },
+      expires: '2024-12-31T23:59:59.999Z'
+  };
+
   beforeEach(() => {
-      mockUserData = {
+    (UserService.getInstance as jest.Mock).mockReturnValue(mockUserService);
+    mockUserData = {
       username: "testuser",
       password: "Test@1234",
       confirmPassword: "Test@1234",
@@ -135,10 +153,12 @@ describe("UserController Story 3", () => {
   });
   describe("createUser", () => {
     it("should validate input and call repository's createUser method, return success true", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
       mockUserService.createUser.mockResolvedValue({
         success: true,
         data: mockUserData.username,
       });
+      mockUserService.checkDuplicates.mockResolvedValue({ isExisting: false });
       const response: RegistrationResponse = await register(
         mockFormData
       );
@@ -148,10 +168,27 @@ describe("UserController Story 3", () => {
       }
     });
     it("should return error on invalid input data", async () => {
-      const invalidFormData = mockFormData;
-      invalidFormData.set("office", "");
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
+      mockFormData.set("office", "");
       const response: RegistrationResponse = await register(
-        invalidFormData
+        mockFormData
+      );
+      expect(response.success).toBe(false);
+      expect(response).toHaveProperty("error");
+    });
+
+    it("should return error on a request from a non admin user", async () => {
+      const nonAdminUserSession = {
+          user: {
+              id: '3',
+              name: 'Officer User',
+              role: 'OFFICER'
+          },
+          expires: '2024-12-31T23:59:59.999Z'
+      };
+      (getServerSession as jest.Mock).mockResolvedValue(nonAdminUserSession);
+      const response: RegistrationResponse = await register(
+        mockFormData
       );
       expect(response.success).toBe(false);
       expect(response).toHaveProperty("error");
@@ -161,12 +198,20 @@ describe("UserController Story 3", () => {
 
 describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
 
-  
+  const adminUserSession = {
+      user: {
+          id: '1',
+          name: 'Admin User',
+          role: 'ADMIN'
+      },
+      expires: '2024-12-31T23:59:59.999Z'
+  };
   let mockUserData: RegistrationInput;
 
   let formData: FormData;
 
   beforeEach(() => {
+    (UserService.getInstance as jest.Mock).mockReturnValue(mockUserService);
     mockUserData = {
       username: "testofficer",
       password: "Test@1234",
@@ -196,6 +241,7 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
 
   describe("checkDuplicates", () => {
     it("should call repository's checkDuplicates method for OFFICER data", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
       mockUserService.checkDuplicates.mockResolvedValue({ isExisting: false });
       const result = await checkDuplicates(mockUserData);
       expect(mockUserService.checkDuplicates).toHaveBeenCalledWith(mockUserData);
@@ -203,6 +249,7 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
     });
 
     it("should return true when OFFICER username already exists", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
       mockUserService.checkDuplicates.mockResolvedValue({ isExisting: true });
       const result = await checkDuplicates(mockUserData);
       expect(mockUserService.checkDuplicates).toHaveBeenCalledWith(mockUserData);
@@ -212,10 +259,12 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
 
   describe("createUser", () => {
     it("should validate OFFICER input and call repository's createUser method", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
       mockUserService.createUser.mockResolvedValue({
         success: true,
         data: mockUserData.username,
       });
+      mockUserService.checkDuplicates.mockResolvedValue({ isExisting: false });
       const response: RegistrationResponse = await register(
         formData
       );
@@ -227,10 +276,10 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
     });
 
     it("should return error when OFFICER has no office", async () => {
-      const invalidFormData = formData;
-      invalidFormData.set("office", "");
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
+      formData.set("office", "");
       const response: RegistrationResponse = await register(
-        invalidFormData
+        formData
       );
       expect(response.success).toBe(false);
       expect(response).toHaveProperty("error");
@@ -238,10 +287,10 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
     });
 
     it("should return error when OFFICER has email", async () => {
-      const invalidFormData = formData;
-      invalidFormData.set("email", "test@example.com");
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
+      formData.set("email", "test@example.com");
       const response: RegistrationResponse = await register(
-        invalidFormData
+        formData
       );
       expect(response.success).toBe(false);
       expect(response).toHaveProperty("error");
@@ -249,10 +298,10 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
     });
 
     it("should return error when OFFICER has telegram", async () => {
-      const invalidFormData = formData;
-      invalidFormData.set("telegram", "@testofficer");
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
+      formData.set("telegram", "@testofficer");
       const response: RegistrationResponse = await register(
-        invalidFormData
+        formData
       );
       expect(response.success).toBe(false);
       expect(response).toHaveProperty("error");
@@ -260,10 +309,10 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
     });
 
     it("should return error on invalid username", async () => {
-      const invalidFormData = formData;
-      invalidFormData.set("username", "ab");
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
+      formData.set("username", "ab");
       const response: RegistrationResponse = await register(
-        invalidFormData
+        formData
       );
       expect(response.success).toBe(false);
       expect(response).toHaveProperty("error");
@@ -271,10 +320,12 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
     });
 
     it("should handle repository failure gracefully", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
       mockUserService.createUser.mockResolvedValue({
         success: false,
         error: "Database error",
       });
+      mockUserService.checkDuplicates.mockResolvedValue({ isExisting: false });
       const response: RegistrationResponse = await register(
         formData
       );
@@ -282,6 +333,23 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
       if (!response.success) {
         expect(response.error).toBe("Database error");
       }
+    });
+    it("should return error on invalid username", async () => {
+      const nonAdminUserSession = {
+          user: {
+              id: '2',
+              name: 'Regular User',
+              role: 'CITIZEN'
+          },
+          expires: '2024-12-31T23:59:59.999Z'
+      };
+      (getServerSession as jest.Mock).mockResolvedValue(nonAdminUserSession);
+      const response: RegistrationResponse = await register(
+        formData
+      );
+      expect(response.success).toBe(false);
+      expect(response).toHaveProperty("error");
+      expect(mockUserService.createUser).not.toHaveBeenCalled();
     });
   });
 });
