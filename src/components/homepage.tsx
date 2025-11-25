@@ -83,7 +83,7 @@ export default function StartingPage({
           ? "/login"
           : role == "CITIZEN"
           ? "/reports"
-          : role == "OFFICER"
+          : role == "TECHNICAL_OFFICER" || role == "PUBLIC_RELATIONS_OFFICER"
           ? "/officer/reports"
           : "/",
     },
@@ -94,6 +94,13 @@ export default function StartingPage({
       <div className="container">
         <div className="mx-auto max-w-6xl space-y-12">
           <div className="space-y-4 text-center">
+            {/* --- ADDED LOGO HERE (Public View) --- */}
+            <img
+              src="logo/participium.png"
+              alt="Participium Logo"
+              className="mx-auto h-48 w-auto object-contain dark:invert"
+            />
+
             <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
               PARTICIPIUM
             </h2>

@@ -19,12 +19,14 @@ model Report {
   description String       @db.Text
   status      ReportStatus @default(PENDING_APPROVAL)
   photos      Photo[]
+  messages    Message[]
+  notifications Notification[]
   category    Category     @default(OTHER)
   createdAt   DateTime     @default(now())
   longitude   Float
   latitude    Float
-  citizenId   BigInt
-  officerId   BigInt?
+  citizenId   String
+  officerId   String?
   rejectionReason String?
 
   citizen   User  @relation("createdBy", fields: [citizenId], references: [id])
@@ -68,7 +70,8 @@ enum ReportStatus {
 
 enum Role {
   ADMIN
-  OFFICER
+  TECHNICAL_OFFICER
+  PUBLIC_RELATIONS_OFFICER
   CITIZEN
 }
 
@@ -89,19 +92,22 @@ enum Offices {
 }
 
 model User {
-  id           BigInt   @id @default(autoincrement())
+  id           String   @id @default(uuid())
   firstName    String   @db.VarChar(100)
   lastName     String   @db.VarChar(100)
   email        String?  @unique @db.VarChar(100)
   username     String   @unique @db.VarChar(100)
   telegram     String?  @unique @db.VarChar(100)
+  telegramRequestPending Boolean @default(false)
   role         Role     @default(CITIZEN)
   office       Offices?
   passwordHash String   @db.VarChar(255)
 
 
   createdReports  Report[] @relation("createdBy")
-  managedReports  Report[] @relation("managedBy") 
+  managedReports  Report[] @relation("managedBy")
+  messages        Message[]
+  notifications   Notification[]
   notificationPreferences NotificationPreferences?
   profilePhoto ProfilePhoto?
 
@@ -110,8 +116,8 @@ model User {
 
 
 model NotificationPreferences {
-  id           BigInt   @id
-  emailEnabled Boolean  @default(true)
+  id              String   @id
+  emailEnabled    Boolean  @default(true)
   telegramEnabled Boolean @default(false)
 
 
@@ -125,7 +131,36 @@ model ProfilePhoto {
   size     BigInt  @default(0)
   offset   BigInt  @default(0)
   filename String?
-  userId    BigInt? @unique
-  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String? @unique
+  user   User? @relation(fields: [userId], references: [id])
   @@map("profile_photos")
+}
+
+enum NotificationType {
+  STATUS_CHANGE
+  NEW_MESSAGE
+}
+
+model Notification {
+  id        BigInt           @id @default(autoincrement())
+  type      NotificationType
+  message   String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  recipient User             @relation(fields: [recipientId], references: [id])
+  recipientId String
+  report    Report           @relation(fields: [reportId], references: [id])
+  reportId  BigInt
+  @@map("notification")
+}
+
+model Message {
+  id        BigInt   @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  report    Report   @relation(fields: [reportId], references: [id])
+  reportId  BigInt
+  @@map("message")
 }

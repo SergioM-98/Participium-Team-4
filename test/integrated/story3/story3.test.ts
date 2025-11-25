@@ -44,15 +44,15 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
 
       // Create valid FormData for OFFICER
       const formData = new FormData();
-  formData.append("firstName", "Mario");
-  formData.append("lastName", "Rossi");
-  formData.append("email", "");
-  formData.append("username", "mariorossi");
-  formData.append("password", "SecurePass123!");
-  formData.append("confirmPassword", "SecurePass123!");
-  formData.append("role", "OFFICER");
-  formData.append("office", "DEPARTMENT_OF_COMMERCE");
-  formData.append("telegram", "");
+      formData.append("firstName", "Mario");
+      formData.append("lastName", "Rossi");
+      formData.append("email", "");
+      formData.append("username", "mariorossi");
+      formData.append("password", "SecurePass123!");
+      formData.append("confirmPassword", "SecurePass123!");
+      formData.append("role", "PUBLIC_RELATIONS_OFFICER");
+      formData.append("office", "DEPARTMENT_OF_COMMERCE");
+      formData.append("telegram", "");
 
       // Execute registration (complete flow)
       const response: RegistrationResponse = await register(formData);
@@ -74,7 +74,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
         lastName: "Rossi",
         email: null,
         username: "mariorossi",
-        role: "OFFICER",
+        role: "PUBLIC_RELATIONS_OFFICER",
         office: "DEPARTMENT_OF_COMMERCE",
         telegram: null,
       });
@@ -94,22 +94,22 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
           lastName: "User",
           username: "existinguser",
           passwordHash: "hashedpassword",
-          role: "OFFICER",
+          role: "PUBLIC_RELATIONS_OFFICER",
           office: "DEPARTMENT_OF_COMMERCE",
         },
       });
 
       // Try to register user with same username
       const formData = new FormData();
-  formData.append("firstName", "New");
-  formData.append("lastName", "User");
-  formData.append("email", "");
-  formData.append("username", "existinguser"); // Duplicate username
-  formData.append("password", "SecurePass123!");
-  formData.append("confirmPassword", "SecurePass123!");
-  formData.append("role", "OFFICER");
-  formData.append("office", "DEPARTMENT_OF_COMMERCE");
-  formData.append("telegram", "");
+      formData.append("firstName", "New");
+      formData.append("lastName", "User");
+      formData.append("email", "");
+      formData.append("username", "existinguser"); // Duplicate username
+      formData.append("password", "SecurePass123!");
+      formData.append("confirmPassword", "SecurePass123!");
+      formData.append("role", "PUBLIC_RELATIONS_OFFICER");
+      formData.append("office", "DEPARTMENT_OF_COMMERCE");
+      formData.append("telegram", "");
 
       const response: RegistrationResponse = await register(formData);
 
@@ -136,7 +136,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("email", ""); // Invalid email
       formData.append("username", "ab"); // Too short
       formData.append("password", "123"); // Too short
-      formData.append("role", "OFFICER");
+      formData.append("role", "PUBLIC_RELATIONS_OFFICER");
       formData.append("office", "INVALID_OFFICE");
       formData.append("telegram", "");
 
@@ -163,7 +163,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("email", "");
       formData.append("username", "testuser");
       formData.append("password", "SecurePass123!");
-      formData.append("role", "OFFICER");
+      formData.append("role", "PUBLIC_RELATIONS_OFFICER");
       formData.append("office", ""); // Empty office
       formData.append("telegram", "");
 
@@ -191,7 +191,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("username", "testuser");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "OFFICER");
+      formData.append("role", "PUBLIC_RELATIONS_OFFICER");
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 

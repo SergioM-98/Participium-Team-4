@@ -9,7 +9,10 @@ export default async function RegisterPage() {
   if (session) {
     if (session.user.role == "CITIZEN") {
       redirect("/reports");
-    } else if (session.user.role == "OFFICER") {
+    } else if (
+      session.user.role == "TECHNICAL_OFFICER" ||
+      session.user.role == "PUBLIC_RELATIONS_OFFICER"
+    ) {
       redirect("/officer/reports");
     } else {
       redirect("/admin/officers/registration");

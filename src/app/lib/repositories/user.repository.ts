@@ -11,24 +11,19 @@ import { prisma } from "@/prisma/db";
 import bcrypt from "bcrypt";
 import { Prisma, PrismaClient } from "@prisma/client";
 
-
 type DBClient = PrismaClient | Prisma.TransactionClient;
 
 class UserRepository {
-  
-    private static instance: UserRepository;
+  private static instance: UserRepository;
 
-    private constructor() {}
+  private constructor() {}
 
-    public static getInstance(): UserRepository {
-        if (!UserRepository.instance) {
-            UserRepository.instance = new UserRepository();
-        }
-        return UserRepository.instance;
+  public static getInstance(): UserRepository {
+    if (!UserRepository.instance) {
+      UserRepository.instance = new UserRepository();
     }
-
-
-
+    return UserRepository.instance;
+  }
 
   async checkDuplicates(
     userData: RegistrationInput
@@ -59,7 +54,10 @@ class UserRepository {
     }
   }
 
-  async createUser(userData: RegistrationInput, db: DBClient = prisma): Promise<RegistrationResponse> {
+  async createUser(
+    userData: RegistrationInput,
+    db: DBClient = prisma
+  ): Promise<RegistrationResponse> {
     try {
       if (userData.password !== userData.confirmPassword) {
         return { success: false, error: "Passwords do not match" };
@@ -73,10 +71,10 @@ class UserRepository {
           lastName: userData.lastName,
           email: userData.email ?? undefined,
           username: userData.username,
+          id: userData.id,
           role: userData.role,
           office: userData.office ?? undefined,
           passwordHash: hashedPassword,
-          telegram: userData.telegram ?? undefined,
         },
       });
 
@@ -114,9 +112,13 @@ class UserRepository {
       return {
         success: true,
         data: {
-          ...rest,
           email: rest.email ?? undefined,
           office: rest.office ?? undefined,
+          id: rest.id,
+          firstName: rest.firstName,
+          lastName: rest.lastName,
+          username: rest.username,
+          role: rest.role,
           telegram: rest.telegram ?? undefined,
         },
       };
@@ -125,11 +127,18 @@ class UserRepository {
     }
   }
 
-  async updateNotificationsMedia(userId: string, telegram: string | null, email: string | null, removeTelegram:boolean): Promise<RegistrationResponse> {
-  
+  async updateNotificationsMedia(
+    userId: string,
+    telegram: string | null,
+    email: string | null,
+    removeTelegram: boolean
+  ): Promise<RegistrationResponse> {
     try {
-      if(telegram === null && email === null && removeTelegram === false) {
-        return { success: false, error: "At least one contact method must be provided" };
+      if (email === null && removeTelegram === false) {
+        return {
+          success: false,
+          error: "At least one contact method must be provided",
+        };
       }
       const data: any = {};
 
@@ -139,8 +148,6 @@ class UserRepository {
 
       if (removeTelegram) {
         data.telegram = null;
-      } else if (telegram !== null) {
-        data.telegram = telegram;
       }
 
       await prisma.user.update({
@@ -151,8 +158,43 @@ class UserRepository {
         success: true,
         data: userId,
       };
-    }catch (error) {
+    } catch (error) {
       throw new Error("Failed to update user in database");
+    }
+  }
+
+  async getUserByTelegramId(telegramId: string): Promise<RegistrationResponse> {
+    try {
+      const user = await prisma.user.findUnique({
+        where: {
+          telegram: telegramId,
+        },
+      });
+
+      if (!user) {
+        return {
+          success: false,
+          error: "No user found with the provided telegram ID.",
+        };
+      }
+
+      return {
+        success: true,
+        data: user.id,
+      };
+    } catch (error) {
+      return { success: false, error: "Failed to fetch user from database" };
+    }
+  }  
+  
+  async getUserById(userId: string) {
+    try {
+      return await prisma.user.findUnique({
+        where: { id: userId },
+      });
+    } catch (error) {
+      console.error("Failed to fetch user from database", error);
+      return null;
     }
   }
 

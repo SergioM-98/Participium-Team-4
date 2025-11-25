@@ -19,6 +19,7 @@ export default async function createAnonymous() {
 
     await prisma.user.create({
         data: {
+        id: "2",
         username: "Anonymous",
         passwordHash: hashedPassword,
         firstName: "Anonymous",

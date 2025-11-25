@@ -1,14 +1,24 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, Tag, FileText } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import {
+  MapPin,
+  Tag,
+  X,
+  Image as ImageIcon,
+  User,
+  Clock,
+  AlertCircle
+} from "lucide-react";
 
-// Define the shape of a Report object for display
-// NOTE: These interfaces are necessary for the component to function,
-// but the data will be mocked or passed in when you test it.
+import OfficerActionPanel from "../app/officer/all-reports/OfficerActionPanel";
+import ChatPanel, { ChatMessage } from "./ChatPanel";
+import { getReportMessages, sendMessage } from "@/app/lib/controllers/message.controller";
+
 interface Report {
   id: string;
   title: string;
@@ -20,32 +30,39 @@ interface Report {
     | "in_progress"
     | "suspended"
     | "rejected"
-    | "resolved";
+    | "resolved"
+    | string;
   latitude: number;
   longitude: number;
-  reporterName: string; // Could be 'Anonymous'
-  createdAt: string; // ISO date string
-  photoUrls: string[]; // URLs of the uploaded images
+  reporterName: string;
+  createdAt: string;
+  photoUrls?: string[];
+  photos?: string[];
+  citizenId?: string | number;
+  officerId?: string | number;
 }
 
 interface ReportDetailsCardProps {
   report: Report;
-  // Function to handle a back/close action
   onClose?: () => void;
+  isOfficerMode?: boolean;
+  onOfficerActionComplete?: () => void;
+  showChat?: boolean;
 }
 
-// Function to format the category string (e.g., 'WATER_SUPPLY' -> 'Water Supply')
 const formatCategory = (category: string) => {
+  if (!category) return "Uncategorized";
   return category
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" ");
 };
 
-// Helper function for status badge styling
 const getStatusBadge = (status: Report["status"]) => {
-  switch (status) {
+  const normalizedStatus = status ? status.toLowerCase() : "unknown";
+  switch (normalizedStatus) {
     case "pending_approval":
+    case "pending":
       return <Badge variant="secondary">Pending Approval</Badge>;
     case "assigned":
       return <Badge className="bg-yellow-500 hover:bg-yellow-500/90">Assigned</Badge>;
@@ -58,17 +75,27 @@ const getStatusBadge = (status: Report["status"]) => {
     case "resolved":
       return <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>;
     default:
-      return <Badge variant="secondary">Unknown</Badge>;
+      return <Badge variant="secondary">{normalizedStatus.replace(/_/g, " ")}</Badge>;
   }
 };
 
 export default function ReportDetailsCard({
   report,
   onClose,
+  isOfficerMode = false,
+  onOfficerActionComplete,
+  showChat = false,
 }: ReportDetailsCardProps) {
-  // Use a sensible default date for testing if the passed prop is invalid/missing
+  const { data: session } = useSession();
+  
+  // show chat only if the user is the report creator or the assigned officer
+  const isReportCreator = session?.user?.id && report.citizenId && String(session.user.id) === String(report.citizenId);
+  const isAssignedOfficer = session?.user?.id && report.officerId && String(session.user.id) === String(report.officerId);
+  const canViewChat = showChat && (isReportCreator || isAssignedOfficer);
+  
+  const evidencePhotos = report.photoUrls || report.photos || [];
   const validDate = report.createdAt || new Date().toISOString();
-
+  
   const formattedDate = new Date(validDate).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -77,114 +104,207 @@ export default function ReportDetailsCard({
     minute: "2-digit",
   });
 
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
+
+  const [isSending, setIsSending] = useState(false);
+
+  // Use the actual role from the session
+  const currentUserRole = (session?.user as any)?.role === "OFFICER" ? "OFFICER" : "CITIZEN";
+
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        setIsLoadingMessages(true);
+        const reportIdBigInt = BigInt(report.id);
+        const response = await getReportMessages(reportIdBigInt);
+        
+        if (response && Array.isArray(response)) {
+          const transformedMessages: ChatMessage[] = response.map((msg: any) => ({
+            id: msg.id.toString(),
+            senderName: msg.author?.firstName && msg.author?.lastName 
+              ? `${msg.author.firstName} ${msg.author.lastName}`
+              : msg.author?.username || "Unknown",
+            senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
+            senderRole: msg.author?.role === "OFFICER" ? "OFFICER" : "CITIZEN",
+            content: msg.content,
+            timestamp: msg.createdAt,
+          }));
+          setMessages(transformedMessages);
+        }
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+      } finally {
+        setIsLoadingMessages(false);
+      }
+    };
+
+    loadMessages();
+
+    // Polling of messages every second
+    const interval = setInterval(loadMessages, 1000);
+
+    return () => clearInterval(interval);
+  }, [report.id]);
+
+  const handleSendMessage = async (text: string) => {
+    if (!session?.user?.id) {
+      console.error("User not authenticated");
+      return;
+    }
+
+    try {
+      setIsSending(true);
+      const authorId = session.user.id;
+      const reportIdBigInt = BigInt(report.id);
+
+      const response = await sendMessage(text, authorId, reportIdBigInt);
+
+      if (response) {
+        const newMsg: ChatMessage = {
+          id: response.id?.toString() || Date.now().toString(),
+          senderName: session.user.name || "You",
+          senderId: session.user.id,
+          senderRole: currentUserRole,
+          content: text,
+          timestamp: response.createdAt ? new Date(response.createdAt).toISOString() : new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, newMsg]);
+      }
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
-    <div className="w-full flex items-start justify-center">
-      <Card className="w-full bg-background rounded-lg p-0 shadow-md">
-        {/* === Header Section === */}
-        <CardHeader className="p-6 pb-4 border-b border-border">
-          <div className="flex justify-between items-start">
-            <CardTitle className="text-xl font-bold text-foreground max-w-[85%] truncate">
-              {/* Report Title */}
-              {report.title}
-            </CardTitle>
-            {/* Close Button (if onClose function is provided) */}
-            {onClose && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="text-muted-foreground hover:text-foreground h-8 w-8"
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </Button>
-            )}
-          </div>
-          {/* Status and Location */}
-          <div className="flex items-center space-x-3 mt-2">
+    <div className="w-full h-full flex flex-col bg-background overflow-hidden">
+      {/* Header fisso */}
+      <div className="flex items-start justify-between px-3 py-2 md:px-6 md:py-5 border-b bg-background flex-shrink-0">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 md:gap-3">
+            <h2 className="text-base md:text-xl font-bold tracking-tight text-foreground line-clamp-1">{report.title}</h2>
             {getStatusBadge(report.status)}
-            <p className="text-sm text-muted-foreground flex items-center whitespace-nowrap overflow-hidden text-ellipsis">
-              <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-              Loc: ({report.latitude.toFixed(4)}, {report.longitude.toFixed(4)})
-            </p>
           </div>
-        </CardHeader>
+          <div className="flex items-center text-xs md:text-sm text-muted-foreground gap-2 md:gap-4">
+             <span className="flex items-center gap-1">
+               <MapPin className="w-3 md:w-3.5 h-3 md:h-3.5" />
+               {Number(report.latitude).toFixed(4)}, {Number(report.longitude).toFixed(4)}
+             </span>
+             <span className="w-1 h-1 rounded-full bg-gray-300" />
+             <span className="flex items-center gap-1">
+               <Clock className="w-3 md:w-3.5 h-3 md:h-3.5" />
+               {formattedDate}
+             </span>
+          </div>
+        </div>
+        {onClose && (
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X className="h-5 w-5" />
+          </Button>
+        )}
+      </div>
 
-        {/* === Content Section === */}
-        <CardContent className="p-6 space-y-5">
-          {/* Metadata Grid */}
-          <div className="grid grid-cols-2 gap-4 text-sm text-foreground">
-            <div className="flex items-center">
-              <Calendar className="h-4 w-4 mr-2 text-primary" />
-              Date: {formattedDate}
+      
+      <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden items-stretch">
+        
+
+        <div className="w-full md:flex-1 md:min-w-0 flex-1 min-h-0 md:p-6 p-4 space-y-6 md:space-y-8 overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-muted/30 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                <Tag className="w-3.5 h-3.5" /> Category
+              </div>
+              <div className="font-semibold text-base text-foreground">
+                {formatCategory(report.category)}
+              </div>
             </div>
-            <div className="flex items-center">
-              <Tag className="h-4 w-4 mr-2 text-primary" />
-              Category: {formatCategory(report.category)}
-            </div>
-            <div className="flex items-center col-span-2">
-              <FileText className="h-4 w-4 mr-2 text-primary" />
-              Reported By: {report.reporterName}
+            <div className="p-4 bg-muted/30 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                <User className="w-3.5 h-3.5" /> Reported By
+              </div>
+              <div className="font-semibold text-base text-foreground">
+                {report.reporterName || "Anonymous"}
+              </div>
             </div>
           </div>
 
-          <Separator />
-
-          {/* Description */}
-          <div>
-            <h3 className="text-base font-semibold mb-2">Description</h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-primary" /> 
+              Problem Description
+            </h3>
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-sm md:text-base">
               {report.description}
             </p>
           </div>
 
-          {/* Images/Gallery Section */}
-          {report.photoUrls.length > 0 && (
-            <div>
-              <h3 className="text-base font-semibold mb-3">
-                Evidence Photos ({report.photoUrls.length})
+          <Separator />
+
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                Evidence Photos
+                <Badge variant="outline" className="ml-2 text-muted-foreground font-normal">
+                  {evidencePhotos.length}
+                </Badge>
               </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {report.photoUrls.map((url, index) => (
-                  <div
-                    key={index}
-                    className="aspect-video overflow-hidden rounded-lg border border-border"
+            </div>
+            
+            {evidencePhotos.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-2 md:gap-4">
+                {evidencePhotos.map((url, index) => (
+                  <div 
+                    key={index} 
+                    className="group relative aspect-video rounded-lg overflow-hidden border bg-muted cursor-pointer"
                   >
-                    <img
-                      // NOTE: Replace 'src' with your actual image host URL when integrating
-                      src={url}
-                      alt={`Report Photo ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
+                     <div className="absolute inset-0 flex items-center justify-center">
+                        <ImageIcon className="h-5 md:h-8 w-5 md:w-8 text-muted-foreground/30" />
+                     </div>
+                     <img 
+                       src={url} 
+                       alt={`Evidence ${index + 1}`} 
+                       loading="lazy"
+                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                       onError={(e) => { e.currentTarget.style.opacity = "0"; }}
+                     />
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-        </CardContent>
+            ) : (
+              <div className="h-24 md:h-32 border-2 border-dashed border-muted rounded-lg flex flex-col items-center justify-center text-muted-foreground bg-muted/10">
+                <ImageIcon className="w-5 md:w-8 h-5 md:h-8 mb-2 opacity-20" />
+                <span className="text-xs md:text-sm">No photos attached</span>
+              </div>
+            )}
+          </div>
+        </div>
 
-        {/* === Footer Section (Back/Close Button) === */}
-        {onClose && (
-          <div className="px-6 py-3 border-t border-border bg-muted rounded-b-lg flex justify-end">
-            <Button
-              variant="default"
-              className="h-9 px-4 text-sm font-medium"
-              onClick={onClose}
-            >
-              Back to Report Submission
-            </Button>
+        {canViewChat && (
+          <div className="w-full md:w-80 h-[50vh] md:h-full border-t md:border-t-0 md:border-l border-border bg-muted/10 flex flex-col overflow-hidden">
+            <ChatPanel
+              reportId={report.id}
+              currentUserRole={currentUserRole}
+              currentUserId={session?.user?.id || ""}
+              messages={messages}
+              onSendMessage={handleSendMessage}
+            />
           </div>
         )}
-      </Card>
+
+
+        {isOfficerMode && !canViewChat && (
+          <div className="w-full md:w-80 h-[50vh] md:h-full md:min-h-0 border-t md:border-t-0 md:border-l border-border bg-muted/10 flex flex-col overflow-y-auto p-4 md:p-6">
+            <OfficerActionPanel
+              reportId={report.id}
+              currentStatus={report.status}
+              currentCategory={report.category}
+              onActionComplete={onOfficerActionComplete}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -9,7 +9,11 @@ export default async function OfficerLayout({
 }): Promise<React.ReactElement> {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
+  if (
+    !session ||
+    (session.user.role !== "TECHNICAL_OFFICER" &&
+      session.user.role !== "PUBLIC_RELATIONS_OFFICER")
+  ) {
     redirect("/forbidden");
   }
 

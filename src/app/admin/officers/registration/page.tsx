@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import MunicipalityUserForm, { MunicipalityUserFormData } from "@/components/MunicipalityUserForm";
+import MunicipalityUserForm, {
+  MunicipalityUserFormData,
+} from "@/components/MunicipalityUserForm";
 import { register } from "@/app/lib/controllers/user.controller";
 
 export default function OfficerRegistrationPage() {
@@ -19,9 +21,11 @@ export default function OfficerRegistrationPage() {
       formData.append("firstName", payload.firstName);
       formData.append("lastName", payload.lastName);
       formData.append("username", payload.username);
-      formData.append("role", "OFFICER");
+      formData.append("role", payload.role);
       formData.append("password", payload.password);
-      formData.append("office", payload.office);
+      if (payload.office) {
+        formData.append("office", payload.office);
+      }
       formData.append("confirmPassword", payload.confirmPassword);
 
       const result = await register(formData);
@@ -44,11 +48,11 @@ export default function OfficerRegistrationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {error && (
           <div
-            className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative text-sm"
+            className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative text-sm whitespace-pre-wrap break-words"
             role="alert"
           >
             <span className="block sm:inline">{error}</span>
