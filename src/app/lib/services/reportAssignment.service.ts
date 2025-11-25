@@ -37,13 +37,13 @@ class ReportAssignmentService {
 
       const report = await this.reportRepository.assignReportToOfficer(
         reportId,
-        Number(officer.id)
+        officer.id
       );
 
       // Notify the citizen that their report has been assigned
       try {
         await this.notificationService.notifyStatusChange(
-          BigInt(report.citizenId),
+          report.citizenId,
           BigInt(reportId),
           "ASSIGNED"
         );
@@ -70,7 +70,7 @@ class ReportAssignmentService {
       // Notify the citizen that their report has been rejected
       try {
         await this.notificationService.notifyStatusChange(
-          BigInt(report.citizenId),
+          report.citizenId,
           BigInt(reportId),
           "REJECTED"
         );

@@ -18,7 +18,7 @@ class NotificationService {
 
   // ==================== Notification methods ====================
   public async notifyStatusChange(
-    recipientId: bigint,
+    recipientId: string,
     reportId: bigint,
     newStatus: string
   ) {
@@ -31,7 +31,7 @@ class NotificationService {
   }
 
   public async notifyNewMessage(
-    recipientId: bigint,
+    recipientId: string,
     reportId: bigint,
     senderName: string
   ) {
@@ -43,11 +43,11 @@ class NotificationService {
     });
   }
 
-  public async getUserNotifications(userId: bigint) {
+  public async getUserNotifications(userId: string) {
     return this.notificationsRepository.getNotificationsByUser(userId);
   }
 
-  public async getUnreadNotifications(userId: bigint) {
+  public async getUnreadNotifications(userId: string) {
     return this.notificationsRepository.getUnreadNotificationsByUser(userId);
   }
 
@@ -55,17 +55,17 @@ class NotificationService {
     return this.notificationsRepository.markAsRead(notificationId);
   }
 
-  public async markAllNotificationsAsRead(userId: bigint) {
+  public async markAllNotificationsAsRead(userId: string) {
     return this.notificationsRepository.markAllAsRead(userId);
   }
 
   // ==================== Notification Preferences methods ====================
-  public async getNotificationsPreferences(userId: number | string): Promise<NotificationsResponse> {
+  public async getNotificationsPreferences(userId: string): Promise<NotificationsResponse> {
     return this.notificationsRepository.retrieveNotificationsPreferences(userId);
   }
 
   public async updateNotificationsPreferences(
-    userId: number | string,
+    userId: string,
     notifications: NotificationsData
   ): Promise<NotificationsResponse> {
     return this.notificationsRepository.updateNotificationsPreferences(userId, notifications);

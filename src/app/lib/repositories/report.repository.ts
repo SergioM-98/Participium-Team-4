@@ -69,8 +69,8 @@ class ReportRepository {
           photos: {
             create: photos.map((photoId) => ({
               url: `/uploads/${photoId}`,
-              size: 0,
-              offset: 0,
+              size: BigInt(0),
+              offset: BigInt(0),
               filename: photoId,
             })),
           },
@@ -98,7 +98,7 @@ class ReportRepository {
   public async getReportsByOfficerId(officerId: string) {
     return await prisma.report.findMany({
       where: {
-        officerId,
+        officerId: officerId,
       },
       include: {
         photos: {
@@ -145,7 +145,7 @@ class ReportRepository {
 
     return await prisma.user.findFirst({
       where: {
-        role: Role.TECHNICAL_OFFICER,
+        role: "TECHNICAL_OFFICER" as Role,
         office,
       },
       orderBy: {
@@ -165,7 +165,7 @@ class ReportRepository {
         id: BigInt(reportId),
       },
       data: {
-        officerId,
+        officerId: officerId,
         status: ReportStatus.ASSIGNED,
       },
     });

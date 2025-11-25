@@ -24,7 +24,7 @@ class MessageService {
     return MessageService.instance;
   }
 
-  public async sendMessage(content: string, authorId: bigint, reportId: bigint) {
+  public async sendMessage(content: string, authorId: string, reportId: bigint) {
     const message = await this.messageRepository.createMessage({ content, authorId, reportId });
 
     try {
@@ -43,7 +43,7 @@ class MessageService {
       // If the author is NOT the citizen (i.e., it's an officer), notify the citizen
       if (authorId !== report.citizenId) {
         await this.notificationService.notifyNewMessage(
-          BigInt(report.citizenId),
+          report.citizenId,
           reportId,
           authorName
         );

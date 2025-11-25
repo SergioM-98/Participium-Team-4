@@ -13,7 +13,7 @@ export class MessageRepository {
         return MessageRepository.instance;
     }
 
-    public async createMessage(data: { content: string; authorId: bigint; reportId: bigint }): Promise<Message> {
+    public async createMessage(data: { content: string; authorId: string; reportId: bigint }): Promise<Message> {
         return prisma.message.create({ data });
     }
 

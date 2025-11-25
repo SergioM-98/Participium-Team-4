@@ -22,13 +22,13 @@ class NotificationsRepository {
     public async createNotification(data: {
         type: "STATUS_CHANGE" | "NEW_MESSAGE";
         message: string;
-        recipientId: bigint;
+        recipientId: string;
         reportId: bigint;
     }): Promise<Notification> {
         return prisma.notification.create({ data });
     }
 
-    public async getNotificationsByUser(userId: bigint): Promise<Notification[]> {
+    public async getNotificationsByUser(userId: string): Promise<Notification[]> {
         return prisma.notification.findMany({
             where: { recipientId: userId },
             orderBy: { createdAt: 'desc' },
@@ -36,7 +36,7 @@ class NotificationsRepository {
         });
     }
 
-    public async getUnreadNotificationsByUser(userId: bigint): Promise<Notification[]> {
+    public async getUnreadNotificationsByUser(userId: string): Promise<Notification[]> {
         return prisma.notification.findMany({
             where: { recipientId: userId, isRead: false },
             orderBy: { createdAt: 'desc' },
@@ -51,29 +51,20 @@ class NotificationsRepository {
         });
     }
 
-    public async markAllAsRead(userId: bigint) {
+    public async markAllAsRead(userId: string) {
         return prisma.notification.updateMany({
             where: { recipientId: userId, isRead: false },
             data: { isRead: true },
         });
     }
 
-    async retrieveNotificationsPreferences(userId: number | string): Promise<NotificationsResponse> {
+    async retrieveNotificationsPreferences(userId: string): Promise<NotificationsResponse> {
         try {
-            let user;
-            if (typeof userId === "number") {
-                user = await prisma.user.findUnique({
-                    where: {
-                        id: userId,
-                    },
-                });
-            } else {
-                user = await prisma.user.findUnique({
-                    where: {
-                        username: userId,
-                    },
-                });
-            }
+            const user = await prisma.user.findUnique({
+                where: {
+                    username: userId,
+                },
+            });
 
             if (!user) {
                 return { success: false, error: "Invalid credentials" };
@@ -111,25 +102,16 @@ class NotificationsRepository {
     }
 
     async updateNotificationsPreferences(
-        userId: number | string,
+        userId: string,
         notifications: NotificationsData,
         db: DBClient = prisma
     ): Promise<NotificationsResponse> {
         try {
-            let user;
-            if (typeof userId === "number") {
-                user = await prisma.user.findUnique({
-                    where: {
-                        id: userId,
-                    },
-                });
-            } else {
-                user = await prisma.user.findUnique({
-                    where: {
-                        username: userId,
-                    },
-                });
-            }
+            const user = await prisma.user.findUnique({
+                where: {
+                    username: userId,
+                },
+            });
 
             if (!user) {
                 return { success: false, error: "User not found" };

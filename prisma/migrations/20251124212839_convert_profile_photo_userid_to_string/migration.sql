@@ -29,6 +29,12 @@ ALTER TABLE "report" DROP CONSTRAINT "report_citizenId_fkey";
 -- DropForeignKey
 ALTER TABLE "report" DROP CONSTRAINT "report_officerId_fkey";
 
+-- DropForeignKey
+ALTER TABLE "notification" DROP CONSTRAINT "notification_recipientId_fkey";
+
+-- DropForeignKey
+ALTER TABLE "message" DROP CONSTRAINT "message_authorId_fkey";
+
 -- AlterTable
 ALTER TABLE "notifications_preferences" DROP CONSTRAINT "notifications_preferences_pkey",
 ALTER COLUMN "id" SET DATA TYPE TEXT,
@@ -36,6 +42,12 @@ ADD CONSTRAINT "notifications_preferences_pkey" PRIMARY KEY ("id");
 
 -- AlterTable
 ALTER TABLE "profile_photos" ALTER COLUMN "userId" SET DATA TYPE TEXT;
+
+-- AlterTable
+ALTER TABLE "notification" ALTER COLUMN "recipientId" SET DATA TYPE TEXT;
+
+-- AlterTable
+ALTER TABLE "message" ALTER COLUMN "authorId" SET DATA TYPE TEXT;
 
 -- AlterTable
 ALTER TABLE "report" ALTER COLUMN "citizenId" SET DATA TYPE TEXT,
@@ -54,6 +66,12 @@ ALTER TABLE "report" ADD CONSTRAINT "report_citizenId_fkey" FOREIGN KEY ("citize
 
 -- AddForeignKey
 ALTER TABLE "report" ADD CONSTRAINT "report_officerId_fkey" FOREIGN KEY ("officerId") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "notification" ADD CONSTRAINT "notification_recipientId_fkey" FOREIGN KEY ("recipientId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "message" ADD CONSTRAINT "message_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "notifications_preferences" ADD CONSTRAINT "notifications_preferences_id_fkey" FOREIGN KEY ("id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

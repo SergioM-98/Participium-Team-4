@@ -15,7 +15,7 @@ export async function getInbox() {
 
   try {
     const notifications = await notificationService.getUserNotifications(
-      BigInt(session.user.id)
+      session.user.id
     );
     return { success: true, data: notifications };
   } catch (error) {
@@ -31,7 +31,7 @@ export async function getUnreadCount() {
 
   try {
     const unread = await notificationService.getUnreadNotifications(
-      BigInt(session.user.id)
+      session.user.id
     );
     return { success: true, data: unread.length };
   } catch (error) {
@@ -60,7 +60,7 @@ export async function markAllAsRead() {
   }
 
   try {
-    await notificationService.markAllNotificationsAsRead(BigInt(session.user.id));
+    await notificationService.markAllNotificationsAsRead(session.user.id);
     return { success: true, message: "All notifications marked as read" };
   } catch (error) {
     return { success: false, error: "Failed to mark all notifications as read" };

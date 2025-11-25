@@ -187,7 +187,7 @@ class UserRepository {
     }
   }  
   
-  async getUserById(userId: bigint) {
+  async getUserById(userId: string) {
     try {
       return await prisma.user.findUnique({
         where: { id: userId },

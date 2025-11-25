@@ -154,7 +154,7 @@ export default function ReportDetailsCard({
 
     try {
       setIsSending(true);
-      const authorId = BigInt(session.user.id);
+      const authorId = session.user.id;
       const reportIdBigInt = BigInt(report.id);
 
       const response = await sendMessage(text, authorId, reportIdBigInt);
