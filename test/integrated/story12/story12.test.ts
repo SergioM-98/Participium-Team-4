@@ -16,13 +16,11 @@ describe("Story 12 - Integration Test: registerTelegramReport", () => {
   beforeEach(async () => {
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
-    // حذف رکوردهای جدول notifications_preferences قبل از حذف کاربران
     if (prisma.notificationPreferences) {
       await prisma.notificationPreferences.deleteMany({});
     }
     await prisma.user.deleteMany({});
 
-    // Seed the user that Telegram login will find
     await prisma.user.create({
       data: {
         id: "10",
@@ -36,7 +34,6 @@ describe("Story 12 - Integration Test: registerTelegramReport", () => {
       },
     });
 
-    // Mock session for authenticated user
     (getServerSession as jest.Mock).mockResolvedValue({
       user: {
         id: "10",
