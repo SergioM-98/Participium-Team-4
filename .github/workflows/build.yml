@@ -13,10 +13,26 @@ jobs:
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -26,9 +42,17 @@ jobs:
       - name: Install dependencies
         run: npm i
 
-      - name: Run Tests with Coverage
+      - name: Setup test database
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
 
-        run: npx jest --coverage --coverageReporters=lcov
+      - name: Run Tests with Coverage
+        run: npx jest --coverage --coverageReporters=lcov --runInBand --ci --passWithNoTests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          NODE_ENV: test
+          CI: true
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
