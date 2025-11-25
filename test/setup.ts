@@ -3,6 +3,9 @@ import path from 'path';
 
 process.env.UPLOADS_DIR = path.join(process.cwd(), 'test_uploads');
 
+// Check if we are running unit tests to skip DB setup
+const isUnitTest = process.argv.some(arg => arg.includes('test/unit') || arg.includes('test\\unit'));
+
 let testDatabaseUrl: string;
 
 if (process.env.CI) {
@@ -11,13 +14,19 @@ if (process.env.CI) {
   testDatabaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5433/participium_test_db?schema=public';
 }
 
-console.log('Test database URL:', testDatabaseUrl.replace(/password=[^@]*@/, 'password=***@'));
+if (!isUnitTest) {
+    console.log('Test database URL:', testDatabaseUrl.replace(/password=[^@]*@/, 'password=***@'));
+}
 
 const prisma = new PrismaClient({
   datasourceUrl: testDatabaseUrl,
 });
 
 beforeAll(async () => {
+  // Skip DB setup for unit tests
+  if (isUnitTest) {
+      return;
+  }
 
   try {
 
@@ -53,6 +62,10 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  // Skip DB cleanup for unit tests
+  if (isUnitTest) {
+      return;
+  }
 
   try {
     if (prisma.notification) await prisma.notification.deleteMany();
