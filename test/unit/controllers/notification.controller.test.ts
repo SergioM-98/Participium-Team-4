@@ -77,7 +77,7 @@ describe('NotificationController story 11', () => {
             const response = await getInbox();
 
             expect(mockNotificationService.getInstance().getUserNotifications).toHaveBeenCalled();
-            expect(mockInstance.getUserNotifications).toHaveBeenCalledWith(BigInt(1));
+            expect(mockInstance.getUserNotifications).toHaveBeenCalledWith(BigInt("1"));
             expect(response).toEqual({ success: true, data: mockNotifications });
         });
 
@@ -109,7 +109,7 @@ describe('NotificationController story 11', () => {
 
             const response = await getUnreadCount();
 
-            expect(mockInstance.getUnreadNotifications).toHaveBeenCalledWith(BigInt(1));
+            expect(mockInstance.getUnreadNotifications).toHaveBeenCalledWith("1");
             expect(response).toEqual({ success: true, data: 2 });
         });
 
@@ -167,7 +167,7 @@ describe('NotificationController story 11', () => {
 
             const response = await markAllAsRead();
 
-            expect(mockInstance.markAllNotificationsAsRead).toHaveBeenCalledWith(BigInt(1));
+            expect(mockInstance.markAllNotificationsAsRead).toHaveBeenCalledWith("1");
             expect(response).toEqual({ success: true, message: "All notifications marked as read" });
         });
 
