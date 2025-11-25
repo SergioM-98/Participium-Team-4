@@ -1,7 +1,7 @@
 import { MessageService } from '@/services/message.service';
 import { sendMessage, getReportMessages } from '@/controllers/message.controller';
 
-// ✅ Mock direttamente nella factory function
+
 jest.mock('@/services/message.service', () => {
   const mockMessageServiceInstance = {
     sendMessage: jest.fn(),
@@ -15,7 +15,7 @@ jest.mock('@/services/message.service', () => {
   };
 });
 
-// ✅ Ottieni i riferimenti ai mock dopo la definizione
+
 const mockMessageService = jest.mocked(MessageService);
 const mockInstance = mockMessageService.getInstance() as jest.Mocked<{
   sendMessage: jest.MockedFunction<any>;
@@ -35,7 +35,7 @@ describe('MessageController story 11', () => {
                 content: 'This is a test message',
             };
 
-            // ✅ Mock del metodo dell'istanza
+
             mockInstance.sendMessage.mockResolvedValue({ 
                 success: true, 
                 data: 'Message sent successfully' 
@@ -47,15 +47,13 @@ describe('MessageController story 11', () => {
                 BigInt(mockRequest.reportId)
             );
 
-            // ✅ Verifica che getInstance sia stato chiamato
+
             expect(mockMessageService.getInstance).toHaveBeenCalled();
-            // ✅ Verifica che sendMessage sia stato chiamato con BigInt
             expect(mockInstance.sendMessage).toHaveBeenCalledWith(
                 'This is a test message', 
                 BigInt('2'), 
                 BigInt('1')
             );
-            // ✅ Verifica la risposta
             expect(response).toEqual({ success: true, data: 'Message sent successfully' });
         });
 
