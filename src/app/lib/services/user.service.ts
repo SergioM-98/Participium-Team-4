@@ -40,10 +40,10 @@ class UserService {
             tx
           );
 
-        if (!res.success) {
-          throw new Error(res.error); // rollback automatico 🚨
+            if (!res.success) {
+                throw new Error(res.error);
+            }
         }
-      }
 
       return result;
     });

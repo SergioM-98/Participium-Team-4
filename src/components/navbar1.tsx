@@ -28,6 +28,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ProfileButton } from "./ProfileButton";
+// Import the new component
+import { NotificationBell } from "@/components/NotificationBell";
 
 interface MenuItem {
   title: string;
@@ -99,7 +101,7 @@ function Navbar1({
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             {!role ? (
               <>
                 <Button asChild variant="outline" size="sm">
@@ -111,6 +113,12 @@ function Navbar1({
               </>
             ) : (
               <>
+                {role === "CITIZEN" && (
+                  <div className="mr-1">
+                    <NotificationBell />
+                  </div>
+                )}
+
                 <LogoutButton variant="outline" size="sm" />
                 <ProfileButton
                   variant="outline"
@@ -135,66 +143,72 @@ function Navbar1({
               />
             </Link>
 
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="size-4" />
-                </Button>
-              </SheetTrigger>
+            {/* Right side group: Notification + Menu Trigger */}
+            <div className="flex items-center gap-3">
+              {/* --- NOTIFICATION BELL (MOBILE) - Only for CITIZEN --- */}
+              {role === "CITIZEN" && <NotificationBell />}
 
-              <SheetContent className="overflow-y-auto z-[9999]">
-                <SheetHeader>
-                  <SheetTitle>
-                    <Link href={logoUrl} className="flex items-center gap-2">
-                      <img
-                        src={logo.src}
-                        className="max-h-8 dark:invert"
-                        alt={logo.alt}
-                      />
-                    </Link>
-                  </SheetTitle>
-                </SheetHeader>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Menu className="size-4" />
+                  </Button>
+                </SheetTrigger>
 
-                <div className="flex flex-col gap-6 p-4">
-                  <Accordion
-                    type="single"
-                    collapsible
-                    className="flex w-full flex-col gap-4"
-                  >
-                    {filteredMenu.map((item) => renderMobileMenuItem(item))}
-                  </Accordion>
-
-                  {/* Mobile buttons */}
-                  <div className="flex flex-col gap-3">
-                    {!role ? (
-                      <>
-                        <Button asChild variant="outline">
-                          <a href={auth.login.url}>{auth.login.title}</a>
-                        </Button>
-                        <Button asChild>
-                          <a href={auth.signup.url}>{auth.signup.title}</a>
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <LogoutButton
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
+                <SheetContent className="overflow-y-auto z-[9999]">
+                  <SheetHeader>
+                    <SheetTitle>
+                      <Link href={logoUrl} className="flex items-center gap-2">
+                        <img
+                          src={logo.src}
+                          className="max-h-8 dark:invert"
+                          alt={logo.alt}
                         />
-                        <ProfileButton
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          showName={false}
-                          username={username}
-                        />
-                      </>
-                    )}
+                      </Link>
+                    </SheetTitle>
+                  </SheetHeader>
+
+                  <div className="flex flex-col gap-6 p-4">
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="flex w-full flex-col gap-4"
+                    >
+                      {filteredMenu.map((item) => renderMobileMenuItem(item))}
+                    </Accordion>
+
+                    {/* Mobile buttons */}
+                    <div className="flex flex-col gap-3">
+                      {!role ? (
+                        <>
+                          <Button asChild variant="outline">
+                            <a href={auth.login.url}>{auth.login.title}</a>
+                          </Button>
+                          <Button asChild>
+                            <a href={auth.signup.url}>{auth.signup.title}</a>
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <LogoutButton
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                          />
+                          <ProfileButton
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            showName={false}
+                            username={username}
+                          />
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </div>

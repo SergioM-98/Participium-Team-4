@@ -27,6 +27,8 @@ class ReportRepository {
           createdAt: true,
           category: true,
           status: true,
+          citizenId: true,
+          officerId: true,
           citizen: {
             select: {
               username: true,
@@ -100,7 +102,13 @@ class ReportRepository {
       },
       include: {
         photos: {
-          select: { filename: true },
+          select: { url: true, filename: true },
+        },
+        citizen: {
+          select: {
+            id: true,
+            username: true,
+          },
         },
       },
     });

@@ -63,7 +63,9 @@ export default function Reports() {
                         longitude: response.data.longitude,
                         reporterName: response.data.username || 'Anonymous',
                         createdAt: response.data.createdAt,
-                        photoUrls: response.data.photos || []
+                        photoUrls: response.data.photos || [],
+                        citizenId: response.data.citizenId,
+                        officerId: response.data.officerId
                     });
                 } else {
                     console.error("Error fetching report details:", response.error);
@@ -156,7 +158,7 @@ export default function Reports() {
         >
             <div 
 
-                className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300"
+                className="relative w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] max-h-[85vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
                 onClick={(e) => e.stopPropagation()} 
             >
                 {isLoadingDetails && (
@@ -168,6 +170,7 @@ export default function Reports() {
                     <ReportDetailsCard 
                         report={fullReportData} 
                         onClose={handleCloseDetails} 
+                        showChat={true}
                     />
                 )}
                 {!isLoadingDetails && !fullReportData && (
