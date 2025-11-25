@@ -124,7 +124,7 @@ describe('ReportRepository Story 4', () => {
                 expect(response.data).toHaveProperty('createdAt');
                 expect(response.data).toHaveProperty('category', 'ARCHITECTURAL_BARRIERS');
                 expect(response.data).toHaveProperty('status', 'APPROVED');
-                expect(response.data).toHaveProperty('username', 'SampleUser');
+                expect(response.data).toHaveProperty('citizen', {"username": "SampleUser"});
                 expect(response.data).toHaveProperty('photos');
                 if (response.data.photos) {
                     expect(response.data.photos).toHaveLength(2);

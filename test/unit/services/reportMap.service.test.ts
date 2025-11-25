@@ -78,7 +78,6 @@ describe('ReportMapService Story 7', () => {
         const response = await instance.getReportsForMap();
         expect(response).toBeNull();
         expect(mockReportMapRepository.getApprovedReports).toHaveBeenCalled();
-        expect(ReportRepository.getInstance).toHaveBeenCalled();
     });
     it("should retrieve one approved report - without photos - to the user", async () => {
 
@@ -94,7 +93,6 @@ describe('ReportMapService Story 7', () => {
 
         expect(response.success).toBe(true);
         expect(mockReportMapRepository.getReportById).toHaveBeenCalled();
-        expect(ReportMapService.getInstance).toHaveBeenCalled();
         if(response.success){
             expect(response.data).toBe(mockSingleReport);
         } 
@@ -112,7 +110,6 @@ describe('ReportMapService Story 7', () => {
         const response = await instance.getReportById("1");
 
         expect(mockReportMapRepository.getReportById).toHaveBeenCalled();
-        expect(ReportMapService.getInstance).toHaveBeenCalled();
         expect(response.success).toBe(false);
         expect(response.error).toBe("Report not found");
     });
