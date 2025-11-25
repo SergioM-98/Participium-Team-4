@@ -40,6 +40,7 @@ describe("User service - register function Story 1", () => {
     (UserRepository.getInstance as jest.Mock).mockReturnValue(mockUserRepository);   
     userService = UserService.getInstance(); 
     validData = {
+      id: "1",
       firstName: "Test",
       lastName: "User",
       email: "test@example.com",
@@ -74,6 +75,7 @@ describe("User service - Role setup Story 3", () => {
     (UserRepository.getInstance as jest.Mock).mockReturnValue(mockUserRepository);   
     userService = UserService.getInstance(); 
     validData = {
+      id: "1",
       firstName: "Test",
       lastName: "User",
       email: "",
@@ -109,6 +111,7 @@ describe("User service - OFFICER registration by ADMIN Story 2", () => {
     (UserRepository.getInstance as jest.Mock).mockReturnValue(mockUserRepository);
     userService = UserService.getInstance();
     validData = {
+      id: "1",
       firstName: "Test",
       lastName: "Officer",
       email: "",

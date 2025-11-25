@@ -7,11 +7,8 @@ import {
   ReportRegistrationResponse,
   ReportRequest,
 } from "@/app/lib/dtos/report.dto";
-import { createReport } from "@/app/lib/controllers/report.controller";
-import { ReportRegistrationResponse } from "@/app/lib/dtos/report.dto";
 import { ReportCreationService } from "@/app/lib/services/reportCreation.service";
 import { ReportAssignmentService } from "@/app/lib/services/reportAssignment.service";
-import { getServerSession } from 'next-auth/next';
 
 const mockService = {
   createReport: jest.fn(),
@@ -39,9 +36,6 @@ jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
 
 import { getServerSession } from "next-auth/next";
 
-const mockReportController = {
-  createReport: jest.fn(),
-};
 jest.mock('next-auth', () => ({
   __esModule: true,
   default: jest.fn(() => ({
@@ -90,7 +84,7 @@ describe('ReportController Story 4', () => {
     user: {
       id: "2",
       name: "Officer User",
-      role: "TECHNICAL_OFFICER",
+      role: "PUBLIC_RELATIONS_OFFICER",
     },
     expires: "2024-12-31T23:59:59.999Z",
   };
@@ -107,45 +101,9 @@ describe('ReportController Story 4', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-    const officerSession = {
-        user: {
-            id: '2', 
-            name: 'Officer User',
-            role: 'OFFICER'
-        },
-        expires: '2024-12-31T23:59:59.999Z'
-    };
-    
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
   describe("createReport", () => {
     it("should call service's createReport method and return success true", async () => {
-      (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
-        mockService
-      );
-      mockService.createReport.mockResolvedValue({
-        success: true,
-        data: "Report with id: 1 succesfuly created",
-      });
-
-      const response = await createReport(
-        "mockReport",
-        "mockDescription",
-        ["photo1"],
-        "WATER_SUPPLY",
-        0,
-        0,
-        false
-      );
-
-      expect(response.success).toBe(true);
-      expect(mockService.createReport).toHaveBeenCalled();
-      expect(ReportCreationService.getInstance).toHaveBeenCalled();
-      if (response.success) {
-        expect(response.data).toBe("Report with id: 1 succesfuly created");
-      }
         (ReportCreationService.getInstance as jest.Mock).mockReturnValue(mockService);
         mockService.createReport.mockResolvedValue({ success: true, data: "Report with id: 1 succesfuly created" });
         (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
@@ -202,7 +160,10 @@ describe('ReportController Story 4', () => {
 
     it("should register a new report successfully", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
-      mockReportController.createReport.mockResolvedValue({
+      (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
+        mockService
+      );
+      mockService.createReport.mockResolvedValue({
         success: true,
         data: "Report with id: 1 succesfuly created",
       });
@@ -216,8 +177,11 @@ describe('ReportController Story 4', () => {
         true
       );
       console.log("Response from register action:", response);
+      if(!response.success){
+          expect(response.error).toBe("");
+      }
       expect(response.success).toBe(true);
-      expect(mockReportController.createReport).toHaveBeenCalled();
+      expect(mockService.createReport).toHaveBeenCalled();
       if (response.success) {
         expect(response.data).toBe("Report with id: 1 succesfuly created");
       }
@@ -225,7 +189,10 @@ describe('ReportController Story 4', () => {
 
     it("should not register a new report with invalid fields", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
-      mockReportController.createReport.mockResolvedValue({
+      (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
+        mockService
+      );
+      mockService.createReport.mockResolvedValue({
         success: true,
         data: "Report with id: 1 succesfuly created",
       });
@@ -240,7 +207,7 @@ describe('ReportController Story 4', () => {
       );
       console.log("Response from register action:", response);
       expect(response.success).toBe(false);
-      expect(mockReportController.createReport).not.toHaveBeenCalled();
+      expect(mockService.createReport).not.toHaveBeenCalled();
       if (!response.success) {
         expect(response.error).toBe("Invalid inputs");
       }
@@ -248,7 +215,10 @@ describe('ReportController Story 4', () => {
 
     it("should not register a new report without a session", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(null);
-      mockReportController.createReport.mockResolvedValue({
+      (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
+        mockService
+      );
+      mockService.createReport.mockResolvedValue({
         success: true,
         data: "Report with id: 1 succesfuly created",
       });
@@ -263,7 +233,7 @@ describe('ReportController Story 4', () => {
       );
       console.log("Response from register action:", response);
       expect(response.success).toBe(false);
-      expect(mockReportController.createReport).not.toHaveBeenCalled();
+      expect(mockService.createReport).not.toHaveBeenCalled();
       if (!response.success) {
         expect(response.error).toBe("Unauthorized report");
       }
@@ -271,7 +241,10 @@ describe('ReportController Story 4', () => {
 
     it("should not register a new report from an officer", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(officerSession);
-      mockReportController.createReport.mockResolvedValue({
+      (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
+        mockService
+      );
+      mockService.createReport.mockResolvedValue({
         success: true,
         data: "Report with id: 1 succesfuly created",
       });
@@ -286,7 +259,7 @@ describe('ReportController Story 4', () => {
       );
       console.log("Response from register action:", response);
       expect(response.success).toBe(false);
-      expect(mockReportController.createReport).not.toHaveBeenCalled();
+      expect(mockService.createReport).not.toHaveBeenCalled();
       if (!response.success) {
         expect(response.error).toBe("Unauthorized report");
       }
@@ -294,7 +267,10 @@ describe('ReportController Story 4', () => {
 
     it("should not register a new report if the controller fails", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
-      mockReportController.createReport.mockResolvedValue({
+      (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
+        mockService
+      );
+      mockService.createReport.mockResolvedValue({
         success: false,
         error: "Failed to add the report to the database",
       });
@@ -308,8 +284,8 @@ describe('ReportController Story 4', () => {
         true
       );
       console.log("Response from register action:", response);
+      expect(mockService.createReport).toHaveBeenCalled();
       expect(response.success).toBe(false);
-      expect(mockReportController.createReport).toHaveBeenCalled();
       if (!response.success) {
         expect(response.error).toBe("Failed to add the report to the database");
       }
@@ -487,22 +463,6 @@ describe('ReportController Story 4', () => {
         expect(response.error).toBe("Failed to reject report");
       }
     });
-            (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
-            (ReportCreationService.getInstance as jest.Mock).mockReturnValue(mockService);
-            mockService.createReport.mockResolvedValue({ success: true, data: "Report with id: 1 succesfuly created" });
-            const response: ReportRegistrationResponse =  await createReport("mockReview",
-                                                                            "mockDescriptionLongEnough",
-                                                                            ["photo1"],
-                                                                            "WATER_SUPPLY",
-                                                                            10,
-                                                                            10,
-                                                                            true);
-            console.log("Response from register action:", response);
-            expect(response.success).toBe(true);
-            expect(mockService.createReport).toHaveBeenCalled();
-            if(response.success){
-                expect(response.data).toBe("Report with id: 1 succesfuly created");
-            }
         });
     
         it("should not register a new report with invalid fields", async () => {

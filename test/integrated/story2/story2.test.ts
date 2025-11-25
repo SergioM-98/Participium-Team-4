@@ -103,7 +103,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
         formData.append("username", `officer${office.toLowerCase()}`);
         formData.append("password", "SecurePass123!");
         formData.append("confirmPassword", "SecurePass123!");
-        formData.append("role", "OFFICER");
+        formData.append("role", "TECHNICAL_OFFICER");
         formData.append("office", office);
         formData.append("telegram", "");
 

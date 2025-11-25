@@ -23,6 +23,8 @@ export async function checkDuplicates(userData: RegistrationInput) {
 export async function register(
   formData: FormData
 ): Promise<RegistrationResponse> {
+
+  
   const session = await getServerSession(authOptions);
 
   const validatedData = RegistrationInputSchema.safeParse({

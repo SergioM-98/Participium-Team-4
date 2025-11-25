@@ -110,7 +110,7 @@ export default function ReportDetailsCard({
   const [isSending, setIsSending] = useState(false);
 
   // Use the actual role from the session
-  const currentUserRole = (session?.user as any)?.role === "OFFICER" ? "OFFICER" : "CITIZEN";
+  const currentUserRole = (session?.user as any)?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : (session?.user as any)?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : "CITIZEN";
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -126,7 +126,7 @@ export default function ReportDetailsCard({
               ? `${msg.author.firstName} ${msg.author.lastName}`
               : msg.author?.username || "Unknown",
             senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
-            senderRole: msg.author?.role === "OFFICER" ? "OFFICER" : "CITIZEN",
+            senderRole: msg.author?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : msg.author ?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : "CITIZEN",
             content: msg.content,
             timestamp: msg.createdAt,
           }));

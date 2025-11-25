@@ -43,7 +43,7 @@ describe('ReportRepository Story 4', () => {
     });
     describe('createReport', () => {
         it("should create a new report and return success true", async () => {
-            mockedPrisma.report.create.mockResolvedValue({
+            mockedPrisma.report.create = jest.fn().mockResolvedValue({
                 ...mockData,
                 id: 1
             });
@@ -60,7 +60,7 @@ describe('ReportRepository Story 4', () => {
         });
 
         it("should create a new report and return success true even with a wrong category (it assigns OTHER)", async () => {
-            mockedPrisma.report.create.mockResolvedValue({
+            mockedPrisma.report.create = jest.fn().mockResolvedValue({
                 ...mockData,
                 id: 1
             });
@@ -94,23 +94,23 @@ describe('ReportRepository Story 4', () => {
     describe('getOfficerWithLeastReports - Story 6', () => {
         it("should return officer with least reports", async () => {
             const mockOfficer = { 
-                id: BigInt(2), 
+                id: "2", 
                 firstName: 'Officer', 
                 lastName: 'Two', 
                 _count: { reports: 1 } 
             };
             
-            mockedPrisma.user.findFirst.mockResolvedValue(mockOfficer);
+            mockedPrisma.user.findFirst = jest.fn().mockResolvedValue(mockOfficer);
             
             const response = await reportRepository.getOfficerWithLeastReports('DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES');
             
             expect(response).not.toBeNull();
-            expect(response!.id).toBe(BigInt(2));
+            expect(response!.id).toBe("2");
             expect(response!._count.reports).toBe(1);
         });
 
         it("should return null when no officers found in department", async () => {
-            mockedPrisma.user.findFirst.mockResolvedValue(null);
+            mockedPrisma.user.findFirst = jest.fn().mockResolvedValue(null);
             
             const response = await reportRepository.getOfficerWithLeastReports('DEPARTMENT_OF_COMMERCE');
             
@@ -118,7 +118,7 @@ describe('ReportRepository Story 4', () => {
         });
 
         it("should throw error when database fails", async () => {
-            mockedPrisma.user.findFirst.mockRejectedValue(new Error('Database error'));
+            mockedPrisma.user.findFirst = jest.fn().mockRejectedValue(new Error('Database error'));
             
             await expect(
                 reportRepository.getOfficerWithLeastReports('DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES')
@@ -130,7 +130,7 @@ describe('ReportRepository Story 4', () => {
         it("should assign report to officer successfully", async () => {
             const mockUpdatedReport = {
                 id: BigInt(1),
-                officerId: BigInt(2),
+                officerId: "2",
                 status: 'ASSIGNED',
                 title: 'Test Report',
                 description: 'Test',
@@ -138,29 +138,29 @@ describe('ReportRepository Story 4', () => {
                 createdAt: new Date(),
                 longitude: 7.6869,
                 latitude: 45.0703,
-                citizenId: BigInt(10),
+                citizenId: "10",
                 rejectionReason: null,
             };
             
-            mockedPrisma.report.update.mockResolvedValue(mockUpdatedReport);
+            mockedPrisma.report.update = jest.fn().mockResolvedValue(mockUpdatedReport);
             
-            const response = await reportRepository.assignReportToOfficer(1, 2);
+            const response = await reportRepository.assignReportToOfficer(1, "2");
             
             expect(response).toBeDefined();
             expect(response.id).toBe(BigInt(1));
-            expect(response.officerId).toBe(BigInt(2));
+            expect(response.officerId).toBe("2");
             expect(response.status).toBe('ASSIGNED');
             expect(mockedPrisma.report.update).toHaveBeenCalledWith({
                 where: { id: BigInt(1) },
                 data: {
-                    officerId: BigInt(2),
+                    officerId: "2",
                     status: 'ASSIGNED',
                 },
             });
         });
 
         it("should throw error when database fails", async () => {
-            mockedPrisma.report.update.mockRejectedValue(new Error('Database error'));
+            mockedPrisma.report.update = jest.fn().mockRejectedValue(new Error('Database error'));
             
             await expect(
                 reportRepository.assignReportToOfficer(1, 2)
@@ -180,11 +180,11 @@ describe('ReportRepository Story 4', () => {
                 createdAt: new Date(),
                 longitude: 7.6869,
                 latitude: 45.0703,
-                citizenId: BigInt(10),
+                citizenId: "10",
                 officerId: null,
             };
             
-            mockedPrisma.report.update.mockResolvedValue(mockRejectedReport);
+            mockedPrisma.report.update = jest.fn().mockResolvedValue(mockRejectedReport);
             
             const response = await reportRepository.rejectReport(1, 'Insufficient information');
             
@@ -202,7 +202,7 @@ describe('ReportRepository Story 4', () => {
         });
 
         it("should throw error when database fails", async () => {
-            mockedPrisma.report.update.mockRejectedValue(new Error('Database error'));
+            mockedPrisma.report.update = jest.fn().mockRejectedValue(new Error('Database error'));
             
             await expect(
                 reportRepository.rejectReport(1, 'Test reason')
@@ -218,7 +218,7 @@ describe('ReportRepository Story 4', () => {
         /*******************************/
 
         it("should retrieve a report by id", async () => {
-            mockedPrisma.report.findUnique.mockResolvedValue({
+            mockedPrisma.report.findUnique = jest.fn().mockResolvedValue({
                 id: "1",
                 title: "Sample Title",
                 description: "Sample Description",
@@ -258,7 +258,7 @@ describe('ReportRepository Story 4', () => {
         });
 
         it("should return error when report not found", async () => {
-            mockedPrisma.report.findUnique.mockResolvedValue(null);
+            mockedPrisma.report.findUnique = jest.fn().mockResolvedValue(null);
             const response = await reportRepository.getReportById("999");
             expect(response).toHaveProperty('success');
             expect(response).toHaveProperty('error');
@@ -269,7 +269,7 @@ describe('ReportRepository Story 4', () => {
         });
 
         it("should return error when db fails", async () => {
-            mockedPrisma.report.findUnique.mockRejectedValue(new Error());
+            mockedPrisma.report.findUnique = jest.fn().mockRejectedValue(new Error());
             const response = await reportRepository.getReportById("1");
             expect(response).toHaveProperty('success');
             expect(response).toHaveProperty('error');

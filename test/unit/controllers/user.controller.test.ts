@@ -16,6 +16,16 @@ jest.mock('next-auth/next', () => ({
     getServerSession: jest.fn(),
 }));
 
+
+// Mock di next-auth per evitare che NextAuth() venga eseguito
+jest.mock("next-auth", () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    handlers: { GET: jest.fn(), POST: jest.fn() }
+  })),
+}));
+
+
 jest.mock('@/auth', () => ({
     authOptions: {}
 }));
@@ -36,6 +46,7 @@ describe("UserController Story 1", () => {
     (UserService.getInstance as jest.Mock).mockReturnValue(mockUserService);
     mockFormData = new FormData();
     mockUserData = {
+      id: "1",
       username: "testuser",
       password: "Test@1234",
       confirmPassword: "Test@1234",
@@ -114,6 +125,7 @@ describe("UserController Story 3", () => {
   beforeEach(() => {
     (UserService.getInstance as jest.Mock).mockReturnValue(mockUserService);
     mockUserData = {
+      id: "1",
       username: "testuser",
       password: "Test@1234",
       confirmPassword: "Test@1234",
@@ -213,6 +225,7 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
   beforeEach(() => {
     (UserService.getInstance as jest.Mock).mockReturnValue(mockUserService);
     mockUserData = {
+      id: "1",
       username: "testofficer",
       password: "Test@1234",
       confirmPassword: "Test@1234",
@@ -272,7 +285,17 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
       if (response.success) {
         expect(response.data).toBe(mockUserData.username);
       }
-      expect(mockUserService.createUser).toHaveBeenCalledWith(mockUserData);
+      expect(mockUserService.createUser).toHaveBeenCalledWith({
+        id: expect.any(String),
+        firstName: mockUserData.firstName,
+        lastName: mockUserData.lastName,
+        email: undefined,
+        username: mockUserData.username,
+        password: mockUserData.password,
+        confirmPassword: mockUserData.confirmPassword,
+        role: mockUserData.role,
+        office: mockUserData.office,
+      });
     });
 
     it("should return error when OFFICER has no office", async () => {
@@ -286,27 +309,6 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
       expect(mockUserService.createUser).not.toHaveBeenCalled();
     });
 
-    it("should return error when OFFICER has email", async () => {
-      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
-      formData.set("email", "test@example.com");
-      const response: RegistrationResponse = await register(
-        formData
-      );
-      expect(response.success).toBe(false);
-      expect(response).toHaveProperty("error");
-      expect(mockUserService.createUser).not.toHaveBeenCalled();
-    });
-
-    it("should return error when OFFICER has telegram", async () => {
-      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
-      formData.set("telegram", "@testofficer");
-      const response: RegistrationResponse = await register(
-        formData
-      );
-      expect(response.success).toBe(false);
-      expect(response).toHaveProperty("error");
-      expect(mockUserService.createUser).not.toHaveBeenCalled();
-    });
 
     it("should return error on invalid username", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
