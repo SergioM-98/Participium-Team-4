@@ -14,6 +14,10 @@ jest.mock("@/auth", () => ({
 
 describe("Story 12 - Integration Test: registerTelegramReport", () => {
   beforeEach(async () => {
+    if (prisma.notification) {
+      await prisma.notification.deleteMany({});
+    }
+    
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.notificationPreferences) {

@@ -2,13 +2,11 @@ import { prisma } from "@/prisma/db";
 import { getServerSession } from "next-auth/next";
 
 import * as ProfilePhotoController from "@/controllers/ProfilePhoto.controller";
-import * as NotificationsController from "@/controllers/notifications.controller";
+import * as NotificationController from "@/controllers/notification.controller";
 import * as UserController from "@/controllers/user.controller";
 
 import { ProfilePhotoService } from "@/services/profilePhoto.service";
-import { NotificationsService } from "@/services/notifications.service";
-
-
+import { NotificationService } from "@/services/notification.service";
 
 // Fix for next-auth mock
 jest.mock("next-auth/next", () => ({
@@ -27,8 +25,8 @@ jest.mock("@/services/profilePhoto.service", () => ({
 }));
 
 // Fix for NotificationsService mock
-jest.mock("@/services/notifications.service", () => ({
-  NotificationsService: {
+jest.mock("@/services/notification.service", () => ({
+  NotificationService: {
     getInstance: jest.fn(),
   },
 }));
@@ -39,7 +37,7 @@ jest.mock("@/controllers/ProfilePhoto.controller", () => ({
   deletePhoto: jest.fn(),
 }));
 
-jest.mock("@/controllers/notifications.controller", () => ({
+jest.mock("@/controllers/notification.controller", () => ({
   updateNotificationsPreferences: jest.fn(),
   getNotificationsPreferences: jest.fn(),
 }));
@@ -51,6 +49,11 @@ jest.mock("@/controllers/user.controller", () => ({
 // TEST SUITE
 describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
   beforeEach(async () => {
+    if (prisma.notification) {
+      await prisma.notification.deleteMany({});
+    }
+    await prisma.report.deleteMany({});
+    await prisma.photo.deleteMany({});
     await prisma.profilePhoto.deleteMany({});
     await prisma.notificationPreferences.deleteMany({});
     await prisma.user.deleteMany({});
@@ -107,7 +110,6 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
   });
 
   // 2) Delete Photo
-  
   it("should delete a profile photo successfully", async () => {
     (ProfilePhotoController.deletePhoto as jest.MockedFunction<typeof ProfilePhotoController.deletePhoto>).mockResolvedValue({
       success: true,
@@ -121,7 +123,7 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
 
   // 3) Update Notifications
   it("should update notification preferences", async () => {
-    (NotificationsController.updateNotificationsPreferences as jest.MockedFunction<typeof NotificationsController.updateNotificationsPreferences>).mockResolvedValue({
+    (NotificationController.updateNotificationsPreferences as jest.MockedFunction<typeof NotificationController.updateNotificationsPreferences>).mockResolvedValue({
       success: true,
       data: {
         emailEnabled: true,
@@ -129,7 +131,7 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
       },
     });
 
-    const res = await NotificationsController.updateNotificationsPreferences({
+    const res = await NotificationController.updateNotificationsPreferences({
       emailEnabled: true,
       telegramEnabled: false,
     });
@@ -140,12 +142,12 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
 
   // 4) Telegram Error Case
   it("should fail enabling telegram notifications without telegram media", async () => {
-    (NotificationsController.updateNotificationsPreferences as jest.MockedFunction<typeof NotificationsController.updateNotificationsPreferences>).mockResolvedValue({
+    (NotificationController.updateNotificationsPreferences as jest.MockedFunction<typeof NotificationController.updateNotificationsPreferences>).mockResolvedValue({
       success: false,
       error: "Cannot enable telegram notifications without telegram media",
     });
 
-    const res = await NotificationsController.updateNotificationsPreferences({
+    const res = await NotificationController.updateNotificationsPreferences({
       emailEnabled: true,
       telegramEnabled: true,
     });
@@ -154,10 +156,9 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
     expect((res as any).error).toBe("Cannot enable telegram notifications without telegram media");
   });
 
-  
   // 5) Retrieve Preferences
   it("should retrieve notification preferences", async () => {
-    (NotificationsController.getNotificationsPreferences as jest.MockedFunction<typeof NotificationsController.getNotificationsPreferences>).mockResolvedValue({
+    (NotificationController.getNotificationsPreferences as jest.MockedFunction<typeof NotificationController.getNotificationsPreferences>).mockResolvedValue({
       success: true,
       data: {
         emailEnabled: true,
@@ -165,7 +166,7 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
       },
     });
 
-    const res = await NotificationsController.getNotificationsPreferences();
+    const res = await NotificationController.getNotificationsPreferences();
 
     expect((res as any).success).toBe(true);
     expect((res as any).data?.emailEnabled).toBe(true);
