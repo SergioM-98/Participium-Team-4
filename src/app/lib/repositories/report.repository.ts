@@ -67,11 +67,8 @@ class ReportRepository {
           title: title,
           description: description,
           photos: {
-            create: photos.map((photoId) => ({
-              url: `/uploads/${photoId}`,
-              size: BigInt(0),
-              offset: BigInt(0),
-              filename: photoId,
+            connect: photos.map((photoId) => ({
+              id: photoId,
             })),
           },
           category: Object.values(Category).includes(category as Category)
@@ -121,7 +118,9 @@ class ReportRepository {
       },
       include: {
         photos: {
-          select: { filename: true },
+          select: { filename: true,
+            url: true
+          },
         },
         citizen: {
           select: {
