@@ -1,6 +1,6 @@
-import { ReportRequest } from "../../../src/app/lib/dtos/report.dto";
-import { ReportRepository } from "../../../src/app/lib/repositories/report.repository";
-import { ReportCreationService } from "../../../src/app/lib/services/reportCreation.service";
+import { ReportRequest } from "@/app/lib/dtos/report.dto";
+import { ReportRepository } from "@/app/lib/repositories/report.repository";
+import { ReportCreationService } from "@/app/lib/services/reportCreation.service";
 
 const mockRepository = {
   createReport: jest.fn(),
