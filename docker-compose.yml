@@ -26,11 +26,7 @@ services:
       - pgdata_test:/var/lib/postgresql/data
 
   participium:
-    build:
-      context: ./participium
-      dockerfile: Dockerfile
-      args:
-        DATABASE_URL: "postgresql://postgres:postgres@db:5432/participium_db"
+    image: andrea334214/participium:latest
     container_name: participium
     ports:
       - "3000:3000"
@@ -44,8 +40,7 @@ services:
 
 
   telegram_bot:
-    build:
-      context: ./bot   
+    image: andrea334214/participium_bot:latest
     container_name: participium_bot
     restart: unless-stopped
     environment:
