@@ -15,7 +15,6 @@ jest.mock('@/db/db', () => ({
             findMany: jest.fn(),
             findFirst: jest.fn(),
             findUnique: jest.fn(),
-            findMany: jest.fn(),
         },
     },
 }));
@@ -163,7 +162,7 @@ describe('ReportRepository Story 4', () => {
             mockedPrisma.report.update = jest.fn().mockRejectedValue(new Error('Database error'));
             
             await expect(
-                reportRepository.assignReportToOfficer(1, 2)
+                reportRepository.assignReportToOfficer(1, "2")
             ).rejects.toThrow('Database error');
         });
     })
@@ -347,6 +346,57 @@ describe('ReportRepository Story 4', () => {
         /******************************/
 
 
+        /*********************************/
+        /* story 8 tests starts here :-D */
+        /*********************************/
+
+
+        /******** getReportsByOfficerId *********/
+
+        it("should retrieve reports assigned to a specific officer", async () => {
+            const mockReports = [
+                {
+                    id: "1",
+                    title: "Report 1",
+                    description: "Description 1",
+                    longitude: 10,
+                    latitude: 10,
+                    createdAt: new Date().toISOString(),
+                    category: "WATER_SUPPLY",
+                    status: "ASSIGNED",
+                    citizen: { username: "User1" },
+                    photos: []
+                },
+                {
+                    id: "2",
+                    title: "Report 2",
+                    description: "Description 2",
+                    longitude: 20,
+                    latitude: 20,
+                    createdAt: new Date().toISOString(),
+                    category: "ROAD_DAMAGE",
+                    status: "IN_PROGRESS",
+                    citizen: { username: "User2" },
+                    photos: []
+                }
+            ];
+            mockedPrisma.report.findMany = jest.fn().mockResolvedValue(mockReports);
+            const response = await reportRepository.getReportsByOfficerId("5");
+            expect(Array.isArray(response)).toBe(true);
+            expect(response).toHaveLength(2);
+        });
+
+        it("should return empty array when no reports found for the officer", async () => {
+            mockedPrisma.report.findMany = jest.fn().mockResolvedValue([]);
+            const response = await reportRepository.getReportsByOfficerId("5");
+            expect(Array.isArray(response)).toBe(true);
+            expect(response).toHaveLength(0);
+        });
+
+
+        /******************************/
+        /* story 8 tests end here T.T */
+        /******************************/
 
 
 

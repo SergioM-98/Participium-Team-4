@@ -2,6 +2,7 @@ import {
   createReport,
   approveReport,
   rejectReport,
+  getReportsByOfficerId,
 } from "../../../src/app/lib/controllers/report.controller";
 import {
   ReportRegistrationResponse,
@@ -12,6 +13,10 @@ import { ReportAssignmentService } from "../../../src/app/lib/services/reportAss
 
 const mockService = {
   createReport: jest.fn(),
+};
+
+const mockRetrievalService = {
+  retrieveReportsByOfficerId: jest.fn(),
 };
 
 const mockAssignmentService = {
@@ -35,6 +40,7 @@ jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
 }));
 
 import { getServerSession } from "next-auth/next";
+import { ReportRetrievalService } from "../../../src/app/lib/services/reportRetrieval.service";
 
 jest.mock('next-auth', () => ({
   __esModule: true,
@@ -47,6 +53,14 @@ jest.mock('next-auth', () => ({
 jest.mock("@/app/lib/services/reportCreation.service", () => {
   return {
     ReportCreationService: {
+      getInstance: jest.fn(),
+    },
+  };
+});
+
+jest.mock("@/app/lib/services/reportRetrieval.service", () => {
+  return {
+    ReportRetrievalService: {
       getInstance: jest.fn(),
     },
   };
@@ -546,4 +560,110 @@ describe('ReportController Story 4', () => {
 
 
   });
+
+
+  describe("retrieve reports to officer - Story 8", () => {
+
+    const officerSession = {
+      user: {
+        id: "2",
+        name: "Officer User",
+        role: "TECHNICAL_OFFICER",
+      },
+      expires: "2024-12-31T23:59:59.999Z",
+    };
+
+    beforeEach(() => {
+      (ReportRetrievalService.getInstance as jest.Mock).mockReturnValue(
+        mockRetrievalService
+      );
+    });
+
+    it("should reject report successfully when user is OFFICER", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+      mockRetrievalService.retrieveReportsByOfficerId.mockResolvedValue({
+        success: true,
+        data: [{
+          id: "1",
+          title: "Pothole on Main St",
+          description: "Large pothole causing traffic issues",
+          category: "ROAD_MAINTENANCE",
+          createdAt: new Date().toISOString(),
+          photos: ["photo1.jpg", "photo2.jpg"],
+          longitude: -122.4194,
+          latitude: 37.7749,
+          isAnonymous: false,
+          userId: "2",
+          assignedOfficerId: "5",
+          status: "PENDING",
+          resolutionComments: null,
+          resolvedAt: null,
+          user: {
+            id: "2",
+            firstName: "John",
+            lastName: "Doe",
+            username: "johndoe",
+            email: "johndoe@example.com"
+          }
+        }, 
+        {
+          id: "2",
+          title: "Pothole on Main St",
+          description: "Large pothole causing traffic issues",
+          category: "ROAD_MAINTENANCE",
+          createdAt: new Date().toISOString(),
+          photos: ["photo1.jpg", "photo2.jpg"],
+          longitude: -122.4194,
+          latitude: 37.7749,
+          isAnonymous: false,
+          userId: "2",
+          assignedOfficerId: "5",
+          status: "PENDING",
+          resolutionComments: null,
+          resolvedAt: null,
+          user: {
+            id: "2",
+            firstName: "John",
+            lastName: "Doe",
+            username: "johndoe",
+            email: "johndoe@example.com"
+          }
+        }],
+      });
+
+      const response = await getReportsByOfficerId("5");
+
+      expect(response.success).toBe(true);
+      expect(mockRetrievalService.retrieveReportsByOfficerId).toHaveBeenCalledWith("5");
+      if (response.success) {
+        expect(response.data.length).toBe(2);
+      }
+    });
+
+    it("should return error when user is not authorized (CITIZEN)", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
+
+      const response = await getReportsByOfficerId("5");
+
+      expect(response.success).toBe(false);
+      expect(mockRetrievalService.retrieveReportsByOfficerId).not.toHaveBeenCalled();
+      if (!response.success) {
+        expect(response.error).toBe("Unauthorized access");
+      }
+    });
+
+    it("should return error when no session exists", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
+
+      const response = await getReportsByOfficerId("5");
+
+      expect(response.success).toBe(false);
+      expect(mockRetrievalService.retrieveReportsByOfficerId).not.toHaveBeenCalled();
+      if (!response.success) {
+        expect(response.error).toBe("Unauthorized access");
+      }
+    });
+
+  });
+
 });

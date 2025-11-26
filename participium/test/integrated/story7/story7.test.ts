@@ -8,8 +8,8 @@ import path from "path";
 import fs from "fs/promises";
 
 describe("Story 7 - Integration Test: View approved reports on interactive map", () => {
-  let testCitizenId: bigint;
-  let testOfficerId: bigint;
+  let testCitizenId: string;
+  let testOfficerId: string;
   let testPhotoId: string;
   let approvedReportId: bigint;
   let pendingReportId: bigint;
