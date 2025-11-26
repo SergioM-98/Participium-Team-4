@@ -32,7 +32,7 @@ sections:
 
 | Story  | # Tasks | Points | Hours est. | Hours actual |
 |--------|---------|--------|------------|--------------|
-| _Uncategorized_   |    10     |       |      44.5      |      39.5        |
+| _Uncategorized_   |    10     |       |      44.5      |      39.5      |
 | n.1      |     4    |    3    |    9        |       8.5       | 
 | n.2      |     4    |    3    |    6.5        |       8.2       | 
 | n.3      |     4    |    1    |    5.5        |       5.5       | 
