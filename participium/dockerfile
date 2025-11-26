@@ -10,7 +10,7 @@ RUN npm ci
 COPY prisma ./prisma
 ARG DATABASE_URL=fake
 ENV DATABASE_URL=$DATABASE_URL
-RUN npx prisma generate
+RUN npx prisma migrate deploy && npx prisma generate
 
 COPY . .
 
