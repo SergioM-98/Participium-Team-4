@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@grammyjs/conversations": "github:grammyjs/conversations",
+    "@grammyjs/menu": "github:grammyjs/menu",
+    "grammy": "^1.38.4"
+  }
+}
