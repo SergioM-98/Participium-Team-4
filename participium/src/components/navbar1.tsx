@@ -1,7 +1,7 @@
 "use client";
 
 import { Menu } from "lucide-react";
-import { useNavbarMenu } from "../app/lib/hooks/useNavbarMenu";
+import { useNavbarMenu } from "@/app/lib/hooks/useNavbarMenu";
 import Link from "next/link";
 
 import {
@@ -9,9 +9,9 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "./ui/accordion";
-import { Button } from "./ui/button";
-import { LogoutButton } from "./LogoutButton";
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { LogoutButton } from "@/components/LogoutButton";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -19,17 +19,17 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-} from "./ui/navigation-menu";
+} from "@/components/ui/navigation-menu";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "./ui/sheet";
+} from "@/components/ui/sheet";
 import { ProfileButton } from "./ProfileButton";
 // Import the new component
-import { NotificationBell } from "./NotificationBell";
+import { NotificationBell } from "@/components/NotificationBell";
 
 interface MenuItem {
   title: string;
@@ -61,12 +61,13 @@ interface Navbar1Props {
       url: string;
     };
   };
+  variant?: "homepage" | "default";
 }
 
 function Navbar1({
   logo = {
     url: "/",
-    src: "/logo.png", // Ensure this points to your actual image in the public folder
+    src: "/logo/participium_white.svg",
     alt: "Participium",
     title: "Participium",
   },
@@ -75,11 +76,17 @@ function Navbar1({
     signup: { title: "Sign up", url: "/register" },
     logout: { title: "Logout", url: "/api/auth/signout?callbackUrl=/" },
   },
+  variant = "default",
 }: Navbar1Props) {
   const { menu: filteredMenu, logoUrl, role, username } = useNavbarMenu();
 
+  const isHomepage = variant === "homepage";
+  const navbarClasses = isHomepage
+    ? "py-4 absolute top-0 left-0 w-full z-20 backdrop-blur-md bg-transparent"
+    : "py-4 w-full z-20 bg-white border-b sticky top-0";
+
   return (
-    <section className="py-4">
+    <section className={navbarClasses}>
       <div className="w-full px-4 lg:px-8">
         {/* Desktop Menu */}
         <nav className="hidden lg:flex items-center w-full">
@@ -88,12 +95,12 @@ function Navbar1({
             <Link href={logoUrl} className="flex items-center gap-2 shrink-0">
               {/* 1. The Image */}
               <img
-                src={logo.src}
+                src={isHomepage ? "/logo/participium_white.svg" : "/logo/participium.svg"}
                 alt={logo.alt}
-                className="h-8 w-auto object-contain dark:invert"
+                className="h-8 w-auto object-contain"
               />
               {/* 2. The Text */}
-              <span className="text-lg font-semibold tracking-tighter">
+              <span className={`text-lg font-semibold tracking-tighter ${isHomepage ? "text-white" : "text-black"}`}>
                 {logo.title}
               </span>
             </Link>
@@ -101,7 +108,7 @@ function Navbar1({
             <div className="flex items-center min-w-0">
               <NavigationMenu>
                 <NavigationMenuList>
-                  {filteredMenu.map((item) => renderMenuItem(item))}
+                  {filteredMenu.map((item) => renderMenuItem(item, isHomepage))}
                 </NavigationMenuList>
               </NavigationMenu>
             </div>
@@ -111,27 +118,26 @@ function Navbar1({
           <div className="flex gap-2 items-center">
             {!role ? (
               <>
-                <Button asChild variant="outline" size="sm">
+                <Button asChild variant="ghost" size="sm" className={`${isHomepage ? "text-white" : "text-black"} !hover:bg-transparent !hover:text-inherit`}>
                   <a href={auth.login.url}>{auth.login.title}</a>
                 </Button>
-                <Button asChild size="sm">
+                <Button asChild variant="ghost" size="sm" className={`${isHomepage ? "text-white" : "text-black"} !hover:bg-transparent !hover:text-inherit`}>
                   <a href={auth.signup.url}>{auth.signup.title}</a>
                 </Button>
               </>
             ) : (
               <>
                 {role === "CITIZEN" && (
-                  <div className="mr-1">
-                    <NotificationBell />
-                  </div>
+                  <NotificationBell className={isHomepage ? "text-white" : "text-black"} />
                 )}
 
-                <LogoutButton variant="outline" size="sm" />
+                <LogoutButton variant="ghost" size="sm" className={`${isHomepage ? "text-white" : "text-black"} !hover:bg-transparent !hover:text-inherit`} />
                 <ProfileButton
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   showName={true}
                   username={username}
+                  className={`${isHomepage ? "text-white" : "text-black"} !hover:bg-transparent !hover:text-inherit`}
                 />
               </>
             )}
@@ -139,16 +145,16 @@ function Navbar1({
         </nav>
 
         {/* Mobile Menu */}
-        <div className="block lg:hidden">
+        <div className={`block lg:hidden ${isHomepage ? "bg-transparent backdrop-blur-md" : "bg-white border-b"} sticky top-0`}>
           <div className="flex items-center justify-between">
             {/* --- LOGO (MOBILE TOP BAR) --- */}
             <Link href={logoUrl} className="flex items-center gap-2">
               <img
-                src={logo.src}
-                className="h-8 w-auto object-contain dark:invert"
+                src={isHomepage ? "/logo/participium_white.svg" : "/logo/participium.svg"}
+                className="h-8 w-auto object-contain opacity-80"
                 alt={logo.alt}
               />
-              <span className="text-lg font-semibold tracking-tighter">
+              <span className={`text-lg font-semibold tracking-tighter ${isHomepage ? "text-white" : "text-black"}`}>
                 {logo.title}
               </span>
             </Link>
@@ -156,12 +162,18 @@ function Navbar1({
             {/* Right side group: Notification + Menu Trigger */}
             <div className="flex items-center gap-3">
               {/* --- NOTIFICATION BELL (MOBILE) - Only for CITIZEN --- */}
-              {role === "CITIZEN" && <NotificationBell />}
+              {role === "CITIZEN" && (
+                <NotificationBell className={isHomepage ? "text-white" : undefined} />
+              )}
 
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Menu className="size-4" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="bg-transparent hover:bg-transparent focus:bg-transparent border-0 shadow-none"
+                  >
+                    <Menu className="size-4 text-white" />
                   </Button>
                 </SheetTrigger>
 
@@ -171,11 +183,11 @@ function Navbar1({
                       {/* --- LOGO (INSIDE MOBILE MENU) --- */}
                       <Link href={logoUrl} className="flex items-center gap-2">
                         <img
-                          src={logo.src}
-                          className="h-8 w-auto object-contain dark:invert"
+                          src="/logo/participium.svg"
+                          className="h-8 w-auto object-contain"
                           alt={logo.alt}
                         />
-                        <span className="text-lg font-semibold tracking-tighter">
+                        <span className="text-lg font-semibold tracking-tighter text-black">
                           {logo.title}
                         </span>
                       </Link>
@@ -188,31 +200,31 @@ function Navbar1({
                       collapsible
                       className="flex w-full flex-col gap-4"
                     >
-                      {filteredMenu.map((item) => renderMobileMenuItem(item))}
+                      {filteredMenu.map((item) => renderMobileMenuItem(item, isHomepage))}
                     </Accordion>
 
                     {/* Mobile buttons */}
                     <div className="flex flex-col gap-3">
                       {!role ? (
                         <>
-                          <Button asChild variant="outline">
+                          <Button asChild variant="secondary" className="text-black">
                             <a href={auth.login.url}>{auth.login.title}</a>
                           </Button>
-                          <Button asChild>
+                          <Button asChild variant="secondary" className="text-black">
                             <a href={auth.signup.url}>{auth.signup.title}</a>
                           </Button>
                         </>
                       ) : (
                         <>
                           <LogoutButton
-                            variant="outline"
+                            variant="secondary"
                             size="sm"
-                            className="w-full"
+                            className="w-full text-black"
                           />
                           <ProfileButton
-                            variant="outline"
+                            variant="secondary"
                             size="sm"
-                            className="w-full"
+                            className="w-full text-black"
                             showName={false}
                             username={username}
                           />
@@ -230,7 +242,7 @@ function Navbar1({
   );
 }
 
-const renderMenuItem = (item: MenuItem) => {
+const renderMenuItem = (item: MenuItem, isHomepage: boolean) => {
   if (item.items) {
     return (
       <NavigationMenuItem key={item.title}>
@@ -248,17 +260,19 @@ const renderMenuItem = (item: MenuItem) => {
 
   return (
     <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink
+      <Button
         asChild
-        className="bg-background hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
+        variant="ghost"
+        size="sm"
+        className={`${isHomepage ? "text-white" : "text-black"} !hover:bg-transparent !hover:text-inherit`}
       >
         <Link href={item.url}>{item.title}</Link>
-      </NavigationMenuLink>
+      </Button>
     </NavigationMenuItem>
   );
 };
 
-const renderMobileMenuItem = (item: MenuItem) => {
+const renderMobileMenuItem = (item: MenuItem, isHomepage: boolean) => {
   if (item.items) {
     return (
       <AccordionItem key={item.title} value={item.title} className="border-b-0">

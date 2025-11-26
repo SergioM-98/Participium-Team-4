@@ -10,16 +10,16 @@ import {
   Loader2,
   Info,
 } from "lucide-react";
-import { Button } from "./ui/button";
-import { ScrollArea } from "./ui/scroll-area";
-import { Badge } from "./ui/badge";
-import { cn } from "../app/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
   getInbox,
   getUnreadCount,
   markAsRead,
   markAllAsRead,
-} from "../app/lib/controllers/notification.controller";
+} from "@/controllers/notification.controller";
 
 interface NotificationItem {
   id: string; // or bigint, handled below
@@ -30,7 +30,11 @@ interface NotificationItem {
   reportId?: string | bigint;
 }
 
-export function NotificationBell() {
+interface NotificationBellProps {
+  className?: string;
+}
+
+export function NotificationBell({ className = "" }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -139,8 +143,11 @@ export function NotificationBell() {
       {/* Bell Icon Trigger */}
       <Button
         variant="ghost"
-        size="icon"
-        className="relative text-muted-foreground hover:text-foreground"
+        size="sm"
+        className={cn(
+          "relative",
+          className || "text-muted-foreground hover:text-foreground"
+        )}
         onClick={() => setIsOpen(!isOpen)}
       >
         <Bell className="h-5 w-5" />

@@ -20,21 +20,18 @@ export function useNavbarMenu() {
         ];
       case "CITIZEN":
         return [
-          { title: "Home", url: "/" },
           { title: "Reports", url: "/reports" },
         ];
       case "TECHNICAL_OFFICER":
         return [
-          { title: "Home", url: "/" },
           { title: "My Reports", url: "/officer/my-reports" },
         ];
       case "PUBLIC_RELATIONS_OFFICER":
         return [
-          { title: "Home", url: "/" },
           { title: "All Reports", url: "/officer/all-reports" },
         ];
       default:
-        return [{ title: "Home", url: "/" }];
+        return [];
     }
   };
 

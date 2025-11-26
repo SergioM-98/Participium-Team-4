@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../auth";
+import { authOptions } from "@/auth";
 import { redirect } from "next/navigation";
+import WithNavbarLayout from "../(with-navbar)/layout";
 
 export default async function ProfileLayout({
   children,
@@ -13,5 +14,5 @@ export default async function ProfileLayout({
     redirect("/forbidden");
   }
 
-  return <>{children}</>;
+  return <WithNavbarLayout>{children}</WithNavbarLayout>;
 }

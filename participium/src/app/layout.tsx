@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-import { Navbar1 } from "../components/navbar1";
+import { Navbar1 } from "@/components/navbar1";
 import { init } from "./lib/init";
 import { Providers } from "./providers";
+import { Footer } from "@/components/footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,18 +37,13 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <Providers>
-          <Navbar1
-            logo={{
-              url: "/",
-              src: "logo/participium.png", // Path to your image in public folder
-              alt: "Participium Logo",
-              title: "Participium",
-            }}
-          />
-          {children}
+          <div className="flex-1 flex flex-col">
+            {children}
+          </div>
+          <Footer />
         </Providers>
       </body>
     </html>
