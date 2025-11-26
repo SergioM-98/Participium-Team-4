@@ -1,0 +1,36 @@
+# Stage 1: build
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copia solo package.json e package-lock.json per installare le dipendenze
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copia Prisma schema e genera client
+COPY prisma ./prisma
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+RUN npx prisma generate
+
+# Copia tutto il resto del progetto
+COPY . .
+
+# Costruisci Next.js
+RUN npm run build
+
+# Stage 2: production
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+
+EXPOSE 3000
+CMD ["npm", "start"]
