@@ -4,6 +4,30 @@ import bcrypt from "bcrypt";
 import path from "path";
 import fs from "fs/promises";
 
+jest.mock("next-auth/next", () => ({
+  getServerSession: jest.fn(),
+}));
+
+jest.mock("next-auth", () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    handlers: { GET: jest.fn(), POST: jest.fn() },
+    auth: jest.fn(),
+    signIn: jest.fn(),
+    signOut: jest.fn(),
+  })),
+}));
+
+jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
+  authOptions: {},
+}));
+
+jest.mock("@/auth", () => ({
+  authOptions: {},
+}));
+
+import { getServerSession } from "next-auth/next";
+
 describe("Story 8 - Integration Test: View approved reports of a specific officer", () => {
   let testCitizenId: string;
   let testOfficerId: string;
@@ -87,7 +111,6 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
     });
     approvedReportOneId = approvedReportOne.id;
 
-    
     const approvedReportTwo = await prisma.report.create({
       data: {
         title: "Approved Report for Map",
@@ -105,7 +128,6 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
     });
     approvedReportTwoId = approvedReportTwo.id;
 
-    
     const approvedReportThree = await prisma.report.create({
       data: {
         title: "Approved Report for Map",
@@ -171,44 +193,62 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
   });
 
   describe("Approved Reports Map Display Flow", () => {
-    it("should return only approved (ASSIGNED) reports to the officer", async () => {
-        const result = await getReportsByOfficerId(testOfficerId);
+    const officerSession = {
+      user: {
+        id: testOfficerId,
+        name: "Test Officer",
+        role: "TECHNICAL_OFFICER",
+      },
+      expires: "2024-12-31T23:59:59.999Z",
+    };
 
-        expect(result.success).toBe(true);
-        if (result.success){
-            expect(result.data).toBeDefined();
-            expect(Array.isArray(result.data)).toBe(true);
-            expect(result.data?.length).toBe(2); // Only 2 reports assigned to this officer
-            expect(result.data?.every(r => r.status === "ASSIGNED")).toBe(true);
-            result.data?.forEach(r => {
-                expect(r.officerId).toBe(testOfficerId);
-            });
-            result.data?.forEach(r => {
-                expect(r.id).toBe(approvedReportOneId.toString() || approvedReportThreeId.toString());
-            });
-        }
+    beforeEach(() => {
+      (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+    });
+
+    it("should return only approved (ASSIGNED) reports to the officer", async () => {
+      const result = await getReportsByOfficerId(testOfficerId);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeDefined();
+        expect(Array.isArray(result.data)).toBe(true);
+        expect(result.data?.length).toBe(2); // Only 2 reports assigned to this officer
+        expect(result.data?.every((r) => r.status === "assigned")).toBe(true);
+        result.data?.forEach((r) => {
+          expect(r.officerId).toBe(testOfficerId);
+        });
+        result.data?.forEach((r) => {
+          expect([
+            approvedReportOneId.toString(),
+            approvedReportThreeId.toString(),
+          ]).toContain(r.id);
+        });
+      }
     });
 
     it("should not return pending reports to the officer", async () => {
-        const result = await getReportsByOfficerId(testOfficerId);
+      const result = await getReportsByOfficerId(testOfficerId);
 
-        expect(result.success).toBe(true);
-        if (result.success){
-            expect(result.data).toBeDefined();
-            expect(Array.isArray(result.data)).toBe(true);
-            expect(result.data?.every(r => r.status !== "PENDING_APPROVAL")).toBe(true);
-        }
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeDefined();
+        expect(Array.isArray(result.data)).toBe(true);
+        expect(result.data?.every((r) => r.status !== "PENDING_APPROVAL")).toBe(
+          true
+        );
+      }
     });
 
     it("should give no reports for non existing officer ID", async () => {
-        const result = await getReportsByOfficerId("non-existing-officer-id");
+      const result = await getReportsByOfficerId("non-existing-officer-id");
 
-        expect(result.success).toBe(true);
-        if (result.success){
-            expect(result.data).toBeDefined();
-            expect(Array.isArray(result.data)).toBe(true);
-            expect(result.data?.length).toBe(0); // No reports for non-existing officer
-        }
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toBeDefined();
+        expect(Array.isArray(result.data)).toBe(true);
+        expect(result.data?.length).toBe(0); // No reports for non-existing officer
+      }
     });
   });
 });
