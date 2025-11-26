@@ -45,20 +45,56 @@ describe("Story 11 - officer updates", () => {
                 expires: '2024-12-31T23:59:59.999Z'
             };
   let testMessage: Message;
+  let testCitizenId: string;
+  let testOfficerId: string;
 
   beforeEach(async () => {
+    // Clean database before each test - IMPORTANT: delete notifications first due to foreign key constraints
+    await prisma.notification.deleteMany({});
+    await prisma.message.deleteMany({});
+    await prisma.report.deleteMany({});
+    await prisma.photo.deleteMany({});
+    await prisma.user.deleteMany({});
+    
+    // Create test citizen
+    const hashedPassword = await bcrypt.hash("testpassword", 12);
+    const citizen = await prisma.user.create({
+      data: {
+        username: "testcitizen_story11",
+        firstName: "Test",
+        lastName: "Citizen",
+        passwordHash: hashedPassword,
+        role: "CITIZEN",
+      },
+    });
+    testCitizenId = citizen.id;
+
+    // Create test officer
+    const officer = await prisma.user.create({
+      data: {
+        username: "testofficer_story11",
+        firstName: "Test",
+        lastName: "Officer",
+        passwordHash: hashedPassword,
+        role: "TECHNICAL_OFFICER",
+        office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+      },
+    });
+    testOfficerId = officer.id;
+    
     testMessage = {
         id: BigInt(1),
         content: "This is a test message",
-        authorId: "officer-123",
+        authorId: testOfficerId,
         reportId: BigInt(1),
         createdAt: new Date(),
     }
   });
 
   afterAll(async () => {
-    await prisma.report.deleteMany({});
+    await prisma.notification.deleteMany({});
     await prisma.message.deleteMany({});
+    await prisma.report.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.user.deleteMany({});
   });
@@ -88,20 +124,19 @@ describe("Story 11 - officer updates", () => {
                 title: "Test Report",
                 description: "This is a test report",
                 status: "IN_PROGRESS",
-                id: 1,
                 category: "OTHER",
                 createdAt: new Date(),
                 longitude: 7,
                 latitude: 40,
-                citizenId: "1",
-                officerId: "2"
+                citizenId: testCitizenId,
+                officerId: testOfficerId
             },
         });
 
         const message1 = await prisma.message.create({
             data: {
                 content: "First message",
-                authorId: "officer-123",
+                authorId: testOfficerId,
                 reportId: report.id,
             },
         });
@@ -109,7 +144,7 @@ describe("Story 11 - officer updates", () => {
         const message2 = await prisma.message.create({
             data: {
                 content: "Second message",
-                authorId: "citizen-456",
+                authorId: testCitizenId,
                 reportId: report.id,
             },
         });
@@ -126,13 +161,12 @@ describe("Story 11 - officer updates", () => {
                 title: "Empty Report",
                 description: "This report has no messages",
                 status: "IN_PROGRESS",
-                id: 2,
                 category: "OTHER",
                 createdAt: new Date(),
                 longitude: 7,
                 latitude: 40,
-                citizenId: "1",
-                officerId: "2"
+                citizenId: testCitizenId,
+                officerId: testOfficerId
             },
         });
 
@@ -141,12 +175,26 @@ describe("Story 11 - officer updates", () => {
     });
 
     it("should retrieve the user notifications", async ()=> {
+        // Create a report first
+        const report = await prisma.report.create({
+            data: {
+                title: "Test Report",
+                description: "This is a test report",
+                status: "IN_PROGRESS",
+                category: "OTHER",
+                longitude: 7,
+                latitude: 40,
+                citizenId: testCitizenId,
+                officerId: testOfficerId
+            },
+        });
+
         const notificationOne = await prisma.notification.create({
             data: {
                 type: "STATUS_CHANGE",
                 message: "Your report status has been updated to: APPROVED",
-                recipientId: "1",
-                reportId: BigInt(1),
+                recipientId: testCitizenId,
+                reportId: report.id,
             },
         });
         (getServerSession as jest.Mock).mockResolvedValue(userSession);
@@ -155,8 +203,8 @@ describe("Story 11 - officer updates", () => {
             data: {
                 type: "NEW_MESSAGE",
                 message: "officer-123 sent you a new message on your report",
-                recipientId: "1",
-                reportId: BigInt(1),
+                recipientId: testCitizenId,
+                reportId: report.id,
             },
         });
 
@@ -164,8 +212,8 @@ describe("Story 11 - officer updates", () => {
             data: {
                 type: "NEW_MESSAGE",
                 message: "officer-123 sent you a new message on your report",
-                recipientId: "3",
-                reportId: BigInt(1),
+                recipientId: testOfficerId,
+                reportId: report.id,
             },
         });
 
@@ -180,6 +228,20 @@ describe("Story 11 - officer updates", () => {
     });
 
     it("should return the number of unread messages", async ()=> {
+        // Create a report first
+        const report = await prisma.report.create({
+            data: {
+                title: "Test Report",
+                description: "This is a test report",
+                status: "IN_PROGRESS",
+                category: "OTHER",
+                longitude: 7,
+                latitude: 40,
+                citizenId: testCitizenId,
+                officerId: testOfficerId
+            },
+        });
+
         (getServerSession as jest.Mock).mockResolvedValue(userSession);
 
         await prisma.notification.createMany({
@@ -187,22 +249,22 @@ describe("Story 11 - officer updates", () => {
                 {
                     type: "STATUS_CHANGE",
                     message: "Your report status has been updated to: APPROVED",
-                    recipientId: "1",
-                    reportId: BigInt(1),
+                    recipientId: testCitizenId,
+                    reportId: report.id,
                     isRead: false,
                 },
                 {
                     type: "NEW_MESSAGE",
                     message: "officer-123 sent you a new message on your report",
-                    recipientId: "1",
-                    reportId: BigInt(1),
+                    recipientId: testCitizenId,
+                    reportId: report.id,
                     isRead: false,
                 },
                 {
                     type: "NEW_MESSAGE",
                     message: "officer-123 sent you a new message on your report",
-                    recipientId: "1",
-                    reportId: BigInt(1),
+                    recipientId: testCitizenId,
+                    reportId: report.id,
                     isRead: true,
                 },
             ],
@@ -216,12 +278,26 @@ describe("Story 11 - officer updates", () => {
     });
 
     it("should mark notifications as read", async ()=> {
+        // Create a report first
+        const report = await prisma.report.create({
+            data: {
+                title: "Test Report",
+                description: "This is a test report",
+                status: "IN_PROGRESS",
+                category: "OTHER",
+                longitude: 7,
+                latitude: 40,
+                citizenId: testCitizenId,
+                officerId: testOfficerId
+            },
+        });
+
         const notification = await prisma.notification.create({
             data: {
                 type: "STATUS_CHANGE",
                 message: "Your report status has been updated to: APPROVED",
-                recipientId: "1",
-                reportId: BigInt(1),
+                recipientId: testCitizenId,
+                reportId: report.id,
                 isRead: false,
             },
         });
@@ -237,6 +313,20 @@ describe("Story 11 - officer updates", () => {
     });
 
     it("should mark all notifications of a user as read", async ()=> {
+        // Create a report first
+        const report = await prisma.report.create({
+            data: {
+                title: "Test Report",
+                description: "This is a test report",
+                status: "IN_PROGRESS",
+                category: "OTHER",
+                longitude: 7,
+                latitude: 40,
+                citizenId: testCitizenId,
+                officerId: testOfficerId
+            },
+        });
+
         (getServerSession as jest.Mock).mockResolvedValue(userSession);
 
         await prisma.notification.createMany({
@@ -244,15 +334,15 @@ describe("Story 11 - officer updates", () => {
                 {
                     type: "STATUS_CHANGE",
                     message: "Your report status has been updated to: APPROVED",
-                    recipientId: "1",
-                    reportId: BigInt(1),
+                    recipientId: testCitizenId,
+                    reportId: report.id,
                     isRead: false,
                 },
                 {
                     type: "NEW_MESSAGE",
                     message: "officer-123 sent you a new message on your report",
-                    recipientId: "1",
-                    reportId: BigInt(1),
+                    recipientId: testCitizenId,
+                    reportId: report.id,
                     isRead: false,
                 },
             ],
@@ -262,7 +352,7 @@ describe("Story 11 - officer updates", () => {
         expect(result.success).toBe(true);
 
         const notifications = await prisma.notification.findMany({
-            where: { recipientId: "1" },
+            where: { recipientId: testCitizenId },
         });
 
         notifications.forEach((notification) => {

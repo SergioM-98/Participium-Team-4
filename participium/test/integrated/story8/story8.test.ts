@@ -7,6 +7,7 @@ import fs from "fs/promises";
 describe("Story 8 - Integration Test: View approved reports of a specific officer", () => {
   let testCitizenId: string;
   let testOfficerId: string;
+  let testOfficerId2: string;
   let testPhotoId: string;
   let approvedReportOneId: bigint;
   let approvedReportTwoId: bigint;
@@ -43,6 +44,19 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
       },
     });
     testOfficerId = officer.id;
+
+    // Create second test officer
+    const officer2 = await prisma.user.create({
+      data: {
+        username: "testofficer2_story7",
+        firstName: "Test2",
+        lastName: "Officer2",
+        passwordHash: hashedPassword,
+        role: "TECHNICAL_OFFICER",
+        office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+      },
+    });
+    testOfficerId2 = officer2.id;
 
     // Create test photo
     const photo = await prisma.photo.create({
@@ -83,7 +97,7 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
         latitude: 45.0703,
         longitude: 7.6869,
         citizenId: testCitizenId,
-        officerId: "1", // Assign to different officer
+        officerId: testOfficerId2, // Assign to different officer
         photos: {
           connect: [{ id: testPhotoId }],
         },

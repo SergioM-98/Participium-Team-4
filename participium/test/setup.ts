@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import path from 'path';
 
+// Set environment variables BEFORE importing anything else
 process.env.UPLOADS_DIR = path.join(process.cwd(), 'test_uploads');
 
 let testDatabaseUrl: string;
@@ -11,7 +11,12 @@ if (process.env.CI) {
   testDatabaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5433/participium_test_db?schema=public';
 }
 
+// Set DATABASE_URL BEFORE importing PrismaClient
+process.env.DATABASE_URL = testDatabaseUrl;
+
 console.log('Test database URL:', testDatabaseUrl.replace(/password=[^@]*@/, 'password=***@'));
+
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient({
   datasourceUrl: testDatabaseUrl,

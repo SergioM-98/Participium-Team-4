@@ -7,17 +7,17 @@ jest.mock("next-auth/next", () => ({
 }));
 
 jest.mock("next-auth", () => ({
-    __esModule: true,
-    default: jest.fn(() => ({
-      handlers: { GET: jest.fn(), POST: jest.fn() },
-      auth: jest.fn(),
-      signIn: jest.fn(),
-      signOut: jest.fn(),
-    })),
+  __esModule: true,
+  default: jest.fn(() => ({
+    handlers: { GET: jest.fn(), POST: jest.fn() },
+    auth: jest.fn(),
+    signIn: jest.fn(),
+    signOut: jest.fn(),
+  })),
 }));
 
 jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
-    authOptions: {},
+  authOptions: {},
 }));
 
 jest.mock("@/auth", () => ({
@@ -50,7 +50,8 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
-    if (prisma.notificationPreferences) await prisma.notificationPreferences.deleteMany({});
+    if (prisma.notificationPreferences)
+      await prisma.notificationPreferences.deleteMany({});
     await prisma.user.deleteMany({});
   });
 
@@ -92,7 +93,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       });
 
       expect(savedUser!.passwordHash).not.toBe("SecurePass123!");
-      expect(savedUser!.passwordHash).toMatch(/^\$2[aby]\$\d+\$/); 
+      expect(savedUser!.passwordHash).toMatch(/^\$2[aby]\$\d+\$/);
     });
 
     it("should prevent registration of duplicate username", async () => {
@@ -113,7 +114,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("firstName", "New");
       formData.append("lastName", "User");
       formData.append("email", "");
-      formData.append("username", "existinguser"); 
+      formData.append("username", "existinguser");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
       formData.append("role", "PUBLIC_RELATIONS_OFFICER");
@@ -137,11 +138,11 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       (getServerSession as jest.Mock).mockResolvedValue(adminSession);
 
       const formData = new FormData();
-      formData.append("firstName", ""); 
+      formData.append("firstName", "");
       formData.append("lastName", "User");
-      formData.append("email", ""); 
-      formData.append("username", "ab"); 
-      formData.append("password", "123"); 
+      formData.append("email", "");
+      formData.append("username", "ab");
+      formData.append("password", "123");
       formData.append("role", "PUBLIC_RELATIONS_OFFICER");
       formData.append("office", "INVALID_OFFICE");
       formData.append("telegram", "");
@@ -169,14 +170,16 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!"); // Added
       formData.append("role", "PUBLIC_RELATIONS_OFFICER");
-      formData.append("office", ""); 
+      formData.append("office", "");
       formData.append("telegram", "");
 
       const response: RegistrationResponse = await register(formData);
 
       expect(response.success).toBe(false);
       if (!response.success) {
-        expect(response.error).toContain("office - Only OFFICER can have an office");
+        expect(response.error).toContain(
+          "office - Only OFFICER can have an office"
+        );
       }
 
       const usersCount = await prisma.user.count();
