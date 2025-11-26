@@ -1,0 +1,50 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["participium/src/*"],
+      "@/app/*": ["participium/src/app/*"],
+      "@/components/*": ["participium/src/components/*"],
+      "@/lib/*": ["participium/src/app/lib/*"],
+      "@/controllers/*": ["participium/src/app/lib/controllers/*"],
+      "@/services/*": ["participium/src/app/lib/services/*"],
+      "@/repositories/*": ["participium/src/app/lib/repositories/*"],
+      "@/dtos/*": ["participium/src/app/lib/dtos/*"],
+      "@/models/*": ["participium/src/app/lib/models/*"],
+      "@/utils/*": ["participium/src/app/lib/utils/*"],
+      "@/middlewares/*": ["participium/src/app/lib/middlewares/*"],
+      "@/types/*": ["participium/src/app/lib/types/*"],
+      "@/db/*": ["participium/src/app/lib/db/*"],
+      "@/prisma/*": ["participium/prisma/*"],
+      "@/actions/*": ["participium/src/app/lib/actions/*"],
+      "@/data/*": ["participium/src/data/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts",
+    "types/**/*.d.ts"
+  ],
+  "exclude": ["node_modules"],
+}
