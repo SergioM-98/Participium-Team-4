@@ -13,9 +13,9 @@ import { handleHelp } from "./handlers/help";
 
 dotenv.config({ path: resolve(__dirname, "../../.env.bot") });
 
-const token = process.env.TELEGRAM_BOT;
+const token = process.env.BOT_TOKEN;
 if (!token) {
-  throw new Error("TELEGRAM_BOT environment variable is not set");
+  throw new Error("BOT_TOKEN environment variable is not set");
 }
 
 const bot = new Bot<ConversationFlavor<Context>>(token);
