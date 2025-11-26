@@ -41,14 +41,17 @@ jobs:
 
       - name: Install dependencies
         run: npm i
+        working-directory: participium
 
       - name: Setup test database
         run: npx prisma migrate deploy
+        working-directory: participium
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
 
       - name: Run Tests with Coverage
         run: npx jest --coverage --coverageReporters=lcov --runInBand --ci --passWithNoTests
+        working-directory: participium
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           NODE_ENV: test
