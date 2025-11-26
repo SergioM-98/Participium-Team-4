@@ -1,25 +1,20 @@
-# Stage 1: build
 FROM node:20-alpine AS builder
-
 WORKDIR /app
 
-# Copia solo package.json e package-lock.json per installare le dipendenze
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Copia Prisma schema e genera client
 COPY prisma ./prisma
-ARG DATABASE_URL
+ARG DATABASE_URL=fake
 ENV DATABASE_URL=$DATABASE_URL
 RUN npx prisma generate
 
-# Copia tutto il resto del progetto
 COPY . .
 
-# Costruisci Next.js
+ENV SKIP_DB_INIT=true
+
 RUN npm run build
 
-# Stage 2: production
 FROM node:20-alpine AS runner
 WORKDIR /app
 
@@ -32,5 +27,7 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
+# In produzione, SKIP_DB_INIT non serve più
+ENV SKIP_DB_INIT=false
 EXPOSE 3000
 CMD ["npm", "start"]

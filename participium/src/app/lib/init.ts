@@ -4,6 +4,10 @@ import createAnonymous from "../../../prisma/anonymous";
 let isInitialized = false;
 
 export async function init() {
+  if (process.env.SKIP_DB_INIT === "true") {
+    console.log("SKIP_DB_INIT=true, skipping initialization...");
+    return;
+  }
 
   if (isInitialized) {
     console.log("App already initialized, skipping...");
@@ -13,13 +17,13 @@ export async function init() {
   try {
     console.log("Initializing application...");
     isInitialized = true;
-    
+
     await createAdmin();
     await createAnonymous();
-    
+
     console.log("Application initialization completed!");
   } catch (error) {
-    isInitialized = false; 
+    isInitialized = false;
     console.error("Failed to initialize application:", error);
     throw error;
   }
