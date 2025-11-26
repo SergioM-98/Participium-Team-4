@@ -48,8 +48,9 @@ services:
       context: ./bot   
     container_name: participium_bot
     restart: unless-stopped
-    env_file:
-      - .env  
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/participium_db"
+      BOT_TOKEN: "${BOT_TOKEN}"
     depends_on:
       - participium
 volumes:

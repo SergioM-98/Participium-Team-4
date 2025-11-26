@@ -57,7 +57,7 @@ describe('NotificationController story 11', () => {
         user: {
             id: "2",
             username: "officer",
-            role: "OFFICER",
+            role: "PUBLIC_RELATIONS_OFFICER",
         },
     };
 
