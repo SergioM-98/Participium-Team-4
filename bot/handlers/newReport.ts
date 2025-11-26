@@ -1,7 +1,7 @@
 import { Conversation } from "@grammyjs/conversations";
 import { Context } from "grammy";
 import { PhotoSize } from "grammy/types";
-import { Category } from "../../app/lib/dtos/report.dto";
+import { Category } from "../dtos/report.dto";
 import { createCategoryKeyboard } from "../keyboards/categoryKeyboard";
 import { locationKeyboard } from "../keyboards/locationKeyboard";
 import {
@@ -9,7 +9,7 @@ import {
   createAnonymousKeyboard,
 } from "../keyboards/anonymousKeyboard";
 import { callTelegramApi, TELEGRAM_API } from "../utils/telegram.utils";
-import { AuthenticationCheckResponse } from "../../app/lib/dtos/telegram.dto";
+import { AuthenticationCheckResponse } from "../dtos/telegram.dto";
 import {
   cancelKeyboard,
   CANCEL_CALLBACK_DATA,

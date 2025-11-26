@@ -7,4 +7,4 @@ RUN npm install --only=production
 
 COPY . .
 
-CMD ["ts-node", "bot.ts"]
+CMD ["node", "node_modules/.bin/ts-node", "bot.ts"]

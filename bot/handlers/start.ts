@@ -12,7 +12,7 @@ import {
   AuthenticationCheckResponse,
   LinkTelegramAccountRequest,
   LinkTelegramAccountResponse,
-} from "../../app/lib/dtos/telegram.dto";
+} from "../dtos/telegram.dto";
 
 export async function handleStart(ctx: Context) {
   try {

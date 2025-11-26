@@ -1,5 +1,5 @@
 import { Keyboard } from "grammy";
-import { Category } from "../../app/lib/dtos/report.dto";
+import { Category } from "../dtos/report.dto";
 
 const CATEGORY_CONFIG: Array<{
   value: Category;
