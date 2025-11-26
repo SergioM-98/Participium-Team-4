@@ -11,6 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+
   test_db:
     image: postgres:15
     restart: always
@@ -20,9 +21,37 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: participium_test_db
     ports:
-      - "5433:5432" 
+      - "5433:5432"
     volumes:
       - pgdata_test:/var/lib/postgresql/data
+
+  participium:
+    build:
+      context: ./participium
+      dockerfile: Dockerfile
+      args:
+        DATABASE_URL: "postgresql://postgres:postgres@db:5432/participium_db"
+    container_name: participium
+    ports:
+      - "3000:3000"
+    environment:
+      NEXTAUTH_SECRET: "team4SuperImportantSecretCarefullyManaged"
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/participium_db"
+      NODE_ENV: production
+      SKIP_INIT: "true"
+    depends_on:
+      - db
+
+
+  telegram_bot:
+    build:
+      context: ./bot   
+    container_name: participium_bot
+    restart: unless-stopped
+    env_file:
+      - .env  
+    depends_on:
+      - participium
 volumes:
   pgdata:
   pgdata_test:
