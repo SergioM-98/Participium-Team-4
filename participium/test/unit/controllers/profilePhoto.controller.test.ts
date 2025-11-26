@@ -1,8 +1,8 @@
 
-import { createUploadPhoto, deletePhoto, getProfilePhotoUrl } from "@/ProfilePhoto.controller";
-import { ProfilePhotoService } from "@/servvices/profilePhoto.service";
+import { createUploadPhoto, deletePhoto, getProfilePhotoUrl } from "../../../src/app/lib/controllers/ProfilePhoto.controller";
+import { ProfilePhotoService } from "../../../src/app/lib/services/profilePhoto.service";
 
-jest.mock("@/app/lib/services/profilePhoto.service", () => ({
+jest.mock("../../../src/app/lib/services/profilePhoto.service", () => ({
   ProfilePhotoService: {
     getInstance: jest.fn().mockReturnValue({
       createUploadPhoto: jest.fn().mockResolvedValue({ location: "loc", uploadOffset: 100 }),

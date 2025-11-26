@@ -13,9 +13,25 @@ jest.mock("@/app/lib/repositories/profilePhotos.repository", () => {
   };
 });
 
-import { ProfilePhotoService } from "@/app/lib/services/profilePhoto.service";
-import { ProfilePhotoRepository } from "@/app/lib/repositories/profilePhotos.repository";
-import { CreateUploadRequest } from "@/app/lib/dtos/tus.dto";
+jest.mock("fs/promises", () => ({
+  unlink: jest.fn().mockResolvedValue(undefined),
+  rename: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock("../../../src/app/lib/utils/fileUtils", () => ({
+  savePhotoFile: jest.fn().mockResolvedValue(100),
+}));
+
+
+jest.mock("../../../src/app/lib/repositories/profilePhotos.repository", () => ({
+  ProfilePhotoRepository: {
+    getInstance: () => mockProfilePhotoRepository,
+  },
+}));
+
+
+import { ProfilePhotoService } from "../../../src/app/lib/services/profilePhoto.service";
+import { CreateUploadRequest } from "../../../src/app/lib/dtos/tus.dto";
 
 describe("ProfilePhotoService - Story 9", () => {
   let service: ProfilePhotoService;

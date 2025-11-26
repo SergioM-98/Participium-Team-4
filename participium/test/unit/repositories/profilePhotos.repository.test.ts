@@ -1,15 +1,16 @@
+import { ProfilePhotoRepository } from "../../../src/app/lib/repositories/profilePhotos.repository";
+import { prisma } from "../../../prisma/db";
 
-import { ProfilePhotoRepository } from "@/app/lib/repositories/profilePhotos.repository";
 
-const mockPrisma = {
+
+jest.mock("../../../prisma/db", () => ({ prisma: {
   profilePhoto: {
     upsert: jest.fn(),
     findUnique: jest.fn(),
     delete: jest.fn(),
   },
-};
+} }));
 
-jest.mock("@/app/lib/prisma/db", () => ({ prisma: mockPrisma }));
 
 describe("ProfilePhotoRepository - Story 9", () => {
   let repo: ProfilePhotoRepository;
@@ -28,7 +29,7 @@ describe("ProfilePhotoRepository - Story 9", () => {
   it("should find profile photo by id", async () => {
     const mockFindUnique = jest.spyOn(prisma.profilePhoto, "findUnique").mockResolvedValue({ id: "photo-id-2", url: "uploads/test2.jpg", userId: "user-id-2" });
     const result = await repo.findById("photo-id-2");
-    expect(result.id).toBe("photo-id-2");
+    expect(result?.id).toBe("photo-id-2");
     expect(mockFindUnique).toHaveBeenCalled();
   });
 
@@ -42,7 +43,7 @@ describe("ProfilePhotoRepository - Story 9", () => {
   it("should find user's profile photo", async () => {
     const mockFindUnique = jest.spyOn(prisma.profilePhoto, "findUnique").mockResolvedValue({ id: "photo-id-4", url: "uploads/test4.jpg", userId: "user-id-4" });
     const result = await repo.getPhotoOfUser("user-id-4");
-    expect(result.id).toBe("photo-id-4");
+    expect(result?.id).toBe("photo-id-4");
     expect(mockFindUnique).toHaveBeenCalled();
   });
 });
