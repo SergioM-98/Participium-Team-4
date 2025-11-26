@@ -10,9 +10,9 @@ var start_1 = require("./handlers/start");
 var newReport_1 = require("./handlers/newReport");
 var help_1 = require("./handlers/help");
 dotenv.config({ path: (0, path_1.resolve)(__dirname, "../../.env.bot") });
-var token = process.env.TELEGRAM_BOT;
+var token = process.env.TELEGRAM_TOKEN;
 if (!token) {
-    throw new Error("TELEGRAM_BOT environment variable is not set");
+    throw new Error("TELEGRAM_TOKEN environment variable is not set");
 }
 var bot = new grammy_1.Bot(token);
 bot.use((0, conversations_1.conversations)());
