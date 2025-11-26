@@ -19,22 +19,22 @@
       }
     ],
     "paths": {
-      "@/*": ["participium/src/*"],
-      "@/app/*": ["participium/src/app/*"],
-      "@/components/*": ["participium/src/components/*"],
-      "@/lib/*": ["participium/src/app/lib/*"],
-      "@/controllers/*": ["participium/src/app/lib/controllers/*"],
-      "@/services/*": ["participium/src/app/lib/services/*"],
-      "@/repositories/*": ["participium/src/app/lib/repositories/*"],
-      "@/dtos/*": ["participium/src/app/lib/dtos/*"],
-      "@/models/*": ["participium/src/app/lib/models/*"],
-      "@/utils/*": ["participium/src/app/lib/utils/*"],
-      "@/middlewares/*": ["participium/src/app/lib/middlewares/*"],
-      "@/types/*": ["participium/src/app/lib/types/*"],
-      "@/db/*": ["participium/src/app/lib/db/*"],
-      "@/prisma/*": ["participium/prisma/*"],
-      "@/actions/*": ["participium/src/app/lib/actions/*"],
-      "@/data/*": ["participium/src/data/*"]
+      "@/*": ["./src/*"],
+      "@/app/*": ["./src/app/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/lib/*": ["./src/app/lib/*"],
+      "@/controllers/*": ["./src/app/lib/controllers/*"],
+      "@/services/*": ["./src/app/lib/services/*"],
+      "@/repositories/*": ["./src/app/lib/repositories/*"],
+      "@/dtos/*": ["./src/app/lib/dtos/*"],
+      "@/models/*": ["./src/app/lib/models/*"],
+      "@/utils/*": ["./src/app/lib/utils/*"],
+      "@/middlewares/*": ["./src/app/lib/middlewares/*"],
+      "@/types/*": ["./src/app/lib/types/*"],
+      "@/db/*": ["./src/app/lib/db/*"],
+      "@/prisma/*": ["./prisma/*"],
+      "@/actions/*": ["./src/app/lib/actions/*"],
+      "@/data/*": ["./src/data/*"]
     }
   },
   "include": [
