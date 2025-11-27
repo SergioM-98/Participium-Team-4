@@ -31,9 +31,9 @@ services:
     container_name: participium
     ports:
       - "3000:3000"
+    env_file:
+      - ./participium/.env
     environment:
-      NEXTAUTH_SECRET: "team4SuperImportantSecretCarefullyManaged"
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/participium_db"
       NODE_ENV: production
       SKIP_INIT: "true"
     depends_on:
@@ -45,9 +45,8 @@ services:
     platform: linux/amd64
     container_name: participium_bot
     restart: unless-stopped
-    environment:
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/participium_db"
-      BOT_TOKEN: "${BOT_TOKEN}"
+    env_file:
+      - ./bot/.env
     depends_on:
       - participium
 volumes:

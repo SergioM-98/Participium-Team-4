@@ -3,8 +3,8 @@
   "compilerOptions": {
     "module": "commonjs",
     "noEmit": false,
-    "outDir": "./dist/bot"
+    "outDir": "./dist"
   },
-  "include": ["src/bot/**/*.ts"],
+  "include": ["./**/*.ts"],
   "exclude": ["node_modules"]
 }
