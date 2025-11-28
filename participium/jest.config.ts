@@ -83,9 +83,59 @@ const config: Config = {
   coverageDirectory: "coverage",
   coverageProvider: "v8",
 
+  // Escludi cartelle che non devono essere testate
+  coveragePathIgnorePatterns: [
+    "/node_modules/",
+    "/test/",
+    "/src/app/api/auth/", // NextAuth implementation - library code
+    '/src/app/lib/services/photoRetrieval.service.ts',
+    '/src/app/lib/services/photoStatus.service.ts',
+    '/src/app/lib/services/photoUpdate.service.ts',
+    '/src/app/lib/services/photoDelete.service.ts',
+  ],
+
+  // Escludi dai test paths
+  testPathIgnorePatterns: [
+    "/node_modules/",
+    "/src/app/api/auth/",
+  ],
+
+  // Escludi dalla collezione coverage
+  collectCoverageFrom: [
+    "src/**/*.{js,jsx,ts,tsx}",
+    "!src/app/api/auth/**",
+    "!src/app/api/telegram/**", // Escludi API routes Telegram
+    "!src/components/ui/**",
+    "!src/components/**", // Escludi tutti i componenti UI/React
+    "!src/app/lib/dtos/**",
+    "!src/app/lib/hooks/**", // Escludi hooks React
+    "!src/types/**",
+    "!src/**/*.d.ts",
+    "!src/app/**/*.css",
+    "!src/app/**/*.tsx", // Escludi tutti i file TSX (pagine e componenti)
+    "!src/app/**/page.tsx", // Escludi tutte le pagine Next.js
+    "!src/app/**/layout.tsx",
+    "!src/app/**/loading.tsx",
+    "!src/app/**/error.tsx",
+    "!src/app/**/not-found.tsx",
+    "!src/app/forbidden.tsx",
+    "!src/app/providers.tsx",
+    "!src/middleware.ts",
+    "!src/auth.ts", // Escludi configurazione NextAuth
+    "!src/app/lib/init.ts", // File di inizializzazione
+    "!src/app/lib/utils/index.ts", // Re-export utils
+    "!src/app/lib/utils/canvasUtils.ts", // Utility canvas (UI)
+    "!src/lib/**", // Utility generiche
+    '!src/app/lib/services/photoRetrieval.service.ts',
+    '!src/app/lib/services/photoStatus.service.ts',
+    '!src/app/lib/services/photoUpdate.service.ts',
+    '!src/app/lib/services/photoDelete.service.ts',
+    '!src/app/lib/repositories/telegramBot.repository.ts',
+  ],
+
   // Estensioni dei moduli
   moduleFileExtensions: [
-    "js",
+    "js", 
     "mjs",
     "cjs",
     "jsx",

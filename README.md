@@ -43,11 +43,12 @@ When working on an issue, create a branch based on the name of the issue. The us
 
 `<type>/<issue-number>-<short-description>`
 
-where type should be one of the following: 
-* `feature/` - New features or enhancements
-* `fix/` - Bug fixes
-* `docs/` - Documentation updates
-* `test/` - Branch that implements tests
+where type should be one of the following:
+
+- `feature/` - New features or enhancements
+- `fix/` - Bug fixes
+- `docs/` - Documentation updates
+- `test/` - Branch that implements tests
 
 The issue number is the ID of the issue assigned by GitHub.
 
@@ -71,12 +72,11 @@ The basic workflow should be:
 
 Standard branches are:
 
-* `dev` - For `feature/`, `fix/`, `docs/`, and `test/` branches
-* `QA` - For quality assurance and testing
-* `main` - Production-ready code
+- `dev` - For `feature/`, `fix/`, `docs/`, and `test/` branches
+- `QA` - For quality assurance and testing
+- `main` - Production-ready code
 
 The merge workflow should be: `dev` → `QA` after a feature or fix is implemented, and after passing all tests, `QA` → `main`
-
 
 ## Folder Structure
 
@@ -102,22 +102,20 @@ participium-team-4/
 └── tests/                    # test/unit, test/integration, e2e
 ```
 
-
-
 ## Deployment Instructions
 
 This repository contains the **Participium** project with all the required services:
 
-* Backend (`participium`)
-* Telegram Bot (`telegram_bot`)
-* PostgreSQL Database (`db` and `test_db`)
+- Backend (`participium`)
+- Telegram Bot (`telegram_bot`)
+- PostgreSQL Database (`db` and `test_db`)
 
 The project is ready to be run via **Docker Compose** and can be deployed by third parties.
 
 ## Requirements
 
-* Docker ≥ 20.x
-* Docker Compose ≥ 2.x
+- Docker ≥ 20.x
+- Docker Compose ≥ 2.x
 
 ## Quick Start
 
@@ -148,6 +146,7 @@ docker ps
 ```
 
 ## Dockerhub
+
 It is also possible to launch the project through Dockerhub, using the commands:
 
 ```bash
@@ -162,21 +161,25 @@ docker run -d --platform linux/amd64 --name participium -p 3000:3000 andrea33421
 docker run -d --platform linux/amd64 --name participium_bot andrea334214/participium_bot:latest
 ```
 
-
 ## Available Services
 
-| Service      | Local Port   | Description         |
-| ------------ | ------------ | ------------------- |
-| participium  | 3000         | Main backend  |
-| telegram_bot | -            | Telegram bot        |
-| db           | 5432         | Main Database |
-| test_db      | 5433         | Test Database   |
+| Service      | Local Port | Description   |
+| ------------ | ---------- | ------------- |
+| participium  | 3000       | Main backend  |
+| telegram_bot | -          | Telegram bot  |
+| db           | 5432       | Main Database |
+| test_db      | 5433       | Test Database |
 
 ## Important Notes
 
-* Data is persisted via Docker volumes (pgdata and pgdata_test)
-* The backend uses DATABASE_URL to connect to the database
-* End users do not need to build, just run docker compose pull && docker compose up
+- Data is persisted via Docker volumes (pgdata and pgdata_test)
+- The backend uses DATABASE_URL to connect to the database
+- End users do not need to build, just run docker compose pull && docker compose up
+- The first admin is already created automatically. His credentials are:
+  ```bash
+    username: admin
+    password: adminTeam4
+  ```
 
 ## For Maintainers (build and push images)
 
