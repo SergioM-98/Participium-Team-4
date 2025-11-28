@@ -18,12 +18,12 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { getReportsByOfficerId } from "../../lib/controllers/report.controller";
-import type { RetrieveReportByOfficer } from "../../lib/dtos/report.dto";
+import { getReportsByAssigneeId } from "../../lib/controllers/report.controller";
+import type { RetrieveReportByAssignee } from "../../lib/dtos/report.dto";
 import { getPhoto } from "../../lib/controllers/photo.controller";
 import ReportDetailsCard from "../../../components/ReportDetailsCard";
 
-type Report = RetrieveReportByOfficer;
+type Report = RetrieveReportByAssignee;
 
 interface ReportsListProps {
   officerId: string;
@@ -68,7 +68,7 @@ export default function ReportsList({ officerId }: ReportsListProps) {
         setIsLoading(true);
         setError(null);
 
-        const response = await getReportsByOfficerId(officerId);
+        const response = await getReportsByAssigneeId();
 
         if (!response.success) {
           setError(response.error || "Failed to load reports");
@@ -336,7 +336,9 @@ export default function ReportsList({ officerId }: ReportsListProps) {
                 longitude: selectedReport.longitude,
                 reporterName: selectedReport.citizen?.username || "Anonymous",
                 createdAt: selectedReport.createdAt || new Date().toISOString(),
-                photoUrls: selectedReport.photos.map((filename) => photoCache[filename]).filter(Boolean),
+                photoUrls: selectedReport.photos
+                  .map((filename) => photoCache[filename])
+                  .filter(Boolean),
                 citizenId: selectedReport.citizenId,
                 officerId: selectedReport.officerId || undefined,
               }}

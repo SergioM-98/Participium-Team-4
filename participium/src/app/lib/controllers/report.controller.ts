@@ -6,11 +6,13 @@ import {
   reportRequestSchema,
   ReportsByOfficerResponse,
   ReportsUnassignedResponse,
-} from "../dtos/report.dto";
-import { ReportCreationService } from "../services/reportCreation.service";
+  UpdateReportStatusResponse,
+} from "@/dtos/report.dto";
+import { ReportCreationService } from "@/services/reportCreation.service";
 import { getServerSession } from "next-auth/next";
-import { ReportRetrievalService } from "../services/reportRetrieval.service";
-import { ReportAssignmentService } from "../services/reportAssignment.service";
+import { ReportRetrievalService } from "@/services/reportRetrieval.service";
+import { ReportAssignmentService } from "@/services/reportAssignment.service";
+import { ReportUpdateService } from "@/services/reportUpdate.service";
 
 export async function createReport(
   title: string,
@@ -45,17 +47,20 @@ export async function createReport(
   return reportCreationService.createReport(reportData.data);
 }
 
-export async function getReportsByOfficerId(
-  officerId: string
-): Promise<ReportsByOfficerResponse> {
+export async function getReportsByAssigneeId(): Promise<ReportsByOfficerResponse> {
   const session = await getServerSession(authOptions);
 
-  if (!session || (session && session.user.role !== "TECHNICAL_OFFICER")) {
+  if (
+    !session ||
+    (session &&
+      session.user.role !== "TECHNICAL_OFFICER" &&
+      session.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS")
+  ) {
     return { success: false, error: "Unauthorized access" };
   }
 
   const reportRetrievalService = ReportRetrievalService.getInstance();
-  return reportRetrievalService.retrieveReportsByOfficerId(officerId);
+  return reportRetrievalService.retrieveReportsByOfficerId(session.user.id);
 }
 
 export async function getPendingApprovalReports(
@@ -108,4 +113,23 @@ export async function rejectReport(
 
   const reportAssignmentService = ReportAssignmentService.getInstance();
   return reportAssignmentService.rejectReport(reportId, rejectionReason);
+}
+
+export async function updateReportStatus(
+  status: string,
+  reportId: string
+): Promise<UpdateReportStatusResponse> {
+  const session = await getServerSession(authOptions);
+
+  if (
+    !session ||
+    (session &&
+      session.user.role !== "TECHNICAL_OFFICER" &&
+      session.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS")
+  ) {
+    return { success: false, error: "Unauthorized access" };
+  }
+
+  const reportUpdateService = ReportUpdateService.getInstance();
+  return reportUpdateService.updateReportStatus(reportId, status);
 }

@@ -72,6 +72,8 @@ enum Role {
   ADMIN
   TECHNICAL_OFFICER
   PUBLIC_RELATIONS_OFFICER
+  EXTERNAL_MAINTAINER_WITH_ACCESS
+  EXTERNAL_MAINTAINER_WITHOUT_ACCESS
   CITIZEN
 }
 
@@ -113,7 +115,6 @@ model User {
 
   @@map("user")
 }
-
 
 model NotificationPreferences {
   id              String   @id
