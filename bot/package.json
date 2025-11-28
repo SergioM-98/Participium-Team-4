@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "bot": "npx ts-node -P tsconfig.bot.json ./bot.ts"
+  },
   "dependencies": {
     "@grammyjs/conversations": "github:grammyjs/conversations",
     "@grammyjs/menu": "github:grammyjs/menu",
