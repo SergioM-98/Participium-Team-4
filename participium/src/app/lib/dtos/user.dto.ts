@@ -10,11 +10,16 @@ const BaseUserSchema = z
     role: z.enum(Role),
     office: z.enum(Offices).optional(),
     telegram: z.string().optional(),
+    companyId: z.string().optional(),
   })
   .refine(
     (data) =>
-      ((data.role === "PUBLIC_RELATIONS_OFFICER" || data.role === "TECHNICAL_OFFICER") && data.office) ||
-      ((data.role !== "PUBLIC_RELATIONS_OFFICER" && data.role !== "TECHNICAL_OFFICER") && !data.office),
+      ((data.role === "PUBLIC_RELATIONS_OFFICER" ||
+        data.role === "TECHNICAL_OFFICER") &&
+        data.office) ||
+      (data.role !== "PUBLIC_RELATIONS_OFFICER" &&
+        data.role !== "TECHNICAL_OFFICER" &&
+        !data.office),
     {
       message: "Only OFFICER can have an office",
       path: ["office"],
@@ -41,6 +46,23 @@ const BaseUserSchema = z
       message: "Only CITIZEN can have a telegram account",
       path: ["telegram"],
     }
+  )
+  .refine(
+    (data) => {
+      const isExternalMaintainer =
+        data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
+        data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS";
+
+      if (isExternalMaintainer) {
+        return !!data.companyId;
+      }
+
+      return !data.companyId;
+    },
+    {
+      message: "Only EXTERNAL_MAINTAINER roles must have a company assigned",
+      path: ["companyId"],
+    }
   );
 
 export const RegistrationInputSchema = BaseUserSchema.safeExtend({
@@ -60,48 +82,10 @@ export const CheckDuplicatesResponseSchema = z.object({
   isExisting: z.boolean(),
 });
 
-export const RetrievedUserDataSchema = z
-  .object({
-    id: z.string(),
-    firstName: z.string(),
-    lastName: z.string(),
-    email: z.email().optional(),
-    username: z.string(),
-    role: z.enum(Role),
-    office: z.enum(Offices).optional(),
-    telegram: z.string().optional(),
-  })
-  .refine(
-    (data) =>
-      ((data.role === "PUBLIC_RELATIONS_OFFICER" || data.role === "TECHNICAL_OFFICER") && data.office) ||
-      ((data.role !== "PUBLIC_RELATIONS_OFFICER" && data.role !== "TECHNICAL_OFFICER") && !data.office),
-    {
-      message: "Only OFFICER can and must have an office",
-      path: ["office"],
-    }
-  )
-  .refine(
-    (data) =>
-      (data.role === "CITIZEN" && data.email) ||
-      (data.role !== "CITIZEN" && !data.email),
-    {
-      message: "Only CITIZEN can and must have an email",
-      path: ["email"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.role === "CITIZEN") {
-        return true;
-      }
-
-      return !data.telegram;
-    },
-    {
-      message: "Only CITIZEN can have a telegram account",
-      path: ["telegram"],
-    }
-  );
+export const RetrievedUserDataSchema = BaseUserSchema.safeExtend({
+  id: z.string(),
+  companyName: z.string().optional(),
+});
 
 export const LoginInputSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -109,7 +93,7 @@ export const LoginInputSchema = z.object({
 });
 
 type RetrievedUserData = z.infer<typeof RetrievedUserDataSchema>;
-export type MeType = z.infer<typeof RetrievedUserDataSchema>
+export type MeType = z.infer<typeof RetrievedUserDataSchema>;
 export type Citizen = z.infer<typeof CitizenSchema>;
 export type RegistrationInput = z.infer<typeof RegistrationInputSchema>;
 export type CheckDuplicatesResponse = z.infer<

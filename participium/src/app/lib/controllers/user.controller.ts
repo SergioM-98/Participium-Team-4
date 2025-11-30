@@ -11,10 +11,11 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../auth";
 import { UserService } from "../services/user.service";
 import { updateNotificationsPreferences } from "./notification.controller";
-import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
+import {
+  NotificationsData,
+  NotificationsResponse,
+} from "../dtos/notificationPreferences.dto";
 import { NotificationService } from "../services/notification.service";
-
-
 
 export async function checkDuplicates(userData: RegistrationInput) {
   return await UserService.getInstance().checkDuplicates(userData);
@@ -23,8 +24,6 @@ export async function checkDuplicates(userData: RegistrationInput) {
 export async function register(
   formData: FormData
 ): Promise<RegistrationResponse> {
-
-  
   const session = await getServerSession(authOptions);
 
   const validatedData = RegistrationInputSchema.safeParse({
@@ -37,13 +36,18 @@ export async function register(
     confirmPassword: formData.get("confirmPassword"),
     role: formData.get("role"),
     office: formData.get("office")?.toString().trim() || undefined,
+    companyId: formData.get("companyId")?.toString().trim() || undefined,
   });
 
   if (!validatedData.success) {
     console.error("Validation errors:", validatedData.error);
-    // Zod error format
-    const errorMessages = validatedData.error.issues?.length 
-      ? validatedData.error.issues.map((issue: any) => `${issue.path?.join('.') || 'unknown'} - ${issue.message}`).join('; ')
+    const errorMessages = validatedData.error.issues?.length
+      ? validatedData.error.issues
+          .map(
+            (issue: any) =>
+              `${issue.path?.join(".") || "unknown"} - ${issue.message}`
+          )
+          .join("; ")
       : "Invalid input data";
     return { success: false, error: errorMessages };
   }
@@ -126,12 +130,32 @@ export async function getMe(): Promise<MeType | RegistrationResponse> {
 
   let notifications: NotificationsResponse;
 
-    if(session.user.role === "CITIZEN"){
-      notifications = await NotificationService.getInstance().getNotificationsPreferences(session.user.username);
-      if(!notifications.success){
-        return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
-      } 
+  if (session.user.role === "CITIZEN") {
+    notifications =
+      await NotificationService.getInstance().getNotificationsPreferences(
+        session.user.username
+      );
+    if (!notifications.success) {
+      return {
+        success: false,
+        error:
+          notifications.error ?? "Failed to retrieve notification preferences",
+      };
     }
+  }
+
+  let companyName: string | undefined = undefined;
+  if (
+    session.user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
+    session.user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+  ) {
+    const userWithCompany = await UserService.getInstance().getUserWithCompany(
+      session.user.id
+    );
+    if (userWithCompany?.company) {
+      companyName = userWithCompany.company.name;
+    }
+  }
 
   return {
     id: session.user.id,
@@ -141,6 +165,8 @@ export async function getMe(): Promise<MeType | RegistrationResponse> {
     username: session.user.username,
     role: session.user.role as MeType["role"],
     office: (session.user.office as MeType["office"]) ?? undefined,
+    companyId: session.user.companyId ?? undefined,
+    companyName: companyName ?? undefined,
     telegram: session.user.telegram ?? undefined,
   };
 }

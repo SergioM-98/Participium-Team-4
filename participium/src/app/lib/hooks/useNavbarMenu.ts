@@ -17,19 +17,18 @@ export function useNavbarMenu() {
       case "ADMIN":
         return [
           { title: "Create Officer", url: "/admin/officers/registration" },
+          { title: "Create Company", url: "/admin/companies/registration" },
         ];
       case "CITIZEN":
-        return [
-          { title: "Reports", url: "/reports" },
-        ];
+        return [{ title: "Reports", url: "/reports" }];
       case "TECHNICAL_OFFICER":
-        return [
-          { title: "My Reports", url: "/officer/my-reports" },
-        ];
+        return [{ title: "My Reports", url: "/officer/my-reports" }];
       case "PUBLIC_RELATIONS_OFFICER":
-        return [
-          { title: "All Reports", url: "/officer/all-reports" },
-        ];
+        return [{ title: "All Reports", url: "/officer/all-reports" }];
+      case "EXTERNAL_MAINTAINER_WITH_ACCESS":
+        return [{ title: "Reports", url: "/reports" }];
+      case "EXTERNAL_MAINTAINER_WITHOUT_ACCESS":
+        return [{ title: "Reports", url: "/reports" }];
       default:
         return [];
     }

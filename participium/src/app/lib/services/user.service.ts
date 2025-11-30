@@ -40,10 +40,10 @@ class UserService {
             tx
           );
 
-            if (!res.success) {
-                throw new Error(res.error);
-            }
+        if (!res.success) {
+          throw new Error(res.error);
         }
+      }
 
       return result;
     });
@@ -71,6 +71,10 @@ class UserService {
     telegramId: string
   ): Promise<RegistrationResponse> {
     return this.userRepository.getUserByTelegramId(telegramId);
+  }
+
+  public async getUserWithCompany(userId: string) {
+    return this.userRepository.getUserWithCompany(userId);
   }
 }
 
