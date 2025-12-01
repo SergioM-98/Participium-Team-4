@@ -28,103 +28,91 @@ class UserRepository {
   async checkDuplicates(
     userData: RegistrationInput
   ): Promise<CheckDuplicatesResponse> {
-    try {
-      const existingUsername = await prisma.user.findFirst({
+    const existingUsername = await prisma.user.findFirst({
+      where: {
+        username: userData.username,
+      },
+    });
+
+    let existingEmail = null;
+    if (userData.email) {
+      existingEmail = await prisma.user.findFirst({
         where: {
-          username: userData.username,
+          email: userData.email,
         },
       });
-
-      let existingEmail = null;
-      if (userData.email) {
-        existingEmail = await prisma.user.findFirst({
-          where: {
-            email: userData.email,
-          },
-        });
-      }
-
-      return {
-        isExisting:
-          existingUsername !== null ||
-          (userData.email ? existingEmail !== null : false),
-      };
-    } catch (error) {
-      throw new Error("Failed to fetch user from database");
     }
+
+    return {
+      isExisting:
+        existingUsername !== null ||
+        (userData.email ? existingEmail !== null : false),
+    };
   }
 
   async createUser(
     userData: RegistrationInput,
     db: DBClient = prisma
   ): Promise<RegistrationResponse> {
-    try {
-      if (userData.password !== userData.confirmPassword) {
-        return { success: false, error: "Passwords do not match" };
-      }
-
-      const hashedPassword = await bcrypt.hash(userData.password, 12);
-
-      const user = await prisma.user.create({
-        data: {
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          email: userData.email ?? undefined,
-          username: userData.username,
-          id: userData.id,
-          role: userData.role,
-          office: userData.office ?? undefined,
-          passwordHash: hashedPassword,
-        },
-      });
-
-      return {
-        success: true,
-        data: user.username,
-      };
-    } catch (error) {
-      throw new Error("Failed to fetch user from database");
+    if (userData.password !== userData.confirmPassword) {
+      return { success: false, error: "Passwords do not match" };
     }
+
+    const hashedPassword = await bcrypt.hash(userData.password, 12);
+
+    const user = await prisma.user.create({
+      data: {
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email ?? undefined,
+        username: userData.username,
+        id: userData.id,
+        role: userData.role,
+        office: userData.office ?? undefined,
+        passwordHash: hashedPassword,
+      },
+    });
+
+    return {
+      success: true,
+      data: user.username,
+    };
   }
 
   async retrieveUser(userData: LoginInput): Promise<LoginResponse> {
-    try {
-      const user = await prisma.user.findUnique({
-        where: {
-          username: userData.username,
-        },
-      });
+    const user = await prisma.user.findUnique({
+      where: {
+        username: userData.username,
+      },
+    });
 
-      if (!user) {
-        return { success: false, error: "Invalid credentials" };
-      }
-
-      const passwordMatch = await bcrypt.compare(
-        userData.password,
-        user.passwordHash
-      );
-
-      if (!passwordMatch) {
-        return { success: false, error: "Invalid credentials" };
-      }
-
-      const { passwordHash, ...rest } = user;
-      return {
-        success: true,
-        data: {
-          email: rest.email ?? undefined,
-          office: rest.office ?? undefined,
-          id: rest.id,
-          firstName: rest.firstName,
-          lastName: rest.lastName,
-          username: rest.username,
-          role: rest.role,
-          telegram: rest.telegram ?? undefined,
-        },
-      };
-    } catch (error) {
-      throw new Error("Failed to fetch user from database");
+    if (!user) {
+      return { success: false, error: "Invalid credentials" };
     }
+
+    const passwordMatch = await bcrypt.compare(
+      userData.password,
+      user.passwordHash
+    );
+
+    if (!passwordMatch) {
+      return { success: false, error: "Invalid credentials" };
+    }
+
+    const { passwordHash, ...rest } = user;
+    return {
+      success: true,
+      data: {
+        email: rest.email ?? undefined,
+        office: rest.office ?? undefined,
+        id: rest.id,
+        firstName: rest.firstName,
+        lastName: rest.lastName,
+        username: rest.username,
+        role: rest.role,
+        telegram: rest.telegram ?? undefined,
+      },
+    };
   }
 
   async updateNotificationsMedia(
@@ -133,69 +121,56 @@ class UserRepository {
     email: string | null,
     removeTelegram: boolean
   ): Promise<RegistrationResponse> {
-    try {
-      if (email === null && removeTelegram === false) {
-        return {
-          success: false,
-          error: "At least one contact method must be provided",
-        };
-      }
-      const data: any = {};
-
-      if (email !== null) {
-        data.email = email;
-      }
-
-      if (removeTelegram) {
-        data.telegram = null;
-      }
-
-      await prisma.user.update({
-        where: { username: userId },
-        data,
-      });
+    if (email === null && removeTelegram === false) {
       return {
-        success: true,
-        data: userId,
+        success: false,
+        error: "At least one contact method must be provided",
       };
-    } catch (error) {
-      throw new Error("Failed to update user in database");
     }
+    const data: any = {};
+
+    if (email !== null) {
+      data.email = email;
+    }
+
+    if (removeTelegram) {
+      data.telegram = null;
+    }
+
+    await prisma.user.update({
+      where: { username: userId },
+      data,
+    });
+    return {
+      success: true,
+      data: userId,
+    };
   }
 
   async getUserByTelegramId(telegramId: string): Promise<RegistrationResponse> {
-    try {
-      const user = await prisma.user.findUnique({
-        where: {
-          telegram: telegramId,
-        },
-      });
+    const user = await prisma.user.findUnique({
+      where: {
+        telegram: telegramId,
+      },
+    });
 
-      if (!user) {
-        return {
-          success: false,
-          error: "No user found with the provided telegram ID.",
-        };
-      }
-
+    if (!user) {
       return {
-        success: true,
-        data: user.id,
+        success: false,
+        error: "No user found with the provided telegram ID.",
       };
-    } catch (error) {
-      return { success: false, error: "Failed to fetch user from database" };
     }
+
+    return {
+      success: true,
+      data: user.id,
+    };
   }  
   
   async getUserById(userId: string) {
-    try {
-      return await prisma.user.findUnique({
-        where: { id: userId },
-      });
-    } catch (error) {
-      console.error("Failed to fetch user from database", error);
-      return null;
-    }
+    return await prisma.user.findUnique({
+      where: { id: userId },
+    });
   }
 
 
