@@ -36,7 +36,7 @@ export default async function createExternalMaintainerWithAccess() {
   }
 
   const id = crypto.randomUUID();
-  const password = "externalMaintainerWithAccessTeam4";
+  const password = "extMaintWithTeam4";
   const saltRounds = 12;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
