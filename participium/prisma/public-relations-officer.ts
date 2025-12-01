@@ -12,7 +12,7 @@ export default async function createPublicRelationsOfficer() {
   }
 
   const id = crypto.randomUUID();
-  const password = "publicRelationsOfficerTeam4";
+  const password = "PrOfficerTeam4";
   const saltRounds = 12;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 

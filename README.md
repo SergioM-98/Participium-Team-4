@@ -175,11 +175,6 @@ docker run -d --platform linux/amd64 --name participium_bot andrea334214/partici
 - Data is persisted via Docker volumes (pgdata and pgdata_test)
 - The backend uses DATABASE_URL to connect to the database
 - End users do not need to build, just run docker compose pull && docker compose up
-- The first admin is already created automatically. His credentials are:
-  ```bash
-    username: admin
-    password: adminTeam4
-  ```
 
 ## For Maintainers (build and push images)
 
@@ -197,3 +192,23 @@ docker push your_username/telegram_bot:latest
 ```
 
 > This README allows anyone to launch the entire system with a single command and without local compilation.
+
+# User Credentials
+
+| Username | Password             | Role                               |
+| -------- | -------------------- | ---------------------------------- |
+| admin    | adminTeam4           | ADMIN                              |
+| mcurie   | tOfficerTeam4        | TECHNICAL_OFFICER                  |
+| arossi   | PrOfficerTeam4       | PUBLIC_RELATIONS_OFFICER           |
+| everdi   | extMaintWithTeam4    | EXTERNAL_MAINTAINER_WITH_ACCESS    |
+| gbianchi | extMaintWithoutTeam4 | EXTERNAL_MAINTAINER_WITHOUT_ACCESS |
+| mneri    | citizenTeam4         | CITIZEN                            |
+
+## Notes
+
+- **Admin**: Administrator account enabled to create Officer and External Maintainer accounts
+- **Technical Officer**: Responsible for technical management of reports
+- **Public Relations Officer**: Responsible for reports approval or rejection
+- **External Maintainer With Access**: Has access to Participium
+- **External Maintainer Without Access**: Has no access to Participium
+- **Citizen**: Can create reports
