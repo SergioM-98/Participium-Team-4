@@ -5,10 +5,10 @@ import { UserRepository } from "../repositories/user.repository";
 
 class MessageService {
   private static instance: MessageService;
-  private messageRepository: MessageRepository;
-  private notificationService: NotificationService;
-  private reportRepository: ReportRepository;
-  private userRepository: UserRepository;
+  private readonly messageRepository: MessageRepository;
+  private readonly notificationService: NotificationService;
+  private readonly reportRepository: ReportRepository;
+  private readonly userRepository: UserRepository;
 
   private constructor() {
     this.messageRepository = MessageRepository.getInstance();

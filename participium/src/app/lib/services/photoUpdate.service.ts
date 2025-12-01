@@ -1,11 +1,11 @@
 import { UpdatePhotoRequest, UpdatePhotoRequestSchema, TusUpdateResponse, TusUploadResponseSchema } from "../dtos/tus.dto";
 import { PhotoRepository } from "../repositories/photo.repository";
-import { appendFile, rename } from 'fs/promises';
-import path from 'path';
+import { appendFile, rename } from 'node:fs/promises';
+import path from 'node:path';
 
 class PhotoUpdaterService {
     private static instance: PhotoUpdaterService;
-    private photoRepository: PhotoRepository;
+    private readonly photoRepository: PhotoRepository;
 
     private constructor() {
         this.photoRepository = PhotoRepository.getInstance();

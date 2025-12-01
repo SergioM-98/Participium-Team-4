@@ -6,7 +6,7 @@ import path from 'node:path';
 
 class PhotoUploaderService {
     private static instance: PhotoUploaderService;
-    private photoRepository: PhotoRepository;
+    private readonly photoRepository: PhotoRepository;
 
     private constructor() {
         this.photoRepository = PhotoRepository.getInstance();
@@ -119,8 +119,8 @@ class PhotoUploaderService {
 
     private sanitizeFilename(filename: string): string {
         let sanitized = filename
-            .replace(/[\/\\]/g, '')
-            .replace(/[<>:"|?*\x00-\x1f]/g, '')
+            .replaceAll(/[\/\\]/g, '')
+            .replaceAll(/[<>:"|?*\x00-\x1f]/g, '')
             .replace(/^\.+/, '')
             .trim();
         if (!sanitized || sanitized.length === 0) sanitized = 'photo';
