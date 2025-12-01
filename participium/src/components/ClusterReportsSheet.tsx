@@ -60,7 +60,7 @@ export default function ClusterReportsSheet({
                                     <CardContent className="p-4">
                                         <h4 className="font-semibold truncate">{report.title}</h4>
                                         <p className="text-sm text-muted-foreground mt-1">
-                                            Category: {report.category.replace(/_/g, ' ')}
+                                            Category: {report.category.replaceAll('_', ' ')}
                                         </p>
                                     </CardContent>
                                 </Card>
