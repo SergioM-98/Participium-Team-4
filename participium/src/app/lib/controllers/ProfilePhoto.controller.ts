@@ -95,18 +95,25 @@ export async function getProfilePhotoUrl() {
 
   const photo = await ProfilePhotoService.getInstance().getPhotoOfUser(userId);
 
-  if (!photo) {
-    return null;
-  } else {
+  if (photo) {
     try {
       const img = await fs.readFile(photo.url);
       const ext = path.extname(photo.url).toLowerCase(); // '.png'
-      const mime =
-        ext === ".jpg" || ext === ".jpeg"
-          ? "image/jpeg"
-          : ext === ".webp"
-          ? "image/webp"
-          : "image/png";
+      let mime;
+      switch (ext) {
+        case ".jpg":
+          mime = "image/jpeg";
+          break;
+        case ".jpeg":
+          mime = "image/jpeg";
+          break;
+        case ".webp":
+          mime = "image/webp";
+          break;
+        case ".png":
+        default:
+          mime = "image/png";
+      }
 
       return `data:${mime};base64,${img.toString("base64")}`;
     } catch (error) {

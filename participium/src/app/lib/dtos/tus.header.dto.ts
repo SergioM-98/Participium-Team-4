@@ -73,9 +73,3 @@ export type TusCreateData = z.infer<typeof TusCreateDataSchema>;
 export type TusUploadData = z.infer<typeof TusUploadDataSchema>;
 export type TusDeleteData = z.infer<typeof TusDeleteDataSchema>;
 export type TusStatusData = z.infer<typeof TusStatusDataSchema>;
-
-
-export type TusCreateHeaders = TusCreateData;
-export type TusUploadHeaders = TusUploadData;
-export type TusDeleteHeaders = TusDeleteData;
-export type TusStatusHeaders = TusStatusData;
