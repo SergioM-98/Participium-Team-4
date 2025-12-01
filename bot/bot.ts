@@ -11,7 +11,7 @@ import { handleStart } from "./handlers/start";
 import { newReport } from "./handlers/newReport";
 import { handleHelp } from "./handlers/help";
 
-dotenv.config({ path: resolve(__dirname, "../../.env.bot") });
+dotenv.config({ path: resolve(process.cwd(), ".env.bot") });
 
 const token = process.env.BOT_TOKEN;
 if (!token) {
@@ -22,6 +22,7 @@ const bot = new Bot<ConversationFlavor<Context>>(token);
 
 function logBot(message: string, data?: unknown): void {
   const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${message}`, data || "");
 }
 
 bot.catch((error) => {
