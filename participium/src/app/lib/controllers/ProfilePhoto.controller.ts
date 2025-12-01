@@ -10,14 +10,24 @@ import path from "node:path";
 export async function createUploadPhoto(
   formData: FormData
 ): Promise<ControllerSuccessResponse> {
-  const tusResumable = formData.get("tus-resumable") as string;
-  const uploadLength = formData.get("upload-length") as string;
-  const uploadMetadata = formData.get("upload-metadata") as string | null;
-  const file = formData.get("file") as File | null;
+  let tusResumable: string;
+  let uploadLength: string;
+  let uploadMetadata: string | null;
+  let file: File | null;
+  try {
+    tusResumable = formData.get("tus-resumable") as string;
+    uploadLength = formData.get("upload-length") as string;
+    uploadMetadata = formData.get("upload-metadata") as string | null;
+    file = formData.get("file") as File | null;
+  } catch (error) {
+    console.error("Error processing upload photo form data:", error);
+    throw error;
+  }
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    throw new Error("Unauthorized access");
+    console.error("Unauthorized access: No valid session found.");
+    return { success: false, error: "Unauthorized access", tusHeaders: {} };
   }
 
   const data = {
@@ -28,9 +38,20 @@ export async function createUploadPhoto(
   };
 
   // Convert file to ArrayBuffer if present
-  const bodyBytes = file ? await file.arrayBuffer() : new ArrayBuffer(0);
-
-  const validatedData = TusCreateDataSchema.parse(data);
+  let bodyBytes: ArrayBuffer;
+  try{
+    bodyBytes = file ? await file.arrayBuffer() : new ArrayBuffer(0);
+  } catch (error) {
+    console.error("Error converting file to ArrayBuffer:", error);
+    return { success: false, error: "Failed to convert file to ArrayBuffer", tusHeaders: {} };
+  }
+  let validatedData;
+  try{
+    validatedData = TusCreateDataSchema.parse(data);
+  } catch (error) {
+    console.error("Error validating Tus create data:", error);
+    return { success: false, error: "Invalid upload data", tusHeaders: {} };
+  }
 
   // Generate photo ID and create service request DTO
   const photoId = crypto.randomUUID();
@@ -43,21 +64,26 @@ export async function createUploadPhoto(
 
   let userId = session.user.id;
 
-  const result = await ProfilePhotoService.getInstance().createUploadPhoto(
-    serviceRequest,
-    userId
-  );
+  try{
+    const result = await ProfilePhotoService.getInstance().createUploadPhoto(
+      serviceRequest,
+      userId
+    );
 
-  return {
-    success: true,
-    location: result.location,
-    uploadOffset: result.uploadOffset,
-    tusHeaders: {
-      "Tus-Resumable": "1.0.0",
-      Location: result.location,
-      "Upload-Offset": result.uploadOffset.toString(),
-    },
-  };
+    return {
+      success: true,
+      location: result.location,
+      uploadOffset: result.uploadOffset,
+      tusHeaders: {
+        "Tus-Resumable": "1.0.0",
+        Location: result.location,
+        "Upload-Offset": result.uploadOffset.toString(),
+      },
+    };
+  } catch (error) {
+    console.error("Error creating upload photo:", error);
+    return { success: false, error: "Failed to create upload photo", tusHeaders: {} };
+  }
 }
 
 export async function getTusOptions(): Promise<ControllerSuccessResponse> {

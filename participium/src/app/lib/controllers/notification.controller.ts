@@ -77,7 +77,12 @@ export async function getNotificationsPreferences(): Promise<NotificationsRespon
   if (!userRoleCheck.success || !userRoleCheck.data) {
     return { success: false, error: "Unauthorized access" };
   }
-  return notificationService.getNotificationsPreferences(userRoleCheck.data);
+  try{
+    return await notificationService.getNotificationsPreferences(userRoleCheck.data);
+  } catch (error) {
+    console.error("Error retrieving notification preferences:", error);
+    return { success: false, error: "Failed to retrieve notification preferences" };
+  }
 }
 
 export async function updateNotificationsPreferences(
@@ -87,7 +92,12 @@ export async function updateNotificationsPreferences(
   if (!userRoleCheck.success || !userRoleCheck.data) {
     return { success: false, error: "Unauthorized access" };
   }
-  return notificationService.updateNotificationsPreferences(userRoleCheck.data, notifications);
+  try{
+    return await notificationService.updateNotificationsPreferences(userRoleCheck.data, notifications);
+  } catch (error) {
+    console.error("Error updating notification preferences:", error);
+    return { success: false, error: "Failed to update notification preferences" };
+  }
 }
 
 async function checkUserRole(): Promise<{
