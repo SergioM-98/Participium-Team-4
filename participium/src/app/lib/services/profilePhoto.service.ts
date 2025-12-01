@@ -1,31 +1,19 @@
-import { PhotoRepository } from "../repositories/photo.repository";
 import {
   CreateUploadRequest,
   CreateUploadRequestSchema,
-  DeletePhotoRequest,
-  DeletePhotoRequestSchema,
-  GetPhotoStatusRequest,
-  GetPhotoStatusRequestSchema,
   TusCreateResponse,
   TusCreateResponseSchema,
   TusDeleteResponse,
-  TusDeleteResponseSchema,
-  TusStatusResponse,
-  TusStatusResponseSchema,
-  TusUpdateResponse,
-  TusUploadResponseSchema,
-  UpdatePhotoRequest,
-  UpdatePhotoRequestSchema,
+  TusDeleteResponseSchema
 } from "../dtos/tus.dto";
-import { appendFile, rename, unlink } from "fs/promises";
-import path from "path";
+import { rename, unlink } from "node:fs/promises";
+import path from "node:path";
 import { ProfilePhotoRepository } from "../repositories/profilePhotos.repository";
 import { savePhotoFile } from "../utils/fileUtils";
 
 class ProfilePhotoService {
   private static instance: ProfilePhotoService;
-  private profilePhotoRepository: ProfilePhotoRepository;
-  private uploadsDir = path.join(process.cwd(), "uploads", "profile-photos");
+  private readonly profilePhotoRepository: ProfilePhotoRepository;
   private constructor() {
     this.profilePhotoRepository = ProfilePhotoRepository.getInstance();
   }
@@ -137,8 +125,8 @@ class ProfilePhotoService {
         }
         try {
           await rename(tempFilePath, finalFilePath);
-        } catch (renameErr) {
-          console.error("Rename failed:", renameErr);
+        } catch (error) {
+          console.error("Rename failed:", error);
         }
       }
 
@@ -203,8 +191,8 @@ class ProfilePhotoService {
    */
   private sanitizeFilename(filename: string): string {
     let sanitized = filename
-      .replace(/[\/\\]/g, "")
-      .replace(/[<>:"|?*\x00-\x1f]/g, "")
+      .replaceAll(/[\/\\]/g, "")
+      .replaceAll(/[<>:"|?*\x00-\x1f]/g, "")
       .replace(/^\.+/, "")
       .trim();
 

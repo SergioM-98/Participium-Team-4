@@ -4,8 +4,8 @@ import { NotificationService } from "./notification.service";
 
 class ReportAssignmentService {
   private static instance: ReportAssignmentService;
-  private reportRepository: ReportRepository;
-  private notificationService: NotificationService;
+  private readonly reportRepository: ReportRepository;
+  private readonly notificationService: NotificationService;
 
   private constructor() {
     this.reportRepository = ReportRepository.getInstance();
@@ -23,16 +23,13 @@ class ReportAssignmentService {
     reportId: number,
     department: string
   ): Promise<AssignReportToOfficerResponse> {
-    try {
+    
       const officer = await this.reportRepository.getOfficerWithLeastReports(
         department
       );
 
       if (!officer) {
-        return {
-          success: false,
-          error: "No officers available in the specified department",
-        };
+        throw new Error(`No available officers in department: ${department}`);
       }
 
       const report = await this.reportRepository.assignReportToOfficer(
@@ -48,6 +45,7 @@ class ReportAssignmentService {
           "ASSIGNED"
         );
       } catch (error) {
+        //don't fail the assignment if notification fails
         console.error("Failed to send notification:", error);
       }
 
@@ -55,10 +53,8 @@ class ReportAssignmentService {
         success: true,
         data: `Report assigned to officer ID ${officer.id}`,
       };
-    } catch (error) {
-      return { success: false, error: "Failed to assign report to officer" };
-    }
-  }
+    } 
+  
 
   public async rejectReport(
     reportId: number,

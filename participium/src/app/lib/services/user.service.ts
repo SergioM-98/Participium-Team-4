@@ -5,8 +5,8 @@ import { UserRepository } from "../repositories/user.repository";
 
 class UserService {
   private static instance: UserService;
-  private userRepository: UserRepository;
-  private notificationsRepository: NotificationsRepository;
+  private readonly userRepository: UserRepository;
+  private readonly notificationsRepository: NotificationsRepository;
   private constructor() {
     this.userRepository = UserRepository.getInstance();
     this.notificationsRepository = NotificationsRepository.getInstance();

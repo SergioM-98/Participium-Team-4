@@ -4,7 +4,7 @@ import { UserAuthenticationResponse } from "../dtos/telegramBot.dto";
 
 class TelegramService {
   private static instance: TelegramService;
-  private telegramRepository: TelegramBotRepository;
+  private readonly telegramRepository: TelegramBotRepository;
   private constructor() {
     this.telegramRepository = TelegramBotRepository.getInstance();
   }
