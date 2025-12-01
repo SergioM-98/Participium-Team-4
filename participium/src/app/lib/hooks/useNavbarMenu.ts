@@ -26,9 +26,9 @@ export function useNavbarMenu() {
       case "PUBLIC_RELATIONS_OFFICER":
         return [{ title: "All Reports", url: "/officer/all-reports" }];
       case "EXTERNAL_MAINTAINER_WITH_ACCESS":
-        return [{ title: "Reports", url: "/reports" }];
+        return [{ title: "My Reports", url: "/maintainer/my-reports" }];
       case "EXTERNAL_MAINTAINER_WITHOUT_ACCESS":
-        return [{ title: "Reports", url: "/reports" }];
+        return [];
       default:
         return [];
     }
