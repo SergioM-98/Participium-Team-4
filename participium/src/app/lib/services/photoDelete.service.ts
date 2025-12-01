@@ -1,11 +1,11 @@
 import { PhotoRepository } from '../repositories/photo.repository';
 import { DeletePhotoRequest, DeletePhotoRequestSchema, TusDeleteResponse, TusDeleteResponseSchema } from '../dtos/tus.dto';
-import { unlink } from 'fs/promises';
-import path from 'path';
+import { unlink } from 'node:fs/promises';
+import path from 'node:path';
 
 class PhotoDeleteService {
     private static instance: PhotoDeleteService;
-    private photoRepository: PhotoRepository;
+    private readonly photoRepository: PhotoRepository;
 
     private constructor() {
         this.photoRepository = PhotoRepository.getInstance();

@@ -3,7 +3,7 @@ import { GetPhotoStatusRequest, GetPhotoStatusRequestSchema, TusStatusResponse, 
 
 class PhotoStatusService {
     private static instance: PhotoStatusService
-    private photoRepository: PhotoRepository;
+    private readonly photoRepository: PhotoRepository;
 
     private constructor() {
         this.photoRepository = PhotoRepository.getInstance();
