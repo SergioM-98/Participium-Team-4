@@ -3,7 +3,7 @@ import { NotificationsData, NotificationsResponse } from "../dtos/notificationPr
 
 class NotificationService {
   private static instance: NotificationService;
-  private notificationsRepository: NotificationsRepository;
+  private readonly notificationsRepository: NotificationsRepository;
 
   private constructor() {
     this.notificationsRepository = NotificationsRepository.getInstance();
