@@ -1,8 +1,8 @@
 "use server";
 import { ReportMapService } from "../services/reportMap.service";
 import { z } from "zod";
-import fs from "fs/promises";
-import path from "path";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 const idSchema = z.string();
 

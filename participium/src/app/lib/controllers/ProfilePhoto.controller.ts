@@ -117,6 +117,7 @@ export async function getProfilePhotoUrl() {
 
       return `data:${mime};base64,${img.toString("base64")}`;
     } catch (error) {
+      console.error("Failed to load profile photo:", error);
       return null;
     }
   }
