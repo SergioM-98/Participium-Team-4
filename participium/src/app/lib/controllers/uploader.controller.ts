@@ -22,7 +22,7 @@ import { PhotoStatusService } from '../services/photoStatus.service';
     
         const data = {
             'tus-resumable': tusResumable,
-            'upload-length': parseInt(uploadLength) as number,
+            'upload-length': Number.parseInt(uploadLength),
             'upload-metadata': uploadMetadata || undefined,
             'content-length': file ? file.size : 0,
         };
@@ -74,7 +74,7 @@ import { PhotoStatusService } from '../services/photoStatus.service';
     
         const data = {
             'tus-resumable': tusResumable,
-            'upload-offset': parseInt(uploadOffset) as number,
+            'upload-offset': Number.parseInt(uploadOffset),
             'content-type': contentType,
             'content-length': chunk.size,
         };

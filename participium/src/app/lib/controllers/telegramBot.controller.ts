@@ -76,8 +76,8 @@ export async function registerTelegramReport(
     description: report.description,
     photos: locations,
     category: report.category as Category,
-    longitude: parseFloat(report.longitude),
-    latitude: parseFloat(report.latitude),
+    longitude: Number.parseFloat(report.longitude),
+    latitude: Number.parseFloat(report.latitude),
     userId: report.isAnonymous ? "2" : username.data,
     isAnonymous: report.isAnonymous,
   };

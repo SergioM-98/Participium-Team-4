@@ -6,8 +6,8 @@ export const TusCreateDataSchema = z.object({
     message: 'TUS version must be 1.0.0'
   }),
   'upload-length': z.union([z.string(), z.number()]).transform(val => {
-    const num = typeof val === 'string' ? parseInt(val) : val
-    if (isNaN(num) || num <= 0) {
+    const num = typeof val === 'string' ? Number.parseInt(val) : val
+    if (Number.isNaN(num) || num <= 0) {
       throw new Error('upload-length must be a positive number')
     }
     if (num > 50 * 1024 * 1024) { // 50MB limit
@@ -17,8 +17,8 @@ export const TusCreateDataSchema = z.object({
   }),
   'upload-metadata': z.string().optional(),
   'content-length': z.union([z.string(), z.number()]).transform(val => {
-    const num = typeof val === 'string' ? parseInt(val) : val
-    if (isNaN(num) || num < 0) {
+    const num = typeof val === 'string' ? Number.parseInt(val) : val
+    if (Number.isNaN(num) || num < 0) {
       throw new Error('content-length must be a positive number')
     }
     return num
@@ -30,8 +30,8 @@ export const TusUploadDataSchema = z.object({
     message: 'TUS version must be 1.0.0'
   }),
   'upload-offset': z.union([z.string(), z.number()]).transform(val => {
-    const num = typeof val === 'string' ? parseInt(val) : val
-    if (isNaN(num) || num < 0) {
+    const num = typeof val === 'string' ? Number.parseInt(val) : val
+    if (Number.isNaN(num) || num < 0) {
       throw new Error('upload-offset must be a non-negative number')
     }
     return num
@@ -40,8 +40,8 @@ export const TusUploadDataSchema = z.object({
     message: 'Content-Type must be application/offset+octet-stream for TUS chunk uploads'
   }),
   'content-length': z.union([z.string(), z.number()]).transform(val => {
-    const num = typeof val === 'string' ? parseInt(val) : val
-    if (isNaN(num) || num <= 0) {
+    const num = typeof val === 'string' ? Number.parseInt(val) : val
+    if (Number.isNaN(num) || num <= 0) {
       throw new Error('content-length must be a positive number')
     }
     if (num > 50 * 1024 * 1024) { // 50MB chunk limit

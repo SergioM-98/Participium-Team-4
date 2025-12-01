@@ -97,7 +97,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         expect(response.data).toBe(`Report with id: ${id} succesfuly created`);
 
         const savedReport = await prisma.report.findUnique({
-          where: { id: parseInt(id) },
+          where: { id: Number.parseInt(id) },
         });
         expect(savedReport).not.toBeNull();
         expect(savedReport).toMatchObject({
@@ -144,7 +144,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         expect(response.data).toBe(`Report with id: ${id} succesfuly created`);
 
         const savedReport = await prisma.report.findUnique({
-          where: { id: parseInt(id) },
+          where: { id: Number.parseInt(id) },
         });
         expect(savedReport).not.toBeNull();
         expect(savedReport).toMatchObject({

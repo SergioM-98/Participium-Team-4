@@ -4,8 +4,8 @@ import { TusCreateDataSchema } from "../dtos/tus.header.dto";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../auth";
 import { ProfilePhotoService } from "../services/profilePhoto.service";
-import fs from "fs/promises";
-import path, { parse } from "path";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 export async function createUploadPhoto(
   formData: FormData
@@ -16,13 +16,13 @@ export async function createUploadPhoto(
   const file = formData.get("file") as File | null;
   const session = await getServerSession(authOptions);
 
-  if (!session || !session.user?.id) {
+  if (!session?.user?.id) {
     throw new Error("Unauthorized access");
   }
 
   const data = {
     "tus-resumable": tusResumable,
-    "upload-length": parseInt(uploadLength) as number,
+    "upload-length": Number.parseInt(uploadLength),
     "upload-metadata": uploadMetadata || undefined,
     "content-length": file ? file.size : 0,
   };
@@ -74,7 +74,7 @@ export async function getTusOptions(): Promise<ControllerSuccessResponse> {
 
 export async function deletePhoto() {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id || session.user?.role !== "CITIZEN") {
+  if (!session?.user?.id || session.user?.role !== "CITIZEN") {
     throw new Error("Unauthorized access");
   }
 
@@ -87,7 +87,7 @@ export async function deletePhoto() {
 
 export async function getProfilePhotoUrl() {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id) {
+  if (!session?.user?.id) {
     return null;
   }
 
