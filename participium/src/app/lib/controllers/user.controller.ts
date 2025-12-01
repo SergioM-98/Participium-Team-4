@@ -17,7 +17,12 @@ import { NotificationService } from "../services/notification.service";
 
 
 export async function checkDuplicates(userData: RegistrationInput) {
-  return await UserService.getInstance().checkDuplicates(userData);
+  try {
+    return await UserService.getInstance().checkDuplicates(userData);
+  } catch (error) {
+    console.error("Error checking duplicates:", error);
+    throw error;
+  }
 }
 
 export async function register(
@@ -49,29 +54,44 @@ export async function register(
   }
 
   if (session || (!session && validatedData.data?.role !== "CITIZEN")) {
-    if (!session || session.user.role !== "ADMIN") {
+    if (session?.user.role !== "ADMIN") {
+      console.error("Unauthorized registration attempt by user:", session?.user.username);
       return { success: false, error: "Unauthorized registration" };
     }
   }
-
-  const isDuplicate = await checkDuplicates(validatedData.data);
-
-  if (isDuplicate.isExisting) {
-    return { success: false, error: "Username and/or email already used" };
+  try {
+    const isDuplicate = await checkDuplicates(validatedData.data);
+    if (isDuplicate.isExisting) {
+      return { success: false, error: "Username and/or email already used" };
+    }
+  } catch (error) {
+    console.error("Error during duplicate check:", error);
+    return { success: false, error: "Failed to check for duplicates" };
   }
 
   const parsed = RegistrationInputSchema.safeParse(validatedData.data);
   if (!parsed.success) {
+    console.error("Parsed validation errors:", parsed.error);
     return { success: false, error: parsed.error.message };
   }
 
-  return await UserService.getInstance().createUser(parsed.data);
+  try {
+    return await UserService.getInstance().createUser(parsed.data);
+  } catch (error) {
+    console.error("Error creating user:", error);
+    return { success: false, error: "Failed to create user" };
+  }
 }
 
 export async function retrieveUser(
   userData: LoginInput
 ): Promise<LoginResponse> {
-  return await UserService.getInstance().retrieveUser(userData);
+  try {
+    return await UserService.getInstance().retrieveUser(userData);
+  } catch (error) {
+    console.error("Error retrieving user:", error);
+    return { success: false, error: "Failed to retrieve user" };
+  }
 }
 
 export async function updateNotificationsMedia(
@@ -81,7 +101,8 @@ export async function updateNotificationsMedia(
   notifications: NotificationsData
 ): Promise<RegistrationResponse> {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id || session.user?.role !== "CITIZEN") {
+  if (!session?.user?.id || session.user?.role !== "CITIZEN") {
+    console.error("Unauthorized access attempt to update notifications media by user:", session?.user?.username);
     return { success: false, error: "Unauthorized access" };
   }
 
@@ -93,41 +114,52 @@ export async function updateNotificationsMedia(
     };
   }
 
-  //need to connect the transaction!!!!
+  try {
   const updateMediaResponse =
-    await UserService.getInstance().updateNotificationsMedia(
-      session.user.id,
-      telegram,
-      email,
-      removeTelegram
+      await UserService.getInstance().updateNotificationsMedia(
+        session.user.id,
+        telegram,
+        email,
+        removeTelegram
+      );
+
+    const notificationsResponse = await updateNotificationsPreferences(
+      notifications
     );
 
-  const notificationsResponse = await updateNotificationsPreferences(
-    notifications
-  );
-
-  if (!notificationsResponse.success) {
-    return {
-      success: false,
-      error:
-        notificationsResponse.error ??
-        "Failed to update notification preferences",
-    };
-  } else {
-    return updateMediaResponse;
+    if (notificationsResponse.success) {
+      return updateMediaResponse;
+    } else {
+      console.error("Failed to update notification preferences for user:", session?.user?.username);
+      return {
+        success: false,
+        error:
+          notificationsResponse.error ??
+          "Failed to update notification preferences",
+      };
+    }
+  } catch (error) {
+    console.error("Error updating notifications media or preferences:", error);
+    return { success: false, error: "Failed to update notifications" };
   }
 }
 
 export async function getMe(): Promise<MeType | RegistrationResponse> {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id) {
+  if (!session?.user?.id) {
+    console.error("Unauthorized access attempt to get user info");
     return { success: false, error: "Unauthorized access" };
   }
 
   let notifications: NotificationsResponse;
 
     if(session.user.role === "CITIZEN"){
-      notifications = await NotificationService.getInstance().getNotificationsPreferences(session.user.username);
+      try {
+        notifications = await NotificationService.getInstance().getNotificationsPreferences(session.user.username);
+      } catch (error) {
+        console.error("Error retrieving notification preferences:", error);
+        return { success: false, error: "Failed to retrieve notification preferences" };
+      }
       if(!notifications.success){
         return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
       } 

@@ -11,34 +11,47 @@ import { PhotoDeleteService } from '../services/photoDelete.service';
 
 
     export async function createUploadPhoto(formData: FormData): Promise<ControllerSuccessResponse> {
-        const tusResumable = formData.get('tus-resumable') as string;
-        const uploadLength = formData.get('upload-length') as string;
-        const uploadMetadata = formData.get('upload-metadata') as string | null;
-        const file = formData.get('file') as File | null;
+        let tusResumable: string;
+        let uploadLength: number;
+        let uploadMetadata: string | null;
+        let file: File | null;
+        try {
+            tusResumable = formData.get('tus-resumable') as string;
+            uploadLength = Number.parseInt(formData.get('upload-length') as string);
+            uploadMetadata = formData.get('upload-metadata') as string | null;
+            file = formData.get('file') as File | null;
+        } catch (error) {
+            console.error("Error processing upload photo form data:", error);
+            throw error;
+        }
     
         const data = {
             'tus-resumable': tusResumable,
-            'upload-length': Number.parseInt(uploadLength),
+            'upload-length': uploadLength,
             'upload-metadata': uploadMetadata || undefined,
             'content-length': file ? file.size : 0,
         };
     
         // Convert file to ArrayBuffer if present
         const bodyBytes = file ? await file.arrayBuffer() : new ArrayBuffer(0);
-        const validatedData = TusCreateDataSchema.parse(data);
+        const validatedData = TusCreateDataSchema.safeParse(data);
+        if(!validatedData.success){
+            console.error("Error validating Tus create data:", validatedData.error);
+            return { success: false, error: "Invalid upload data", tusHeaders: {} };
+        }
 
         // Generate photo ID and create service request DTO
         const photoId = crypto.randomUUID();
         const serviceRequest: CreateUploadRequest = {
-            uploadLength: validatedData['upload-length'],
-            uploadMetadata: validatedData['upload-metadata'],
+            uploadLength: validatedData.data['upload-length'],
+            uploadMetadata: validatedData.data['upload-metadata'],
             body: bodyBytes,
             photoId: photoId
         };
 
         const uploaderService = PhotoUploaderService.getInstance();
+        try {
         const result = await uploaderService.createUploadPhoto(serviceRequest);
-
         return {
             success: true,
             location: result.location,
@@ -49,6 +62,10 @@ import { PhotoDeleteService } from '../services/photoDelete.service';
                 'Upload-Offset': result.uploadOffset.toString(),
             }
         };
+        } catch (error) {
+            console.error("Error creating upload photo:", error);
+            return { success: false, error: "Failed to create upload photo", tusHeaders: {} };
+        }
     }
 
 
@@ -64,10 +81,17 @@ import { PhotoDeleteService } from '../services/photoDelete.service';
         };
 
         const uploaderService = PhotoDeleteService.getInstance();
-        const result = await uploaderService.deletePhoto(serviceRequest);
+        let result;
+        try {
+            result = await uploaderService.deletePhoto(serviceRequest);
+        } catch (error) {
+            console.error("Error deleting upload photo:", error);
+            return { success: false, error: "Failed to delete upload photo", tusHeaders: {} };
+        }
 
         if (!result.success) {
-            throw new Error(result.message || 'Delete operation failed');
+            console.error("Error deleting upload photo: ", uploadId);
+            return { success: false, error: "Failed to delete upload photo", tusHeaders: {} };
         }
 
         return {

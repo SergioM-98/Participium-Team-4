@@ -8,7 +8,13 @@ const idSchema = z.string();
 
 export async function getApprovedReportsForMap() {
   const service = ReportMapService.getInstance();
-  const repoResult = await service.getReportsForMap();
+  let repoResult;
+  try {
+    repoResult = await service.getReportsForMap();
+  } catch (error) {
+    console.error("Error getting reports for map:", error);
+    return { success: false, error: "Failed to get reports" };
+  }
 
   if (!repoResult || repoResult.success === false || !repoResult.data || repoResult.data.length === 0) {
     return { success: false, error: repoResult?.error || "No reports found" };
@@ -29,16 +35,20 @@ export async function getApprovedReportsForMap() {
 export async function getReportById(params: { id: string }) {
   const parse = idSchema.safeParse(params.id);
   if (!parse.success) {
+    console.error("Invalid report id:", params.id);
     return { success: false, error: "Invalid report id" };
   }
   const service = ReportMapService.getInstance();
-  const repoResult = await service.getReportById(params.id);
-
+  let repoResult;
+  try {
+    repoResult = await service.getReportById(params.id);
+  } catch (error) {
+    console.error("Error getting report by id:", error);
+    return { success: false, error: "Failed to get report" };
+  }
   if (!repoResult || repoResult.success === false || !repoResult.data) {
     return { success: false, error: repoResult?.error || "Report not found" };
   }
-
-
   const processedPhotos = await Promise.all(
     repoResult.data.photos.map(async (p: any) => {
       try {
@@ -57,7 +67,6 @@ export async function getReportById(params: { id: string }) {
         } else {
           mime = "image/png";
         }
-
         return `data:${mime};base64,${fileBuffer.toString("base64")}`;
       } catch (error) {
         console.error(`Failed to load report photo ${p.url}:`, error);

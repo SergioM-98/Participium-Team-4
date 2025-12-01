@@ -45,19 +45,18 @@ export async function createUploadPhoto(
     console.error("Error converting file to ArrayBuffer:", error);
     return { success: false, error: "Failed to convert file to ArrayBuffer", tusHeaders: {} };
   }
-  let validatedData;
-  try{
-    validatedData = TusCreateDataSchema.parse(data);
-  } catch (error) {
-    console.error("Error validating Tus create data:", error);
+  const validatedData = TusCreateDataSchema.safeParse(data);
+  if(!validatedData.success){
+    console.error("Error validating Tus create data:", validatedData.error);
     return { success: false, error: "Invalid upload data", tusHeaders: {} };
   }
+  
 
   // Generate photo ID and create service request DTO
   const photoId = crypto.randomUUID();
   const serviceRequest: CreateUploadRequest = {
-    uploadLength: validatedData["upload-length"],
-    uploadMetadata: validatedData["upload-metadata"],
+    uploadLength: validatedData.data["upload-length"],
+    uploadMetadata: validatedData.data["upload-metadata"],
     body: bodyBytes,
     photoId: photoId,
   };
@@ -101,14 +100,18 @@ export async function getTusOptions(): Promise<ControllerSuccessResponse> {
 export async function deletePhoto() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id || session.user?.role !== "CITIZEN") {
-    throw new Error("Unauthorized access");
+    console.error("Unauthorized access: No valid session found or invalid role.");
+    return { success: false, error: "Unauthorized access" };
   }
 
   let userId = session.user.id;
 
-  const result = await ProfilePhotoService.getInstance().deletePhoto(userId);
-
-  return result;
+  try {
+    return await ProfilePhotoService.getInstance().deletePhoto(userId);
+  } catch (error) {
+    console.error("Error deleting photo:", error);
+    return { success: false, error: "Failed to delete photo" };
+  }
 }
 
 export async function getProfilePhotoUrl() {
@@ -116,11 +119,8 @@ export async function getProfilePhotoUrl() {
   if (!session?.user?.id) {
     return null;
   }
-
   let userId = session.user.id;
-
   const photo = await ProfilePhotoService.getInstance().getPhotoOfUser(userId);
-
   if (photo) {
     try {
       const img = await fs.readFile(photo.url);
@@ -143,40 +143,8 @@ export async function getProfilePhotoUrl() {
 
       return `data:${mime};base64,${img.toString("base64")}`;
     } catch (error) {
-      console.error("Failed to load profile photo:", error);
+      console.log("Failed to load profile photo:", error);
       return null;
     }
   }
-  /*client implementation example:
-  "use client";
-
-  import { getProfilePhotoUrl } from "@/components/ProfilePhoto.controller";
-
-  import { useEffect, useState } from "react";
-
-
-
-  export default function ProfilePhoto() {
-
-  const [url, setUrl] = useState<string | null>(null);
-
-
-
-  useEffect(() => {
-
-      getProfilePhotoUrl().then(setUrl).catch(console.error);
-
-  }, []);
-
-
-
-  if (!url) return <p>Loading...</p>;
-
-
-
-  return <img src={url} alt="Profile Photo" className="w-32 h-32 rounded-full" />;
-
-  }
-
-*/
 }

@@ -23,6 +23,7 @@ export async function createReport(
 ): Promise<ReportRegistrationResponse> {
   const session = await getServerSession(authOptions);
   if (!session || (session && session.user.role !== "CITIZEN")) {
+    console.error("Unauthorized report attempt");
     return { success: false, error: "Unauthorized report" };
   }
   const reportData = reportRequestSchema.safeParse({
@@ -36,13 +37,19 @@ export async function createReport(
     isAnonymous,
   });
   if (!reportData.success) {
+    console.error("Invalid report data:", reportData.error);
     return {
       success: false,
       error: "Invalid inputs",
     };
   }
   const reportCreationService = ReportCreationService.getInstance();
-  return reportCreationService.createReport(reportData.data);
+  try{
+    return await reportCreationService.createReport(reportData.data);
+  } catch (error) {
+    console.error("Error creating report:", error);
+    return { success: false, error: "Failed to create report" };
+  }
 }
 
 export async function getReportsByOfficerId(
@@ -51,11 +58,17 @@ export async function getReportsByOfficerId(
   const session = await getServerSession(authOptions);
 
   if (!session || (session && session.user.role !== "TECHNICAL_OFFICER")) {
+    console.error("Unauthorized access attempt to get reports by officer ID");
     return { success: false, error: "Unauthorized access" };
   }
 
   const reportRetrievalService = ReportRetrievalService.getInstance();
-  return reportRetrievalService.retrieveReportsByOfficerId(officerId);
+  try {
+    return await reportRetrievalService.retrieveReportsByOfficerId(officerId);
+  } catch (error) {
+    console.error("Error retrieving reports by officer ID:", error);
+    return { success: false, error: "Failed to retrieve reports" };
+  }
 }
 
 export async function getPendingApprovalReports(
@@ -67,11 +80,17 @@ export async function getPendingApprovalReports(
     !session ||
     (session && session.user.role !== "PUBLIC_RELATIONS_OFFICER")
   ) {
+    console.error("Unauthorized access attempt to get pending approval reports");
     return { success: false, error: "Unauthorized access" };
   }
 
   const reportRetrievalService = ReportRetrievalService.getInstance();
-  return reportRetrievalService.retrievePendingApprovalReports(status);
+  try {
+    return await reportRetrievalService.retrievePendingApprovalReports(status);
+  } catch (error) {
+    console.error("Error retrieving pending approval reports:", error);
+    return { success: false, error: "Failed to retrieve reports" };
+  }
 }
 
 export async function approveReport(
@@ -85,11 +104,17 @@ export async function approveReport(
     (session.user.role !== "PUBLIC_RELATIONS_OFFICER" &&
       session.user.role !== "ADMIN")
   ) {
+    console.error("Unauthorized access attempt to approve report");
     return { success: false, error: "Unauthorized access" };
   }
 
   const reportAssignmentService = ReportAssignmentService.getInstance();
-  return reportAssignmentService.assignReportToOfficer(reportId, department);
+  try {
+    return await reportAssignmentService.assignReportToOfficer(reportId, department);
+  } catch (error) {
+    console.error("Error approving report:", error);
+    return { success: false, error: "Failed to approve report" };
+  }
 }
 
 export async function rejectReport(
@@ -103,9 +128,16 @@ export async function rejectReport(
     (session.user.role !== "PUBLIC_RELATIONS_OFFICER" &&
       session.user.role !== "ADMIN")
   ) {
+    console.error("Unauthorized access attempt to reject report");
     return { success: false, error: "Unauthorized access" };
+
   }
 
   const reportAssignmentService = ReportAssignmentService.getInstance();
-  return reportAssignmentService.rejectReport(reportId, rejectionReason);
+  try {
+    return await reportAssignmentService.rejectReport(reportId, rejectionReason);
+  } catch (error) {
+    console.error("Error rejecting report:", error);
+    return { success: false, error: "Failed to reject report" };
+  }
 }
