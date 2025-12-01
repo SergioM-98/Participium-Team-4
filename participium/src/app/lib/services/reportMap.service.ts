@@ -2,7 +2,7 @@ import { ReportRepository } from "../repositories/report.repository";
 
 class ReportMapService {
   private static instance: ReportMapService;
-  private reportRepository: ReportRepository;
+  private readonly reportRepository: ReportRepository;
 
   private constructor() {
     this.reportRepository = ReportRepository.getInstance();

@@ -6,7 +6,7 @@ import { ReportRepository } from "../repositories/report.repository";
 
 class ReportRetrievalService {
   private static instance: ReportRetrievalService;
-  private reportRepository: ReportRepository;
+  private readonly reportRepository: ReportRepository;
 
   private constructor() {
     this.reportRepository = ReportRepository.getInstance();
@@ -20,13 +20,12 @@ class ReportRetrievalService {
   }
 
   private normalizeStatus(status: string): string {
-    return status.toLowerCase().replace(/_/g, "_");
+    return status.toLowerCase().replaceAll('_', "_");
   }
 
   public async retrieveReportsByOfficerId(
     officerId: string
   ): Promise<ReportsByOfficerResponse> {
-    try {
       const reports = await this.reportRepository.getReportsByOfficerId(
         officerId
       );
@@ -55,13 +54,8 @@ class ReportRetrievalService {
         success: true,
         data: transformedReports,
       };
-    } catch (error) {
-      return {
-        success: false,
-        error: "Failed to retrieve reports for the given officer ID",
-      };
-    }
-  }
+    } 
+  
 
   public async retrievePendingApprovalReports(
     status: string
