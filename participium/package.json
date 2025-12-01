@@ -21,8 +21,7 @@
     "test:ci:unit": "jest --testPathPatterns=\"test/unit\" --coverage --ci --passWithNoTests",
     "test:ci:integration": "jest --testPathPatterns=\"test/integrated\" --coverage --ci --runInBand --passWithNoTests",
     "test:ci:all": "jest --coverage --runInBand --ci --passWithNoTests",
-    "participium": "node setup-db.js",
-    "bot": "npx ts-node -P tsconfig.bot.json ./src/bot/bot.ts"
+    "participium": "node setup-db.js"
   },
   "dependencies": {
     "@grammyjs/conversations": "^2.1.0",
