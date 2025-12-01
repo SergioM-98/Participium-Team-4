@@ -34,7 +34,7 @@ class PhotoUploaderService {
     }
 
     public async createUploadPhoto(request: CreateUploadRequest): Promise<TusCreateResponse> {
-        try {
+        
             const validatedRequest = CreateUploadRequestSchema.parse(request);
             
             if (validatedRequest.body.byteLength !== validatedRequest.uploadLength) {
@@ -88,11 +88,8 @@ class PhotoUploaderService {
                 location: `${photoRecord.id}`, 
                 uploadOffset: savedFileSize,
             });
-        } catch (error) {
-            console.error('Error in createUploadPhoto:', error);
-            throw new Error('Failed to create and save photo');
-        }
-    }
+        } 
+    
 
 
     private extractAndSanitizeFilename(metadata: string | undefined, fallbackId: string): string {
