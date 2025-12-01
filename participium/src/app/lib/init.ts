@@ -25,8 +25,8 @@ export async function init() {
 
     await createAdmin();
     await createAnonymous();
-    await createExternalMaintainerWithAccess();
-    await createExternalMaintainerWithoutAccess();
+    // await createExternalMaintainerWithAccess();
+    // await createExternalMaintainerWithoutAccess();
     await createCitizen();
     await createTechnicalOfficer();
     await createPublicRelationsOfficer();
