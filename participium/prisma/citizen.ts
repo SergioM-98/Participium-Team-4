@@ -27,6 +27,13 @@ export default async function createCitizen() {
       lastName: "Neri",
       email: "mneri@team4.it",
       role: "CITIZEN" as const,
+      telegram: "",
+      notificationPreferences: {
+        create: {
+          emailEnabled: true,
+          telegramEnabled: false,
+        },
+      },
     },
   });
 
