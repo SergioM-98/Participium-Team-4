@@ -19,6 +19,7 @@ export async function getInbox() {
     );
     return { success: true, data: notifications };
   } catch (error) {
+    console.error("Error retrieving notifications:", error);
     return { success: false, error: "Failed to retrieve notifications" };
   }
 }
@@ -35,6 +36,7 @@ export async function getUnreadCount() {
     );
     return { success: true, data: unread.length };
   } catch (error) {
+    console.error("Error retrieving unread notifications count:", error);
     return { success: false, error: "Failed to retrieve unread count" };
   }
 }
@@ -49,6 +51,7 @@ export async function markAsRead(notificationId: bigint) {
     await notificationService.markNotificationAsRead(notificationId);
     return { success: true, message: "Notification marked as read" };
   } catch (error) {
+    console.error("Error marking notification as read:", error);
     return { success: false, error: "Failed to mark notification as read" };
   }
 }
@@ -63,6 +66,7 @@ export async function markAllAsRead() {
     await notificationService.markAllNotificationsAsRead(session.user.id);
     return { success: true, message: "All notifications marked as read" };
   } catch (error) {
+    console.error("Error marking all notifications as read:", error);
     return { success: false, error: "Failed to mark all notifications as read" };
   }
 }
