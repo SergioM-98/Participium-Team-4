@@ -1,8 +1,7 @@
 "use client";
 
-import { LatLngExpression } from "leaflet";
+import L, { LatLngExpression } from "leaflet";
 import { Polygon } from "react-leaflet";
-import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useState } from "react";
 import LocationDisplay from "./LocationDisplay";
@@ -50,10 +49,10 @@ interface ReportsLayerProps {
 export default function LeafletMap({ 
     onLocationSelect, 
     reportsLayer 
-}: { 
+}: Readonly<{ 
     onLocationSelect?: (location: { lat: number; lng: number } | null) => void,
     reportsLayer?: ReportsLayerProps 
-}) {
+}>) {
   const [markers, setMarkers] = useState<LatLngExpression[]>([]);
 
   const addOrResetMarker = (pos: LatLngExpression) => {

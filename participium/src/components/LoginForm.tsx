@@ -1,13 +1,12 @@
 "use client";
 
-import { use, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
 import { Card, CardContent } from "./ui/card";
 
