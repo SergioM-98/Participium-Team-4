@@ -30,10 +30,7 @@ class MessageService {
     try {
       // Get report to find the citizen
       const reportResult = await this.reportRepository.getReportById(Number(reportId));
-      if (!reportResult.success || !reportResult.data) {
-        return message;
-      }
-
+      //should throw errori if not found and go in catch
       const report = reportResult.data;
 
       // Get author info for notification message
