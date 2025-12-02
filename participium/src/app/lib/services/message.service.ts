@@ -2,6 +2,7 @@ import { MessageRepository } from "../repositories/message.repository";
 import { NotificationService } from "./notification.service";
 import { ReportRepository } from "../repositories/report.repository";
 import { UserRepository } from "../repositories/user.repository";
+import { SendMessageResponse } from "../dtos/message.dto";
 
 class MessageService {
   private static instance: MessageService;
@@ -24,12 +25,13 @@ class MessageService {
     return MessageService.instance;
   }
 
-  public async sendMessage(content: string, authorId: string, reportId: bigint) {
+  public async sendMessage(content: string, authorId: string, reportId: bigint): Promise<SendMessageResponse> {
     const message = await this.messageRepository.createMessage({ content, authorId, reportId });
 
     try {
       // Get report to find the citizen
       const reportResult = await this.reportRepository.getReportById(Number(reportId));
+      if(!reportResult.success || !reportResult.data) throw new Error("Report not found");
       //should throw errori if not found and go in catch
       const report = reportResult.data;
 
@@ -50,7 +52,13 @@ class MessageService {
       // Don't fail the message creation if notification fails
     }
 
-    return message;
+    return { success: true, data: {
+      id: message.id,
+      createdAt: message.createdAt.toISOString(),
+      content: message.content,
+      authorId: message.authorId,
+      reportId: message.reportId,
+    } };
   }
 
   public async getReportMessages(reportId: bigint) {

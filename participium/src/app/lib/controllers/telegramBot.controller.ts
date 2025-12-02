@@ -26,13 +26,13 @@ export async function registerTelegramReport(
     "[registerTelegramReport] Getting user by telegram ID:",
     report.chatId
   );
-  const username = await userService.getUserByTelegramId(
+  //remember that this function returns the id of the user under the field 'data'
+  const user = await userService.getUserByTelegramId(
     report.chatId.toString()
   );
 
-  console.log("[registerTelegramReport] User lookup result:", username);
-
-  if (!username.success) {
+  console.log("[registerTelegramReport] User lookup result:", user);
+  if (!user.success) {
     return {
       success: false,
       error: "User not found for the given Chat ID.",
@@ -79,7 +79,7 @@ export async function registerTelegramReport(
       category: report.category as Category,
       longitude: Number.parseFloat(report.longitude),
       latitude: Number.parseFloat(report.latitude),
-      userId: report.isAnonymous ? "2" : username.data,
+      userId: user.data,
       isAnonymous: report.isAnonymous,
     };
   } catch (error) {

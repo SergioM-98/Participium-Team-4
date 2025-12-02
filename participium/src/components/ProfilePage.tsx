@@ -148,7 +148,8 @@ export default function ProfilePage() {
           }
 
           try {
-            imageUrl = await getProfilePhotoUrl();
+            const url = await getProfilePhotoUrl();
+            imageUrl = url === undefined ? null : url;
           } catch (e) {
             console.warn("Failed to fetch profile photo", e);
           }
@@ -350,7 +351,7 @@ export default function ProfilePage() {
         const result = await startTelegramRegistration();
         if (result.success) {
           const token = result.data;
-          const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+          const botName = "participium_bot";
 
           if (!botName) {
             setError("Bot username configuration missing on client.");
@@ -389,7 +390,6 @@ export default function ProfilePage() {
         };
 
         const result = await updateNotificationsMedia(
-          user.telegram || null,
           formData.email || null,
           removeTelegram,
           notificationsData

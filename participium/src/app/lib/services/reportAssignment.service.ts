@@ -60,26 +60,37 @@ class ReportAssignmentService {
     reportId: number,
     rejectionReason: string
   ): Promise<AssignReportToOfficerResponse> {
+    let success = false;
     try {
       const report = await this.reportRepository.rejectReport(reportId, rejectionReason);
-
+      if(report){
+        //only set success if the report was found and rejected
+        success = true;
+      };
       // Notify the citizen that their report has been rejected
       
-        await this.notificationService.notifyStatusChange(
-          report.citizenId,
-          BigInt(reportId),
-          "REJECTED"
-        );
-      } catch (error) {
-        console.error("Failed to send notification:", error);
-      }
+      await this.notificationService.notifyStatusChange(
+        report.citizenId,
+        BigInt(reportId),
+        "REJECTED"
+      );
+    } catch (error) {
+      console.error("Failed to send notification:", error);
+    }
 
+    if(success){
       return {
         success: true,
         data: `Report rejected with reason: ${rejectionReason}`,
       };
-    } 
-  }
+    } else {
+      return {
+        success: false,
+        error: `Failed to reject report with ID ${reportId}`,
+      };
+    }
+  } 
+}
 
 
 export { ReportAssignmentService };

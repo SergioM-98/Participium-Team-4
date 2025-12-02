@@ -3,8 +3,12 @@ import { NotificationService } from "../services/notification.service";
 import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
 import { authOptions } from "../../api/auth/[...nextauth]/route";
 import { getServerSession } from "next-auth/next";
+import { prisma } from "@/prisma/db";
+import { Prisma, PrismaClient } from "@prisma/client";
 
+type DBClient = PrismaClient | Prisma.TransactionClient;
 const notificationService = NotificationService.getInstance();
+
 
 // ==================== Notification methods ====================
 export async function getInbox() {
@@ -86,14 +90,15 @@ export async function getNotificationsPreferences(): Promise<NotificationsRespon
 }
 
 export async function updateNotificationsPreferences(
-  notifications: NotificationsData
+  notifications: NotificationsData,
+  db: DBClient = prisma
 ): Promise<NotificationsResponse> {
   const userRoleCheck = await checkUserRole();
   if (!userRoleCheck.success || !userRoleCheck.data) {
     return { success: false, error: "Unauthorized access" };
   }
   try{
-    return await notificationService.updateNotificationsPreferences(userRoleCheck.data, notifications);
+    return await notificationService.updateNotificationsPreferences(userRoleCheck.data, notifications, db);
   } catch (error) {
     console.error("Error updating notification preferences:", error);
     return { success: false, error: "Failed to update notification preferences" };
