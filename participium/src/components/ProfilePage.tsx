@@ -109,6 +109,8 @@ export default function ProfilePage() {
     telegramEnabled: false,
   });
 
+  const [removeTelegram, setRemoveTelegram] = useState(false);
+
   const [telegramStatus, setTelegramStatus] = useState<
     "idle" | "opening" | "opened"
   >("idle");
@@ -381,8 +383,6 @@ export default function ProfilePage() {
 
     startTransition(async () => {
       try {
-        const removeTelegram = false;
-
         const notificationsData: NotificationsData = {
           emailEnabled: formData.emailEnabled,
           telegramEnabled: formData.telegramEnabled,
@@ -397,19 +397,27 @@ export default function ProfilePage() {
 
         if (result.success) {
           setIsEditing(false);
+          setRemoveTelegram(false);
           setUser((prev) =>
             prev
               ? {
                   ...prev,
                   email: formData.email,
-                  telegram: formData.telegram,
+                  telegram: removeTelegram ? "" : formData.telegram,
                   notifications: {
                     emailEnabled: formData.emailEnabled,
-                    telegramEnabled: formData.telegramEnabled,
+                    telegramEnabled: removeTelegram ? false : formData.telegramEnabled,
                   },
                 }
               : null
           );
+          if (removeTelegram) {
+            setFormData({
+              ...formData,
+              telegram: "",
+              telegramEnabled: false,
+            });
+          }
           router.refresh();
         } else {
           const errorMessage =
@@ -432,6 +440,7 @@ export default function ProfilePage() {
       emailEnabled: user.notifications.emailEnabled,
       telegramEnabled: user.notifications.telegramEnabled ?? false,
     });
+    setRemoveTelegram(false);
     setValidationError(null);
     setError(null);
     setIsEditing(false);
@@ -699,11 +708,30 @@ export default function ProfilePage() {
             {isCitizen && (
               <div className="space-y-2 md:col-span-2">
                 {isTelegramConnected ? (
-                  <div className="flex items-center h-9 gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    <span className="text-green-600 font-medium text-sm">
-                      Telegram Connected
-                    </span>
+                  <div className="flex items-center justify-between h-9 gap-2">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <span className="text-green-600 font-medium text-sm">
+                        Telegram Connected
+                      </span>
+                    </div>
+                    {isEditing && (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="gap-2"
+                        onClick={() => {
+                          setRemoveTelegram(true);
+                          setFormData({
+                            ...formData,
+                            telegramEnabled: false,
+                          });
+                        }}
+                        disabled={isPending}
+                      >
+                        <X className="h-4 w-4" /> Remove Connection
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div>
