@@ -65,7 +65,8 @@ export default function LoginPage() {
     startTransition(async () => {
       try {
         const response = await signIn("credentials", {
-          redirect: false,
+          redirect: true, // <- lascia che next-auth effettui il redirect
+          callbackUrl: "/",
           username,
           password,
         });

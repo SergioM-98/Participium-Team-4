@@ -322,16 +322,16 @@ export default function ReportsList({ officerId }: ReportsListProps) {
           onClick={() => setSelectedReport(null)}
         >
           <div
-            className="relative w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] max-h-[85vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
+            className="w-screen h-screen md:w-[70vw] md:h-[70vh] max-w-[95vw] max-h-[95vh] rounded-xl shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300"
+             onClick={(e) => e.stopPropagation()}
+           >
             <ReportDetailsCard
               report={{
                 id: selectedReport.id.toString(),
                 title: selectedReport.title,
                 description: selectedReport.description,
                 category: selectedReport.category,
-                status: selectedReport.status || "PENDING_APPROVAL",
+                status: selectedReport.status as "pending_approval" | "assigned" | "in_progress" | "suspended" | "rejected" | "resolved" || "pending_approval",
                 latitude: selectedReport.latitude,
                 longitude: selectedReport.longitude,
                 reporterName: selectedReport.citizen?.username || "Anonymous",
