@@ -26,130 +26,116 @@ class ProfilePhotoService {
   }
 
   public async deletePhoto(userId: string): Promise<TusDeleteResponse> {
-    try {
-      // Get photo record from database
-      const photo = await this.profilePhotoRepository.getPhotoOfUser(userId);
-      if (!photo) {
-        throw new Error(`Photo for user ID ${userId} not found`);
-      }
 
-      try {
-        // Delete file from filesystem
-        await unlink(photo.url.replace("/uploads/", ""));
-        console.log(`File deleted: ${photo.url}`);
-      } catch (fileError) {
-        // Log file deletion error but continue with database deletion
-        console.warn(`Failed to delete file ${photo.url}:`, fileError);
-      }
-
-      // Delete photo record from database
-      await this.profilePhotoRepository.delete(photo.id);
-      console.log(`Photo record deleted from database: ${photo.id}`);
-
-      const response: TusDeleteResponse = TusDeleteResponseSchema.parse({
-        success: true,
-        message: "Photo deleted successfully",
-      });
-
-      return response;
-    } catch (error) {
-      console.error("Error in deletePhoto:", error);
-
-      const response: TusDeleteResponse = TusDeleteResponseSchema.parse({
-        success: false,
-        message: `Failed to delete photo: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
-      });
-
-      return response;
+    // Get photo record from database
+    const photo = await this.profilePhotoRepository.getPhotoOfUser(userId);
+    if (!photo) {
+      throw new Error(`Photo for user ID ${userId} not found`);
     }
+
+    try {
+      // Delete file from filesystem
+      await unlink(photo.url.replace("/uploads/", ""));
+      console.log(`File deleted: ${photo.url}`);
+    } catch (fileError) {
+      // Log file deletion error but continue with database deletion
+      console.warn(`Failed to delete file ${photo.url}:`, fileError);
+    }
+
+    // Delete photo record from database
+    await this.profilePhotoRepository.delete(photo.id);
+    console.log(`Photo record deleted from database: ${photo.id}`);
+
+    const response: TusDeleteResponse = TusDeleteResponseSchema.parse({
+      success: true,
+      message: "Photo deleted successfully",
+    });
+
+    return response;
   }
+
 
   public async createUploadPhoto(
     request: CreateUploadRequest,
     userId: string
   ): Promise<TusCreateResponse> {
-    try {
-      const validatedRequest = CreateUploadRequestSchema.parse(request);
 
-      if (validatedRequest.body.byteLength !== validatedRequest.uploadLength) {
-        throw new Error("Body length does not match upload-length");
-      }
+    const validatedRequest = CreateUploadRequestSchema.parse(request);
 
-      const originalName = this.extractAndSanitizeFilename(
-        validatedRequest.uploadMetadata,
-        validatedRequest.photoId
-      );
-
-      const ext = this.getFileExtension(originalName);
-      const finalFilename = `${userId}${ext}`;
-
-      const uploadsDir =
-        process.env.UPLOADS_DIR || path.join(process.cwd(), "uploads");
-
-      const tempFilename = `${validatedRequest.photoId}_temp${ext}`;
-      const tempFilePath = path.join(uploadsDir, tempFilename);
-      const finalFilePath = path.join(uploadsDir, finalFilename);
-
-      const savedFileSize = await savePhotoFile(
-        validatedRequest.body,
-        tempFilePath
-      );
-
-      if (savedFileSize !== validatedRequest.uploadLength) {
-        throw new Error(
-          `File size mismatch: expected ${validatedRequest.uploadLength}, got ${savedFileSize}`
-        );
-      }
-
-      const isComplete = savedFileSize === validatedRequest.uploadLength;
-
-      if (isComplete) {
-        try {
-          const oldPhoto = await this.profilePhotoRepository.getPhotoOfUser(
-            userId
-          );
-          if (oldPhoto) {
-            await unlink(
-              oldPhoto.url.replace("/uploads/", path.join(uploadsDir, ""))
-            );
-            console.log(`Old file removed: ${finalFilePath}`);
-          }
-        } catch (err: any) {
-          //ignore errors if file does not exist
-          //then only throw if other error
-          if (err.code !== "ENOENT") {
-            throw new Error("Failed to delete old file:", err);
-          }
-        }
-        try {
-          await rename(tempFilePath, finalFilePath);
-        } catch (error) {
-          console.error("Rename failed:", error);
-        }
-      }
-
-      const record = await this.profilePhotoRepository.create({
-        id: validatedRequest.photoId,
-        url: isComplete
-          ? path.join(uploadsDir, finalFilename)
-          : path.join(uploadsDir, tempFilename),
-        size: BigInt(validatedRequest.uploadLength),
-        offset: BigInt(savedFileSize),
-        filename: finalFilename,
-        userId,
-      });
-
-      return TusCreateResponseSchema.parse({
-        location: record.id,
-        uploadOffset: savedFileSize,
-      });
-    } catch (error) {
-      console.error("Error in createUploadPhoto:", error);
-      throw new Error("Failed to create upload");
+    if (validatedRequest.body.byteLength !== validatedRequest.uploadLength) {
+      throw new Error("Body length does not match upload-length");
     }
+
+    const originalName = this.extractAndSanitizeFilename(
+      validatedRequest.uploadMetadata,
+      validatedRequest.photoId
+    );
+
+    const ext = this.getFileExtension(originalName);
+    const finalFilename = `${userId}${ext}`;
+
+    const uploadsDir =
+      process.env.UPLOADS_DIR || path.join(process.cwd(), "uploads");
+
+    const tempFilename = `${validatedRequest.photoId}_temp${ext}`;
+    const tempFilePath = path.join(uploadsDir, tempFilename);
+    const finalFilePath = path.join(uploadsDir, finalFilename);
+
+    const savedFileSize = await savePhotoFile(
+      validatedRequest.body,
+      tempFilePath
+    );
+
+    if (savedFileSize !== validatedRequest.uploadLength) {
+      throw new Error(
+        `File size mismatch: expected ${validatedRequest.uploadLength}, got ${savedFileSize}`
+      );
+    }
+
+    const isComplete = savedFileSize === validatedRequest.uploadLength;
+
+    if (isComplete) {
+      try {
+        const oldPhoto = await this.profilePhotoRepository.getPhotoOfUser(
+          userId
+        );
+        if (oldPhoto) {
+          await unlink(
+            oldPhoto.url.replace("/uploads/", path.join(uploadsDir, ""))
+          );
+          console.log(`Old file removed: ${finalFilePath}`);
+        }
+      } catch (err: any) {
+        //ignore errors if file does not exist
+        //then only throw if other error
+        if (err.code !== "ENOENT") {
+          throw new Error("Failed to delete old file:", err);
+        }
+      }
+      try {
+        await rename(tempFilePath, finalFilePath);
+      } catch (error) {
+        console.error("Rename failed:", error);
+      }
+    }
+
+    const record = await this.profilePhotoRepository.create({
+      id: validatedRequest.photoId,
+      url: isComplete
+        ? path.join(uploadsDir, finalFilename)
+        : path.join(uploadsDir, tempFilename),
+      size: BigInt(validatedRequest.uploadLength),
+      offset: BigInt(savedFileSize),
+      filename: finalFilename,
+      userId,
+    });
+
+    return TusCreateResponseSchema.parse({
+      location: record.id,
+      uploadOffset: savedFileSize,
+    });
   }
+
 
   /**
    * Extract filename from TUS upload-metadata header and sanitize it

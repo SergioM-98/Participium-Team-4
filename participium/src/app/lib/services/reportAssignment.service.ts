@@ -64,7 +64,7 @@ class ReportAssignmentService {
       const report = await this.reportRepository.rejectReport(reportId, rejectionReason);
 
       // Notify the citizen that their report has been rejected
-      try {
+      
         await this.notificationService.notifyStatusChange(
           report.citizenId,
           BigInt(reportId),
@@ -78,10 +78,8 @@ class ReportAssignmentService {
         success: true,
         data: `Report rejected with reason: ${rejectionReason}`,
       };
-    } catch (error) {
-      return { success: false, error: "Failed to reject report" };
-    }
+    } 
   }
-}
+
 
 export { ReportAssignmentService };

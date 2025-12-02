@@ -21,10 +21,9 @@ import {
 } from "./ui/tooltip";
 import { cn } from "../app/lib/utils";
 import { HelpCircle, Trash2, Upload } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { createUploadPhoto, deleteUpload} from "../app/lib/controllers/uploader.controller";
 import { createReport } from "../app/lib/controllers/report.controller";
-import { useSession } from "next-auth/react";
 
 interface UploadedFile {
   file: File;
@@ -37,13 +36,12 @@ interface FileUpload01Props {
   location?: { lat: number; lng: number } | null;
 }
 
-export default function FileUpload01({ location: locationProp }: FileUpload01Props) {
+export default function FileUpload01({ location: locationProp }: Readonly<FileUpload01Props>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [fileProgresses, setFileProgresses] = useState<Record<string, number>>(
     {}
   );
-  const { data: session, status } = useSession();
   const [isUploading, setIsUploading] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -53,6 +51,16 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Cleanup object URLs when component unmounts or files change
+  useEffect(() => {
+    return () => {
+      uploadedFiles.forEach((uploadFile) => {
+        const imageUrl = URL.createObjectURL(uploadFile.file);
+        URL.revokeObjectURL(imageUrl);
+      });
+    };
+  }, [uploadedFiles]);
 
   const uploadFileToServer = async (file: File): Promise<{success: boolean, uploadId?: string, error?: string}> => {
     try {
@@ -163,6 +171,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
       }
     } catch (error) {
       // Handle unexpected errors
+      console.error('Unexpected upload error:', error);
       setFileProgresses((prev) => ({ ...prev, [fileName]: 0 }));
       setUploadedFiles((prev) =>
         prev.map((f) =>
@@ -331,8 +340,9 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
           </div>
 
           <div className="px-6">
-            <div
-              className="border-2 border-dashed border-border rounded-md p-8 flex flex-col items-center justify-center text-center cursor-pointer"
+            <button
+              type="button"
+              className="w-full border-2 border-dashed border-border rounded-md p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary/50 transition-colors"
               onClick={handleBoxClick}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
@@ -348,7 +358,6 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                 <label
                   htmlFor="fileUpload"
                   className="text-primary hover:text-primary/90 font-medium cursor-pointer"
-                  onClick={(e) => e.stopPropagation()}
                 >
                   click to browse
                 </label>
@@ -361,7 +370,7 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                 accept="image/*"
                 onChange={(e) => handleFileSelect(e.target.files)}
               />
-            </div>
+            </button>
             {(validationErrors.some(e => e.includes('photo')) || 
               validationErrors.some(e => e.includes('uploads')) ||
               validationErrors.some(e => e.includes('Maximum'))) && (
@@ -389,9 +398,6 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                 <div
                   className="border border-border rounded-lg p-2 flex flex-col"
                   key={uploadFile.file.name + index}
-                  onLoad={() => {
-                    return () => URL.revokeObjectURL(imageUrl);
-                  }}
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-18 h-14 bg-muted rounded-sm flex items-center justify-center self-start row-span-2 overflow-hidden">
@@ -438,7 +444,11 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                           <div
                             className={cn(
                               "h-full transition-all",
-                              isError ? "bg-red-500" : isCompleted ? "bg-green-500" : "bg-primary"
+                              (() => {
+                                if (isError) return "bg-red-500";
+                                if (isCompleted) return "bg-green-500";
+                                return "bg-primary";
+                              })()
                             )}
                             style={{
                               width: `${fileProgresses[uploadFile.file.name] || 0}%`,
@@ -594,7 +604,11 @@ export default function FileUpload01({ location: locationProp }: FileUpload01Pro
                     }
                   }}
                 >
-                  {isSubmitting ? 'Creating report...' : isUploading ? 'Uploading...' : 'Continue'}
+                  {(() => {
+                    if (isSubmitting) return 'Creating report...';
+                    if (isUploading) return 'Uploading...';
+                    return 'Continue';
+                  })()}
                 </Button>
             </div>
           </div>
