@@ -13,6 +13,7 @@ import { UserService } from "../services/user.service";
 import { updateNotificationsPreferences } from "./notification.controller";
 import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
 import { NotificationService } from "../services/notification.service";
+import { prisma } from "@/prisma/db";
 
 
 
@@ -95,7 +96,6 @@ export async function retrieveUser(
 }
 
 export async function updateNotificationsMedia(
-  telegram: string | null,
   email: string | null,
   removeTelegram: boolean,
   notifications: NotificationsData
@@ -115,29 +115,26 @@ export async function updateNotificationsMedia(
   }
 
   try {
-  const updateMediaResponse =
-      await UserService.getInstance().updateNotificationsMedia(
-        session.user.id,
-        telegram,
-        email,
-        removeTelegram
+    return await prisma.$transaction(async (tx) => {
+      const updateMediaResponse =
+        await UserService.getInstance().updateNotificationsMedia(
+          session.user.id,
+          email,
+          removeTelegram,
+          tx
+        );
+
+      const notificationsResponse = await updateNotificationsPreferences(
+        notifications,
+        tx
       );
-
-    const notificationsResponse = await updateNotificationsPreferences(
-      notifications
-    );
-
-    if (notificationsResponse.success) {
-      return updateMediaResponse;
-    } else {
-      console.error("Failed to update notification preferences for user:", session?.user?.username);
-      return {
-        success: false,
-        error:
-          notificationsResponse.error ??
-          "Failed to update notification preferences",
-      };
-    }
+      if (notificationsResponse.success) {
+        return updateMediaResponse;
+      } else {
+        console.error("Failed to update notification preferences for user:", session?.user?.username);
+        throw new Error(notificationsResponse.error ?? "Failed to update notification preferences");
+      }
+    });
   } catch (error) {
     console.error("Error updating notifications media or preferences:", error);
     return { success: false, error: "Failed to update notifications" };

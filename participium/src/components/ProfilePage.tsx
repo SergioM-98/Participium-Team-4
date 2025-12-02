@@ -389,7 +389,6 @@ export default function ProfilePage() {
         };
 
         const result = await updateNotificationsMedia(
-          user.telegram || null,
           formData.email || null,
           removeTelegram,
           notificationsData

@@ -16,9 +16,10 @@ class ReportCreationService {
   public async createReport(
     data: ReportRequest
   ): Promise<ReportRegistrationResponse> {
+    /* to be changed
     if (data.isAnonymous) {
       data.userId = "2";
-    }
+    }*/
     return await this.reportRepository.createReport(
       data.title,
       data.description,

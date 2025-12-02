@@ -60,7 +60,7 @@ class UserRepository {
 
     const hashedPassword = await bcrypt.hash(userData.password, 12);
 
-    const user = await prisma.user.create({
+    const user = await db.user.create({
       data: {
         firstName: userData.firstName,
         lastName: userData.lastName,
@@ -117,9 +117,9 @@ class UserRepository {
 
   async updateNotificationsMedia(
     userId: string,
-    telegram: string | null,
     email: string | null,
-    removeTelegram: boolean
+    removeTelegram: boolean,
+    db: DBClient = prisma
   ): Promise<RegistrationResponse> {
     if (email === null && removeTelegram === false) {
       return {
@@ -137,7 +137,7 @@ class UserRepository {
       data.telegram = null;
     }
 
-    await prisma.user.update({
+    await db.user.update({
       where: { username: userId },
       data,
     });

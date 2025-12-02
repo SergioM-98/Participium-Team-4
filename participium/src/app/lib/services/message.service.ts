@@ -30,6 +30,7 @@ class MessageService {
     try {
       // Get report to find the citizen
       const reportResult = await this.reportRepository.getReportById(Number(reportId));
+      if(!reportResult.success || !reportResult.data) throw new Error("Report not found");
       //should throw errori if not found and go in catch
       const report = reportResult.data;
 
