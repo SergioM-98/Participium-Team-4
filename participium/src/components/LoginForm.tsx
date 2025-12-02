@@ -25,8 +25,10 @@ export default function LoginPage() {
 
   // State for server errors
   const [error, setError] = useState<string | undefined>("");
-  
-  const [validationError, setValidationError] = useState<Partial<Record<string, string>>>({});
+
+  const [validationError, setValidationError] = useState<
+    Partial<Record<string, string>>
+  >({});
   // Check for a success message from registration
   const [success, setSuccess] = useState<string | undefined>(
     searchParams.get("registered")
@@ -34,11 +36,10 @@ export default function LoginPage() {
       : ""
   );
 
-
   const getErrorMessage = (error: string) => {
     switch (error) {
       case "CredentialsSignin":
-        return "Wrong credentials"; 
+        return "Wrong credentials";
       case "Configuration":
         return "Server configuration error";
       case "AccessDenied":
@@ -72,7 +73,9 @@ export default function LoginPage() {
         });
 
         if (!response || response.error) {
-          const errorMessage = response?.error ? getErrorMessage(response.error) : "Invalid credentials";
+          const errorMessage = response?.error
+            ? getErrorMessage(response.error)
+            : "Invalid credentials";
           setError(errorMessage);
         } else {
           router.push("/");
@@ -85,7 +88,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -95,8 +98,12 @@ export default function LoginPage() {
         <Card className="w-full bg-background rounded-lg p-0 shadow-md">
           <CardContent className="p-0">
             <div className="p-6 pb-4">
-              <h1 className="text-2xl font-bold text-foreground">Welcome back!</h1>
-              <p className="text-sm text-muted-foreground mt-1">Please enter your credentials to continue.</p>
+              <h1 className="text-2xl font-bold text-foreground">
+                Welcome back!
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Please enter your credentials to continue.
+              </p>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -113,14 +120,25 @@ export default function LoginPage() {
                       onChange={(e) => {
                         setusername(e.target.value);
                         if (error) setError("");
-                        if (validationError.username) setValidationError((prev) => ({ ...prev, username: undefined }));
+                        if (validationError.username)
+                          setValidationError((prev) => ({
+                            ...prev,
+                            username: undefined,
+                          }));
                       }}
                       required
                       disabled={isPending}
                       aria-invalid={!!validationError.username}
                       aria-describedby="username-error"
                     />
-                    {validationError.username && <p id="username-error" className="text-xs text-red-500 mt-1">{validationError.username}</p>}
+                    {validationError.username && (
+                      <p
+                        id="username-error"
+                        className="text-xs text-red-500 mt-1"
+                      >
+                        {validationError.username}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -135,21 +153,36 @@ export default function LoginPage() {
                         onChange={(e) => {
                           setPassword(e.target.value);
                           if (error) setError("");
-                          if (validationError.password) setValidationError((prev) => ({ ...prev, password: undefined }));
+                          if (validationError.password)
+                            setValidationError((prev) => ({
+                              ...prev,
+                              password: undefined,
+                            }));
                         }}
                         required
                         disabled={isPending}
                         aria-invalid={!!validationError.password}
                         aria-describedby="password-error"
                       />
-                      {validationError.password && <p id="password-error" className="text-xs text-red-500 mt-1">{validationError.password}</p>}
+                      {validationError.password && (
+                        <p
+                          id="password-error"
+                          className="text-xs text-red-500 mt-1"
+                        >
+                          {validationError.password}
+                        </p>
+                      )}
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
                         disabled={isPending}
                       >
-                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        {showPassword ? (
+                          <EyeOff size={20} />
+                        ) : (
+                          <Eye size={20} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -169,7 +202,11 @@ export default function LoginPage() {
               </div>
 
               <div className="px-6 py-4 flex justify-end items-center gap-2">
-                <Button type="submit" className="h-9 px-4 text-sm font-medium w-full" disabled={isPending}>
+                <Button
+                  type="submit"
+                  className="h-9 px-4 text-sm font-medium w-full"
+                  disabled={isPending}
+                >
                   {isPending ? "Signing in..." : "Sign in"}
                 </Button>
               </div>

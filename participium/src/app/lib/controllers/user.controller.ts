@@ -69,7 +69,18 @@ export async function register(
     return { success: false, error: parsed.error.message };
   }
 
-  return await UserService.getInstance().createUser(parsed.data);
+  const result = await UserService.getInstance().createUser(parsed.data);
+
+  // For CITIZEN users, registration is complete but verification is pending
+  if (result.success && parsed.data.role === "CITIZEN") {
+    return {
+      success: true,
+      data: parsed.data.username,
+      pendingVerification: true,
+    };
+  }
+
+  return result;
 }
 
 export async function retrieveUser(

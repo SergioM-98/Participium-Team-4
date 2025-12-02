@@ -2,6 +2,7 @@ import { prisma } from "../../../../prisma/db";
 import { RegistrationInput, RegistrationResponse } from "../dtos/user.dto";
 import { NotificationsRepository } from "../repositories/notifications.repository";
 import { UserRepository } from "../repositories/user.repository";
+import { VerificationService } from "./verification.service";
 
 class UserService {
   private static instance: UserService;
@@ -30,6 +31,7 @@ class UserService {
       if (!result.success) return result;
 
       if (userData.role === "CITIZEN") {
+        // Set up notification preferences
         const res =
           await this.notificationsRepository.updateNotificationsPreferences(
             userData.id,
@@ -42,6 +44,20 @@ class UserService {
 
         if (!res.success) {
           throw new Error(res.error);
+        }
+
+        // Send verification email
+        const verificationResult =
+          await VerificationService.getInstance().createAndSendVerificationToken(
+            userData.id,
+            userData.email || "",
+            userData.firstName
+          );
+
+        if (!verificationResult.success) {
+          throw new Error(
+            verificationResult.error || "Failed to send verification email"
+          );
         }
       }
 

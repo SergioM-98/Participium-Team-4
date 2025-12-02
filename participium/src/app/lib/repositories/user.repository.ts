@@ -76,6 +76,7 @@ class UserRepository {
           office: userData.office ?? undefined,
           companyId: userData.companyId ?? undefined,
           passwordHash: hashedPassword,
+          isVerified: userData.role === "CITIZEN" ? false : null,
         },
       });
 
@@ -98,6 +99,15 @@ class UserRepository {
 
       if (!user) {
         return { success: false, error: "Invalid credentials" };
+      }
+
+      // Check if CITIZEN user is verified
+      if (user.role === "CITIZEN" && user.isVerified === false) {
+        return {
+          success: false,
+          error:
+            "Account verification pending. Please check your email for the verification code.",
+        };
       }
 
       const passwordMatch = await bcrypt.compare(
