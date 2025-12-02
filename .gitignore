@@ -41,4 +41,8 @@ next-env.d.ts
 package-lock.json
 /generated/prisma
 
-.env.bot
+# env files
+.env
+.env.local
+.env.*.local
+.env.docker

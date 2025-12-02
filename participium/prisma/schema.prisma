@@ -72,6 +72,8 @@ enum Role {
   ADMIN
   TECHNICAL_OFFICER
   PUBLIC_RELATIONS_OFFICER
+  EXTERNAL_MAINTAINER_WITH_ACCESS
+  EXTERNAL_MAINTAINER_WITHOUT_ACCESS
   CITIZEN
 }
 
@@ -92,28 +94,28 @@ enum Offices {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  firstName    String   @db.VarChar(100)
-  lastName     String   @db.VarChar(100)
-  email        String?  @unique @db.VarChar(100)
-  username     String   @unique @db.VarChar(100)
-  telegram     String?  @unique @db.VarChar(100)
-  telegramRequestPending Boolean @default(false)
-  role         Role     @default(CITIZEN)
-  office       Offices?
-  passwordHash String   @db.VarChar(255)
+  id                      String  @id @default(uuid())
+  firstName               String  @db.VarChar(100)
+  lastName                String  @db.VarChar(100)
+  email                   String? @unique @db.VarChar(100)
+  username                String  @unique @db.VarChar(100)
+  telegram                String? @unique @db.VarChar(100)
+  telegramRequestPending  Boolean @default(false)
+  role                    Role    @default(CITIZEN)
+  office                  Offices?
+  passwordHash            String   @db.VarChar(255)
+  companyId               String?
 
-
-  createdReports  Report[] @relation("createdBy")
-  managedReports  Report[] @relation("managedBy")
-  messages        Message[]
-  notifications   Notification[]
+  createdReports          Report[] @relation("createdBy")
+  managedReports          Report[] @relation("managedBy")
+  messages                Message[]
+  notifications           Notification[]
   notificationPreferences NotificationPreferences?
-  profilePhoto ProfilePhoto?
+  profilePhoto            ProfilePhoto?
+  company                 Company? @relation(fields: [companyId], references: [id])
 
   @@map("user")
 }
-
 
 model NotificationPreferences {
   id              String   @id
@@ -134,6 +136,18 @@ model ProfilePhoto {
   userId    String? @unique
   user   User? @relation(fields: [userId], references: [id])
   @@map("profile_photos")
+}
+
+model Company {
+  id           String   @id @default(uuid())
+  name         String   @db.VarChar(255)
+  email        String   @db.VarChar(100)
+  phone        String?  @db.VarChar(20)
+  hasAccess    Boolean  @default(false)
+
+  employees    User[]
+
+  @@map("company")
 }
 
 enum NotificationType {
