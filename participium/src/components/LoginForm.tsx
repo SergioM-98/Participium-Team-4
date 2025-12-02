@@ -76,6 +76,7 @@ export default function LoginPage() {
           setError(errorMessage);
         } else {
           router.push("/");
+          router.refresh();
         }
       } catch (err: any) {
         console.error(err);
