@@ -24,7 +24,7 @@ export function ProfileButton({
   size = "sm",         
   className,
   showName = false,
-}: ProfileButtonProps) {
+}: Readonly<ProfileButtonProps>) {
   const { data: session } = useSession();
   const [imageUrl, setImageUrl] = useState<string | null>(initialImage || null);
 

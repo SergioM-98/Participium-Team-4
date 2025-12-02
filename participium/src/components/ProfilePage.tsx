@@ -325,7 +325,7 @@ export default function ProfilePage() {
         try {
           const result = await createUploadPhoto(data);
           if (result?.success) {
-            window.location.reload();
+            globalThis.location.reload();
           } else {
             setError(
               typeof result?.error === "string" ? result.error : "Upload failed"
@@ -376,7 +376,7 @@ export default function ProfilePage() {
   };
 
   const handleSave = () => {
-    if (!user || user.role !== "CITIZEN" || !validate()) return;
+    if (user?.role !== "CITIZEN" || !validate()) return;
     setError(null);
 
     startTransition(async () => {
@@ -578,9 +578,11 @@ export default function ProfilePage() {
               </Avatar>
 
               {isEditing && (
-                <div
+                <button
+                  type="button"
                   className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                   onClick={() => fileInputRef.current?.click()}
+                  aria-label="Change profile picture"
                 >
                   <Camera className="h-8 w-8 text-white" />
                   <input
@@ -590,7 +592,7 @@ export default function ProfilePage() {
                     accept="image/*"
                     onChange={handleFileSelect}
                   />
-                </div>
+                </button>
               )}
             </div>
 
@@ -753,7 +755,7 @@ export default function ProfilePage() {
                     <Building2 className="h-4 w-4" /> Department / Office
                   </Label>
                   <div className="flex items-center h-12 w-full rounded-md border border-input bg-muted/30 px-3 text-sm font-medium text-foreground shadow-sm">
-                    {user.office.replace(/_/g, " ")}
+                    {user.office.replaceAll('_', " ")}
                   </div>
                 </div>
               )}

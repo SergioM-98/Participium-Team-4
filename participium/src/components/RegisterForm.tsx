@@ -50,12 +50,12 @@ export default function RegisterForm() {
     // This marks the update as a transition and sets isPending to true
     startTransition(async () => {
       const response = await register(formData);
-      if (!response.success) {
-        setError(response.error);
-      } else {
+      if (response.success) {
         // Success! Redirect to the login page
         // You could also show a success message here first
         router.push("/login?registered=true");
+      } else {
+        setError(response.error);
       }
     });
   };
