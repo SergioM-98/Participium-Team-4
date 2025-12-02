@@ -131,8 +131,8 @@ export async function updateNotificationsMedia(
       if (notificationsResponse.success) {
         return updateMediaResponse;
       } else {
-        console.error("Failed to update notification preferences for user:", session?.user?.username);
-        throw new Error(notificationsResponse.error ?? "Failed to update notification preferences");
+        console.error(notificationsResponse.error ?? "Failed to update notification preferences for user:", session?.user?.username);
+        throw new Error("Failed to update notification preferences");
       }
     });
   } catch (error) {
