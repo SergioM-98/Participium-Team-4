@@ -25,7 +25,7 @@ export default function OfficerActionPanel({
   currentStatus,
   currentCategory,
   onActionComplete,
-}: OfficerActionPanelProps) {
+}: Readonly<OfficerActionPanelProps>) {
   const [isLoading, setIsLoading] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 

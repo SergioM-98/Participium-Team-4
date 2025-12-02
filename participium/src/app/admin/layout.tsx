@@ -5,9 +5,9 @@ import WithNavbarLayout from "../(with-navbar)/layout";
 
 export default async function AdminLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const session = await getServerSession(authOptions);
 
   if (!session || session.user?.role !== "ADMIN") {
