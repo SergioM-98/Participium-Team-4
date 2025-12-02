@@ -93,7 +93,7 @@ export interface Report {
   longitude: number;
   citizen?: { username: string };
   citizenId?: string | number;
-  officerId?: string | number | null | undefined;
+  officerId?: string | number | null;
   createdAt?: string;
 }
 
@@ -262,7 +262,7 @@ interface AllReportsListProps {
   data?: Report[];
 }
 
-export function AllReportsList({ data }: AllReportsListProps) {
+export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [reports, setReports] = useState<Report[]>(data || []);
   const [isLoading, setIsLoading] = useState(!data);
@@ -333,6 +333,7 @@ export function AllReportsList({ data }: AllReportsListProps) {
 
       setReports(transformedReports);
     } catch (err) {
+      console.error("Error fetching reports:", err);
       setError("An unexpected error occurred");
       setReports([]);
     } finally {
@@ -354,7 +355,7 @@ export function AllReportsList({ data }: AllReportsListProps) {
 
   useEffect(() => {
     async function fetchSelectedReportPhotos() {
-      if (!selectedReport || !selectedReport.photos || !Array.isArray(selectedReport.photos)) return;
+      if (!selectedReport?.photos || !Array.isArray(selectedReport.photos)) return;
 
       const cacheUpdates: Record<string, string> = {};
       let hasUpdates = false;

@@ -53,7 +53,7 @@ const categoryColors: Record<string, string> = {
   OTHER: "bg-gray-100 text-gray-800",
 };
 
-export default function ReportsList({ officerId }: ReportsListProps) {
+export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [isLoading, setIsLoading] = useState(true);
@@ -77,6 +77,7 @@ export default function ReportsList({ officerId }: ReportsListProps) {
 
         setReports(response.data);
       } catch (err) {
+        console.error("Error fetching reports:", err);
         setError("An unexpected error occurred");
       } finally {
         setIsLoading(false);
