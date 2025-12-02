@@ -16,7 +16,15 @@ class ReportMapService {
   }
 
   public async getReportsForMap() {
-    return this.reportRepository.getApprovedReports();
+    const approved = await this.reportRepository.getApprovedReports();
+    const pending = await this.reportRepository.getPendingApprovalReports();
+    const unapproved = await this.reportRepository.getUnapprovedReports();
+      const data = [
+        ...(approved.success && approved.data ? approved.data : []),
+        ...(pending.success && pending.data ? pending.data : []),
+        ...(unapproved.success && unapproved.data ? unapproved.data : []),
+      ];
+      return { success: true, data };
   }
 
   public async getReportById(id: string | number) {

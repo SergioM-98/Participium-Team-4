@@ -63,15 +63,13 @@ class ReportRetrievalService {
     }
   }
 
-  public async retrievePendingApprovalReports(
-    status: string
-  ): Promise<ReportsUnassignedResponse> {
+  public async retrievePendingApprovalReports(): Promise<ReportsUnassignedResponse> {
     try {
-      const reports = await this.reportRepository.getPendingApprovalReports(
-        status
-      );
-
-      const transformedReports = reports.map((r: any) => ({
+      const result = await this.reportRepository.getPendingApprovalReports();
+      if (!result.success || !result.data) {
+        return { success: false, error: "No pending approval reports found" };
+      }
+      const transformedReports = result.data.map((r: any) => ({
         id: r.id.toString(),
         title: r.title,
         description: r.description,

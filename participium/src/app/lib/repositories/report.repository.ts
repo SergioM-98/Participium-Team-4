@@ -3,6 +3,7 @@ import { Category, Report, Offices, ReportStatus, Role } from "@prisma/client";
 import { ReportRegistrationResponse } from "../dtos/report.dto";
 
 class ReportRepository {
+
   private static instance: ReportRepository;
 
   private constructor() {}
@@ -91,6 +92,35 @@ class ReportRepository {
       };
     }
   }
+  
+
+    public async getUnapprovedReports() {
+      const where: any = { status: "REJECTED" };
+      try {
+        const reports = await prisma.report.findMany({
+          where,
+          select: {
+            id: true,
+            title: true,
+            longitude: true,
+            latitude: true,
+            category: true,
+            citizen: {
+              select: {
+                username: true,
+              },
+            },
+          },
+        });
+        if (!reports || reports.length === 0) {
+          return { success: false, error: "No unapproved reports found" };
+        }
+        return { success: true, data: reports };
+      } catch (e) {
+        return { success: false, error: "Error retrieving unapproved reports" };
+      }
+    }
+  
 
   public async getReportsByOfficerId(officerId: string) {
     return await prisma.report.findMany({
@@ -111,28 +141,31 @@ class ReportRepository {
     });
   }
 
-  public async getPendingApprovalReports(status: string) {
-    return await prisma.report.findMany({
-      where: {
-        status: status as ReportStatus,
-      },
-      include: {
-        photos: {
-          select: { filename: true,
-            url: true
+  public async getPendingApprovalReports() {
+    const where: any = { status: "PENDING_APPROVAL" };
+    try {
+      const reports = await prisma.report.findMany({
+        where,
+        select: {
+          id: true,
+          title: true,
+          longitude: true,
+          latitude: true,
+          category: true,
+          citizen: {
+            select: {
+              username: true,
+            },
           },
         },
-        citizen: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            username: true,
-          },
-        },
-      },
-    });
+      });
+      if (!reports || reports.length === 0) {
+        return { success: false, error: "No pending approval reports found" };
+      }
+      return { success: true, data: reports };
+    } catch (e) {
+      return { success: false, error: "Error retrieving pending approval reports" };
+    }
   }
 
   public async getOfficerWithLeastReports(department: string) {

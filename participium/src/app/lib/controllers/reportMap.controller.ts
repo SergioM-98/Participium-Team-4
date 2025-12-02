@@ -10,8 +10,8 @@ export async function getApprovedReportsForMap() {
   const service = ReportMapService.getInstance();
   const repoResult = await service.getReportsForMap();
 
-  if (!repoResult || repoResult.success === false || !repoResult.data || repoResult.data.length === 0) {
-    return { success: false, error: repoResult?.error || "No reports found" };
+  if (!repoResult || repoResult.success === false || !repoResult.data) {
+    return { success: false, error: "No reports found" };
   }
 
   const data = repoResult.data.map((r: any) => ({

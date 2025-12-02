@@ -58,9 +58,7 @@ export async function getReportsByOfficerId(
   return reportRetrievalService.retrieveReportsByOfficerId(officerId);
 }
 
-export async function getPendingApprovalReports(
-  status: string
-): Promise<ReportsUnassignedResponse> {
+export async function getPendingApprovalReports(): Promise<ReportsUnassignedResponse> {
   const session = await getServerSession(authOptions);
 
   if (
@@ -71,7 +69,7 @@ export async function getPendingApprovalReports(
   }
 
   const reportRetrievalService = ReportRetrievalService.getInstance();
-  return reportRetrievalService.retrievePendingApprovalReports(status);
+  return reportRetrievalService.retrievePendingApprovalReports();
 }
 
 export async function approveReport(

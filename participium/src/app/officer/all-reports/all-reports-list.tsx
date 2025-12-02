@@ -287,7 +287,7 @@ export function AllReportsList({ data }: AllReportsListProps) {
       setIsLoading(true);
       setError(null);
 
-      const response = await getPendingApprovalReports("PENDING_APPROVAL");
+      const response = await getPendingApprovalReports();
 
       if (!response.success) {
         setError(response.error || "Failed to load reports");
