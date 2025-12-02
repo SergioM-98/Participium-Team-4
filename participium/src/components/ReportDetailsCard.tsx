@@ -160,14 +160,14 @@ export default function ReportDetailsCard({
 
       const response = await sendMessage(text, authorId, reportIdBigInt);
 
-      if (response) {
+      if (response.success) {
         const newMsg: ChatMessage = {
-          id: response.id?.toString() || Date.now().toString(),
+          id: response.data.id?.toString() || Date.now().toString(),
           senderName: session.user.name || "You",
           senderId: session.user.id,
           senderRole: currentUserRole,
           content: text,
-          timestamp: response.createdAt ? new Date(response.createdAt).toISOString() : new Date().toISOString(),
+          timestamp: response.data.createdAt ? new Date(response.data.createdAt).toISOString() : new Date().toISOString(),
         };
         setMessages((prev) => [...prev, newMsg]);
       }

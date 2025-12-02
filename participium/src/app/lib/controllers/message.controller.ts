@@ -1,7 +1,8 @@
 "use server";
+import { SendMessageResponse } from "../dtos/message.dto";
 import { MessageService } from "../services/message.service";
 
-export async function sendMessage(content: string, authorId: string, reportId: bigint) {
+export async function sendMessage(content: string, authorId: string, reportId: bigint): Promise<SendMessageResponse> {
   try{
     const messageService = MessageService.getInstance();
     return await messageService.sendMessage(content, authorId, reportId);
