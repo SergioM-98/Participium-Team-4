@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { getCompaniesByAccess } from "@/controllers/company.controller";
 
 export type MunicipalityUserFormData = {
   username: string;
@@ -21,6 +22,13 @@ export type MunicipalityUserFormData = {
   office: string;
   password: string;
   confirmPassword: string;
+  companyId?: string;
+};
+
+export type Company = {
+  id: string;
+  name: string;
+  email?: string;
 };
 
 export default function MunicipalityUserForm({
@@ -42,11 +50,14 @@ export default function MunicipalityUserForm({
     office: "",
     password: "",
     confirmPassword: "",
+    companyId: undefined,
   });
   const [errors, setErrors] = useState<
     Partial<Record<keyof MunicipalityUserFormData, string>>
   >({});
   const [submitting, setSubmitting] = useState(false);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -55,10 +66,45 @@ export default function MunicipalityUserForm({
         ...initialData,
         role: initialData.role ?? "",
         office: initialData.office ?? "",
+        companyId: initialData.companyId,
       }));
       setErrors({});
     }
   }, [initialData]);
+
+  useEffect(() => {
+    const retrieveCompanies = async () => {
+      setLoadingCompanies(true);
+      try {
+        // Determina se recuperare aziende con o senza accesso in base al ruolo
+        let hasAccess = false;
+        if (data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS") {
+          hasAccess = true;
+        } else if (data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS") {
+          hasAccess = false;
+        } else {
+          // Se il ruolo non è un EXTERNAL_MAINTAINER, non caricare aziende
+          setCompanies([]);
+          setLoadingCompanies(false);
+          return;
+        }
+
+        const result = await getCompaniesByAccess(hasAccess);
+        console.log("getCompaniesByAccess result:", result);
+        console.log("result type:", typeof result);
+        console.log("result keys:", result ? Object.keys(result) : "null");
+        if (result.success && result.data) {
+          setCompanies(result.data || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch companies:", error);
+      } finally {
+        setLoadingCompanies(false);
+      }
+    };
+
+    retrieveCompanies();
+  }, [data.role]);
 
   const handleChange =
     (key: keyof MunicipalityUserFormData) =>
@@ -94,8 +140,26 @@ export default function MunicipalityUserForm({
     }
     if (!data.role || data.role.trim() === "")
       next.role = "Role selection is required.";
-    if (!data.office || data.office.trim() === "")
-      next.office = "Office selection is required.";
+
+    // Office is required only for non-ADMIN roles except EXTERNAL_MAINTAINER
+    if (
+      data.role !== "ADMIN" &&
+      data.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS" &&
+      data.role !== "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+    ) {
+      if (!data.office || data.office.trim() === "")
+        next.office = "Office selection is required.";
+    }
+
+    // Company is required only for EXTERNAL_MAINTAINER roles
+    if (
+      data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
+      data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+    ) {
+      if (!data.companyId || data.companyId.trim() === "")
+        next.companyId = "Company selection is required.";
+    }
+
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -109,6 +173,7 @@ export default function MunicipalityUserForm({
       office: "",
       password: "",
       confirmPassword: "",
+      companyId: undefined,
     });
     setErrors({});
   };
@@ -127,9 +192,21 @@ export default function MunicipalityUserForm({
         confirmPassword: data.confirmPassword,
       };
 
-      // Only include office if not ADMIN
-      if (data.role !== "ADMIN") {
+      // Only include office if not ADMIN and not EXTERNAL_MAINTAINER
+      if (
+        data.role !== "ADMIN" &&
+        data.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS" &&
+        data.role !== "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+      ) {
         submitData.office = data.office?.trim() ?? "";
+      }
+
+      // Include companyId for EXTERNAL_MAINTAINER roles
+      if (
+        data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
+        data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+      ) {
+        submitData.companyId = data.companyId?.trim() ?? "";
       }
 
       const result = await onSubmit(submitData);
@@ -273,6 +350,7 @@ export default function MunicipalityUserForm({
                           value === "ADMIN"
                             ? "ORGANIZATION_OFFICE"
                             : "",
+                        companyId: undefined,
                       }));
                       setErrors((prev) => ({ ...prev, role: undefined }));
                     }}
@@ -299,6 +377,12 @@ export default function MunicipalityUserForm({
                         <SelectItem value="TECHNICAL_OFFICER">
                           Technical office staff
                         </SelectItem>
+                        <SelectItem value="EXTERNAL_MAINTAINER_WITH_ACCESS">
+                          External Maintainer (With Access)
+                        </SelectItem>
+                        <SelectItem value="EXTERNAL_MAINTAINER_WITHOUT_ACCESS">
+                          External Maintainer (Without Access)
+                        </SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -312,6 +396,14 @@ export default function MunicipalityUserForm({
                 <div className="space-y-2">
                   <Label htmlFor="office">Office</Label>
                   {data.role === "ADMIN" ? (
+                    <Input
+                      id="office"
+                      value="N/A"
+                      disabled
+                      className="bg-muted"
+                    />
+                  ) : data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
+                    data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS" ? (
                     <Input
                       id="office"
                       value="N/A"
@@ -391,6 +483,60 @@ export default function MunicipalityUserForm({
                     </p>
                   )}
                 </div>
+
+                {(data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
+                  data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS") && (
+                  <div className="space-y-2">
+                    <Label htmlFor="companyId">Company</Label>
+                    <Select
+                      required
+                      disabled={loadingCompanies}
+                      value={data.companyId ?? ""}
+                      onValueChange={(value) => {
+                        setData((prev) => ({ ...prev, companyId: value }));
+                        setErrors((prev) => ({
+                          ...prev,
+                          companyId: undefined,
+                        }));
+                      }}
+                    >
+                      <SelectTrigger
+                        id="companyId"
+                        className="ps-2 w-full"
+                        aria-invalid={!!errors.companyId}
+                        aria-describedby="companyId-error"
+                      >
+                        <SelectValue
+                          placeholder={
+                            loadingCompanies
+                              ? "Loading companies..."
+                              : "Select Company"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent
+                        className="w-screen sm:w-auto max-w-[90vw]"
+                        style={{ maxWidth: "90vw" }}
+                      >
+                        <SelectGroup>
+                          {companies.map((company) => (
+                            <SelectItem key={company.id} value={company.id}>
+                              {company.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    {errors.companyId && (
+                      <p
+                        id="companyId-error"
+                        className="text-xs text-red-500 mt-1"
+                      >
+                        {errors.companyId}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

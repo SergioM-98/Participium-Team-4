@@ -74,6 +74,7 @@ class UserRepository {
           id: userData.id,
           role: userData.role,
           office: userData.office ?? undefined,
+          companyId: userData.companyId ?? undefined,
           passwordHash: hashedPassword,
         },
       });
@@ -114,6 +115,7 @@ class UserRepository {
         data: {
           email: rest.email ?? undefined,
           office: rest.office ?? undefined,
+          companyId: rest.companyId ?? undefined,
           id: rest.id,
           firstName: rest.firstName,
           lastName: rest.lastName,
@@ -185,8 +187,8 @@ class UserRepository {
     } catch (error) {
       return { success: false, error: "Failed to fetch user from database" };
     }
-  }  
-  
+  }
+
   async getUserById(userId: string) {
     try {
       return await prisma.user.findUnique({
@@ -198,7 +200,17 @@ class UserRepository {
     }
   }
 
-
+  async getUserWithCompany(userId: string) {
+    try {
+      return await prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+    } catch (error) {
+      console.error("Failed to fetch user with company from database", error);
+      return null;
+    }
+  }
 }
 
 export { UserRepository };
