@@ -148,7 +148,8 @@ export default function ProfilePage() {
           }
 
           try {
-            imageUrl = await getProfilePhotoUrl();
+            const url = await getProfilePhotoUrl();
+            imageUrl = url === undefined ? null : url;
           } catch (e) {
             console.warn("Failed to fetch profile photo", e);
           }

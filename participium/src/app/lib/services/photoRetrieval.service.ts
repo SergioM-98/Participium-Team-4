@@ -1,6 +1,7 @@
 import { PhotoRepository } from "../repositories/photo.repository";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { RegistrationResponse } from "../dtos/user.dto";
 
 class PhotoRetrievalService {
   private static instance: PhotoRetrievalService;
@@ -17,7 +18,7 @@ class PhotoRetrievalService {
     return PhotoRetrievalService.instance;
   }
 
-  public async getPhoto(fileName: string) {
+  public async getPhoto(fileName: string): Promise<RegistrationResponse> {
     try {
       const filePath = path.join(process.cwd(), "uploads", fileName);
       const buffer = await readFile(filePath);

@@ -56,7 +56,7 @@ export function ProfileButton({
   useEffect(() => {
     if (!initialImage && session?.user) {
       getProfilePhotoUrl()
-        .then((url) => setImageUrl(url))
+        .then((url) => setImageUrl(url===undefined?null : url))
         .catch(() => {
 
         });

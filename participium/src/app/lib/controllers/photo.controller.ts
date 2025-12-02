@@ -1,8 +1,9 @@
 "use server";
 
+import { RegistrationResponse } from "../dtos/user.dto";
 import { PhotoRetrievalService } from "../services/photoRetrieval.service";
 
-export async function getPhoto(fileName: string) {
+export async function getPhoto(fileName: string): Promise<RegistrationResponse> {
   const photoRetrievalService = PhotoRetrievalService.getInstance();
   try {
     return await photoRetrievalService.getPhoto(fileName);
