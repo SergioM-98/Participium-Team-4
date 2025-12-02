@@ -151,7 +151,7 @@ class UserRepository {
       }
 
       await prisma.user.update({
-        where: { username: userId },
+        where: { id: userId },
         data,
       });
       return {
@@ -159,7 +159,7 @@ class UserRepository {
         data: userId,
       };
     } catch (error) {
-      throw new Error("Failed to update user in database");
+      throw new Error(error instanceof Error ? error.message : "Failed to update user in database");
     }
   }
 
