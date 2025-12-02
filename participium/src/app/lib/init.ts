@@ -1,5 +1,10 @@
+import createExternalMaintainerWithAccess from "@/prisma/external-maintainer-with-access";
 import createAdmin from "../../../prisma/admin";
 import createAnonymous from "../../../prisma/anonymous";
+import createExternalMaintainerWithoutAccess from "@/prisma/external-maintainer-without-access";
+import createCitizen from "@/prisma/citizen";
+import createTechnicalOfficer from "@/prisma/technical-officer";
+import createPublicRelationsOfficer from "@/prisma/public-relations-officer";
 
 let isInitialized = false;
 
@@ -20,6 +25,11 @@ export async function init() {
 
     await createAdmin();
     await createAnonymous();
+    // await createExternalMaintainerWithAccess();
+    // await createExternalMaintainerWithoutAccess();
+    await createCitizen();
+    await createTechnicalOfficer();
+    await createPublicRelationsOfficer();
 
     console.log("Application initialization completed!");
   } catch (error) {

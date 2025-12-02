@@ -9,7 +9,6 @@ RUN npm ci
 
 COPY prisma ./prisma
 ARG DATABASE_URL=fake
-ENV DATABASE_URL=$DATABASE_URL
 RUN npx prisma generate
 
 COPY . .
@@ -31,4 +30,4 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 3000
-CMD npx prisma migrate deploy && npx prisma generate && npm start
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma generate && npm start"]
