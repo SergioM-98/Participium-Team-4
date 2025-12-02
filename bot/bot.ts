@@ -6,12 +6,14 @@ import {
 } from "@grammyjs/conversations";
 import * as dotenv from "dotenv";
 import { resolve } from "path";
+import { dirname, join } from "path";
 import { helpMenu } from "./menus/helpMenu";
 import { handleStart } from "./handlers/start";
 import { newReport } from "./handlers/newReport";
 import { handleHelp } from "./handlers/help";
 
-dotenv.config({ path: resolve(process.cwd(), ".env.bot") });
+const rootEnvPath = join(__dirname, "..", ".env");
+dotenv.config({ path: rootEnvPath });
 
 const token = process.env.BOT_TOKEN;
 if (!token) {

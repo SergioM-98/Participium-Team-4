@@ -354,7 +354,7 @@ export default function ProfilePage() {
         const result = await startTelegramRegistration();
         if (result.success) {
           const token = result.data;
-          const botName = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
+          const botName = "participium_bot";
 
           if (!botName) {
             setError("Bot username configuration missing on client.");
