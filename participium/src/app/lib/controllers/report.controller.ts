@@ -81,7 +81,8 @@ export async function getPendingApprovalReports(
 
 export async function approveReport(
   reportId: number,
-  department: string
+  departmentOrCompanyId: string,
+  isCompany: boolean = false
 ): Promise<AssignReportToOfficerResponse> {
   const session = await getServerSession(authOptions);
 
@@ -94,7 +95,12 @@ export async function approveReport(
   }
 
   const reportAssignmentService = ReportAssignmentService.getInstance();
-  return reportAssignmentService.assignReportToOfficer(reportId, department);
+
+  if (isCompany) {
+    return reportAssignmentService.assignReportToCompany(reportId, departmentOrCompanyId);
+  } else {
+    return reportAssignmentService.assignReportToOfficer(reportId, departmentOrCompanyId);
+  }
 }
 
 export async function rejectReport(

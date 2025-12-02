@@ -245,6 +245,43 @@ class ReportRepository {
       },
     });
   }
+
+  public async getCompanyEmployeeWithLeastReports(companyId: string) {
+    return await prisma.user.findFirst({
+      where: {
+        companyId: companyId,
+        role: {
+          in: ["EXTERNAL_MAINTAINER_WITH_ACCESS", "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"] as Role[],
+        },
+      },
+      orderBy: {
+        managedReports: {
+          _count: "asc",
+        },
+      },
+    });
+  }
+
+  public async assignReportToCompany(
+    reportId: number,
+    companyId: string
+  ): Promise<Report> {
+    return await prisma.report.update({
+      where: {
+        id: BigInt(reportId),
+      },
+      data: {
+        company: {
+          connect: {
+            id: companyId,
+          },
+        },
+      },
+      include: {
+        company: true,
+      },
+    });
+  }
 }
 
 export { ReportRepository };
