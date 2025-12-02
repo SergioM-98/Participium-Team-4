@@ -708,7 +708,7 @@ export default function ProfilePage() {
             {isCitizen && (
               <div className="space-y-2 md:col-span-2">
                 {isTelegramConnected ? (
-                  <div className="flex items-center justify-between h-9 gap-2">
+                  <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="h-5 w-5 text-green-600" />
                       <span className="text-green-600 font-medium text-sm">
@@ -716,21 +716,31 @@ export default function ProfilePage() {
                       </span>
                     </div>
                     {isEditing && (
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="gap-2"
-                        onClick={() => {
-                          setRemoveTelegram(true);
-                          setFormData({
-                            ...formData,
-                            telegramEnabled: false,
-                          });
-                        }}
-                        disabled={isPending}
-                      >
-                        <X className="h-4 w-4" /> Remove Connection
-                      </Button>
+                      <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-red-200 bg-red-50/50 p-4">
+                        <Checkbox
+                          id="removeTelegram"
+                          checked={removeTelegram}
+                          onCheckedChange={(checked) => {
+                            setRemoveTelegram(checked as boolean);
+                            setFormData({
+                              ...formData,
+                              telegramEnabled: checked ? false : user?.notifications.telegramEnabled ?? false,
+                            });
+                          }}
+                          disabled={isPending}
+                        />
+                        <div className="space-y-1 leading-none">
+                          <Label
+                            htmlFor="removeTelegram"
+                            className="cursor-pointer font-medium text-red-700"
+                          >
+                            Disconnect Telegram Account
+                          </Label>
+                          <p className="text-xs text-red-600/80 pt-1">
+                            Check this box to remove your Telegram connection. You can uncheck it before saving to undo.
+                          </p>
+                        </div>
+                      </div>
                     )}
                   </div>
                 ) : (
