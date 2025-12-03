@@ -14,7 +14,6 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials): Promise<User | null> {
         if (!credentials) return null;
-
         const user = await prisma.user.findUnique({
           where: { username: credentials.username },
         });
@@ -24,7 +23,7 @@ export const authOptions: AuthOptions = {
           credentials.password,
           user.passwordHash
         );
-        if (!isValid || !user.isVerified) return null;
+        if (!isValid || (!user.isVerified && user.role == "CITIZEN")) return null;
 
         const userResult = {
           id: user.id.toString(),
