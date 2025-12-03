@@ -9,7 +9,7 @@ import { CompaniesRetrievalResponse } from "@/dtos/company.dto";
 export async function createCompany(formData: FormData) {
   const session = await getServerSession(authOptions);
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (session?.user.role !== "ADMIN") {
     return { success: false, error: "Unauthorized access" };
   }
 

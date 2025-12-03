@@ -6,16 +6,16 @@ import {
   RegistrationInput,
   RegistrationInputSchema,
   RegistrationResponse,
-} from "../dtos/user.dto";
+} from "@/dtos/user.dto";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../auth";
-import { UserService } from "../services/user.service";
+import { UserService } from "@/services/user.service";
 import { updateNotificationsPreferences } from "./notification.controller";
 import {
   NotificationsData,
   NotificationsResponse,
-} from "../dtos/notificationPreferences.dto";
-import { NotificationService } from "../services/notification.service";
+} from "@/dtos/notificationPreferences.dto";
+import { NotificationService } from "@/services/notification.service";
 import { prisma } from "@/prisma/db";
 import { no } from "zod/v4/locales";
 
@@ -84,10 +84,20 @@ export async function register(
   }
 
   try {
-    return await UserService.getInstance().createUser(parsed.data);
-  } catch (error) {
-    console.error("Error creating user:", error);
-    return { success: false, error: "Failed to create user" };
+    const result = await UserService.getInstance().createUser(parsed.data);
+
+    // For CITIZEN users, registration is complete but verification is pending
+    if (result.success && parsed.data.role === "CITIZEN") {
+      return {
+        success: true,
+        data: parsed.data.username,
+        pendingVerification: true,
+      };
+    }
+    return result;
+  }catch (error) {
+    console.error("Error during user registration:", error);
+    return { success: false, error: "Failed to register user" };
   }
 }
 

@@ -26,7 +26,7 @@ class UserRepository {
   }
 
   async checkDuplicates(
-    userData: RegistrationInput
+    userData: RegistrationInput,
   ): Promise<CheckDuplicatesResponse> {
     const existingUsername = await prisma.user.findFirst({
       where: {
@@ -52,7 +52,7 @@ class UserRepository {
 
   async createUser(
     userData: RegistrationInput,
-    db: DBClient = prisma
+    db: DBClient = prisma,
   ): Promise<RegistrationResponse> {
     if (userData.password !== userData.confirmPassword) {
       return { success: false, error: "Passwords do not match" };
@@ -71,6 +71,7 @@ class UserRepository {
           office: userData.office ?? undefined,
           companyId: userData.companyId ?? undefined,
           passwordHash: hashedPassword,
+          isVerified: userData.role === "CITIZEN" ? false : null,
         },
       });
 
@@ -87,14 +88,23 @@ class UserRepository {
       },
     });
 
-    if (!user) {
-      return { success: false, error: "Invalid credentials" };
-    }
+      if (!user) {
+        return { success: false, error: "Invalid credentials" };
+      }
 
-    const passwordMatch = await bcrypt.compare(
-      userData.password,
-      user.passwordHash
-    );
+      // Check if CITIZEN user is verified
+      if (user.role === "CITIZEN" && user.isVerified === false) {
+        return {
+          success: false,
+          error:
+            "Account verification pending. Please check your email for the verification code.",
+        };
+      }
+
+      const passwordMatch = await bcrypt.compare(
+        userData.password,
+        user.passwordHash,
+      );
 
     if (!passwordMatch) {
       return { success: false, error: "Invalid credentials" };
@@ -124,7 +134,7 @@ class UserRepository {
     userId: string,
     email: string | null,
     removeTelegram: boolean,
-    db: DBClient = prisma
+    db: DBClient = prisma,
   ): Promise<RegistrationResponse> {
     if (email === null && removeTelegram === false) {
       return {
@@ -192,6 +202,12 @@ class UserRepository {
       console.error("Failed to fetch user with company from database", error);
       return null;
     }
+  }
+
+  async deleteUserById(userId: string) {
+    await prisma.user.delete({
+      where: { id: userId },
+    });
   }
 }
 
