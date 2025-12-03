@@ -14,7 +14,9 @@ export const ReportSchema = z.object({
     latitude: z.number().min(-90).max(90),
     longitude: z.number().min(-180).max(180),
     title: z.string().min(1),
-    category: z.string().min(1), 
+    category: z.string().min(1),
+    status: z.string().min(1),
+    citizenId: z.string().optional(),
 });
 
 

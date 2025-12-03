@@ -9,6 +9,7 @@ import {
     Trees, 
     AlertTriangle 
 } from 'lucide-react';
+import { getStatusColor } from './utils';
 
 
 const getIconByCategory = (category: string) => {
@@ -38,17 +39,25 @@ const getIconByCategory = (category: string) => {
 
 interface ReportMarkerProps {
     category: string;
+    status: string;
 }
 
-export const ReportMarkerIcon = ({ category }: ReportMarkerProps) => (
-  <div className="group relative flex items-center justify-center w-10 h-10">
-    <div className="absolute inset-0 bg-primary/20 rounded-full animate-pulse group-hover:bg-primary/30" />
-    
-    <div className="relative z-10 flex items-center justify-center w-8 h-8 bg-white rounded-full border-2 border-primary shadow-md transition-transform group-hover:scale-110">
-        {getIconByCategory(category)}
+export const ReportMarkerIcon = ({ category, status }: ReportMarkerProps) => {
+  const borderColor = getStatusColor(status);
+  
+  return (
+    <div className="group relative flex items-center justify-center w-10 h-10">
+      <div className="absolute inset-0 bg-primary/20 rounded-full animate-pulse group-hover:bg-primary/30" />
+      
+      <div 
+        className="relative z-10 flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md transition-transform group-hover:scale-110"
+        style={{ borderWidth: '3px', borderColor, borderStyle: 'solid' }}
+      >
+          {getIconByCategory(category)}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 interface ClusterIconProps {
   count: number;
