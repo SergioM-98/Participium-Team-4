@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import OfficerActionPanel from "../app/officer/all-reports/OfficerActionPanel";
+import MaintainerActionPanel from "../app/maintainer/my-reports/MaintainerActionPanel";
 import ChatPanel, { ChatMessage } from "./ChatPanel";
 import { getReportMessages, sendMessage } from "../app/lib/controllers/message.controller";
 
@@ -46,7 +47,9 @@ interface ReportDetailsCardProps {
   report: Report;
   onClose?: () => void;
   isOfficerMode?: boolean;
+  isMaintainerMode?: boolean;
   onOfficerActionComplete?: () => void;
+  onMaintainerActionComplete?: () => void;
   showChat?: boolean;
 }
 
@@ -83,7 +86,9 @@ export default function ReportDetailsCard({
   report,
   onClose,
   isOfficerMode = false,
+  isMaintainerMode = false,
   onOfficerActionComplete,
+  onMaintainerActionComplete,
   showChat = false,
 }: ReportDetailsCardProps) {
   const { data: session } = useSession();
@@ -110,7 +115,7 @@ export default function ReportDetailsCard({
   const [isSending, setIsSending] = useState(false);
 
   // Use the actual role from the session
-  const currentUserRole = (session?.user as any)?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : (session?.user as any)?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : "CITIZEN";
+  const currentUserRole = (session?.user as any)?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : (session?.user as any)?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : (session?.user as any)?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ? "EXTERNAL_MAINTAINER_WITH_ACCESS" : "CITIZEN";
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -181,7 +186,7 @@ export default function ReportDetailsCard({
   return (
     <div className="w-full h-full flex flex-col bg-background overflow-hidden">
       {/* Header fisso */}
-      <div className="flex items-start justify-between px-3 py-2 md:px-6 md:py-5 border-b bg-background flex-shrink-0">
+      <div className="flex items-start justify-between px-3 py-2 md:px-6 md:py-5 border-b bg-background shrink-0">
         <div className="space-y-1">
           <div className="flex items-center gap-2 md:gap-3">
             <h2 className="text-base md:text-xl font-bold tracking-tight text-foreground line-clamp-1">{report.title}</h2>
@@ -301,6 +306,16 @@ export default function ReportDetailsCard({
               currentStatus={report.status}
               currentCategory={report.category}
               onActionComplete={onOfficerActionComplete}
+            />
+          </div>
+        )}
+
+        {isMaintainerMode && !canViewChat && (
+          <div className="w-full md:w-80 h-[50vh] md:h-full md:min-h-0 border-t md:border-t-0 md:border-l border-border bg-muted/10 flex flex-col overflow-y-auto p-4 md:p-6">
+            <MaintainerActionPanel
+              reportId={report.id}
+              currentStatus={report.status}
+              onActionComplete={onMaintainerActionComplete}
             />
           </div>
         )}

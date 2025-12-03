@@ -48,6 +48,7 @@ class UserService {
         if (!res.success) {
           throw new Error(res.error);
         }
+      }
 
         if (!userData.email) {
           throw new Error("Email is required for CITIZEN users");

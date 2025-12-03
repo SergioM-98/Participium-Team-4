@@ -1,43 +1,99 @@
 # participium-team-4
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Deployment Instructions
 
-## Getting Started
+This repository contains the **Participium** project with all the required services:
 
-First, run the development server:
+- Backend (`participium`)
+- Telegram Bot (`telegram_bot`)
+- PostgreSQL Database (`db` and `test_db`)
+
+The project is ready to be run via **Docker Compose** and can be deployed by third parties.
+
+## Requirements
+
+- Docker ≥ 20.x
+- Docker Compose ≥ 2.x
+
+
+## Quick Start
+
+1. **Clone the repository**:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/SergioM-98/Participium-Team-4.git
+cd Participium-Team-4
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Set up environment variables**:
+	- Copy `.env.example` to `.env` in the root (or create `.env` manually) and fill in the required values (e.g. `BOT_TOKEN`, `DATABASE_URL`, etc.).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Start all services with Docker Compose**:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+docker compose pull
+docker compose up -d
+```
 
-## Learn More
+4. Verify that the containers are running:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+docker ps
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. **Access the application**:
+	- Backend: [http://localhost:3000](http://localhost:3000)
+	- The Telegram bot will respond to messages if the token is valid.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## User Credentials
 
-## Deploy on Vercel
+| Username | Password             | Role                               |
+| -------- | -------------------- | ---------------------------------- |
+| admin    | adminTeam4           | ADMIN                              |
+| mcurie   | tOfficerTeam4        | TECHNICAL_OFFICER                  |
+| arossi   | PrOfficerTeam4       | PUBLIC_RELATIONS_OFFICER           |
+| everdi   | extMaintWithTeam4    | EXTERNAL_MAINTAINER_WITH_ACCESS    |
+| gbianchi | extMaintWithoutTeam4 | EXTERNAL_MAINTAINER_WITHOUT_ACCESS |
+| mneri    | citizenTeam4         | CITIZEN                            |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Notes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Admin**: Administrator account enabled to create Officer and External Maintainer accounts
+- **Technical Officer**: Responsible for technical management of reports
+- **Public Relations Officer**: Responsible for reports approval or rejection
+- **External Maintainer With Access**: Has access to Participium
+- **External Maintainer Without Access**: Has no access to Participium
+- **Citizen**: Can create reports
 
-## Branch Name Conventions and Workflow
+
+## Dockerhub
+
+It is also possible to launch the project through Dockerhub, using the commands:
+
+```bash
+docker run -d --name participium skeitt/participium-team-4:latest
+docker run -d --name participium_bot skeitt/participium-team-4-bot:latest
+```
+
+## Available Services
+
+| Service      | Local Port | Description   |
+| ------------ | ---------- | ------------- |
+| participium  | 3000       | Main backend  |
+| telegram_bot | -          | Telegram bot  |
+| db           | 5432       | Main Database |
+| test_db      | 5433       | Test Database |
+
+## Important Notes
+
+- Data is persisted via Docker volumes (pgdata and pgdata_test)
+- The backend uses DATABASE_URL to connect to the database
+- End users do not need to build, just run docker compose pull && docker compose up
+
+
+## For Maintainers
+
+### Branch Name Conventions and Workflow
 
 When working on an issue, create a branch based on the name of the issue. The usual convention is like this:
 
@@ -78,7 +134,7 @@ Standard branches are:
 
 The merge workflow should be: `dev` → `QA` after a feature or fix is implemented, and after passing all tests, `QA` → `main`
 
-## Folder Structure
+### Folder Structure
 
 ```
 participium-team-4/
@@ -102,113 +158,26 @@ participium-team-4/
 └── tests/                    # test/unit, test/integration, e2e
 ```
 
-## Deployment Instructions
+### Docker build images
 
-This repository contains the **Participium** project with all the required services:
-
-- Backend (`participium`)
-- Telegram Bot (`telegram_bot`)
-- PostgreSQL Database (`db` and `test_db`)
-
-The project is ready to be run via **Docker Compose** and can be deployed by third parties.
-
-## Requirements
-
-- Docker ≥ 20.x
-- Docker Compose ≥ 2.x
-
-## Quick Start
-
-1. Clone the repository:
+To build and push images for both amd64 and arm64 (Apple Silicon, Raspberry Pi, etc.):
 
 ```bash
-git clone <REPO_URL>
+# Create and use a new builder if you haven't already
+docker buildx create --use --name participium-builder
+
+# Build and push the backend image
 cd participium
+docker buildx build --platform linux/amd64,linux/arm64 -t your_username/participium:latest --push .
+cd ..
+
+# Build and push the bot image
+cd bot
+docker buildx build --platform linux/amd64,linux/arm64 -t your_username/participium-team-4-bot:latest --push .
+cd ..
 ```
 
-2. Create a .env file with the necessary variables (e.g., BOT_TOKEN):
-
-```
-BOT_TOKEN=tuo_token
-```
-
-3. Start all services:
-
-```bash
-docker compose pull
-docker compose up -d
-```
-
-4. Verify that the containers are running:
-
-```bash
-docker ps
-```
-
-## Dockerhub
-
-It is also possible to launch the project through Dockerhub, using the commands:
-
-```bash
-docker run -d --name participium -p 3000:3000 andrea334214/participium:latest
-docker run -d --name participium_bot andrea334214/participium_bot:latest
-```
-
-In case you are running Participium on ARM, you can alternatively use:
-
-```bash
-docker run -d --platform linux/amd64 --name participium -p 3000:3000 andrea334214/participium:latest
-docker run -d --platform linux/amd64 --name participium_bot andrea334214/participium_bot:latest
-```
-
-## Available Services
-
-| Service      | Local Port | Description   |
-| ------------ | ---------- | ------------- |
-| participium  | 3000       | Main backend  |
-| telegram_bot | -          | Telegram bot  |
-| db           | 5432       | Main Database |
-| test_db      | 5433       | Test Database |
-
-## Important Notes
-
-- Data is persisted via Docker volumes (pgdata and pgdata_test)
-- The backend uses DATABASE_URL to connect to the database
-- End users do not need to build, just run docker compose pull && docker compose up
-
-## For Maintainers (build and push images)
-
-```bash
-# Local build
-docker compose build
-
-# Tag images
-docker tag participium:latest your_username/participium:latest
-docker tag telegram_bot:latest your_username/telegram_bot:latest
-
-# Push to Docker Hub
-docker push your_username/participium:latest
-docker push your_username/telegram_bot:latest
-```
+> Replace `your_username` with your Docker Hub username.
+> The `--push` flag uploads the image directly to Docker Hub for both architectures.
 
 > This README allows anyone to launch the entire system with a single command and without local compilation.
-
-# User Credentials
-
-| Username | Password             | Role                               |
-| -------- | -------------------- | ---------------------------------- |
-| admin    | adminTeam4           | ADMIN                              |
-| mcurie   | tOfficerTeam4        | TECHNICAL_OFFICER                  |
-| arossi   | PrOfficerTeam4       | PUBLIC_RELATIONS_OFFICER           |
-| everdi   | extMaintWithTeam4    | EXTERNAL_MAINTAINER_WITH_ACCESS    |
-| gbianchi | extMaintWithoutTeam4 | EXTERNAL_MAINTAINER_WITHOUT_ACCESS |
-| mneri    | citizenTeam4         | CITIZEN                            |
-
-## Notes
-
-- **Admin**: Administrator account enabled to create Officer and External Maintainer accounts
-- **Technical Officer**: Responsible for technical management of reports
-- **Public Relations Officer**: Responsible for reports approval or rejection
-- **External Maintainer With Access**: Has access to Participium
-- **External Maintainer Without Access**: Has no access to Participium
-- **Citizen**: Can create reports
