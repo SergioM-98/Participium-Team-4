@@ -26,6 +26,9 @@ export default function OfficerRegistrationPage() {
       if (payload.office) {
         formData.append("office", payload.office);
       }
+      if (payload.companyId) {
+        formData.append("companyId", payload.companyId);
+      }
       formData.append("confirmPassword", payload.confirmPassword);
 
       const result = await register(formData);

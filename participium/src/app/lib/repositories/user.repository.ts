@@ -60,18 +60,19 @@ class UserRepository {
 
     const hashedPassword = await bcrypt.hash(userData.password, 12);
 
-    const user = await db.user.create({
-      data: {
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email ?? undefined,
-        username: userData.username,
-        id: userData.id,
-        role: userData.role,
-        office: userData.office ?? undefined,
-        passwordHash: hashedPassword,
-      },
-    });
+      const user = await prisma.user.create({
+        data: {
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email ?? undefined,
+          username: userData.username,
+          id: userData.id,
+          role: userData.role,
+          office: userData.office ?? undefined,
+          companyId: userData.companyId ?? undefined,
+          passwordHash: hashedPassword,
+        },
+      });
 
     return {
       success: true,
@@ -99,21 +100,25 @@ class UserRepository {
       return { success: false, error: "Invalid credentials" };
     }
 
-    const { passwordHash, ...rest } = user;
-    return {
-      success: true,
-      data: {
-        email: rest.email ?? undefined,
-        office: rest.office ?? undefined,
-        firstName: rest.firstName,
-        lastName: rest.lastName,
-        username: rest.username,
-        role: rest.role,
-        telegram: rest.telegramChatId ?? undefined,
-        pendingRequest: rest.telegramRequestPending ?? undefined,
-      },
-    };
-  }
+      const { passwordHash, ...rest } = user;
+      return {
+        success: true,
+        data: {
+          email: rest.email ?? undefined,
+          office: rest.office ?? undefined,
+          companyId: rest.companyId ?? undefined,
+          id: rest.id,
+          firstName: rest.firstName,
+          lastName: rest.lastName,
+          username: rest.username,
+          role: rest.role,
+          telegram: rest.telegram ?? undefined,
+        },
+      };
+    } catch (error) {
+      throw new Error("Failed to fetch user from database");
+    }
+  
 
   async updateNotificationsMedia(
     userId: string,
@@ -160,37 +165,34 @@ class UserRepository {
         error: "No user found with the provided telegram ID.",
       };
     }
-
-    return {
-      success: true,
-      data: user.id,
-    };
-  }  
+      return {
+        success: true,
+        data: user.id,
+      };
+    }
   
+
   async getUserById(userId: string) {
-    let user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-    if(!user){
-      throw new Error("User not found");
+    try {
+      return await prisma.user.findUnique({
+        where: { id: userId },
+      });
+    } catch (error) {
+      console.error("Failed to fetch user from database", error);
+      return null;
     }
-    if(user.role === "CITIZEN" && user.telegramRequestPending){
-      if(user.telegramRequestTTL && user.telegramRequestTTL < (new Date())){
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: {
-            telegramToken: null,
-            telegramRequestPending: false,
-            telegramRequestTTL: null,
-          },
-        });
-        console.log("Expired telegram request cleaned for user:", user.username);
-      }
-    }
-    return user;
   }
-
-
+    async getUserWithCompany(userId: string) {
+    try {
+      return await prisma.user.findUnique({
+        where: { id: userId },
+        include: { company: true },
+      });
+    } catch (error) {
+      console.error("Failed to fetch user with company from database", error);
+      return null;
+    }
+  }
 }
 
 export { UserRepository };

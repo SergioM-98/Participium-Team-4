@@ -43,10 +43,10 @@ class UserService {
             tx
           );
 
-            if (!res.success) {
-                throw new Error(res.error);
-            }
+        if (!res.success) {
+          throw new Error(res.error);
         }
+      }
 
       return result;
     });
@@ -81,6 +81,10 @@ class UserService {
     return this.userRepository.getUserById(userId);
   }
 
+
+  public async getUserWithCompany(userId: string) {
+    return this.userRepository.getUserWithCompany(userId);
+  }
 }
 
 export { UserService };

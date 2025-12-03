@@ -76,6 +76,8 @@ type UserProfileData = {
   pendingRequest: boolean;
   role: string;
   office?: string;
+  companyId?: string;
+  companyName?: string;
   image: string | null;
   notifications: {
     emailEnabled: boolean;
@@ -165,6 +167,8 @@ export default function ProfilePage() {
             pendingRequest: !!userData.pendingRequest,
             role: userData.role || session.user.role,
             office: userData.office || undefined,
+            companyId: userData.companyId || undefined,
+            companyName: (userData as any).companyName || undefined,
             image: imageUrl,
             notifications: {
               emailEnabled: notifications.emailEnabled,
@@ -457,6 +461,9 @@ export default function ProfilePage() {
   }
 
   const isCitizen = user.role === "CITIZEN";
+  const isExternalMaintainer =
+    user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
+    user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS";
   const canEdit = isCitizen;
   const isTelegramConnected = !!user.telegram;
 
@@ -522,6 +529,9 @@ export default function ProfilePage() {
               {user.role === "TECHNICAL_OFFICER" ||
               user.role === "PUBLIC_RELATIONS_OFFICER"
                 ? "View your officer details and office assignment."
+                : user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
+                  user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+                ? "View your external maintainer details and company assignment."
                 : user.role === "ADMIN"
                 ? "System administrator profile."
                 : "Manage your contact information and notification preferences."}
@@ -613,6 +623,18 @@ export default function ProfilePage() {
                   </span>
                 </div>
               </div>
+              {isExternalMaintainer && (
+                <div className="grid grid-cols-1 gap-8 mb-3 px-1">
+                  <div className="flex flex-col items-center sm:items-start gap-1">
+                    <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1">
+                      <Building2 className="h-3 w-3" /> Company
+                    </Label>
+                    <span className="text-lg font-semibold text-foreground leading-none">
+                      {user.companyName || "Not assigned"}
+                    </span>
+                  </div>
+                </div>
+              )}
               <div className="flex flex-col items-center sm:items-start gap-2 mt-2 px-1">
                 <span className="text-muted-foreground text-sm font-medium flex items-center gap-1.5 font-mono">
                   <UserIcon className="h-3.5 w-3.5" /> @{user.username}
@@ -621,7 +643,9 @@ export default function ProfilePage() {
                   className={cn(
                     "px-2.5 py-0.5 rounded-full text-xs font-semibold border flex items-center gap-1 w-fit",
                     user.role === "TECHNICAL_OFFICER" ||
-                      user.role === "PUBLIC_RELATIONS_OFFICER"
+                      user.role === "PUBLIC_RELATIONS_OFFICER" ||
+                      user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
+                      user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
                       ? "bg-blue-50 text-blue-700 border-blue-200"
                       : user.role === "ADMIN"
                       ? "bg-purple-50 text-purple-700 border-purple-200"
@@ -631,6 +655,9 @@ export default function ProfilePage() {
                   {user.role === "TECHNICAL_OFFICER" ||
                   user.role === "PUBLIC_RELATIONS_OFFICER" ? (
                     <ShieldAlert className="h-3 w-3" />
+                  ) : user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
+                    user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS" ? (
+                    <ShieldAlert className="h-3 w-3" />
                   ) : user.role === "ADMIN" ? (
                     <ShieldCheck className="h-3 w-3" />
                   ) : (
@@ -639,6 +666,10 @@ export default function ProfilePage() {
                   {user.role === "TECHNICAL_OFFICER" ||
                   user.role === "PUBLIC_RELATIONS_OFFICER"
                     ? "Officer"
+                    : user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS"
+                    ? "External Maintainer (with access)"
+                    : user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+                    ? "External Maintainer (without access)"
                     : user.role === "ADMIN"
                     ? "Administrator"
                     : "Citizen"}

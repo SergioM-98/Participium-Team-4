@@ -11,6 +11,13 @@ import {
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../components/ui/select";
+import {
   MapPin,
   Search,
   Filter,
@@ -26,7 +33,7 @@ import ReportDetailsCard from "../../../components/ReportDetailsCard";
 type Report = RetrieveReportByAssignee;
 
 interface ReportsListProps {
-  officerId: string;
+  maintainerId: string;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -44,23 +51,38 @@ const categoryLabels: Record<string, string> = {
 const categoryColors: Record<string, string> = {
   WATER_SUPPLY: "bg-blue-100 text-blue-800",
   ARCHITECTURAL_BARRIERS: "bg-purple-100 text-purple-800",
-  SEWER_SYSTEM: "bg-amber-100 text-amber-800",
+  SEWER_SYSTEM: "bg-brown-100 text-brown-800",
   PUBLIC_LIGHTING: "bg-yellow-100 text-yellow-800",
   WASTE: "bg-green-100 text-green-800",
   ROADS_SIGNS_AND_TRAFFIC_LIGHTS: "bg-red-100 text-red-800",
-  ROADS_AND_URBAN_FURNISHINGS: "bg-orange-100 text-orange-800",
+  ROADS_AND_URBAN_FURNISHINGS: "bg-indigo-100 text-indigo-800",
   PUBLIC_GREEN_AREAS_AND_BACKGROUNDS: "bg-emerald-100 text-emerald-800",
   OTHER: "bg-gray-100 text-gray-800",
 };
 
-export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
+const statusLabels: Record<string, string> = {
+  ASSIGNED: "Assigned",
+  IN_PROGRESS: "In Progress",
+  SUSPENDED: "Suspended",
+  RESOLVED: "Resolved",
+};
+
+const statusColors: Record<string, string> = {
+  ASSIGNED: "bg-blue-100 text-blue-800",
+  IN_PROGRESS: "bg-yellow-100 text-yellow-800",
+  SUSPENDED: "bg-orange-100 text-orange-800",
+  RESOLVED: "bg-green-100 text-green-800",
+};
+
+export default function ReportsList({ maintainerId }: ReportsListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+  const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [photoCache, setPhotoCache] = useState<Record<string, string>>({}); // Store photo data URLs
+  const [photoCache, setPhotoCache] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function fetchReports() {
@@ -77,7 +99,6 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
 
         setReports(response.data);
       } catch (err) {
-        console.error("Error fetching reports:", err);
         setError("An unexpected error occurred");
       } finally {
         setIsLoading(false);
@@ -122,22 +143,48 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
       report.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory =
       selectedCategory === "ALL" || report.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesStatus =
+      selectedStatus === "ALL" || report.status === selectedStatus;
+    return matchesSearch && matchesCategory && matchesStatus;
   });
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              Error
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>{error}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">
-          My Assigned Reports
-        </h1>
-        <p className="text-muted-foreground text-sm md:text-base">
-          Overview of maintenance tasks assigned to you
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">My Assigned Reports</h1>
+        <p className="text-muted-foreground">
+          View and manage reports assigned to you
         </p>
       </div>
 
-      {!isLoading && !error && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      {reports.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-3 mb-6">
           <Card>
             <CardHeader className="pb-3">
               <CardDescription className="text-xs">
@@ -169,98 +216,85 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
 
       <div className="mb-6 space-y-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search by title or description..."
+            placeholder="Search reports..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Filter by category:</span>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Categories</SelectItem>
+                {Object.entries(categoryLabels).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button
-              variant={selectedCategory === "ALL" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory("ALL")}
-              className="text-xs"
-            >
-              All
-            </Button>
-            {Object.entries(categoryLabels).map(([key, label]) => (
-              <Button
-                key={key}
-                variant={selectedCategory === key ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(key)}
-                className="text-xs"
-              >
-                {label}
-              </Button>
-            ))}
+
+          <div className="flex-1">
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                {Object.entries(statusLabels).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
 
-      <div className="mb-4">
-        <p className="text-sm text-muted-foreground">
-          {filteredReports.length}{" "}
-          {filteredReports.length === 1 ? "report" : "reports"} found
-        </p>
-      </div>
-
-      {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="text-muted-foreground">Loading your reports...</p>
-          </div>
-        </div>
-      ) : error ? (
-        <Card className="p-12">
-          <div className="flex flex-col items-center justify-center text-center">
-            <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
-            <h3 className="text-xl font-semibold mb-2">
-              Error Loading Reports
-            </h3>
-            <p className="text-muted-foreground max-w-md">{error}</p>
-            <Button className="mt-4" onClick={() => window.location.reload()}>
-              Try Again
-            </Button>
-          </div>
-        </Card>
-      ) : filteredReports.length === 0 ? (
-        <Card className="p-12">
-          <div className="flex flex-col items-center justify-center text-center">
-            <FileText className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No reports found</h3>
-            <p className="text-muted-foreground max-w-md">
-              {searchQuery || selectedCategory !== "ALL"
-                ? "Try adjusting your filters to see more results."
-                : "You don't have any assigned reports yet."}
-            </p>
-          </div>
+      {filteredReports.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>No reports found</CardTitle>
+            <CardDescription>
+              {searchQuery || selectedCategory !== "ALL" || selectedStatus !== "ALL"
+                ? "Try adjusting your filters"
+                : "You don't have any assigned reports yet"}
+            </CardDescription>
+          </CardHeader>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredReports.map((report) => (
             <Card
               key={report.id}
-              className="flex flex-col hover:shadow-lg transition-shadow"
+              className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col"
             >
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <CardTitle className="text-lg line-clamp-2">
                     {report.title}
                   </CardTitle>
                   <span
                     className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                      statusColors[report.status || "ASSIGNED"]
+                    }`}
+                  >
+                    {statusLabels[report.status || "ASSIGNED"]}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${
                       categoryColors[report.category]
                     }`}
                   >
@@ -323,16 +357,16 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
           onClick={() => setSelectedReport(null)}
         >
           <div
-            className="w-screen h-screen md:w-[70vw] md:h-[70vh] max-w-[95vw] max-h-[95vh] rounded-xl shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300"
-             onClick={(e) => e.stopPropagation()}
-           >
+            className="relative w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] max-h-[85vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             <ReportDetailsCard
               report={{
                 id: selectedReport.id.toString(),
                 title: selectedReport.title,
                 description: selectedReport.description,
                 category: selectedReport.category,
-                status: selectedReport.status as "pending_approval" | "assigned" | "in_progress" | "suspended" | "rejected" | "resolved" || "pending_approval",
+                status: selectedReport.status || "ASSIGNED",
                 latitude: selectedReport.latitude,
                 longitude: selectedReport.longitude,
                 reporterName: selectedReport.citizen?.username || "Anonymous",
@@ -345,7 +379,12 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
               }}
               onClose={() => setSelectedReport(null)}
               showChat={true}
-              isOfficerMode={false}
+              isMaintainerMode={true}
+              onMaintainerActionComplete={() => {
+                setSelectedReport(null);
+                // Refresh the reports list
+                window.location.reload();
+              }}
             />
           </div>
         </div>

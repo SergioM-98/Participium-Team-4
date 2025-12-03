@@ -28,9 +28,11 @@ model Report {
   citizenId   String
   officerId   String?
   rejectionReason String?
+  companyId   String?
 
   citizen   User  @relation("createdBy", fields: [citizenId], references: [id])
   officer   User? @relation("managedBy", fields: [officerId], references: [id])
+  company   Company? @relation(fields: [companyId], references: [id])
   
   @@map("report")
 }
@@ -148,6 +150,7 @@ model Company {
   hasAccess    Boolean  @default(false)
 
   employees    User[]
+  reports      Report[]
 
   @@map("company")
 }

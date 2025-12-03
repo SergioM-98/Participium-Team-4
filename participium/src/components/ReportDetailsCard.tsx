@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import OfficerActionPanel from "../app/officer/all-reports/OfficerActionPanel";
+import MaintainerActionPanel from "../app/maintainer/my-reports/MaintainerActionPanel";
 import ChatPanel, { ChatMessage } from "./ChatPanel";
 import { getReportMessages, sendMessage } from "../app/lib/controllers/message.controller";
 import dynamic from "next/dist/shared/lib/dynamic";
@@ -49,7 +50,9 @@ interface ReportDetailsCardProps {
   report: Report;
   onClose?: () => void;
   isOfficerMode?: boolean;
+  isMaintainerMode?: boolean;
   onOfficerActionComplete?: () => void;
+  onMaintainerActionComplete?: () => void;
   showChat?: boolean;
 }
 
@@ -86,7 +89,9 @@ export default function ReportDetailsCard({
   report,
   onClose,
   isOfficerMode = false,
+  isMaintainerMode = false,
   onOfficerActionComplete,
+  onMaintainerActionComplete,
   showChat = false,
 }: ReportDetailsCardProps) {
   const { data: session } = useSession();
@@ -114,7 +119,7 @@ export default function ReportDetailsCard({
   const [isMapOpen, setIsMapOpen] = useState(false);
 
   // Use the actual role from the session
-  const currentUserRole = (session?.user as any)?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : (session?.user as any)?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : "CITIZEN";
+  const currentUserRole = (session?.user as any)?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : (session?.user as any)?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : (session?.user as any)?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ? "EXTERNAL_MAINTAINER_WITH_ACCESS" : "CITIZEN";
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -184,7 +189,7 @@ export default function ReportDetailsCard({
 
   return (
     <div className="w-full h-full flex flex-col bg-background overflow-hidden">
-      {/* Header (sopra tutti e tre) */}
+      {/* Header */}
       <div className="flex items-start justify-between px-3 py-2 md:px-6 md:py-5 border-b bg-background flex-shrink-0">
         <div className="space-y-1">
           <div className="flex items-center gap-2 md:gap-3">

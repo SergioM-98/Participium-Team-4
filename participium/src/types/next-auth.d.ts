@@ -9,6 +9,7 @@ declare module "next-auth" {
       office?: string;
       firstName: string;
       lastName: string;
+      companyId?: string;
       telegram?: string;
       email?: string;
     } & DefaultSession["user"];
@@ -21,6 +22,7 @@ declare module "next-auth" {
     office?: string;
     firstName: string;
     lastName: string;
+    companyId?: string;
     telegram?: string;
     email?: string;
   }
@@ -34,6 +36,7 @@ declare module "next-auth/jwt" {
     office?: string;
     firstName: string;
     lastName: string;
+    companyId?: string;
     telegram?: string;
     email?: string;
   }

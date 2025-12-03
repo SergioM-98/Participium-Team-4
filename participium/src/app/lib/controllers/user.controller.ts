@@ -11,7 +11,10 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../auth";
 import { UserService } from "../services/user.service";
 import { updateNotificationsPreferences } from "./notification.controller";
-import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
+import {
+  NotificationsData,
+  NotificationsResponse,
+} from "../dtos/notificationPreferences.dto";
 import { NotificationService } from "../services/notification.service";
 import { prisma } from "@/prisma/db";
 import { no } from "zod/v4/locales";
@@ -30,8 +33,6 @@ export async function checkDuplicates(userData: RegistrationInput) {
 export async function register(
   formData: FormData
 ): Promise<RegistrationResponse> {
-
-  
   const session = await getServerSession(authOptions);
 
   const validatedData = RegistrationInputSchema.safeParse({
@@ -44,13 +45,18 @@ export async function register(
     confirmPassword: formData.get("confirmPassword"),
     role: formData.get("role"),
     office: formData.get("office")?.toString().trim() || undefined,
+    companyId: formData.get("companyId")?.toString().trim() || undefined,
   });
 
   if (!validatedData.success) {
     console.error("Validation errors:", validatedData.error);
-    // Zod error format
-    const errorMessages = validatedData.error.issues?.length 
-      ? validatedData.error.issues.map((issue: any) => `${issue.path?.join('.') || 'unknown'} - ${issue.message}`).join('; ')
+    const errorMessages = validatedData.error.issues?.length
+      ? validatedData.error.issues
+          .map(
+            (issue: any) =>
+              `${issue.path?.join(".") || "unknown"} - ${issue.message}`
+          )
+          .join("; ")
       : "Invalid input data";
     return { success: false, error: errorMessages };
   }
@@ -193,7 +199,8 @@ export async function getMe(): Promise<MeType | RegistrationResponse> {
       role: user.role as MeType["me"]["role"],
       office: (user.office as MeType["me"]["office"]) ?? undefined,
       telegram: !!user.telegramChatId,
-      pendingRequest: !!user.telegramRequestPending,
+      companyId: companyId ?? undefined,
+      companyName: companyName ?? undefined,
     },
     emailNotifications: emailEnabled,
     telegramNotifications: telegramEnabled

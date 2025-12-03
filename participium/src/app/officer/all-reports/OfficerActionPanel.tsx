@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import {
@@ -12,6 +12,12 @@ import {
 } from "../../../components/ui/select";
 import { Textarea } from "../../../components/ui/textarea";
 import { approveReport, rejectReport } from "../../lib/controllers/report.controller";
+import { getAllCompanies } from "../../lib/controllers/company.controller";
+
+interface CompanyOption {
+  id: string;
+  name: string;
+}
 
 interface OfficerActionPanelProps {
   reportId: string | number;
@@ -28,23 +34,68 @@ export default function OfficerActionPanel({
 }: Readonly<OfficerActionPanelProps>) {
   const [isLoading, setIsLoading] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [companies, setCompanies] = useState<CompanyOption[]>([]);
+  const [companiesLoading, setCompaniesLoading] = useState(true);
 
   const [selectedCategory, setSelectedCategory] = useState<string>(currentCategory);
   const [selectedDepartment, setSelectedDepartment] = useState<string>("");
+  const [selectedCompany, setSelectedCompany] = useState<string>("");
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [showRejectInput, setShowRejectInput] = useState(false);
+
+  const handleDepartmentChange = (value: string) => {
+    if (value === "NONE" || selectedDepartment === value) {
+      setSelectedDepartment("");
+    } else {
+      setSelectedDepartment(value);
+      setSelectedCompany("");
+    }
+  };
+
+  const handleCompanyChange = (value: string) => {
+    if (value === "NONE" || selectedCompany === value) {
+      setSelectedCompany("");
+    } else {
+      setSelectedCompany(value);
+      setSelectedDepartment("");
+    }
+  };
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const result = await getAllCompanies();
+        
+        if (result.success && result.data) {
+          setCompanies(result.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch companies:", error);
+      } finally {
+        setCompaniesLoading(false);
+      }
+    };
+    fetchCompanies();
+  }, []);
 
   const canModerate =
     currentStatus === "pending_approval" || currentStatus === "PENDING";
 
   const handleApprove = async () => {
-    if (!selectedDepartment) return;
+    const deptValue = selectedDepartment === "NONE" ? "" : selectedDepartment;
+    const companyValue = selectedCompany === "NONE" ? "" : selectedCompany;
+    
+    if (!deptValue && !companyValue) return;
     setIsLoading(true);
     setFeedbackMessage(null);
     try {
+      const assignmentValue = deptValue || companyValue;
+      const isCompanyAssignment = !!companyValue;
+      
       const response = await approveReport(
         Number(reportId),
-        selectedDepartment
+        assignmentValue,
+        isCompanyAssignment
       );
       if (response.success) {
         onActionComplete?.();
@@ -146,12 +197,14 @@ export default function OfficerActionPanel({
           </label>
           <Select
             value={selectedDepartment}
-            onValueChange={setSelectedDepartment}
+            onValueChange={handleDepartmentChange}
+            disabled={selectedCompany !== ""}
           >
             <SelectTrigger className="w-full h-9 text-sm bg-background">
               <SelectValue placeholder="Select Department..." />
             </SelectTrigger>
             <SelectContent className="z-[9999] max-h-[250px]">
+              <SelectItem value="NONE">None</SelectItem>
               <SelectItem value="DEPARTMENT_OF_COMMERCE">
                 Commerce
               </SelectItem>
@@ -193,9 +246,32 @@ export default function OfficerActionPanel({
           </Select>
         </div>
 
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+            Assign Company
+          </label>
+          <Select
+            value={selectedCompany}
+            onValueChange={handleCompanyChange}
+            disabled={companiesLoading || selectedDepartment !== ""}
+          >
+            <SelectTrigger className="w-full h-9 text-sm bg-background">
+              <SelectValue placeholder={companiesLoading ? "Loading companies..." : "Select Company..."} />
+            </SelectTrigger>
+            <SelectContent className="z-[9999] max-h-[250px]">
+              <SelectItem value="NONE">None</SelectItem>
+              {companies.map((company) => (
+                <SelectItem key={company.id} value={company.id}>
+                  {company.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <Button
           onClick={handleApprove}
-          disabled={isLoading || !selectedDepartment || showRejectInput}
+          disabled={isLoading || (selectedDepartment === "" || selectedDepartment === "NONE") && (selectedCompany === "" || selectedCompany === "NONE") || showRejectInput}
           className="w-full bg-green-600 hover:bg-green-700 text-white h-9 text-sm"
         >
           {isLoading && !showRejectInput ? (

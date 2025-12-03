@@ -77,7 +77,7 @@ export type ReportResponse = z.infer<typeof reportResponseSchema>;
 
 export type RetrieveReport = z.infer<typeof retrieveReportResponseSchema>;
 
-export type RetrieveReportByOfficer = z.infer<
+export type RetrieveReportByAssignee = z.infer<
   typeof retrieveReportsByOfficerResponseSchema
 >;
 
@@ -90,7 +90,7 @@ export type ReportsUnassignedResponse =
   | { success: false; error: string };
 
 export type ReportsByOfficerResponse =
-  | { success: true; data: RetrieveReportByOfficer[] }
+  | { success: true; data: RetrieveReportByAssignee[] }
   | { success: false; error: string };
 
 export type ReportRegistrationResponse =

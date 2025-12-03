@@ -1,6 +1,9 @@
 import { prisma } from "../../../../prisma/db";
 import { Category, Report, Offices, ReportStatus, Role } from "@prisma/client";
-import { ReportRegistrationResponse } from "../dtos/report.dto";
+import {
+  ReportRegistrationResponse,
+  UpdateReportStatusResponse,
+} from "@/dtos/report.dto";
 
 class ReportRepository {
   private static instance: ReportRepository;
@@ -106,9 +109,7 @@ class ReportRepository {
       },
       include: {
         photos: {
-          select: { filename: true,
-            url: true
-          },
+          select: { filename: true, url: true },
         },
         citizen: {
           select: {
@@ -191,6 +192,7 @@ class ReportRepository {
 
     return null;
   }
+
   public async getApprovedReports() {
     const where: any = { status: "ASSIGNED" };
     const reports = await prisma.report.findMany({
@@ -212,6 +214,57 @@ class ReportRepository {
       return { success: false, error: "No reports found" };
     }
     return { success: true, data: reports };
+  }
+
+  public async updateReportStatus(
+    reportId: string,
+    status: string
+  ): Promise<Report> {
+    return await prisma.report.update({
+      where: {
+        id: BigInt(reportId),
+      },
+      data: {
+        status: status as ReportStatus,
+      },
+    });
+  }
+
+  public async getCompanyEmployeeWithLeastReports(companyId: string) {
+    return await prisma.user.findFirst({
+      where: {
+        companyId: companyId,
+        role: {
+          in: ["EXTERNAL_MAINTAINER_WITH_ACCESS", "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"] as Role[],
+        },
+      },
+      orderBy: {
+        managedReports: {
+          _count: "asc",
+        },
+      },
+    });
+  }
+
+  public async assignReportToCompany(
+    reportId: number,
+    companyId: string
+  ): Promise<Report> {
+    return await prisma.report.update({
+      where: {
+        id: BigInt(reportId),
+      },
+      data: {
+        company: {
+          connect: {
+            id: companyId,
+          },
+        },
+      },
+      include: {
+        company: true,
+      },
+    });
   }
 }
 

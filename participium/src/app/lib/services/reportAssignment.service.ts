@@ -89,7 +89,52 @@ class ReportAssignmentService {
         error: `Failed to reject report with ID ${reportId}`,
       };
     }
-  } 
+  }
+
+  public async assignReportToCompany(
+    reportId: number,
+    companyId: string
+  ): Promise<AssignReportToOfficerResponse> {
+    try {
+      
+      const employee = await this.reportRepository.getCompanyEmployeeWithLeastReports(
+        companyId
+      );
+
+      if (!employee) {
+        return {
+          success: false,
+          error: "No external maintainers available in the specified company",
+        };
+      }
+
+      const report = await this.reportRepository.assignReportToOfficer(
+        reportId,
+        employee.id
+      );
+
+      // Also store the company ID in the report
+      await this.reportRepository.assignReportToCompany(reportId, companyId);
+
+      // Notify the citizen that their report has been assigned
+      try {
+        await this.notificationService.notifyStatusChange(
+          report.citizenId,
+          BigInt(reportId),
+          "ASSIGNED"
+        );
+      } catch (error) {
+        console.error("Failed to send notification:", error);
+      }
+
+      return {
+        success: true,
+        data: `Report assigned to company ID ${companyId} and employee ID ${employee.id}`,
+      };
+    } catch (error) {
+      return { success: false, error: "Failed to assign report to company" };
+    }
+  }
 }
 
 
