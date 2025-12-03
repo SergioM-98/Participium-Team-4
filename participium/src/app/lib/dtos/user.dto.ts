@@ -102,7 +102,7 @@ export type CheckDuplicatesResponse = z.infer<
 export type LoginInput = z.infer<typeof LoginInputSchema>;
 
 export type RegistrationResponse =
-  | { success: true; data: string }
+  | { success: true; data: string; pendingVerification?: boolean }
   | { success: false; error: string };
 
 export type LoginResponse =

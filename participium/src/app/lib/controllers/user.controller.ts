@@ -6,16 +6,16 @@ import {
   RegistrationInput,
   RegistrationInputSchema,
   RegistrationResponse,
-} from "../dtos/user.dto";
+} from "@/dtos/user.dto";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../auth";
-import { UserService } from "../services/user.service";
+import { UserService } from "@/services/user.service";
 import { updateNotificationsPreferences } from "./notification.controller";
 import {
   NotificationsData,
   NotificationsResponse,
-} from "../dtos/notificationPreferences.dto";
-import { NotificationService } from "../services/notification.service";
+} from "@/dtos/notificationPreferences.dto";
+import { NotificationService } from "@/services/notification.service";
 
 export async function checkDuplicates(userData: RegistrationInput) {
   return await UserService.getInstance().checkDuplicates(userData);
@@ -69,7 +69,18 @@ export async function register(
     return { success: false, error: parsed.error.message };
   }
 
-  return await UserService.getInstance().createUser(parsed.data);
+  const result = await UserService.getInstance().createUser(parsed.data);
+
+  // For CITIZEN users, registration is complete but verification is pending
+  if (result.success && parsed.data.role === "CITIZEN") {
+    return {
+      success: true,
+      data: parsed.data.username,
+      pendingVerification: true,
+    };
+  }
+
+  return result;
 }
 
 export async function retrieveUser(

@@ -24,7 +24,7 @@ export const authOptions: AuthOptions = {
           credentials.password,
           user.passwordHash
         );
-        if (!isValid) return null;
+        if (!isValid || !user.isVerified) return null;
 
         const userResult = {
           id: user.id.toString(),
