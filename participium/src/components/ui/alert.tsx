@@ -1,7 +1,7 @@
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "../../app/lib/utils/index";
+import { cn } from "@/lib/utils/index";
 
 const alertVariants = cva(
   "mb-4 border px-4 py-3 rounded-lg relative text-sm whitespace-pre-wrap wrap-break-word",

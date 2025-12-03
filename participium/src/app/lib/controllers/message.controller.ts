@@ -1,6 +1,6 @@
 "use server";
-import { SendMessageResponse } from "../dtos/message.dto";
-import { MessageService } from "../services/message.service";
+import { SendMessageResponse } from "@/dtos/message.dto";
+import { MessageService } from "@/services/message.service";
 
 export async function sendMessage(content: string, authorId: string, reportId: bigint): Promise<SendMessageResponse> {
   try{

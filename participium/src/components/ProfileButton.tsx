@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { cn } from "../app/lib/utils";
+import { cn } from "@/lib/utils";
 import { useEffect, useState, useMemo } from "react";
-import { getProfilePhotoUrl } from "../app/lib/controllers/ProfilePhoto.controller";
+import { getProfilePhotoUrl } from "@/app/lib/controllers/ProfilePhoto.controller";
 import { useSession } from "next-auth/react";
 
 interface ProfileButtonProps {

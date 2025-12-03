@@ -1,6 +1,6 @@
-import { CreateUploadRequest, CreateUploadRequestSchema, TusCreateResponse, TusCreateResponseSchema } from "../dtos/tus.dto";
-import { PhotoRepository } from "../repositories/photo.repository";
-import { savePhotoFile } from "../utils/fileUtils";
+import { CreateUploadRequest, CreateUploadRequestSchema, TusCreateResponse, TusCreateResponseSchema } from "@/dtos/tus.dto";
+import { PhotoRepository } from "@/repositories/photo.repository";
+import { savePhotoFile } from "@/utils/fileUtils";
 import { renameSync, existsSync } from 'node:fs';
 import path from 'node:path';
 

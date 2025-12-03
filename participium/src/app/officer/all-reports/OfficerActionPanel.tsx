@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import { Button } from "../../../components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
-import { Textarea } from "../../../components/ui/textarea";
-import { approveReport, rejectReport } from "../../lib/controllers/report.controller";
-import { getAllCompanies } from "../../lib/controllers/company.controller";
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { approveReport, rejectReport } from "@/controllers/report.controller";
+import { getAllCompanies } from "@/controllers/company.controller";
 
 interface CompanyOption {
   id: string;

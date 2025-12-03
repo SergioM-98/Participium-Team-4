@@ -1,4 +1,4 @@
-import { ReportRepository } from "../repositories/report.repository";
+import { ReportRepository } from "@/repositories/report.repository";
 
 class ReportMapService {
   private static instance: ReportMapService;

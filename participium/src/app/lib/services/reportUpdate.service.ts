@@ -3,8 +3,8 @@ import {
   ReportsUnassignedResponse,
   ReportsByOfficerResponse,
   UpdateReportStatusResponse,
-} from "../dtos/report.dto";
-import { ReportRepository } from "../repositories/report.repository";
+} from "@/dtos/report.dto";
+import { ReportRepository } from "@/repositories/report.repository";
 import { ReportStatus } from "@prisma/client";
 
 class ReportUpdateService {

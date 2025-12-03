@@ -1,6 +1,6 @@
-import { ReportRegistrationResponse } from "../dtos/report.dto";
-import { prisma } from "../../../../prisma/db";
-import { UserAuthenticationResponse } from "../dtos/telegramBot.dto";
+import { ReportRegistrationResponse } from "@/dtos/report.dto";
+import { prisma } from "@/prisma/db";
+import { UserAuthenticationResponse } from "@/dtos/telegramBot.dto";
 
 class TelegramBotRepository {
   private static instance: TelegramBotRepository;

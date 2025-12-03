@@ -1,5 +1,5 @@
-import { ReportRequest, ReportRegistrationResponse } from "../dtos/report.dto";
-import { ReportRepository } from "../repositories/report.repository";
+import { ReportRequest, ReportRegistrationResponse } from "@/dtos/report.dto";
+import { ReportRepository } from "@/repositories/report.repository";
 
 class ReportCreationService {
   private static instance: ReportCreationService;

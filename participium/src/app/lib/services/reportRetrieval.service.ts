@@ -1,8 +1,8 @@
 import {
   ReportsUnassignedResponse,
   ReportsByOfficerResponse,
-} from "../dtos/report.dto";
-import { ReportRepository } from "../repositories/report.repository";
+} from "@/dtos/report.dto";
+import { ReportRepository } from "@/repositories/report.repository";
 
 class ReportRetrievalService {
   private static instance: ReportRetrievalService;

@@ -11,7 +11,7 @@ import MapPolygons from "./map/MapPolygons";
 import MapMarkers from "./map/MapMarkers";
 import { extractVisualizationPolygons } from "./map/utils";
 import ReportsClusterLayer from "./map/ReportsClusterLayer";
-import { Report, Bounds } from "../app/lib/dtos/map.dto"; 
+import { Report, Bounds } from "@/app/lib/dtos/map.dto"; 
 
 import torinoGeoJSON from "@/data/torino-boundary.json";
 

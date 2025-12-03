@@ -19,11 +19,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { cn } from "../app/lib/utils";
+import { cn } from "@/lib/utils";
 import { HelpCircle, Trash2, Upload } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
-import { createUploadPhoto, deleteUpload} from "../app/lib/controllers/uploader.controller";
-import { createReport } from "../app/lib/controllers/report.controller";
+import { createUploadPhoto, deleteUpload} from "@/app/lib/controllers/uploader.controller";
+import { createReport } from "@/app/lib/controllers/report.controller";
 
 interface UploadedFile {
   file: File;

@@ -1,5 +1,5 @@
-import { NotificationsRepository } from "../repositories/notifications.repository";
-import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
+import { NotificationsRepository } from "@/repositories/notifications.repository";
+import { NotificationsData, NotificationsResponse } from "@/dtos/notificationPreferences.dto";
 import { prisma } from "@/prisma/db";
 import { Prisma, PrismaClient } from "@prisma/client";
 

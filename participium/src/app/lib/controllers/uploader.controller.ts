@@ -1,12 +1,12 @@
 "use server";
-import { TusCreateDataSchema } from '../dtos/tus.header.dto';
+import { TusCreateDataSchema } from '@/dtos/tus.header.dto';
 import { 
     CreateUploadRequest, 
     DeletePhotoRequest,
     ControllerSuccessResponse 
-} from '../dtos/tus.dto';
-import { PhotoUploaderService } from '../services/photoUpload.service';
-import { PhotoDeleteService } from '../services/photoDelete.service';
+} from '@/dtos/tus.dto';
+import { PhotoUploaderService } from '@/services/photoUpload.service';
+import { PhotoDeleteService } from '@/services/photoDelete.service';
 
 
 

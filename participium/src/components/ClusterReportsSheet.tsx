@@ -1,4 +1,4 @@
-import { Report } from "../app/lib/dtos/map.dto"; 
+import { Report } from "@/app/lib/dtos/map.dto"; 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "./ui/sheet";
 import { Card, CardContent } from "./ui/card";
 import { Separator } from "./ui/separator";

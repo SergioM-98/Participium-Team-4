@@ -1,8 +1,8 @@
-import { MessageRepository } from "../repositories/message.repository";
+import { MessageRepository } from "@/repositories/message.repository";
 import { NotificationService } from "./notification.service";
-import { ReportRepository } from "../repositories/report.repository";
-import { UserRepository } from "../repositories/user.repository";
-import { SendMessageResponse } from "../dtos/message.dto";
+import { ReportRepository } from "@/repositories/report.repository";
+import { UserRepository } from "@/repositories/user.repository";
+import { SendMessageResponse } from "@/dtos/message.dto";
 
 class MessageService {
   private static instance: MessageService;

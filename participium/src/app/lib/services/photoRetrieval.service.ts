@@ -1,7 +1,7 @@
-import { PhotoRepository } from "../repositories/photo.repository";
+import { PhotoRepository } from "@/repositories/photo.repository";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { RegistrationResponse } from "../dtos/user.dto";
+import { RegistrationResponse } from "@/dtos/user.dto";
 
 class PhotoRetrievalService {
   private static instance: PhotoRetrievalService;

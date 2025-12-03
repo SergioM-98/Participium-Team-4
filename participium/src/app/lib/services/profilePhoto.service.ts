@@ -5,11 +5,11 @@ import {
   TusCreateResponseSchema,
   TusDeleteResponse,
   TusDeleteResponseSchema
-} from "../dtos/tus.dto";
+} from "@/dtos/tus.dto";
 import { rename, unlink } from "node:fs/promises";
 import path from "node:path";
-import { ProfilePhotoRepository } from "../repositories/profilePhotos.repository";
-import { savePhotoFile } from "../utils/fileUtils";
+import { ProfilePhotoRepository } from "@/repositories/profilePhotos.repository";
+import { savePhotoFile } from "@/utils/fileUtils";
 
 class ProfilePhotoService {
   private static instance: ProfilePhotoService;

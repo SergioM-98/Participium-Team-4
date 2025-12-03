@@ -8,7 +8,7 @@ import MapBase from "./map/MapBase";
 import MapPolygons from "./map/MapPolygons";
 import { extractVisualizationPolygons } from "./map/utils";
 import ReportsClusterLayer from "./map/ReportsClusterLayer";
-import { Report } from "../app/lib/dtos/map.dto"; 
+import { Report } from "@/app/lib/dtos/map.dto"; 
 
 import torinoGeoJSON from "@/data/torino-boundary.json";
 import { X } from "lucide-react";
