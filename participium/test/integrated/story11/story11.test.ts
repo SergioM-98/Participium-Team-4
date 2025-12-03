@@ -32,7 +32,7 @@ jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
   authOptions: {},
 }));
 
-jest.mock("@/auth", () => ({
+jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
   authOptions: {},
 }));
 

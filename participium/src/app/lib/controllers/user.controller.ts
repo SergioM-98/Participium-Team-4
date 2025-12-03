@@ -8,7 +8,7 @@ import {
   RegistrationResponse,
 } from "@/dtos/user.dto";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { UserService } from "@/services/user.service";
 import { updateNotificationsPreferences } from "./notification.controller";
 import {

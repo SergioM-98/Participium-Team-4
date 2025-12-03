@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -13,7 +13,7 @@ import { Card, CardContent } from "./ui/card";
 import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
 
-export default function LoginPage() {
+export default function LoginForm({ serverError }: { serverError?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -28,15 +28,14 @@ export default function LoginPage() {
   const [validationError, setValidationError] = useState<
     Partial<Record<string, string>>
   >({});
+
   // Check for a success message from registration
   const [success, setSuccess] = useState<string | undefined>(
-    searchParams.get("registered")
-      ? "Registration successful! Please log in."
-      : ""
+    searchParams.get("registered") ? "Registration successful! Please log in." : ""
   );
 
-  const getErrorMessage = (error: string) => {
-    switch (error) {
+  const getErrorMessage = (err: string) => {
+    switch (err) {
       case "CredentialsSignin":
         return "Wrong credentials";
       case "Configuration":
@@ -44,11 +43,24 @@ export default function LoginPage() {
       case "AccessDenied":
         return "Access denied";
       case "Verification":
+      case "The user is not verified":
         return "Account verification pending. Please check your email for the verification code.";
       default:
-        return error || "An error occurred during login";
+        return decodeURIComponent(err) || "An error occurred during login";
     }
   };
+
+  // Initialize error from server or from query param if present
+  useEffect(() => {
+    const spError = searchParams.get("error");
+    if (serverError) {
+      setError(serverError);
+    } else if (spError) {
+      setError(getErrorMessage(spError));
+    } else {
+      setError("");
+    }
+  }, [serverError, searchParams]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -66,7 +78,7 @@ export default function LoginPage() {
     startTransition(async () => {
       try {
         const response = await signIn("credentials", {
-          redirect: true, // <- lascia che next-auth effettui il redirect
+          redirect: false, // handle response client-side
           callbackUrl: "/",
           username,
           password,
@@ -77,10 +89,12 @@ export default function LoginPage() {
             ? getErrorMessage(response.error)
             : "Invalid credentials";
           setError(errorMessage);
-        } else {
-          router.push("/");
-          router.refresh();
+          return;
         }
+
+        // successo
+        router.push(response.url ?? "/");
+        router.refresh();
       } catch (err: any) {
         console.error(err);
         setError("Something went wrong. Please try again.");

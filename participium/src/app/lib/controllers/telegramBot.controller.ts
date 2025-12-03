@@ -2,7 +2,7 @@
 import { RegistrationResponse } from "@/dtos/user.dto";
 import { TelegramService } from "@/services/telegramBot.service";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { Category, ReportRegistrationResponse } from "@/dtos/report.dto";
 import {
   TelegramAPIReportRequest,
