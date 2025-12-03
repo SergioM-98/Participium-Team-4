@@ -8,7 +8,7 @@ import { CompanyRetrievalService } from "@/services/companyRetrieval.service";
 export async function createCompany(formData: FormData) {
   const session = await getServerSession(authOptions);
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (session?.user.role !== "ADMIN") {
     return { success: false, error: "Unauthorized access" };
   }
 

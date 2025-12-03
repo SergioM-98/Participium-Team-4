@@ -47,7 +47,7 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async signIn({ user }) {
       // Check if CITIZEN user is verified
-      if (user && user.role === "CITIZEN" && user.isVerified === false) {
+      if (user?.role === "CITIZEN" && user?.isVerified === false) {
         return "/login?error=Verification";
       }
       return true;

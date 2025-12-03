@@ -45,13 +45,13 @@ export default function VerificationForm() {
       try {
         const response = await verifyRegistration(email.trim(), code.trim());
 
-        if (!response.success) {
-          setError(response.error);
-        } else {
+        if (response.success) {
           setSuccess("Email verified successfully! Redirecting to login...");
           setTimeout(() => {
             router.push("/login");
           }, 2000);
+        } else {
+          setError(response.error);
         }
       } catch (err: any) {
         console.error(err);

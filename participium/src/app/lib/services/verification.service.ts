@@ -5,18 +5,15 @@ import {
 } from "@/utils/verification.utils";
 import { VerificationResponse } from "@/dtos/verification.dto";
 import { VerificationRepository } from "@/repositories/verification.repository";
-import { UserRepository } from "@/repositories/user.repository";
 import { EmailService } from "@/services/email.service";
 
 class VerificationService {
   private static instance: VerificationService;
-  private verificationRepository: VerificationRepository;
-  private userRepository: UserRepository;
-  private emailService: EmailService;
+  private readonly verificationRepository: VerificationRepository;
+  private readonly emailService: EmailService;
 
   private constructor() {
     this.verificationRepository = VerificationRepository.getInstance();
-    this.userRepository = UserRepository.getInstance();
     this.emailService = EmailService.getInstance();
   }
 

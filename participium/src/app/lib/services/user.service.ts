@@ -6,9 +6,9 @@ import { VerificationService } from "./verification.service";
 
 class UserService {
   private static instance: UserService;
-  private userRepository: UserRepository;
-  private notificationsRepository: NotificationsRepository;
-  private verificationService: VerificationService;
+  private readonly userRepository: UserRepository;
+  private readonly notificationsRepository: NotificationsRepository;
+  private readonly verificationService: VerificationService;
 
   private constructor() {
     this.userRepository = UserRepository.getInstance();
@@ -27,7 +27,7 @@ class UserService {
   }
 
   public async createUser(
-    userData: RegistrationInput
+    userData: RegistrationInput,
   ): Promise<RegistrationResponse> {
     return await prisma.$transaction(async (tx) => {
       const result = await this.userRepository.createUser(userData, tx);
@@ -42,7 +42,7 @@ class UserService {
               emailEnabled: true,
               telegramEnabled: false,
             },
-            tx
+            tx,
           );
 
         if (!res.success) {
@@ -58,14 +58,14 @@ class UserService {
           await this.verificationService.createAndSendVerificationToken(
             userData.id,
             userData.email,
-            userData.firstName
+            userData.firstName,
           );
-        
+
         console.log("Verification Result:", verificationResult);
 
         if (!verificationResult.success) {
           throw new Error(
-            verificationResult.error || "Failed to send verification email"
+            verificationResult.error || "Failed to send verification email",
           );
         }
       }
@@ -82,18 +82,18 @@ class UserService {
     userId: string,
     telegram: string | null,
     email: string | null,
-    removeTelegram: boolean
+    removeTelegram: boolean,
   ) {
     return this.userRepository.updateNotificationsMedia(
       userId,
       telegram,
       email,
-      removeTelegram
+      removeTelegram,
     );
   }
 
   public async getUserByTelegramId(
-    telegramId: string
+    telegramId: string,
   ): Promise<RegistrationResponse> {
     return this.userRepository.getUserByTelegramId(telegramId);
   }

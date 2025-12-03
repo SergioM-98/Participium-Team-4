@@ -2,7 +2,7 @@
  * Verification utilities for email-based registration confirmation
  */
 
-import { randomInt } from "crypto";
+import { randomInt } from "node:crypto";
 
 /**
  * Generates a cryptographically secure 6-digit random verification code
