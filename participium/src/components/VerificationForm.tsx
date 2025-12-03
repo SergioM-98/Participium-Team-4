@@ -9,7 +9,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card, CardContent } from "./ui/card";
 
-import { verifyRegistration } from "../app/lib/controllers/verification.controller";
+import { verifyRegistration } from "@/app/lib/controllers/verification.controller";
 
 export default function VerificationForm() {
   const router = useRouter();

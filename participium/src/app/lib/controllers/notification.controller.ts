@@ -1,7 +1,7 @@
 "use server";
-import { NotificationService } from "../services/notification.service";
-import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
-import { authOptions } from "../../api/auth/[...nextauth]/route";
+import { NotificationService } from "@/services/notification.service";
+import { NotificationsData, NotificationsResponse } from "@/dtos/notificationPreferences.dto";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getServerSession } from "next-auth/next";
 import { prisma } from "@/prisma/db";
 import { Prisma, PrismaClient } from "@prisma/client";

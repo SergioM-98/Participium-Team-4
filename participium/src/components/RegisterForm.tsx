@@ -13,7 +13,7 @@ import { Eye, EyeOff } from "lucide-react";
 
 // Import your server action
 // Changed relative path to use the root alias, which might resolve the build error.
-import { register } from "../app/lib/controllers/user.controller";
+import { register } from "@/app/lib/controllers/user.controller";
 
 export default function RegisterForm() {
   const router = useRouter(); // Hook for navigation

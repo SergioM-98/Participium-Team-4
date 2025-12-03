@@ -1,8 +1,8 @@
 "use server";
 
-import { prisma } from "../../../../prisma/db";
+import { prisma } from "@/prisma/db";
 import type { Notification } from "@prisma/client";
-import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
+import { NotificationsData, NotificationsResponse } from "@/dtos/notificationPreferences.dto";
 import { Prisma, PrismaClient } from "@prisma/client";
 
 type DBClient = PrismaClient | Prisma.TransactionClient;

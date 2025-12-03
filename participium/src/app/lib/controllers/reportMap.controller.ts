@@ -1,5 +1,5 @@
 "use server";
-import { ReportMapService } from "../services/reportMap.service";
+import { ReportMapService } from "@/services/reportMap.service";
 import { z } from "zod";
 import fs from "node:fs/promises";
 import path from "node:path";

@@ -11,7 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Cropper from "react-easy-crop";
-import { getCroppedImg } from "../app/lib/utils/canvasUtils";
+import { getCroppedImg } from "@/lib/utils/canvasUtils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -53,19 +53,19 @@ import {
   Link as LinkIcon,
   CheckCircle2,
 } from "lucide-react";
-import { cn } from "../app/lib/utils";
-import { NotificationsData } from "../app/lib/dtos/notificationPreferences.dto";
+import { cn } from "@/lib/utils";
+import { NotificationsData } from "@/app/lib/dtos/notificationPreferences.dto";
 
 import {
   updateNotificationsMedia,
   getMe,
-} from "../app/lib/controllers/user.controller";
+} from "@/app/lib/controllers/user.controller";
 import {
   createUploadPhoto,
   getProfilePhotoUrl,
-} from "../app/lib/controllers/ProfilePhoto.controller";
-import { startTelegramRegistration } from "../app/lib/controllers/telegramBot.controller";
-import { MeType } from "../app/lib/dtos/user.dto";
+} from "@/app/lib/controllers/ProfilePhoto.controller";
+import { startTelegramRegistration } from "@/app/lib/controllers/telegramBot.controller";
+import { MeType } from "@/app/lib/dtos/user.dto";
 
 type UserProfileData = {
   username: string;

@@ -1,17 +1,17 @@
 "use server";
-import { RegistrationResponse } from "../dtos/user.dto";
-import { TelegramService } from "../services/telegramBot.service";
+import { RegistrationResponse } from "@/dtos/user.dto";
+import { TelegramService } from "@/services/telegramBot.service";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../auth";
-import { Category, ReportRegistrationResponse } from "../dtos/report.dto";
+import { authOptions } from "@/auth";
+import { Category, ReportRegistrationResponse } from "@/dtos/report.dto";
 import {
   TelegramAPIReportRequest,
   UserAuthenticationResponse,
-} from "../dtos/telegramBot.dto";
-import { UserService } from "../services/user.service";
+} from "@/dtos/telegramBot.dto";
+import { UserService } from "@/services/user.service";
 import { createUploadPhoto } from "./uploader.controller";
-import { ControllerSuccessResponse } from "../dtos/tus.dto";
-import { ReportCreationService } from "../services/reportCreation.service";
+import { ControllerSuccessResponse } from "@/dtos/tus.dto";
+import { ReportCreationService } from "@/services/reportCreation.service";
 
 export async function registerTelegramReport(
   report: TelegramAPIReportRequest,

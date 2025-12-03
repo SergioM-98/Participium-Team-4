@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { Button } from "../../../components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
-import { updateReportStatus } from "../../lib/controllers/report.controller";
+} from "@/components/ui/select";
+import { updateReportStatus } from "@/controllers/report.controller";
 
 interface MaintainerActionPanelProps {
   reportId: string | number;

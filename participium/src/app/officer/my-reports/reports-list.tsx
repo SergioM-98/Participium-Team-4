@@ -7,9 +7,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../../components/ui/card";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   MapPin,
   Search,
@@ -18,10 +18,10 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { getReportsByAssigneeId } from "../../lib/controllers/report.controller";
-import type { RetrieveReportByAssignee } from "../../lib/dtos/report.dto";
-import { getPhoto } from "../../lib/controllers/photo.controller";
-import ReportDetailsCard from "../../../components/ReportDetailsCard";
+import { getReportsByAssigneeId } from "@/controllers/report.controller";
+import type { RetrieveReportByAssignee } from "@/dtos/report.dto";
+import { getPhoto } from "@/controllers/photo.controller";
+import ReportDetailsCard from "@/components/ReportDetailsCard";
 
 type Report = RetrieveReportByAssignee;
 

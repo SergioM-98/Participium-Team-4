@@ -1,9 +1,9 @@
 "use server";
-import { ControllerSuccessResponse, CreateUploadRequest } from "../dtos/tus.dto";
-import { TusCreateDataSchema } from "../dtos/tus.header.dto";
+import { ControllerSuccessResponse, CreateUploadRequest } from "@/dtos/tus.dto";
+import { TusCreateDataSchema } from "@/dtos/tus.header.dto";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../auth";
-import { ProfilePhotoService } from "../services/profilePhoto.service";
+import { authOptions } from "@/auth";
+import { ProfilePhotoService } from "@/services/profilePhoto.service";
 import fs from "node:fs/promises";
 import path from "node:path";
 

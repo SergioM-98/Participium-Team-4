@@ -6,8 +6,8 @@ import {
   LoginResponse,
   RegistrationInput,
   RegistrationResponse,
-} from "../dtos/user.dto";
-import { prisma } from "../../../../prisma/db";
+} from "@/dtos/user.dto";
+import { prisma } from "@/prisma/db";
 import bcrypt from "bcrypt";
 import { Prisma, PrismaClient } from "@prisma/client";
 

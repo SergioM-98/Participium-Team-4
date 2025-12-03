@@ -13,10 +13,10 @@ import {
   Eye
 } from "lucide-react";
 
-import OfficerActionPanel from "../app/officer/all-reports/OfficerActionPanel";
-import MaintainerActionPanel from "../app/maintainer/my-reports/MaintainerActionPanel";
+import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
+import MaintainerActionPanel from "@/app/maintainer/my-reports/MaintainerActionPanel";
 import ChatPanel, { ChatMessage } from "./ChatPanel";
-import { getReportMessages, sendMessage } from "../app/lib/controllers/message.controller";
+import { getReportMessages, sendMessage } from "@/app/lib/controllers/message.controller";
 import dynamic from "next/dist/shared/lib/dynamic";
 
 const LeafletMapFixed = dynamic(() => import("./LeafletMapFixed"), {

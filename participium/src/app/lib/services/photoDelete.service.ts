@@ -1,5 +1,5 @@
-import { PhotoRepository } from '../repositories/photo.repository';
-import { DeletePhotoRequest, DeletePhotoRequestSchema, TusDeleteResponse, TusDeleteResponseSchema } from '../dtos/tus.dto';
+import { PhotoRepository } from '@/repositories/photo.repository';
+import { DeletePhotoRequest, DeletePhotoRequestSchema, TusDeleteResponse, TusDeleteResponseSchema } from '@/dtos/tus.dto';
 import { unlink } from 'node:fs/promises';
 import path from 'node:path';
 

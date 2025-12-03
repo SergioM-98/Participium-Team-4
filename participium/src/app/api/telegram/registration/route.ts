@@ -1,5 +1,5 @@
-import { registerTelegram } from "../../../lib/controllers/telegramBot.controller";
-import { LinkTelegramAccountRequest } from "../../../lib/dtos/telegram.dto";
+import { registerTelegram } from "@/controllers/telegramBot.controller";
+import { LinkTelegramAccountRequest } from "@/dtos/telegram.dto";
 
 export async function POST(req: Request) {
   try {
