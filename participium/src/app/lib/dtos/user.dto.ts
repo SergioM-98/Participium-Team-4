@@ -62,14 +62,14 @@ export const CheckDuplicatesResponseSchema = z.object({
 
 export const RetrievedUserDataSchema = z
   .object({
-    id: z.string(),
     firstName: z.string(),
     lastName: z.string(),
     email: z.email().optional(),
     username: z.string(),
     role: z.enum(Role),
     office: z.enum(Offices).optional(),
-    telegram: z.string().optional(),
+    telegram: z.boolean,
+    pendingRequest: z.boolean,
   })
   .refine(
     (data) =>
@@ -109,7 +109,6 @@ export const LoginInputSchema = z.object({
 });
 
 type RetrievedUserData = z.infer<typeof RetrievedUserDataSchema>;
-export type MeType = z.infer<typeof RetrievedUserDataSchema>
 export type Citizen = z.infer<typeof CitizenSchema>;
 export type RegistrationInput = z.infer<typeof RegistrationInputSchema>;
 export type CheckDuplicatesResponse = z.infer<
@@ -124,3 +123,8 @@ export type RegistrationResponse =
 export type LoginResponse =
   | { success: true; data: RetrievedUserData }
   | { success: false; error: string };
+export type MeType = {
+    me: z.infer<typeof RetrievedUserDataSchema>,
+    emailNotifications: boolean,
+    telegramNotifications: boolean
+};

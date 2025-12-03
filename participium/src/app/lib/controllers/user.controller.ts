@@ -14,6 +14,7 @@ import { updateNotificationsPreferences } from "./notification.controller";
 import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
 import { NotificationService } from "../services/notification.service";
 import { prisma } from "@/prisma/db";
+import { no } from "zod/v4/locales";
 
 
 
@@ -149,27 +150,52 @@ export async function getMe(): Promise<MeType | RegistrationResponse> {
   }
 
   let notifications: NotificationsResponse;
-
-    if(session.user.role === "CITIZEN"){
-      try {
-        notifications = await NotificationService.getInstance().getNotificationsPreferences(session.user.username);
-      } catch (error) {
-        console.error("Error retrieving notification preferences:", error);
-        return { success: false, error: "Failed to retrieve notification preferences" };
-      }
-      if(!notifications.success){
-        return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
-      } 
+  let emailEnabled = false;
+  let telegramEnabled = false;
+  if(session.user.role === "CITIZEN"){
+    try {
+      notifications = await NotificationService.getInstance().getNotificationsPreferences(session.user.username);
+    } catch (error) {
+      console.error("Error retrieving notification preferences:", error);
+      return { success: false, error: "Failed to retrieve notification preferences" };
     }
-
+    if(notifications.success){
+      emailEnabled = notifications.data.emailEnabled;
+      telegramEnabled = notifications.data.telegramEnabled ?? false;
+    }else{
+      return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
+    } 
+  }
+  let user;
+  try{
+    user = await UserService.getInstance().getMe(session.user.id);
+  }catch(error){
+    console.error(error instanceof Error ? error.message : "failed to get the personal informations from the database");
+    return {
+      success: false,
+      error: "failed to get the personal informations from the database"
+    }
+  }
+  if(user===null){
+    console.error("The user does not exist on the database");
+    return {
+      success: false,
+      error: "User not found"
+    }
+  }
+  
   return {
-    id: session.user.id,
-    firstName: session.user.firstName,
-    lastName: session.user.lastName,
-    email: session.user.email ?? undefined,
-    username: session.user.username,
-    role: session.user.role as MeType["role"],
-    office: (session.user.office as MeType["office"]) ?? undefined,
-    telegram: session.user.telegram ?? undefined,
+    me:{
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email ?? undefined,
+      username: user.username,
+      role: user.role as MeType["me"]["role"],
+      office: (user.office as MeType["me"]["office"]) ?? undefined,
+      telegram: !!user.telegramChatId,
+      pendingRequest: !!user.telegramRequestPending,
+    },
+    emailNotifications: emailEnabled,
+    telegramNotifications: telegramEnabled
   };
 }

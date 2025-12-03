@@ -105,12 +105,12 @@ class UserRepository {
       data: {
         email: rest.email ?? undefined,
         office: rest.office ?? undefined,
-        id: rest.id,
         firstName: rest.firstName,
         lastName: rest.lastName,
         username: rest.username,
         role: rest.role,
-        telegram: rest.telegram ?? undefined,
+        telegram: rest.telegramChatId ?? undefined,
+        pendingRequest: rest.telegramRequestPending ?? undefined,
       },
     };
   }
@@ -150,7 +150,7 @@ class UserRepository {
   async getUserByTelegramId(telegramId: string): Promise<RegistrationResponse> {
     const user = await prisma.user.findUnique({
       where: {
-        telegram: telegramId,
+        telegramChatId: telegramId,
       },
     });
 
@@ -168,9 +168,26 @@ class UserRepository {
   }  
   
   async getUserById(userId: string) {
-    return await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { id: userId },
     });
+    if(!user){
+      throw new Error("User not found");
+    }
+    if(user.role === "CITIZEN" && user.telegramRequestPending){
+      if(user.telegramRequestTTL && user.telegramRequestTTL < (new Date())){
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            telegramToken: null,
+            telegramRequestPending: false,
+            telegramRequestTTL: null,
+          },
+        });
+        console.log("Expired telegram request cleaned for user:", user.username);
+      }
+    }
+    return user;
   }
 
 

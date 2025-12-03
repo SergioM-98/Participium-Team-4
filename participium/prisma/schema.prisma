@@ -99,8 +99,10 @@ model User {
   lastName                String  @db.VarChar(100)
   email                   String? @unique @db.VarChar(100)
   username                String  @unique @db.VarChar(100)
-  telegram                String? @unique @db.VarChar(100)
+  telegramChatId          String? @unique @db.VarChar(100)
+  telegramToken           String? @unique@db.VarChar(255)
   telegramRequestPending  Boolean @default(false)
+  telegramRequestTTL      DateTime?
   role                    Role    @default(CITIZEN)
   office                  Offices?
   passwordHash            String   @db.VarChar(255)

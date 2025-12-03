@@ -19,9 +19,8 @@ class TelegramBotRepository {
     telegramId: number
   ): Promise<ReportRegistrationResponse> {
     const user = await prisma.user.findUnique({
-      where: { telegram: token },
+      where: { telegramToken: token },
     });
-
     if (!user) {
       return {
         success: false,
@@ -30,25 +29,47 @@ class TelegramBotRepository {
     }
 
     if (user.telegramRequestPending === false) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          telegramToken: null,
+          telegramRequestPending: false,
+          telegramRequestTTL: null,
+        },
+      });
       return {
         success: false,
         error: "No pending telegram registration request for this user.",
       };
     }
 
+    if(user.telegramRequestTTL && user.telegramRequestTTL < (new Date())){
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          telegramToken: null,
+          telegramRequestPending: false,
+          telegramRequestTTL: null,
+        },
+      });
+      return {
+        success: false,
+        error: "The last telegram registration request has expired. Please start the registration process again.",
+      };
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
-        telegram: telegramId.toString(),
+        telegramChatId: telegramId.toString(),
+        telegramToken: null,
         telegramRequestPending: false,
+        telegramRequestTTL: null,
       },
     });
 
     if (!updatedUser) {
-      return {
-        success: false,
-        error: "Failed to update user with telegram ID.",
-      };
+      throw new Error("Failed to update user with telegram ID.");
     }
 
     return {
@@ -61,18 +82,30 @@ class TelegramBotRepository {
     userId: string,
     token: string
   ): Promise<ReportRegistrationResponse> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if(!user){
+      throw new Error("User not found");
+    }
+    if(user.role !== "CITIZEN"){
+      throw new Error("Only citizens can register telegram accounts");
+    }
+    if(user.telegramRequestPending){
+      if(user.telegramRequestTTL && user.telegramRequestTTL > (new Date())){
+        throw new Error("There is already a pending telegram registration request. Please complete it before starting a new one.");
+      }
+    }
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        telegram: token,
+        telegramToken: token,
         telegramRequestPending: true,
+        telegramRequestTTL: new Date(Date.now() + 5 * 60 * 1000), // 15 minutes from now
       },
     });
     if (!updatedUser) {
-      return {
-        success: false,
-        error: "Failed to start telegram registration.",
-      };
+      throw new Error("Failed to start telegram registration.");
     }
     return {
       success: true,
@@ -84,7 +117,7 @@ class TelegramBotRepository {
     console.log("Searching for user with telegram chatId:", chatId.toString());
 
     const user = await prisma.user.findUnique({
-      where: { telegram: chatId.toString() },
+      where: { telegramChatId: chatId.toString() },
     });
 
     console.log(
@@ -102,10 +135,25 @@ class TelegramBotRepository {
     }
 
     if (user.telegramRequestPending) {
-      return {
-        success: false,
-        error: "Telegram registration is still pending.",
-      };
+      if(user.telegramRequestTTL && user.telegramRequestTTL < (new Date())){
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            telegramToken: null,
+            telegramRequestPending: false,
+            telegramRequestTTL: null,
+          },
+        });
+        return {
+          success: false,
+          error: "The previous telegram registration request has expired. Please start the registration process again.",
+        };
+      }else{
+        return {
+          success: false,
+          error: "Telegram registration is still pending.",
+        };
+      }
     }
 
     return {

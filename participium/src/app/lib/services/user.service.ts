@@ -76,6 +76,11 @@ class UserService {
   ): Promise<RegistrationResponse> {
     return this.userRepository.getUserByTelegramId(telegramId);
   }
+
+  public async getMe(userId:string){
+    return this.userRepository.getUserById(userId);
+  }
+
 }
 
 export { UserService };

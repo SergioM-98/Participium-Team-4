@@ -65,14 +65,15 @@ import {
   getProfilePhotoUrl,
 } from "../app/lib/controllers/ProfilePhoto.controller";
 import { startTelegramRegistration } from "../app/lib/controllers/telegramBot.controller";
-import { getNotificationsPreferences } from "../app/lib/controllers/notification.controller";
+import { MeType } from "../app/lib/dtos/user.dto";
 
 type UserProfileData = {
   username: string;
   firstName: string;
   lastName: string;
   email: string;
-  telegram: string;
+  telegram: boolean;
+  pendingRequest: boolean;
   role: string;
   office?: string;
   image: string | null;
@@ -104,7 +105,8 @@ export default function ProfilePage() {
 
   const [formData, setFormData] = useState({
     email: "",
-    telegram: "",
+    telegram: false,
+    pendingRequest: false,
     emailEnabled: false,
     telegramEnabled: false,
   });
@@ -122,31 +124,23 @@ export default function ProfilePage() {
       try {
         const userDataResponse = await getMe();
 
-        if ("error" in userDataResponse) {
-          throw new Error(userDataResponse.error);
+        if (!("me" in userDataResponse)) {
+          if("error" in userDataResponse){
+            throw new Error(userDataResponse.error);
+          } else {
+            throw new Error("Invalid response from server");
+          }
         }
 
-        const userData = userDataResponse;
+        const userData = userDataResponse.me as MeType["me"];
 
         let notifications = {
-          emailEnabled: false,
-          telegramEnabled: false,
+          emailEnabled: userDataResponse.emailNotifications || false,
+          telegramEnabled: userDataResponse.telegramNotifications || false,
         };
         let imageUrl: string | null = null;
 
         if ("role" in userData && userData.role === "CITIZEN") {
-          try {
-            const notifResponse = await getNotificationsPreferences();
-            if (notifResponse.success) {
-              notifications = {
-                emailEnabled: notifResponse.data.emailEnabled,
-                telegramEnabled: notifResponse.data.telegramEnabled ?? false,
-              };
-            }
-          } catch (e) {
-            console.warn("Failed to load notifications", e);
-          }
-
           try {
             const url = await getProfilePhotoUrl();
             imageUrl = url === undefined ? null : url;
@@ -167,7 +161,8 @@ export default function ProfilePage() {
             firstName: userData.firstName || "",
             lastName: userData.lastName || "",
             email: userData.email || "",
-            telegram: userData.telegram || "",
+            telegram: !!userData.telegram,
+            pendingRequest: !!userData.pendingRequest,
             role: userData.role || session.user.role,
             office: userData.office || undefined,
             image: imageUrl,
@@ -182,7 +177,8 @@ export default function ProfilePage() {
             firstName: "",
             lastName: "",
             email: "",
-            telegram: "",
+            telegram: false,
+            pendingRequest: false,
             role: session.user.role,
             office: undefined,
             image: imageUrl,
@@ -197,7 +193,8 @@ export default function ProfilePage() {
 
         setFormData({
           email: loadedUser.email,
-          telegram: loadedUser.telegram || "",
+          telegram: loadedUser.telegram,
+          pendingRequest: loadedUser.pendingRequest,
           emailEnabled: loadedUser.notifications.emailEnabled,
           telegramEnabled: loadedUser.notifications.telegramEnabled ?? false,
         });
@@ -218,11 +215,11 @@ export default function ProfilePage() {
         try {
           const userDataResponse = await getMe();
 
-          if ("error" in userDataResponse) return;
+          if ("error" in userDataResponse || !("me" in userDataResponse)) return;
 
-          if ("telegram" in userDataResponse && userDataResponse.telegram) {
+          if ("telegram" in userDataResponse.me && userDataResponse.me.telegram) {
             setUser((prev) =>
-              prev ? { ...prev, telegram: userDataResponse.telegram! } : null
+              prev ? { ...prev, telegram: !!userDataResponse.me.telegram } : null
             );
             setTelegramStatus("idle");
             router.refresh();
@@ -428,7 +425,8 @@ export default function ProfilePage() {
     if (!user) return;
     setFormData({
       email: user.email,
-      telegram: user.telegram || "",
+      telegram: user.telegram ?? false,
+      pendingRequest: user.pendingRequest ?? false,
       emailEnabled: user.notifications.emailEnabled,
       telegramEnabled: user.notifications.telegramEnabled ?? false,
     });
