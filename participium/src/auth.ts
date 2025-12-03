@@ -5,7 +5,6 @@ import bcrypt from "bcrypt";
 
 export const authOptions: AuthOptions = {
   providers: [
-    
     Credentials({
       name: "Credentials",
       credentials: {
@@ -23,12 +22,16 @@ export const authOptions: AuthOptions = {
           where: { username },
         });
         if (!user) return null;
+
         const isValid = await bcrypt.compare(password, user.passwordHash);
         if (!isValid) return null;
+
+        // Return user with isVerified flag so we can check it in signIn callback
         return {
           id: user.id.toString(),
           username: user.username,
           role: user.role,
+          isVerified: user.isVerified,
           email: user.email ?? undefined,
           firstName: user.firstName,
           lastName: user.lastName,
@@ -42,6 +45,13 @@ export const authOptions: AuthOptions = {
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
+    async signIn({ user }) {
+      // Check if CITIZEN user is verified
+      if (user && user.role === "CITIZEN" && user.isVerified === false) {
+        return "/login?error=Verification";
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
@@ -71,7 +81,6 @@ export const authOptions: AuthOptions = {
       return session;
     },
   },
-  
 };
 
 export default NextAuth(authOptions);

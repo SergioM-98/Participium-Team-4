@@ -8,9 +8,12 @@ class UserService {
   private static instance: UserService;
   private userRepository: UserRepository;
   private notificationsRepository: NotificationsRepository;
+  private verificationService: VerificationService;
+
   private constructor() {
     this.userRepository = UserRepository.getInstance();
     this.notificationsRepository = NotificationsRepository.getInstance();
+    this.verificationService = VerificationService.getInstance();
   }
   public static getInstance(): UserService {
     if (!UserService.instance) {
@@ -46,13 +49,19 @@ class UserService {
           throw new Error(res.error);
         }
 
+        if (!userData.email) {
+          throw new Error("Email is required for CITIZEN users");
+        }
+
         // Send verification email
         const verificationResult =
-          await VerificationService.getInstance().createAndSendVerificationToken(
+          await this.verificationService.createAndSendVerificationToken(
             userData.id,
-            userData.email || "",
+            userData.email,
             userData.firstName
           );
+        
+        console.log("Verification Result:", verificationResult);
 
         if (!verificationResult.success) {
           throw new Error(

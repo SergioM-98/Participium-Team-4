@@ -1,20 +1,24 @@
-import { prisma } from "../../../../prisma/db";
 import {
   generateVerificationCode,
   getVerificationTokenExpiry,
   isTokenExpired,
-} from "../utils/verification.utils";
-import { sendVerificationEmail } from "../utils/email.utils";
-
-interface VerificationResponse {
-  success: boolean;
-  error?: string;
-}
+} from "@/utils/verification.utils";
+import { VerificationResponse } from "@/dtos/verification.dto";
+import { VerificationRepository } from "@/repositories/verification.repository";
+import { UserRepository } from "@/repositories/user.repository";
+import { EmailService } from "@/services/email.service";
 
 class VerificationService {
   private static instance: VerificationService;
+  private verificationRepository: VerificationRepository;
+  private userRepository: UserRepository;
+  private emailService: EmailService;
 
-  private constructor() {}
+  private constructor() {
+    this.verificationRepository = VerificationRepository.getInstance();
+    this.userRepository = UserRepository.getInstance();
+    this.emailService = EmailService.getInstance();
+  }
 
   public static getInstance(): VerificationService {
     if (!VerificationService.instance) {
@@ -23,29 +27,24 @@ class VerificationService {
     return VerificationService.instance;
   }
 
-  /**
-   * Create a verification token for a user and send verification email
-   */
   public async createAndSendVerificationToken(
     userId: string,
     email: string,
-    firstName?: string
+    firstName?: string,
   ): Promise<VerificationResponse> {
     try {
       const code = generateVerificationCode();
       const expiresAt = getVerificationTokenExpiry();
 
-      await prisma.verificationToken.create({
-        data: {
-          userId,
-          code,
-          expiresAt,
-        },
-      });
+      await this.verificationRepository.createVerificationToken(
+        userId,
+        code,
+        expiresAt,
+      );
 
-      await sendVerificationEmail(email, code, firstName);
+      await this.emailService.sendVerificationEmail(email, code, firstName);
 
-      return { success: true };
+      return { success: true, data: "Verification email sent" };
     } catch (error) {
       console.error("Failed to create and send verification token:", error);
       return {
@@ -55,19 +54,12 @@ class VerificationService {
     }
   }
 
-  /**
-   * Verify a user with the provided code
-   */
   public async verifyRegistration(
-    emailOrUsername: string,
-    code: string
+    email: string,
+    code: string,
   ): Promise<VerificationResponse> {
     try {
-      const user = await prisma.user.findFirst({
-        where: {
-          OR: [{ email: emailOrUsername }, { username: emailOrUsername }],
-        },
-      });
+      const user = await this.verificationRepository.findUserByEmail(email);
 
       if (!user) {
         return { success: false, error: "User not found" };
@@ -77,26 +69,17 @@ class VerificationService {
         return { success: false, error: "User is already verified" };
       }
 
-      const token = await prisma.verificationToken.findFirst({
-        where: {
-          userId: user.id,
-          code,
-          used: false,
-        },
-      });
+      const token = await this.verificationRepository.findVerificationToken(
+        user.id,
+        code,
+      );
 
       if (!token) {
         return { success: false, error: "Invalid verification code" };
       }
 
       if (isTokenExpired(token.expiresAt)) {
-        // Cleanup: delete expired token and unverified user
-        await prisma.verificationToken.deleteMany({
-          where: { userId: user.id },
-        });
-        await prisma.user.delete({
-          where: { id: user.id },
-        });
+        this.cleanupExpiredTokens();
 
         return {
           success: false,
@@ -104,20 +87,12 @@ class VerificationService {
         };
       }
 
-      // Mark token as used and verify user
-      await prisma.$transaction(async (tx) => {
-        await tx.verificationToken.update({
-          where: { id: token.id },
-          data: { used: true },
-        });
+      await this.verificationRepository.verifyUserAndMarkToken(
+        user.id,
+        token.id,
+      );
 
-        await tx.user.update({
-          where: { id: user.id },
-          data: { isVerified: true },
-        });
-      });
-
-      return { success: true };
+      return { success: true, data: "User verified successfully" };
     } catch (error) {
       console.error("Verification failed:", error);
       return {
@@ -127,32 +102,16 @@ class VerificationService {
     }
   }
 
-  /**
-   * Clean up expired tokens and unverified users (optional: can be called periodically)
-   */
   public async cleanupExpiredTokens(): Promise<void> {
     try {
-      const now = new Date();
-
-      // Find and delete unverified users with expired tokens
-      const expiredTokens = await prisma.verificationToken.findMany({
-        where: {
-          expiresAt: { lt: now },
-          used: false,
-        },
-        select: { userId: true },
-        distinct: ["userId"],
-      });
-
+      const expiredTokens =
+        await this.verificationRepository.findExpiredTokenUsers();
       const userIdsToDelete = expiredTokens.map((t) => t.userId);
 
       if (userIdsToDelete.length > 0) {
-        await prisma.user.deleteMany({
-          where: {
-            id: { in: userIdsToDelete },
-            isVerified: false,
-          },
-        });
+        await this.verificationRepository.deleteUnverifiedUsers(
+          userIdsToDelete,
+        );
       }
     } catch (error) {
       console.error("Failed to cleanup expired tokens:", error);
@@ -161,4 +120,3 @@ class VerificationService {
 }
 
 export { VerificationService };
-export type { VerificationResponse };

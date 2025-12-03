@@ -6,16 +6,16 @@ import {
   RegistrationInput,
   RegistrationInputSchema,
   RegistrationResponse,
-} from "../dtos/user.dto";
+} from "@/dtos/user.dto";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../../auth";
-import { UserService } from "../services/user.service";
+import { UserService } from "@/services/user.service";
 import { updateNotificationsPreferences } from "./notification.controller";
 import {
   NotificationsData,
   NotificationsResponse,
-} from "../dtos/notificationPreferences.dto";
-import { NotificationService } from "../services/notification.service";
+} from "@/dtos/notificationPreferences.dto";
+import { NotificationService } from "@/services/notification.service";
 
 export async function checkDuplicates(userData: RegistrationInput) {
   return await UserService.getInstance().checkDuplicates(userData);

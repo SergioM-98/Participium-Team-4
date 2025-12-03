@@ -26,7 +26,7 @@ class UserRepository {
   }
 
   async checkDuplicates(
-    userData: RegistrationInput
+    userData: RegistrationInput,
   ): Promise<CheckDuplicatesResponse> {
     try {
       const existingUsername = await prisma.user.findFirst({
@@ -56,7 +56,7 @@ class UserRepository {
 
   async createUser(
     userData: RegistrationInput,
-    db: DBClient = prisma
+    db: DBClient = prisma,
   ): Promise<RegistrationResponse> {
     try {
       if (userData.password !== userData.confirmPassword) {
@@ -112,7 +112,7 @@ class UserRepository {
 
       const passwordMatch = await bcrypt.compare(
         userData.password,
-        user.passwordHash
+        user.passwordHash,
       );
 
       if (!passwordMatch) {
@@ -143,7 +143,7 @@ class UserRepository {
     userId: string,
     telegram: string | null,
     email: string | null,
-    removeTelegram: boolean
+    removeTelegram: boolean,
   ): Promise<RegistrationResponse> {
     try {
       if (email === null && removeTelegram === false) {
@@ -220,6 +220,12 @@ class UserRepository {
       console.error("Failed to fetch user with company from database", error);
       return null;
     }
+  }
+
+  async deleteUserById(userId: string) {
+    await prisma.user.delete({
+      where: { id: userId },
+    });
   }
 }
 

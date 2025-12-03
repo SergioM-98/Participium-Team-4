@@ -45,9 +45,9 @@ export default function LoginPage() {
       case "AccessDenied":
         return "Access denied";
       case "Verification":
-        return "Verification error";
+        return "Account verification pending. Please check your email for the verification code.";
       default:
-        return "An error occurred during login";
+        return error || "An error occurred during login";
     }
   };
 

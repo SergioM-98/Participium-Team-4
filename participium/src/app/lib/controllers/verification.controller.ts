@@ -1,23 +1,25 @@
 "use server";
 
-import { VerificationService } from "../services/verification.service";
+import { VerificationService } from "@/services/verification.service";
 
 /**
  * Server action to verify a user's email with a verification code
  */
 export async function verifyRegistration(
-  emailOrUsername: string,
+  email: string,
   code: string
 ): Promise<{ success: boolean; error?: string }> {
-  if (!emailOrUsername || !code) {
+  if (!code) {
     return {
       success: false,
-      error: "Email/username and verification code are required",
+      error: "Verification code is required",
     };
   }
 
-  return await VerificationService.getInstance().verifyRegistration(
-    emailOrUsername,
-    code
+  const verificationService = VerificationService.getInstance();
+
+  return await verificationService.verifyRegistration(
+    email.trim(),
+    code.trim()
   );
 }

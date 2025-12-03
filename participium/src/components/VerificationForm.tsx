@@ -43,7 +43,7 @@ export default function VerificationForm() {
 
     startTransition(async () => {
       try {
-        const response = await verifyRegistration(email, code.trim());
+        const response = await verifyRegistration(email.trim(), code.trim());
 
         if (!response.success) {
           setError(response.error);
