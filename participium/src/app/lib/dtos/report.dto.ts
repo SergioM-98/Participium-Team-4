@@ -109,6 +109,10 @@ export type AssignReportToOfficerResponse =
   | { success: true; data: string }
   | { success: false; error: string };
 
+export type AssignReportToMaintainerResponse =
+  | { success: true; data: string; access: boolean; email: string | null }
+  | { success: false; error: string };
+  
 export type UpdateReportStatusResponse =
   | { success: true; data: string }
   | { success: false; error: string };

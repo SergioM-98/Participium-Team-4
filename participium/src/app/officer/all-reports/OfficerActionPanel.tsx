@@ -83,19 +83,16 @@ export default function OfficerActionPanel({
 
   const handleApprove = async () => {
     const deptValue = selectedDepartment === "NONE" ? "" : selectedDepartment;
-    const companyValue = selectedCompany === "NONE" ? "" : selectedCompany;
     
-    if (!deptValue && !companyValue) return;
+    if (!deptValue) return;
     setIsLoading(true);
     setFeedbackMessage(null);
     try {
-      const assignmentValue = deptValue || companyValue;
-      const isCompanyAssignment = !!companyValue;
+      const assignmentValue = deptValue 
       
       const response = await approveReport(
         Number(reportId),
-        assignmentValue,
-        isCompanyAssignment
+        assignmentValue
       );
       if (response.success) {
         onActionComplete?.();

@@ -27,11 +27,13 @@ model Report {
   latitude    Float
   citizenId   String
   officerId   String?
+  maintainerId String?
   rejectionReason String?
   companyId   String?
 
   citizen   User  @relation("createdBy", fields: [citizenId], references: [id])
   officer   User? @relation("managedBy", fields: [officerId], references: [id])
+  maintainer User? @relation("outsourced", fields: [maintainerId], references: [id])
   company   Company? @relation(fields: [companyId], references: [id])
   
   @@map("report")
@@ -110,6 +112,7 @@ model User {
 
   createdReports          Report[] @relation("createdBy")
   managedReports          Report[] @relation("managedBy")
+  outsourcedReports       Report[] @relation("outsourced")
   messages                Message[]
   notifications           Notification[]
   notificationPreferences NotificationPreferences?

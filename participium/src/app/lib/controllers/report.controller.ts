@@ -7,12 +7,14 @@ import {
   ReportsByOfficerResponse,
   ReportsUnassignedResponse,
   UpdateReportStatusResponse,
+  AssignReportToMaintainerResponse,
 } from "@/dtos/report.dto";
 import { ReportCreationService } from "@/services/reportCreation.service";
 import { getServerSession } from "next-auth/next";
 import { ReportRetrievalService } from "@/services/reportRetrieval.service";
 import { ReportAssignmentService } from "@/services/reportAssignment.service";
 import { ReportUpdateService } from "@/services/reportUpdate.service";
+
 
 export async function createReport(
   title: string,
@@ -81,8 +83,7 @@ export async function getPendingApprovalReports(
 
 export async function approveReport(
   reportId: number,
-  departmentOrCompanyId: string,
-  isCompany: boolean = false
+  departmentOrCompanyId: string
 ): Promise<AssignReportToOfficerResponse> {
   const session = await getServerSession(authOptions);
 
@@ -95,13 +96,22 @@ export async function approveReport(
   }
 
   const reportAssignmentService = ReportAssignmentService.getInstance();
-
-  if (isCompany) {
-    return reportAssignmentService.assignReportToCompany(reportId, departmentOrCompanyId);
-  } else {
-    return reportAssignmentService.assignReportToOfficer(reportId, departmentOrCompanyId);
-  }
+  return reportAssignmentService.assignReportToOfficer(reportId, departmentOrCompanyId);
 }
+
+export async function assignReportToCompany(
+  reportId: number,
+  companyId: string
+): Promise<AssignReportToMaintainerResponse> {
+  const session = await getServerSession(authOptions);
+  if ( session?.user.role !== "THECHNICAL_OFFICER" ) {
+    throw new Error("Unauthorized access");
+  }
+    const reportAssignmentService = ReportAssignmentService.getInstance();
+    return reportAssignmentService.assignReportToCompany(reportId, companyId);
+}
+
+
 
 export async function rejectReport(
   reportId: number,

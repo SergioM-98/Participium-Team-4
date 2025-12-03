@@ -171,6 +171,20 @@ class ReportRepository {
     });
   }
 
+  public async assignReportToMaintainer(
+    reportId: number,
+    maintainerId: string
+  ): Promise<Report> {
+    return await prisma.report.update({
+      where: {
+        id: BigInt(reportId),
+      },
+      data: {
+        maintainerId: maintainerId,
+      },
+    });
+  }
+
   public async rejectReport(
     reportId: number,
     rejectionReason: string
@@ -261,7 +275,14 @@ class ReportRepository {
       },
     });
   }
-
+  public async getCompanyById(companyId: string) {
+    return await prisma.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
+  }
+  
   public async assignReportToCompany(
     reportId: number,
     companyId: string
