@@ -1,4 +1,4 @@
-import { prisma } from "../../../../prisma/db";
+import { prisma } from "@/prisma/db";
 import { Category, Report, Offices, ReportStatus, Role } from "@prisma/client";
 import {
   ReportRegistrationResponse,

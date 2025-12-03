@@ -22,10 +22,10 @@ import {
 } from "lucide-react";
 
 // UI Components
-import { Badge } from "../../../components/ui/badge";
-import { Button } from "../../../components/ui/button";
-import { Checkbox } from "../../../components/ui/checkbox";
-import { Input } from "../../../components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -33,18 +33,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../../components/ui/table";
+} from "@/components/ui/table";
 // Tooltip Imports for functionality
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../../../components/ui/tooltip";
+} from "@/components/ui/tooltip";
 
-import ReportDetailsCard from "../../../components/ReportDetailsCard";
-import { getPendingApprovalReports } from "../../lib/controllers/report.controller";
-import { getPhoto } from "../../lib/controllers/photo.controller";
+import ReportDetailsCard from "@/components/ReportDetailsCard";
+import { getPendingApprovalReports } from "@/controllers/report.controller";
+import { getPhoto } from "@/controllers/photo.controller";
 
 // ====================================================================
 // TYPES & CONSTANTS

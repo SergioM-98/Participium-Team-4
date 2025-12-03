@@ -1,8 +1,8 @@
 import { Prisma, PrismaClient } from "@prisma/client";
-import { prisma } from "../../../../prisma/db";
-import { RegistrationInput, RegistrationResponse } from "../dtos/user.dto";
-import { NotificationsRepository } from "../repositories/notifications.repository";
-import { UserRepository } from "../repositories/user.repository";
+import { prisma } from "@/prisma/db";
+import { RegistrationInput, RegistrationResponse } from "@/dtos/user.dto";
+import { NotificationsRepository } from "@/repositories/notifications.repository";
+import { UserRepository } from "@/repositories/user.repository";
 
 type DBClient = PrismaClient | Prisma.TransactionClient;
 

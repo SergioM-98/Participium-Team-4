@@ -1,6 +1,6 @@
-import { ReportRepository } from "../repositories/report.repository";
-import { AssignReportToOfficerResponse } from "../dtos/report.dto";
-import { NotificationService } from "./notification.service";
+import { ReportRepository } from "@/repositories/report.repository";
+import { AssignReportToOfficerResponse } from "@/dtos/report.dto";
+import { NotificationService } from "@/services/notification.service";
 
 class ReportAssignmentService {
   private static instance: ReportAssignmentService;
