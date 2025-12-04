@@ -8,7 +8,7 @@ import {
   RegistrationResponse,
 } from "@/dtos/user.dto";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/auth";
 import { UserService } from "@/services/user.service";
 import { updateNotificationsPreferences } from "./notification.controller";
 import {
@@ -17,7 +17,6 @@ import {
 } from "@/dtos/notificationPreferences.dto";
 import { NotificationService } from "@/services/notification.service";
 import { prisma } from "@/prisma/db";
-import { no } from "zod/v4/locales";
 
 
 

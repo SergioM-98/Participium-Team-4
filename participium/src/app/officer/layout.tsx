@@ -1,13 +1,13 @@
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/auth";
 import { redirect } from "next/navigation";
 import WithNavbarLayout from "@/app/(with-navbar)/layout";
 
 export default async function OfficerLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}): Promise<React.ReactElement> {
+}>): Promise<React.ReactElement> {
   const session = await getServerSession(authOptions);
 
   if (

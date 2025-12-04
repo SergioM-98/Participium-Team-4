@@ -6,7 +6,7 @@ jest.mock('next-auth/next', () => ({
     getServerSession: jest.fn(),
 }));
 
-jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
+jest.mock('@/auth', () => ({
     authOptions: {}
 }));
 

@@ -2,7 +2,7 @@
 import { RegistrationResponse } from "@/dtos/user.dto";
 import { TelegramService } from "@/services/telegramBot.service";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/auth";
 import { Category, ReportRegistrationResponse } from "@/dtos/report.dto";
 import {
   TelegramAPIReportRequest,
@@ -140,7 +140,7 @@ export async function registerTelegram(
 export async function startTelegramRegistration(): Promise<RegistrationResponse> {
   const token = crypto.randomUUID();
   const session = await getServerSession(authOptions);
-  if (!session || !session.user || !session.user.id) {
+  if (!session?.user?.id) {
     console.error("Authentication failed: No valid session or user ID found");
     return {
       success: false,
