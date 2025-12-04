@@ -3,9 +3,9 @@
 import { useCallback, useState } from "react";
 import CompanyForm, {
   CompanyFormData,
-} from "../../../../components/CompanyForm";
-import { Alert } from "../../../../components/ui/alert";
-import { createCompany } from "../../../lib/controllers/company.controller";
+} from "@/components/CompanyForm";
+import { Alert } from "@/components/ui/alert";
+import { createCompany } from "@/controllers/company.controller";
 
 // Constants for alert auto-dismiss timing
 const SUCCESS_ALERT_DURATION_MS = 4000;

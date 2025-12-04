@@ -34,7 +34,7 @@ interface NotificationBellProps {
   className?: string;
 }
 
-export function NotificationBell({ className = "" }: NotificationBellProps) {
+export function NotificationBell({ className = "" }: Readonly<NotificationBellProps>) {
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -138,6 +138,95 @@ export function NotificationBell({ className = "" }: NotificationBellProps) {
     return `${days}d ago`;
   };
 
+  const getNotificationIcon = (type: string) => {
+    if (type === "STATUS_CHANGE") return <FileText className="h-4 w-4" />;
+    if (type === "NEW_MESSAGE") return <MessageSquare className="h-4 w-4" />;
+    return <Info className="h-4 w-4" />;
+  };
+
+  const getNotificationIconStyle = (type: string) => {
+    return type === "STATUS_CHANGE"
+      ? "bg-blue-100 text-blue-600 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900"
+      : "bg-orange-100 text-orange-600 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-900";
+  };
+
+  const renderEmptyState = () => (
+    <div className="flex flex-col items-center justify-center h-40 space-y-2 text-muted-foreground">
+      <Bell className="h-8 w-8 opacity-20" />
+      <span className="text-sm">No notifications yet</span>
+    </div>
+  );
+
+  const renderLoadingState = () => (
+    <div className="flex flex-col items-center justify-center h-40 space-y-2">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <span className="text-xs text-muted-foreground">
+        Loading updates...
+      </span>
+    </div>
+  );
+
+  const renderNotificationsList = () => (
+    <div className="flex flex-col">
+      {notifications.map((notification) => (
+        <button
+          key={notification.id}
+          type="button"
+          onClick={() =>
+            handleMarkAsRead(notification.id, notification.isRead)
+          }
+          className={cn(
+            "flex gap-3 px-4 py-3 border-b last:border-0 cursor-pointer transition-colors hover:bg-muted/50 text-left",
+            !notification.isRead && "bg-muted/30"
+          )}
+        >
+          {/* Icon based on Type */}
+          <div
+            className={cn(
+              "mt-1 h-8 w-8 shrink-0 rounded-full flex items-center justify-center border",
+              getNotificationIconStyle(notification.type)
+            )}
+          >
+            {getNotificationIcon(notification.type)}
+          </div>
+
+          <div className="flex flex-col gap-1 overflow-hidden">
+            <p
+              className={cn(
+                "text-sm leading-tight",
+                notification.isRead
+                  ? "text-muted-foreground"
+                  : "font-medium text-foreground"
+              )}
+            >
+              {notification.message}
+            </p>
+            <span className="text-[10px] text-muted-foreground">
+              {formatTimeAgo(notification.createdAt)}
+            </span>
+          </div>
+
+          {/* Unread indicator dot */}
+          {!notification.isRead && (
+            <div className="ml-auto flex items-center">
+              <div className="h-2 w-2 rounded-full bg-blue-500" />
+            </div>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+
+  const renderScrollAreaContent = () => {
+    if (isLoading) {
+      return renderLoadingState();
+    }
+    if (notifications.length === 0) {
+      return renderEmptyState();
+    }
+    return renderNotificationsList();
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Bell Icon Trigger */}
@@ -176,75 +265,7 @@ export function NotificationBell({ className = "" }: NotificationBellProps) {
           </div>
 
           <ScrollArea className="h-[350px]">
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center h-40 space-y-2">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">
-                  Loading updates...
-                </span>
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-40 space-y-2 text-muted-foreground">
-                <Bell className="h-8 w-8 opacity-20" />
-                <span className="text-sm">No notifications yet</span>
-              </div>
-            ) : (
-              <div className="flex flex-col">
-                {notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    onClick={() =>
-                      handleMarkAsRead(notification.id, notification.isRead)
-                    }
-                    className={cn(
-                      "flex gap-3 px-4 py-3 border-b last:border-0 cursor-pointer transition-colors hover:bg-muted/50",
-                      !notification.isRead && "bg-muted/30"
-                    )}
-                  >
-                    {/* Icon based on Type */}
-                    <div
-                      className={cn(
-                        "mt-1 h-8 w-8 shrink-0 rounded-full flex items-center justify-center border",
-                        notification.type === "STATUS_CHANGE"
-                          ? "bg-blue-100 text-blue-600 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900"
-                          : "bg-orange-100 text-orange-600 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-900"
-                      )}
-                    >
-                      {notification.type === "STATUS_CHANGE" ? (
-                        <FileText className="h-4 w-4" />
-                      ) : notification.type === "NEW_MESSAGE" ? (
-                        <MessageSquare className="h-4 w-4" />
-                      ) : (
-                        <Info className="h-4 w-4" />
-                      )}
-                    </div>
-
-                    <div className="flex flex-col gap-1 overflow-hidden">
-                      <p
-                        className={cn(
-                          "text-sm leading-tight",
-                          !notification.isRead
-                            ? "font-medium text-foreground"
-                            : "text-muted-foreground"
-                        )}
-                      >
-                        {notification.message}
-                      </p>
-                      <span className="text-[10px] text-muted-foreground">
-                        {formatTimeAgo(notification.createdAt)}
-                      </span>
-                    </div>
-
-                    {/* Unread indicator dot */}
-                    {!notification.isRead && (
-                      <div className="ml-auto flex items-center">
-                        <div className="h-2 w-2 rounded-full bg-blue-500" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            {renderScrollAreaContent()}
           </ScrollArea>
         </div>
       )}

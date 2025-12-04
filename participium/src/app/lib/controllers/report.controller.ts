@@ -1,5 +1,5 @@
 "use server";
-import { authOptions } from "../../api/auth/[...nextauth]/route";
+import { authOptions } from "@/auth";
 import {
   AssignReportToOfficerResponse,
   ReportRegistrationResponse,
@@ -25,6 +25,7 @@ export async function createReport(
 ): Promise<ReportRegistrationResponse> {
   const session = await getServerSession(authOptions);
   if (!session || (session && session.user.role !== "CITIZEN")) {
+    console.error("Unauthorized report attempt");
     return { success: false, error: "Unauthorized report" };
   }
   const reportData = reportRequestSchema.safeParse({
@@ -34,17 +35,23 @@ export async function createReport(
     category: category,
     longitude,
     latitude,
-    userId: isAnonymous ? "2" : session.user.id,
+    userId: session.user.id,
     isAnonymous,
   });
   if (!reportData.success) {
+    console.error("Invalid report data:", reportData.error);
     return {
       success: false,
       error: "Invalid inputs",
     };
   }
   const reportCreationService = ReportCreationService.getInstance();
-  return reportCreationService.createReport(reportData.data);
+  try{
+    return await reportCreationService.createReport(reportData.data);
+  } catch (error) {
+    console.error("Error creating report:", error);
+    return { success: false, error: "Failed to create report" };
+  }
 }
 
 export async function getReportsByAssigneeId(): Promise<ReportsByOfficerResponse> {
@@ -72,11 +79,17 @@ export async function getPendingApprovalReports(
     !session ||
     (session && session.user.role !== "PUBLIC_RELATIONS_OFFICER")
   ) {
+    console.error("Unauthorized access attempt to get pending approval reports");
     return { success: false, error: "Unauthorized access" };
   }
 
   const reportRetrievalService = ReportRetrievalService.getInstance();
-  return reportRetrievalService.retrievePendingApprovalReports(status);
+  try {
+    return await reportRetrievalService.retrievePendingApprovalReports(status);
+  } catch (error) {
+    console.error("Error retrieving pending approval reports:", error);
+    return { success: false, error: "Failed to retrieve reports" };
+  }
 }
 
 export async function approveReport(
@@ -91,6 +104,7 @@ export async function approveReport(
     (session.user.role !== "PUBLIC_RELATIONS_OFFICER" &&
       session.user.role !== "ADMIN")
   ) {
+    console.error("Unauthorized access attempt to approve report");
     return { success: false, error: "Unauthorized access" };
   }
 
@@ -114,7 +128,9 @@ export async function rejectReport(
     (session.user.role !== "PUBLIC_RELATIONS_OFFICER" &&
       session.user.role !== "ADMIN")
   ) {
+    console.error("Unauthorized access attempt to reject report");
     return { success: false, error: "Unauthorized access" };
+
   }
 
   const reportAssignmentService = ReportAssignmentService.getInstance();

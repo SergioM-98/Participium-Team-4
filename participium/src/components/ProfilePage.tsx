@@ -11,7 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Cropper from "react-easy-crop";
-import { getCroppedImg } from "../app/lib/utils/canvasUtils";
+import { getCroppedImg } from "@/lib/utils/canvasUtils";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -53,26 +53,27 @@ import {
   Link as LinkIcon,
   CheckCircle2,
 } from "lucide-react";
-import { cn } from "../app/lib/utils";
-import { NotificationsData } from "../app/lib/dtos/notificationPreferences.dto";
+import { cn } from "@/lib/utils";
+import { NotificationsData } from "@/app/lib/dtos/notificationPreferences.dto";
 
 import {
   updateNotificationsMedia,
   getMe,
-} from "../app/lib/controllers/user.controller";
+} from "@/app/lib/controllers/user.controller";
 import {
   createUploadPhoto,
   getProfilePhotoUrl,
-} from "../app/lib/controllers/ProfilePhoto.controller";
-import { startTelegramRegistration } from "../app/lib/controllers/telegramBot.controller";
-import { getNotificationsPreferences } from "../app/lib/controllers/notification.controller";
+} from "@/app/lib/controllers/ProfilePhoto.controller";
+import { startTelegramRegistration } from "@/app/lib/controllers/telegramBot.controller";
+import { MeType } from "@/app/lib/dtos/user.dto";
 
 type UserProfileData = {
   username: string;
   firstName: string;
   lastName: string;
   email: string;
-  telegram: string;
+  telegram: boolean;
+  pendingRequest: boolean;
   role: string;
   office?: string;
   companyId?: string;
@@ -106,7 +107,8 @@ export default function ProfilePage() {
 
   const [formData, setFormData] = useState({
     email: "",
-    telegram: "",
+    telegram: false,
+    pendingRequest: false,
     emailEnabled: false,
     telegramEnabled: false,
   });
@@ -124,33 +126,26 @@ export default function ProfilePage() {
       try {
         const userDataResponse = await getMe();
 
-        if ("error" in userDataResponse) {
-          throw new Error(userDataResponse.error);
+        if (!("me" in userDataResponse)) {
+          if("error" in userDataResponse){
+            throw new Error(userDataResponse.error);
+          } else {
+            throw new Error("Invalid response from server");
+          }
         }
 
-        const userData = userDataResponse;
+        const userData = userDataResponse.me as MeType["me"];
 
         let notifications = {
-          emailEnabled: false,
-          telegramEnabled: false,
+          emailEnabled: userDataResponse.emailNotifications || false,
+          telegramEnabled: userDataResponse.telegramNotifications || false,
         };
         let imageUrl: string | null = null;
 
         if ("role" in userData && userData.role === "CITIZEN") {
           try {
-            const notifResponse = await getNotificationsPreferences();
-            if (notifResponse.success) {
-              notifications = {
-                emailEnabled: notifResponse.data.emailEnabled,
-                telegramEnabled: notifResponse.data.telegramEnabled ?? false,
-              };
-            }
-          } catch (e) {
-            console.warn("Failed to load notifications", e);
-          }
-
-          try {
-            imageUrl = await getProfilePhotoUrl();
+            const url = await getProfilePhotoUrl();
+            imageUrl = url === undefined ? null : url;
           } catch (e) {
             console.warn("Failed to fetch profile photo", e);
           }
@@ -168,7 +163,8 @@ export default function ProfilePage() {
             firstName: userData.firstName || "",
             lastName: userData.lastName || "",
             email: userData.email || "",
-            telegram: userData.telegram || "",
+            telegram: !!userData.telegram,
+            pendingRequest: !!userData.pendingRequest,
             role: userData.role || session.user.role,
             office: userData.office || undefined,
             companyId: userData.companyId || undefined,
@@ -185,7 +181,8 @@ export default function ProfilePage() {
             firstName: "",
             lastName: "",
             email: "",
-            telegram: "",
+            telegram: false,
+            pendingRequest: false,
             role: session.user.role,
             office: undefined,
             image: imageUrl,
@@ -200,7 +197,8 @@ export default function ProfilePage() {
 
         setFormData({
           email: loadedUser.email,
-          telegram: loadedUser.telegram || "",
+          telegram: loadedUser.telegram,
+          pendingRequest: loadedUser.pendingRequest,
           emailEnabled: loadedUser.notifications.emailEnabled,
           telegramEnabled: loadedUser.notifications.telegramEnabled ?? false,
         });
@@ -221,11 +219,11 @@ export default function ProfilePage() {
         try {
           const userDataResponse = await getMe();
 
-          if ("error" in userDataResponse) return;
+          if ("error" in userDataResponse || !("me" in userDataResponse)) return;
 
-          if ("telegram" in userDataResponse && userDataResponse.telegram) {
+          if ("telegram" in userDataResponse.me && userDataResponse.me.telegram) {
             setUser((prev) =>
-              prev ? { ...prev, telegram: userDataResponse.telegram! } : null
+              prev ? { ...prev, telegram: !!userDataResponse.me.telegram } : null
             );
             setTelegramStatus("idle");
             router.refresh();
@@ -329,7 +327,7 @@ export default function ProfilePage() {
         try {
           const result = await createUploadPhoto(data);
           if (result?.success) {
-            window.location.reload();
+            globalThis.location.reload();
           } else {
             setError(
               typeof result?.error === "string" ? result.error : "Upload failed"
@@ -380,7 +378,7 @@ export default function ProfilePage() {
   };
 
   const handleSave = () => {
-    if (!user || user.role !== "CITIZEN" || !validate()) return;
+    if (user?.role !== "CITIZEN" || !validate()) return;
     setError(null);
 
     startTransition(async () => {
@@ -393,7 +391,6 @@ export default function ProfilePage() {
         };
 
         const result = await updateNotificationsMedia(
-          user.telegram || null,
           formData.email || null,
           removeTelegram,
           notificationsData
@@ -432,7 +429,8 @@ export default function ProfilePage() {
     if (!user) return;
     setFormData({
       email: user.email,
-      telegram: user.telegram || "",
+      telegram: user.telegram ?? false,
+      pendingRequest: user.pendingRequest ?? false,
       emailEnabled: user.notifications.emailEnabled,
       telegramEnabled: user.notifications.telegramEnabled ?? false,
     });
@@ -588,9 +586,11 @@ export default function ProfilePage() {
               </Avatar>
 
               {isEditing && (
-                <div
+                <button
+                  type="button"
                   className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                   onClick={() => fileInputRef.current?.click()}
+                  aria-label="Change profile picture"
                 >
                   <Camera className="h-8 w-8 text-white" />
                   <input
@@ -600,7 +600,7 @@ export default function ProfilePage() {
                     accept="image/*"
                     onChange={handleFileSelect}
                   />
-                </div>
+                </button>
               )}
             </div>
 
@@ -784,7 +784,7 @@ export default function ProfilePage() {
                     <Building2 className="h-4 w-4" /> Department / Office
                   </Label>
                   <div className="flex items-center h-12 w-full rounded-md border border-input bg-muted/30 px-3 text-sm font-medium text-foreground shadow-sm">
-                    {user.office.replace(/_/g, " ")}
+                    {user.office.replaceAll('_', " ")}
                   </div>
                 </div>
               )}

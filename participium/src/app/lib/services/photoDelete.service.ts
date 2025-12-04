@@ -1,11 +1,11 @@
-import { PhotoRepository } from '../repositories/photo.repository';
-import { DeletePhotoRequest, DeletePhotoRequestSchema, TusDeleteResponse, TusDeleteResponseSchema } from '../dtos/tus.dto';
-import { unlink } from 'fs/promises';
-import path from 'path';
+import { PhotoRepository } from '@/repositories/photo.repository';
+import { DeletePhotoRequest, DeletePhotoRequestSchema, TusDeleteResponse, TusDeleteResponseSchema } from '@/dtos/tus.dto';
+import { unlink } from 'node:fs/promises';
+import path from 'node:path';
 
 class PhotoDeleteService {
     private static instance: PhotoDeleteService;
-    private photoRepository: PhotoRepository;
+    private readonly photoRepository: PhotoRepository;
 
     private constructor() {
         this.photoRepository = PhotoRepository.getInstance();
@@ -19,7 +19,6 @@ class PhotoDeleteService {
     }
 
     public async deletePhoto(request: DeletePhotoRequest): Promise<TusDeleteResponse> {
-        try {
             // Validate request DTO
             const validatedRequest = DeletePhotoRequestSchema.parse(request);
             
@@ -65,17 +64,8 @@ class PhotoDeleteService {
             });
 
             return response;
-        } catch (error) {
-            console.error('Error in deletePhoto:', error);
-            
-            const response: TusDeleteResponse = TusDeleteResponseSchema.parse({
-                success: false,
-                message: `Failed to delete photo: ${error instanceof Error ? error.message : 'Unknown error'}`
-            });
-
-            return response;
-        }
+        } 
     }
-}
+
 
 export { PhotoDeleteService };

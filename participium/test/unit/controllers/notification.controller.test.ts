@@ -229,7 +229,7 @@ describe('NotificationController story 11', () => {
 
             const response = await updateNotificationsPreferences(newPrefs);
 
-            expect(mockInstance.updateNotificationsPreferences).toHaveBeenCalledWith("testuser", newPrefs);
+            expect(mockInstance.updateNotificationsPreferences).toHaveBeenCalledWith("testuser", newPrefs, expect.anything());
             expect(response).toEqual({ success: true, data: newPrefs });
         });
 

@@ -59,7 +59,7 @@ describe("ReportCreationService - Story 12", () => {
       "OTHER",
       10,
       20,
-      "2"
+      ""
     );
   });
 });

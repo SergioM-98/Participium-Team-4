@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import ReportDetailsCard from "../../components/ReportDetailsCard";
+import ReportDetailsCard from "@/components/ReportDetailsCard";
 
 // --- Mock Data and Interfaces for Testing ---
 

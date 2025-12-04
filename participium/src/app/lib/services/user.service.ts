@@ -1,8 +1,11 @@
-import { prisma } from "../../../../prisma/db";
-import { RegistrationInput, RegistrationResponse } from "../dtos/user.dto";
-import { NotificationsRepository } from "../repositories/notifications.repository";
-import { UserRepository } from "../repositories/user.repository";
-import { VerificationService } from "./verification.service";
+import { Prisma, PrismaClient } from "@prisma/client";
+import { prisma } from "@/prisma/db";
+import { RegistrationInput, RegistrationResponse } from "@/dtos/user.dto";
+import { NotificationsRepository } from "@/repositories/notifications.repository";
+import { UserRepository } from "@/repositories/user.repository";
+import { VerificationService } from "@/services/verification.service";
+
+type DBClient = PrismaClient | Prisma.TransactionClient;
 
 class UserService {
   private static instance: UserService;
@@ -48,7 +51,7 @@ class UserService {
         if (!res.success) {
           throw new Error(res.error);
         }
-      }
+      
 
         if (!userData.email) {
           throw new Error("Email is required for CITIZEN users");
@@ -70,7 +73,6 @@ class UserService {
           );
         }
       }
-
       return result;
     });
   }
@@ -80,16 +82,17 @@ class UserService {
   }
 
   public async updateNotificationsMedia(
+
     userId: string,
-    telegram: string | null,
     email: string | null,
     removeTelegram: boolean,
+    db: DBClient = prisma
   ) {
     return this.userRepository.updateNotificationsMedia(
       userId,
-      telegram,
       email,
       removeTelegram,
+      db
     );
   }
 
@@ -98,6 +101,11 @@ class UserService {
   ): Promise<RegistrationResponse> {
     return this.userRepository.getUserByTelegramId(telegramId);
   }
+
+  public async getMe(userId:string){
+    return this.userRepository.getUserById(userId);
+  }
+
 
   public async getUserWithCompany(userId: string) {
     return this.userRepository.getUserWithCompany(userId);

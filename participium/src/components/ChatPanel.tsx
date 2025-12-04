@@ -25,12 +25,10 @@ interface ChatPanelProps {
 }
 
 export default function ChatPanel({
-  reportId,
-  currentUserRole,
   currentUserId,
   messages,
   onSendMessage,
-}: ChatPanelProps) {
+}: Readonly<ChatPanelProps>) {
   const [newMessage, setNewMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef(0);
