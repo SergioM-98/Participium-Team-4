@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { redirect } from "next/navigation";
 
-export default async function LoginPage({ searchParams }: { searchParams?: Promise<{ error?: string | string[] }> }) {
+export default async function LoginPage({ searchParams }: { searchParams?: { error?: string | string[] } }) {
   const session = await getServerSession(authOptions);
 
   if (session) {
@@ -21,8 +21,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
     }
   }
 
-  const params = await searchParams;
-  const rawError = params?.error;
+  const rawError = searchParams?.error;
   const error = Array.isArray(rawError) ? rawError[0] : rawError;
 
   return <LoginForm serverError={mapError(error)} />;

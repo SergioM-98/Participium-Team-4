@@ -42,18 +42,6 @@ class VerificationRepository {
     });
   }
 
-  public async findLatestVerificationToken(userId: string) {
-    return await prisma.verificationToken.findFirst({
-      where: {
-        userId,
-        used: false,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-  }
-
   public async verifyUserAndMarkToken(userId: string, tokenId: string) {
     return await prisma.$transaction(async (tx) => {
       await tx.verificationToken.update({

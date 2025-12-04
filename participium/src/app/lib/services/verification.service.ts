@@ -51,67 +51,6 @@ class VerificationService {
     }
   }
 
-  public async resendVerificationCode(
-    email: string,
-  ): Promise<VerificationResponse> {
-    try {
-      const user = await this.verificationRepository.findUserByEmail(email);
-
-      if (!user) {
-        return { success: false, error: "User not found" };
-      }
-
-      if (user.isVerified === true) {
-        return { success: false, error: "User is already verified" };
-      }
-
-      // Check if user has a recent verification token (within 1 minute)
-      const existingToken =
-        await this.verificationRepository.findLatestVerificationToken(user.id);
-
-      if (existingToken && !isTokenExpired(existingToken.expiresAt)) {
-        const createdAt = new Date(existingToken.createdAt);
-        const now = new Date();
-        const minutesPassed = Math.floor(
-          (now.getTime() - createdAt.getTime()) / (1000 * 60),
-        );
-
-        if (minutesPassed < 1) {
-          const secondsLeft =
-            60 - Math.floor((now.getTime() - createdAt.getTime()) / 1000);
-          return {
-            success: false,
-            error: `Please wait ${secondsLeft} seconds before requesting a new code`,
-          };
-        }
-      }
-
-      // Generate and send new code
-      const code = generateVerificationCode();
-      const expiresAt = getVerificationTokenExpiry();
-
-      await this.verificationRepository.createVerificationToken(
-        user.id,
-        code,
-        expiresAt,
-      );
-
-      await this.emailService.sendVerificationEmail(
-        email,
-        code,
-        user.firstName,
-      );
-
-      return { success: true, data: "Verification code resent successfully" };
-    } catch (error) {
-      console.error("Failed to resend verification code:", error);
-      return {
-        success: false,
-        error: "Failed to resend verification code. Please try again.",
-      };
-    }
-  }
-
   public async verifyRegistration(
     email: string,
     code: string,
