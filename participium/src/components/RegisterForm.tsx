@@ -13,7 +13,7 @@ import { Eye, EyeOff } from "lucide-react";
 
 // Import your server action
 // Changed relative path to use the root alias, which might resolve the build error.
-import { register } from "../app/lib/controllers/user.controller";
+import { register } from "@/app/lib/controllers/user.controller";
 
 export default function RegisterForm() {
   const router = useRouter(); // Hook for navigation
@@ -53,15 +53,19 @@ export default function RegisterForm() {
       if (!response.success) {
         setError(response.error);
       } else {
-        // Success! Redirect to the login page
-        // You could also show a success message here first
-        router.push("/login?registered=true");
+        // For CITIZEN users, redirect to verification page
+        if (response.pendingVerification) {
+          router.push(`/verify?email=${encodeURIComponent(email)}`);
+        } else {
+          // For other roles, redirect to login
+          router.push("/login?registered=true");
+        }
       }
     });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}

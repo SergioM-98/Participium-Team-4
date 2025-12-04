@@ -1,9 +1,13 @@
-import { NotificationsRepository } from "../repositories/notifications.repository";
-import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
+import { NotificationsRepository } from "@/repositories/notifications.repository";
+import { NotificationsData, NotificationsResponse } from "@/dtos/notificationPreferences.dto";
+import { prisma } from "@/prisma/db";
+import { Prisma, PrismaClient } from "@prisma/client";
+
+type DBClient = PrismaClient | Prisma.TransactionClient;
 
 class NotificationService {
   private static instance: NotificationService;
-  private notificationsRepository: NotificationsRepository;
+  private readonly notificationsRepository: NotificationsRepository;
 
   private constructor() {
     this.notificationsRepository = NotificationsRepository.getInstance();
@@ -66,9 +70,10 @@ class NotificationService {
 
   public async updateNotificationsPreferences(
     userId: string,
-    notifications: NotificationsData
+    notifications: NotificationsData,
+    db: DBClient = prisma
   ): Promise<NotificationsResponse> {
-    return this.notificationsRepository.updateNotificationsPreferences(userId, notifications);
+    return this.notificationsRepository.updateNotificationsPreferences(userId, notifications, db);
   }
 }
 

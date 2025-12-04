@@ -16,6 +16,7 @@ const config: Config = {
       clearMocks: true,
       preset: "ts-jest",
       moduleNameMapper: {
+        "^@/auth$": "<rootDir>/src/app/api/auth/[...nextauth]/route.ts",
         "^@/repositories/(.*)$": "<rootDir>/src/app/lib/repositories/$1",
         "^@/dtos/(.*)$": "<rootDir>/src/app/lib/dtos/$1",
         "^@/services/(.*)$": "<rootDir>/src/app/lib/services/$1",
@@ -51,6 +52,7 @@ const config: Config = {
       setupFiles: ["<rootDir>/jest.setup.js"],
       setupFilesAfterEnv: ["<rootDir>/test/setup.ts"],
       moduleNameMapper: {
+        "^@/auth$": "<rootDir>/src/app/api/auth/[...nextauth]/route.ts",
         "^@/repositories/(.*)$": "<rootDir>/src/app/lib/repositories/$1",
         "^@/dtos/(.*)$": "<rootDir>/src/app/lib/dtos/$1",
         "^@/services/(.*)$": "<rootDir>/src/app/lib/services/$1",

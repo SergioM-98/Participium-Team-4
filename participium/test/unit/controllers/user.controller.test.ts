@@ -26,7 +26,7 @@ jest.mock("next-auth", () => ({
 }));
 
 
-jest.mock('@/auth', () => ({
+jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
     authOptions: {}
 }));
 

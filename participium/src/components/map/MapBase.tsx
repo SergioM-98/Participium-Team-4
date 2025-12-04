@@ -4,10 +4,10 @@ import { ReactNode } from "react";
 
 const maxBounds: LatLngBoundsExpression = [
   [45.0027, 7.5703],
-  [45.1440, 7.7783]
+  [45.144, 7.7783]
 ];
 
-export default function MapBase({ children }: { children: ReactNode }) {
+export default function MapBase({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <MapContainer
       center={[45.0703, 7.6869]}
@@ -15,7 +15,7 @@ export default function MapBase({ children }: { children: ReactNode }) {
       className="w-full h-full"
       style={{ width: "100%", height: "100%" }}
       maxBounds={maxBounds}
-      maxBoundsViscosity={1.0}
+      maxBoundsViscosity={1}
       minZoom={11}
     >
     {/* layer for map background styling */}
