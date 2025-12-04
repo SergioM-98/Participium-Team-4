@@ -6,24 +6,30 @@ import path from "path";
 
 const idSchema = z.string();
 
-export async function getApprovedReportsForMap() {
-  const service = ReportMapService.getInstance();
-  const repoResult = await service.getReportsForMap();
+export async function getReportsForMap() {
+  const { getServerSession } = await import("next-auth/next");
+  const { authOptions } = await import("../../api/auth/[...nextauth]/route");
+    const service = ReportMapService.getInstance();
+    const session = await getServerSession(authOptions);
 
-  if (!repoResult || repoResult.success === false || !repoResult.data) {
-    return { success: false, error: "No reports found" };
-  }
+    const userId = session?.user?.id;
+    const role = session?.user?.role;
+    const repoResult = await service.getReportsForMap(userId, role);
 
-  const data = repoResult.data.map((r: any) => ({
-    id: r.id.toString(),
-    title: r.title,
-    longitude: r.longitude,
-    latitude: r.latitude,
-    category: r.category,
-    username: r.citizen?.username
-  }));
+    if (!repoResult || repoResult.success === false || !repoResult.data) {
+      return { success: false, error: "No reports found" };
+    }
 
-  return { success: true, data };
+    const data = repoResult.data.map((r: any) => ({
+      id: r.id.toString(),
+      title: r.title,
+      longitude: r.longitude,
+      latitude: r.latitude,
+      category: r.category,
+      username: r.citizen?.username
+    }));
+
+    return { success: true, data };
 }
 
 export async function getReportById(params: { id: string }) {

@@ -120,6 +120,33 @@ class ReportRepository {
         return { success: false, error: "Error retrieving unapproved reports" };
       }
     }
+
+    public async getUnapprovedReportsByCitizenId(citizenId: string) {
+      const where: any = { status: "REJECTED", citizenId };
+      try {
+        const reports = await prisma.report.findMany({
+          where,
+          select: {
+            id: true,
+            title: true,
+            longitude: true,
+            latitude: true,
+            category: true,
+            citizen: {
+              select: {
+                username: true,
+              },
+            },
+          },
+        });
+        if (!reports || reports.length === 0) {
+          return { success: false, error: "No unapproved reports found for this citizen" };
+        }
+        return { success: true, data: reports };
+      } catch (e) {
+        return { success: false, error: "Error retrieving unapproved reports for citizen" };
+      }
+    }
   
 
   public async getReportsByOfficerId(officerId: string) {
@@ -167,6 +194,33 @@ class ReportRepository {
       return { success: false, error: "Error retrieving pending approval reports" };
     }
   }
+
+    public async getPendingApprovalReportsByCitizenId(citizenId: string) {
+      const where: any = { status: "PENDING_APPROVAL", citizenId };
+      try {
+        const reports = await prisma.report.findMany({
+          where,
+          select: {
+            id: true,
+            title: true,
+            longitude: true,
+            latitude: true,
+            category: true,
+            citizen: {
+              select: {
+                username: true,
+              },
+            },
+          },
+        });
+        if (!reports || reports.length === 0) {
+          return { success: false, error: "No pending approval reports found for this citizen" };
+        }
+        return { success: true, data: reports };
+      } catch (e) {
+        return { success: false, error: "Error retrieving pending approval reports for citizen" };
+      }
+    }
 
   public async getOfficerWithLeastReports(department: string) {
     const office = this.normalizeOffice(department);
