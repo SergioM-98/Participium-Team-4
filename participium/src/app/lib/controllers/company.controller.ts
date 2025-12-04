@@ -1,5 +1,5 @@
 "use server";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/auth";
 import { getServerSession } from "next-auth/next";
 import { CompanyCreationService } from "@/services/companyCreation.service";
 import { Company } from "@prisma/client";

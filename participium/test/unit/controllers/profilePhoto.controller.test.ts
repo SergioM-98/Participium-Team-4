@@ -16,7 +16,7 @@ jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn().mockResolvedValue({ user: { id: "user-id-1", role: "CITIZEN" } }),
 }));
 
-jest.mock("@/app/api/auth/[...nextauth]/route", () => ({ authOptions: {} }));
+jest.mock("@/auth", () => ({ authOptions: {} }));
 
 describe("ProfilePhoto.controller - Story 9", () => {
   it("should upload profile photo", async () => {

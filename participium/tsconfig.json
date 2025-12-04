@@ -35,7 +35,8 @@
       "@/db/*": ["./src/app/lib/db/*"],
       "@/prisma/*": ["./prisma/*"],
       "@/actions/*": ["./src/app/lib/actions/*"],
-      "@/data/*": ["./src/data/*"]
+      "@/data/*": ["./src/data/*"],
+      "@/auth": ["./src/app/api/auth/[...nextauth]/route"],
     }
   },
   "include": [
