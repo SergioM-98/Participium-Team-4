@@ -20,10 +20,6 @@ jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
   authOptions: {},
 }));
 
-jest.mock("@/auth", () => ({
-  authOptions: {},
-}));
-
 import { getServerSession } from "next-auth/next";
 
 describe("Story 3 - Integration Test: Officer Role assignment", () => {
@@ -88,8 +84,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
         email: null,
         username: "mariorossi",
         role: "PUBLIC_RELATIONS_OFFICER",
-        office: "DEPARTMENT_OF_COMMERCE",
-        telegram: null,
+        office: "DEPARTMENT_OF_COMMERCE"
       });
 
       expect(savedUser!.passwordHash).not.toBe("SecurePass123!");

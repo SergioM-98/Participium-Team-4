@@ -3,7 +3,7 @@
 import { Hero115 } from "@/components/hero115";
 import { Navbar1 } from "@/components/navbar1";
 import { Feature43 } from "@/components/feature43";
-import { MapPin, MessageCircle, Users, ShieldCheck, BarChart3, Lightbulb } from "lucide-react";
+import { MapPin, MessageCircle, Users, ShieldCheck, BarChart3} from "lucide-react";
 import { TelegramIcon } from "@/components/TelegramIcon";
 
 export default function HomePage() {

@@ -91,7 +91,7 @@ describe("NotificationService story 11", () => {
     it("should update preferences", async () => {
       const prefs = { emailEnabled: true, telegramEnabled: false };
       await notificationService.updateNotificationsPreferences("testuser", prefs);
-      expect(mockRepo.updateNotificationsPreferences).toHaveBeenCalledWith("testuser", prefs);
+      expect(mockRepo.updateNotificationsPreferences).toHaveBeenCalledWith("testuser", prefs, expect.anything());
     });
   });
 });

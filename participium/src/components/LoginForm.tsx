@@ -1,20 +1,19 @@
 "use client";
 
-import { use, useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
 import { Card, CardContent } from "./ui/card";
 
 import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
 
-export default function LoginPage() {
+export default function LoginForm({ serverError }: { serverError?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -25,30 +24,43 @@ export default function LoginPage() {
 
   // State for server errors
   const [error, setError] = useState<string | undefined>("");
-  
-  const [validationError, setValidationError] = useState<Partial<Record<string, string>>>({});
+
+  const [validationError, setValidationError] = useState<
+    Partial<Record<string, string>>
+  >({});
+
   // Check for a success message from registration
   const [success, setSuccess] = useState<string | undefined>(
-    searchParams.get("registered")
-      ? "Registration successful! Please log in."
-      : ""
+    searchParams.get("registered") ? "Registration successful! Please log in." : ""
   );
 
-
-  const getErrorMessage = (error: string) => {
-    switch (error) {
+  const getErrorMessage = (err: string) => {
+    switch (err) {
       case "CredentialsSignin":
-        return "Wrong credentials"; 
+        return "Wrong credentials";
       case "Configuration":
         return "Server configuration error";
       case "AccessDenied":
         return "Access denied";
       case "Verification":
-        return "Verification error";
+      case "The user is not verified":
+        return "Account verification pending. Please check your email for the verification code.";
       default:
-        return "An error occurred during login";
+        return decodeURIComponent(err) || "An error occurred during login";
     }
   };
+
+  // Initialize error from server or from query param if present
+  useEffect(() => {
+    const spError = searchParams.get("error");
+    if (serverError) {
+      setError(serverError);
+    } else if (spError) {
+      setError(getErrorMessage(spError));
+    } else {
+      setError("");
+    }
+  }, [serverError, searchParams]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -65,18 +77,12 @@ export default function LoginPage() {
 
     startTransition(async () => {
       try {
-        const response = await signIn("credentials", {
-          redirect: false,
+        await signIn("credentials", {
+          redirect: true, // handle response server-side
+          callbackUrl: "/",
           username,
           password,
         });
-
-        if (!response || response.error) {
-          const errorMessage = response?.error ? getErrorMessage(response.error) : "Invalid credentials";
-          setError(errorMessage);
-        } else {
-          router.push("/");
-        }
       } catch (err: any) {
         console.error(err);
         setError("Something went wrong. Please try again.");
@@ -85,7 +91,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -95,8 +101,12 @@ export default function LoginPage() {
         <Card className="w-full bg-background rounded-lg p-0 shadow-md">
           <CardContent className="p-0">
             <div className="p-6 pb-4">
-              <h1 className="text-2xl font-bold text-foreground">Welcome back!</h1>
-              <p className="text-sm text-muted-foreground mt-1">Please enter your credentials to continue.</p>
+              <h1 className="text-2xl font-bold text-foreground">
+                Welcome back!
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Please enter your credentials to continue.
+              </p>
             </div>
 
             <form onSubmit={handleSubmit}>
@@ -113,14 +123,25 @@ export default function LoginPage() {
                       onChange={(e) => {
                         setusername(e.target.value);
                         if (error) setError("");
-                        if (validationError.username) setValidationError((prev) => ({ ...prev, username: undefined }));
+                        if (validationError.username)
+                          setValidationError((prev) => ({
+                            ...prev,
+                            username: undefined,
+                          }));
                       }}
                       required
                       disabled={isPending}
                       aria-invalid={!!validationError.username}
                       aria-describedby="username-error"
                     />
-                    {validationError.username && <p id="username-error" className="text-xs text-red-500 mt-1">{validationError.username}</p>}
+                    {validationError.username && (
+                      <p
+                        id="username-error"
+                        className="text-xs text-red-500 mt-1"
+                      >
+                        {validationError.username}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -135,21 +156,36 @@ export default function LoginPage() {
                         onChange={(e) => {
                           setPassword(e.target.value);
                           if (error) setError("");
-                          if (validationError.password) setValidationError((prev) => ({ ...prev, password: undefined }));
+                          if (validationError.password)
+                            setValidationError((prev) => ({
+                              ...prev,
+                              password: undefined,
+                            }));
                         }}
                         required
                         disabled={isPending}
                         aria-invalid={!!validationError.password}
                         aria-describedby="password-error"
                       />
-                      {validationError.password && <p id="password-error" className="text-xs text-red-500 mt-1">{validationError.password}</p>}
+                      {validationError.password && (
+                        <p
+                          id="password-error"
+                          className="text-xs text-red-500 mt-1"
+                        >
+                          {validationError.password}
+                        </p>
+                      )}
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
                         disabled={isPending}
                       >
-                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        {showPassword ? (
+                          <EyeOff size={20} />
+                        ) : (
+                          <Eye size={20} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -169,7 +205,11 @@ export default function LoginPage() {
               </div>
 
               <div className="px-6 py-4 flex justify-end items-center gap-2">
-                <Button type="submit" className="h-9 px-4 text-sm font-medium w-full" disabled={isPending}>
+                <Button
+                  type="submit"
+                  className="h-9 px-4 text-sm font-medium w-full"
+                  disabled={isPending}
+                >
                   {isPending ? "Signing in..." : "Sign in"}
                 </Button>
               </div>

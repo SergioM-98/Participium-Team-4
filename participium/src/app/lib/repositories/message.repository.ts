@@ -1,4 +1,4 @@
-import { prisma } from "../../../../prisma/db";
+import { prisma } from "@/prisma/db";
 import { Message } from "@prisma/client";
 
 export class MessageRepository {

@@ -22,10 +22,10 @@ import {
 } from "lucide-react";
 
 // UI Components
-import { Badge } from "../../../components/ui/badge";
-import { Button } from "../../../components/ui/button";
-import { Checkbox } from "../../../components/ui/checkbox";
-import { Input } from "../../../components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -33,18 +33,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../../components/ui/table";
+} from "@/components/ui/table";
 // Tooltip Imports for functionality
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../../../components/ui/tooltip";
+} from "@/components/ui/tooltip";
 
-import ReportDetailsCard from "../../../components/ReportDetailsCard";
-import { getPendingApprovalReports } from "../../lib/controllers/report.controller";
-import { getPhoto } from "../../lib/controllers/photo.controller";
+import ReportDetailsCard from "@/components/ReportDetailsCard";
+import { getPendingApprovalReports } from "@/controllers/report.controller";
+import { getPhoto } from "@/controllers/photo.controller";
 
 // ====================================================================
 // TYPES & CONSTANTS
@@ -93,7 +93,7 @@ export interface Report {
   longitude: number;
   citizen?: { username: string };
   citizenId?: string | number;
-  officerId?: string | number | null | undefined;
+  officerId?: string | number | null;
   createdAt?: string;
 }
 
@@ -262,7 +262,7 @@ interface AllReportsListProps {
   data?: Report[];
 }
 
-export function AllReportsList({ data }: AllReportsListProps) {
+export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [reports, setReports] = useState<Report[]>(data || []);
   const [isLoading, setIsLoading] = useState(!data);
@@ -333,6 +333,7 @@ export function AllReportsList({ data }: AllReportsListProps) {
 
       setReports(transformedReports);
     } catch (err) {
+      console.error("Error fetching reports:", err);
       setError("An unexpected error occurred");
       setReports([]);
     } finally {
@@ -354,7 +355,7 @@ export function AllReportsList({ data }: AllReportsListProps) {
 
   useEffect(() => {
     async function fetchSelectedReportPhotos() {
-      if (!selectedReport || !selectedReport.photos || !Array.isArray(selectedReport.photos)) return;
+      if (!selectedReport?.photos || !Array.isArray(selectedReport.photos)) return;
 
       const cacheUpdates: Record<string, string> = {};
       let hasUpdates = false;
@@ -618,14 +619,14 @@ export function AllReportsList({ data }: AllReportsListProps) {
       {/* The Dialog Component is rendered here when a report is selected */}
       {selectedReport && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300"
-          onClick={handleDialogClose}
-        >
-          <div
-            className="w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] rounded-xl shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ReportDetailsCard
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 md:p-0 animate-in fade-in duration-300"
+           onClick={handleDialogClose}
+         >
+           <div
+            className="w-screen h-screen md:w-[70vw] md:h-[70vh] max-w-[95vw] max-h-[95vh] rounded-xl shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300"
+             onClick={(e) => e.stopPropagation()}
+           >
+             <ReportDetailsCard
               report={{
                 id: selectedReport.id.toString(),
                 title: selectedReport.title,

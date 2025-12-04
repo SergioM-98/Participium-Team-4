@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isUserAuthenticatedByTelegram } from "../../../lib/controllers/telegramBot.controller";
+import { isUserAuthenticatedByTelegram } from "@/controllers/telegramBot.controller";
 
 export async function POST(request: NextRequest) {
   try {

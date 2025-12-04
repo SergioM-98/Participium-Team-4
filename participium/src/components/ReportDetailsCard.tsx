@@ -4,20 +4,24 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Separator } from "./ui/separator";
 import {
-  MapPin,
   Tag,
   X,
-  Image as ImageIcon,
   User,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Eye
 } from "lucide-react";
 
-import OfficerActionPanel from "../app/officer/all-reports/OfficerActionPanel";
+import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
+import MaintainerActionPanel from "@/app/maintainer/my-reports/MaintainerActionPanel";
 import ChatPanel, { ChatMessage } from "./ChatPanel";
-import { getReportMessages, sendMessage } from "../app/lib/controllers/message.controller";
+import { getReportMessages, sendMessage } from "@/app/lib/controllers/message.controller";
+import dynamic from "next/dist/shared/lib/dynamic";
+
+const LeafletMapFixed = dynamic(() => import("./LeafletMapFixed"), {
+  ssr: false,
+});
 
 interface Report {
   id: string;
@@ -31,7 +35,7 @@ interface Report {
     | "suspended"
     | "rejected"
     | "resolved"
-    | string;
+    /*| string to remove??*/;
   latitude: number;
   longitude: number;
   reporterName: string;
@@ -46,7 +50,9 @@ interface ReportDetailsCardProps {
   report: Report;
   onClose?: () => void;
   isOfficerMode?: boolean;
+  isMaintainerMode?: boolean;
   onOfficerActionComplete?: () => void;
+  onMaintainerActionComplete?: () => void;
   showChat?: boolean;
 }
 
@@ -83,7 +89,9 @@ export default function ReportDetailsCard({
   report,
   onClose,
   isOfficerMode = false,
+  isMaintainerMode = false,
   onOfficerActionComplete,
+  onMaintainerActionComplete,
   showChat = false,
 }: ReportDetailsCardProps) {
   const { data: session } = useSession();
@@ -108,9 +116,10 @@ export default function ReportDetailsCard({
   const [isLoadingMessages, setIsLoadingMessages] = useState(true);
 
   const [isSending, setIsSending] = useState(false);
+  const [isMapOpen, setIsMapOpen] = useState(false);
 
   // Use the actual role from the session
-  const currentUserRole = (session?.user as any)?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : (session?.user as any)?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : "CITIZEN";
+  const currentUserRole = (session?.user as any)?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : (session?.user as any)?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : (session?.user as any)?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ? "EXTERNAL_MAINTAINER_WITH_ACCESS" : "CITIZEN";
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -160,14 +169,14 @@ export default function ReportDetailsCard({
 
       const response = await sendMessage(text, authorId, reportIdBigInt);
 
-      if (response) {
+      if (response.success) {
         const newMsg: ChatMessage = {
-          id: response.id?.toString() || Date.now().toString(),
+          id: response.data.id?.toString() || Date.now().toString(),
           senderName: session.user.name || "You",
           senderId: session.user.id,
           senderRole: currentUserRole,
           content: text,
-          timestamp: response.createdAt ? new Date(response.createdAt).toISOString() : new Date().toISOString(),
+          timestamp: response.data.createdAt ? new Date(response.data.createdAt).toISOString() : new Date().toISOString(),
         };
         setMessages((prev) => [...prev, newMsg]);
       }
@@ -180,7 +189,7 @@ export default function ReportDetailsCard({
 
   return (
     <div className="w-full h-full flex flex-col bg-background overflow-hidden">
-      {/* Header fisso */}
+      {/* Header */}
       <div className="flex items-start justify-between px-3 py-2 md:px-6 md:py-5 border-b bg-background flex-shrink-0">
         <div className="space-y-1">
           <div className="flex items-center gap-2 md:gap-3">
@@ -188,122 +197,140 @@ export default function ReportDetailsCard({
             {getStatusBadge(report.status)}
           </div>
           <div className="flex items-center text-xs md:text-sm text-muted-foreground gap-2 md:gap-4">
-             <span className="flex items-center gap-1">
-               <MapPin className="w-3 md:w-3.5 h-3 md:h-3.5" />
-               {Number(report.latitude).toFixed(4)}, {Number(report.longitude).toFixed(4)}
-             </span>
-             <span className="w-1 h-1 rounded-full bg-gray-300" />
-             <span className="flex items-center gap-1">
-               <Clock className="w-3 md:w-3.5 h-3 md:h-3.5" />
-               {formattedDate}
-             </span>
+            <span className="w-1 h-1 rounded-full bg-gray-300" />
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 md:w-3.5 h-3 md:h-3.5" />
+              {formattedDate}
+            </span>
           </div>
         </div>
-        {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-foreground">
-            <X className="h-5 w-5" />
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {onClose && (
+            <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-foreground">
+              <X className="h-5 w-5" />
+            </Button>
+          )}
+        </div>
       </div>
 
-      
-      <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden items-stretch">
-        
-
-        <div className="w-full md:flex-1 md:min-w-0 flex-1 min-h-0 md:p-6 p-4 space-y-6 md:space-y-8 overflow-y-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-muted/30 rounded-lg border border-border/50">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                <Tag className="w-3.5 h-3.5" /> Category
-              </div>
-              <div className="font-semibold text-base text-foreground">
-                {formatCategory(report.category)}
-              </div>
-            </div>
-            <div className="p-4 bg-muted/30 rounded-lg border border-border/50">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                <User className="w-3.5 h-3.5" /> Reported By
-              </div>
-              <div className="font-semibold text-base text-foreground">
-                {report.reporterName || "Anonymous"}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-primary" /> 
-              Problem Description
-            </h3>
-            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-sm md:text-base">
-              {report.description}
-            </p>
-          </div>
-
-          <Separator />
-
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                Evidence Photos
-                <Badge variant="outline" className="ml-2 text-muted-foreground font-normal">
-                  {evidencePhotos.length}
-                </Badge>
-              </h3>
-            </div>
-            
-            {evidencePhotos.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-2 md:gap-4">
-                {evidencePhotos.map((url, index) => (
-                  <div 
-                    key={index} 
-                    className="group relative aspect-video rounded-lg overflow-hidden border bg-muted cursor-pointer"
-                  >
-                     <div className="absolute inset-0 flex items-center justify-center">
-                        <ImageIcon className="h-5 md:h-8 w-5 md:w-8 text-muted-foreground/30" />
-                     </div>
-                     <img 
-                       src={url} 
-                       alt={`Evidence ${index + 1}`} 
-                       loading="lazy"
-                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                       onError={(e) => { e.currentTarget.style.opacity = "0"; }}
-                     />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="h-24 md:h-32 border-2 border-dashed border-muted rounded-lg flex flex-col items-center justify-center text-muted-foreground bg-muted/10">
-                <ImageIcon className="w-5 md:w-8 h-5 md:h-8 mb-2 opacity-20" />
-                <span className="text-xs md:text-sm">No photos attached</span>
-              </div>
-            )}
+      {/* Row con 3 colonne: map | menu | chat/officer */}
+      <div className="flex flex-col md:flex-row items-stretch gap-4 p-4 md:p-6 overflow-hidden flex-1 min-h-0">
+        {/* MAP - sinistra (hidden on mobile; available as overlay via button) */}
+        <div className="hidden md:flex md:flex-1 min-h-0 rounded-lg overflow-hidden border border-border bg-muted/5">
+          <div className="w-full h-full">
+            <LeafletMapFixed report={report} showCloseButton={false} className="w-full h-full" />
           </div>
         </div>
+ 
+         {/* MENU - centro (riempie lo spazio disponibile, scroll interno) */}
+         <div className="flex-1 min-h-0 rounded-lg border border-border bg-muted/10 p-3 overflow-auto">
+           <div className="space-y-4">
+             <div className="p-1 bg-muted/30 rounded-lg border border-border/50">
+               <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
+                 <Tag className="w-3 h-3" /> Category
+               </div>
+               <div className="font-medium text-sm text-foreground">
+                 {formatCategory(report.category)}
+               </div>
+             </div>
+ 
+             <div className="p-1 bg-muted/30 rounded-lg border border-border/50">
+               <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
+                 <User className="w-3 h-3" /> Reported By
+               </div>
+               <div className="font-medium text-sm text-foreground">
+                 {report.reporterName || "Anonymous"}
+               </div>
+             </div>
+ 
+             <div className="space-y-2">
+               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                 <AlertCircle className="w-4 h-4 text-primary" /> Problem Description
+               </h3>
+               <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                 {report.description}
+               </p>
+             </div>
+ 
+             <div>
+               <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                 Evidence Photos <Badge variant="outline" className="ml-2 text-muted-foreground font-normal">{evidencePhotos.length}</Badge>
+               </h4>
+ 
+               {evidencePhotos.length > 0 ? (
+                 <div className="grid grid-cols-2 gap-2">
+                   {evidencePhotos.slice(0,4).map((url, index) => (
+                     <div key={index} className="relative aspect-video rounded-md overflow-hidden border bg-muted">
+                       <img
+                         src={url}
+                         alt={`Evidence ${index + 1}`}
+                         loading="lazy"
+                         className="w-full h-full object-cover"
+                         onError={(e) => { e.currentTarget.style.opacity = "0"; }}
+                       />
+                     </div>
+                   ))}
+                 </div>
+               ) : (
+                 <div className="h-16 border-2 border-dashed border-muted rounded-lg flex items-center justify-center text-muted-foreground bg-muted/10 text-xs">
+                   No photos attached
+                 </div>
+               )}
+             </div>
+           </div>
+         </div>
+ 
+        {/* CHAT / OFFICER - destra (riempie lo spazio disponibile) */}
+        <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex">
+           {canViewChat ? (
+            <div className="w-full h-full">
+              <ChatPanel
+                reportId={report.id}
+                currentUserRole={currentUserRole}
+                currentUserId={session?.user?.id || ""}
+                messages={messages}
+                onSendMessage={handleSendMessage}
+              />
+            </div>
+           ) : isOfficerMode ? (
+            <div className="w-full h-full overflow-auto p-3">
+               <OfficerActionPanel
+                 reportId={report.id}
+                 currentStatus={report.status}
+                 currentCategory={report.category}
+                 onActionComplete={onOfficerActionComplete}
+               />
+             </div>
+           ) : (
+            <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground">
+               Chat non disponibile
+             </div>
+           )}
+         </div>
+      </div>
+      
+      {/* Mobile map overlay (on top of modal) */}
+      {isMapOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => setIsMapOpen(false)}
+        >
+          <div
+            className="w-full h-full max-w-[95vw] max-h-[95vh] rounded-lg overflow-hidden bg-background shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative w-full h-full">
+              <LeafletMapFixed report={report} showCloseButton={true} onClose={() => setIsMapOpen(false)} className="w-full h-full" />
+             </div>
+           </div>
+         </div>
+      )}
 
-        {canViewChat && (
-          <div className="w-full md:w-80 h-[50vh] md:h-full border-t md:border-t-0 md:border-l border-border bg-muted/10 flex flex-col overflow-hidden">
-            <ChatPanel
-              reportId={report.id}
-              currentUserRole={currentUserRole}
-              currentUserId={session?.user?.id || ""}
-              messages={messages}
-              onSendMessage={handleSendMessage}
-            />
-          </div>
-        )}
-
-
-        {isOfficerMode && !canViewChat && (
-          <div className="w-full md:w-80 h-[50vh] md:h-full md:min-h-0 border-t md:border-t-0 md:border-l border-border bg-muted/10 flex flex-col overflow-y-auto p-4 md:p-6">
-            <OfficerActionPanel
-              reportId={report.id}
-              currentStatus={report.status}
-              currentCategory={report.category}
-              onActionComplete={onOfficerActionComplete}
-            />
-          </div>
-        )}
+      {/* Mobile footer: view map button (only on small screens) */}
+      <div className="md:hidden flex items-center justify-center p-3 border-t bg-background/90">
+        <Button variant="secondary" size="sm" onClick={() => setIsMapOpen(true)}>
+          <Eye className="w-4 h-4 mr-2" />View map
+        </Button>
       </div>
     </div>
   );

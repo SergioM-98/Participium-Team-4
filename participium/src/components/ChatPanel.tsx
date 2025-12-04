@@ -11,26 +11,24 @@ export interface ChatMessage {
   id: string;
   senderName: string;
   senderId: string;
-  senderRole: "CITIZEN" | 'TECHNICAL_OFFICER' | 'PUBLIC_RELATIONS_OFFICER';
+  senderRole: "CITIZEN" | 'TECHNICAL_OFFICER' | 'PUBLIC_RELATIONS_OFFICER' | 'EXTERNAL_MAINTAINER_WITH_ACCESS';
   content: string;
   timestamp: string;
 }
 
 interface ChatPanelProps {
   reportId: string;
-  currentUserRole: "CITIZEN" | 'TECHNICAL_OFFICER' | 'PUBLIC_RELATIONS_OFFICER';
+  currentUserRole: "CITIZEN" | 'TECHNICAL_OFFICER' | 'PUBLIC_RELATIONS_OFFICER' | 'EXTERNAL_MAINTAINER_WITH_ACCESS';
   currentUserId: string;
   messages: ChatMessage[];
   onSendMessage: (text: string) => void;
 }
 
 export default function ChatPanel({
-  reportId,
-  currentUserRole,
   currentUserId,
   messages,
   onSendMessage,
-}: ChatPanelProps) {
+}: Readonly<ChatPanelProps>) {
   const [newMessage, setNewMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef(0);

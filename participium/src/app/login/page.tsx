@@ -1,10 +1,10 @@
-import LoginForm from "../../components/LoginForm";
+import LoginForm from "@/components/LoginForm";
 
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../auth";
+import { authOptions } from "@/auth";
 import { redirect } from "next/navigation";
 
-export default async function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams?: { error?: string | string[] } }) {
   const session = await getServerSession(authOptions);
 
   if (session) {
@@ -21,5 +21,18 @@ export default async function LoginPage() {
     }
   }
 
-  return <LoginForm />;
+  const rawError = searchParams?.error;
+  const error = Array.isArray(rawError) ? rawError[0] : rawError;
+
+  return <LoginForm serverError={mapError(error)} />;
+}
+
+function mapError(err?: string | undefined) {
+  if (!err) return undefined;
+  const map: Record<string, string> = {
+    CredentialsSignin: "Credenziali non valide.",
+    "The user is not verified": "Utente non verificato. Controlla la tua email.",
+    Verification: "Utente non verificato. Controlla la tua email.",
+  };
+  return map[err] ?? decodeURIComponent(err) ?? err;
 }

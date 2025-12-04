@@ -1,8 +1,7 @@
 "use client";
 
-import { LatLngExpression } from "leaflet";
+import L, { LatLngExpression } from "leaflet";
 import { Polygon } from "react-leaflet";
-import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useState } from "react";
 import LocationDisplay from "./LocationDisplay";
@@ -12,7 +11,7 @@ import MapPolygons from "./map/MapPolygons";
 import MapMarkers from "./map/MapMarkers";
 import { extractVisualizationPolygons } from "./map/utils";
 import ReportsClusterLayer from "./map/ReportsClusterLayer";
-import { Report, Bounds } from "../app/lib/dtos/map.dto"; 
+import { Report, Bounds } from "@/app/lib/dtos/map.dto"; 
 
 import torinoGeoJSON from "@/data/torino-boundary.json";
 
@@ -50,10 +49,10 @@ interface ReportsLayerProps {
 export default function LeafletMap({ 
     onLocationSelect, 
     reportsLayer 
-}: { 
+}: Readonly<{ 
     onLocationSelect?: (location: { lat: number; lng: number } | null) => void,
     reportsLayer?: ReportsLayerProps 
-}) {
+}>) {
   const [markers, setMarkers] = useState<LatLngExpression[]>([]);
 
   const addOrResetMarker = (pos: LatLngExpression) => {

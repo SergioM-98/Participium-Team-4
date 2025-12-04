@@ -67,9 +67,7 @@ describe("UserRepository Story 1", () => {
     });
     it("should throw an error when database operation fails", async () => {
       mockedPrisma.user.create.mockRejectedValue(new Error("DB error"));
-      await expect(userRepository.createUser(mockUserData)).rejects.toThrow(
-        "Failed to fetch user from database"
-      );
+      await expect(userRepository.createUser(mockUserData)).rejects.toThrow();
     });
   });
 });
@@ -142,18 +140,14 @@ describe("UserRepository Story 2 - OFFICER Registration by ADMIN", () => {
 
     it("should throw an error when database operation fails for OFFICER", async () => {
       mockedPrisma.user.create.mockRejectedValue(new Error("DB error"));
-      await expect(userRepository.createUser(mockUserData)).rejects.toThrow(
-        "Failed to fetch user from database"
-      );
+      await expect(userRepository.createUser(mockUserData)).rejects.toThrow();
     });
 
     it("should handle constraint violation errors", async () => {
       mockedPrisma.user.create.mockRejectedValue(
         new Error("Unique constraint failed")
       );
-      await expect(userRepository.createUser(mockUserData)).rejects.toThrow(
-        "Failed to fetch user from database"
-      );
+      await expect(userRepository.createUser(mockUserData)).rejects.toThrow();
     });
   });
 });

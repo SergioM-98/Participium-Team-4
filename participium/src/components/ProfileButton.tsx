@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { cn } from "../app/lib/utils";
+import { cn } from "@/lib/utils";
 import { useEffect, useState, useMemo } from "react";
-import { getProfilePhotoUrl } from "../app/lib/controllers/ProfilePhoto.controller";
+import { getProfilePhotoUrl } from "@/app/lib/controllers/ProfilePhoto.controller";
 import { useSession } from "next-auth/react";
 
 interface ProfileButtonProps {
@@ -24,7 +24,7 @@ export function ProfileButton({
   size = "sm",         
   className,
   showName = false,
-}: ProfileButtonProps) {
+}: Readonly<ProfileButtonProps>) {
   const { data: session } = useSession();
   const [imageUrl, setImageUrl] = useState<string | null>(initialImage || null);
 
@@ -56,7 +56,7 @@ export function ProfileButton({
   useEffect(() => {
     if (!initialImage && session?.user) {
       getProfilePhotoUrl()
-        .then((url) => setImageUrl(url))
+        .then((url) => setImageUrl(url===undefined?null : url))
         .catch(() => {
 
         });

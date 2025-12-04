@@ -8,7 +8,7 @@ jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
 }));
     
-jest.mock("@/auth", () => ({
+jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
   authOptions: {},
 }));
 
@@ -33,7 +33,7 @@ describe("Story 12 - Integration Test: registerTelegramReport", () => {
         username: "telegramUser",
         passwordHash: "hash",
         email: "john@doe.com",
-        telegram: "12345", // <---- MATCHES chatId
+        telegramChatId: "12345", // <---- MATCHES chatId
         role: "CITIZEN",
       },
     });

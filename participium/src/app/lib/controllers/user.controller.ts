@@ -6,25 +6,32 @@ import {
   RegistrationInput,
   RegistrationInputSchema,
   RegistrationResponse,
-} from "../dtos/user.dto";
+} from "@/dtos/user.dto";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../auth";
-import { UserService } from "../services/user.service";
+import { authOptions } from "@/auth";
+import { UserService } from "@/services/user.service";
 import { updateNotificationsPreferences } from "./notification.controller";
-import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
-import { NotificationService } from "../services/notification.service";
+import {
+  NotificationsData,
+  NotificationsResponse,
+} from "@/dtos/notificationPreferences.dto";
+import { NotificationService } from "@/services/notification.service";
+import { prisma } from "@/prisma/db";
 
 
 
 export async function checkDuplicates(userData: RegistrationInput) {
-  return await UserService.getInstance().checkDuplicates(userData);
+  try {
+    return await UserService.getInstance().checkDuplicates(userData);
+  } catch (error) {
+    console.error("Error checking duplicates:", error);
+    throw error;
+  }
 }
 
 export async function register(
   formData: FormData
 ): Promise<RegistrationResponse> {
-
-  
   const session = await getServerSession(authOptions);
 
   const validatedData = RegistrationInputSchema.safeParse({
@@ -37,51 +44,81 @@ export async function register(
     confirmPassword: formData.get("confirmPassword"),
     role: formData.get("role"),
     office: formData.get("office")?.toString().trim() || undefined,
+    companyId: formData.get("companyId")?.toString().trim() || undefined,
   });
 
   if (!validatedData.success) {
     console.error("Validation errors:", validatedData.error);
-    // Zod error format
-    const errorMessages = validatedData.error.issues?.length 
-      ? validatedData.error.issues.map((issue: any) => `${issue.path?.join('.') || 'unknown'} - ${issue.message}`).join('; ')
+    const errorMessages = validatedData.error.issues?.length
+      ? validatedData.error.issues
+          .map(
+            (issue: any) =>
+              `${issue.path?.join(".") || "unknown"} - ${issue.message}`
+          )
+          .join("; ")
       : "Invalid input data";
     return { success: false, error: errorMessages };
   }
 
   if (session || (!session && validatedData.data?.role !== "CITIZEN")) {
-    if (!session || session.user.role !== "ADMIN") {
+    if (session?.user.role !== "ADMIN") {
+      console.error("Unauthorized registration attempt by user:", session?.user.username);
       return { success: false, error: "Unauthorized registration" };
     }
   }
-
-  const isDuplicate = await checkDuplicates(validatedData.data);
-
-  if (isDuplicate.isExisting) {
-    return { success: false, error: "Username and/or email already used" };
+  try {
+    const isDuplicate = await checkDuplicates(validatedData.data);
+    if (isDuplicate.isExisting) {
+      return { success: false, error: "Username and/or email already used" };
+    }
+  } catch (error) {
+    console.error("Error during duplicate check:", error);
+    return { success: false, error: "Failed to check for duplicates" };
   }
 
   const parsed = RegistrationInputSchema.safeParse(validatedData.data);
   if (!parsed.success) {
+    console.error("Parsed validation errors:", parsed.error);
     return { success: false, error: parsed.error.message };
   }
 
-  return await UserService.getInstance().createUser(parsed.data);
+  try {
+    const result = await UserService.getInstance().createUser(parsed.data);
+
+    // For CITIZEN users, registration is complete but verification is pending
+    if (result.success && parsed.data.role === "CITIZEN") {
+      return {
+        success: true,
+        data: parsed.data.username,
+        pendingVerification: true,
+      };
+    }
+    return result;
+  }catch (error) {
+    console.error("Error during user registration:", error);
+    return { success: false, error: "Failed to register user" };
+  }
 }
 
 export async function retrieveUser(
   userData: LoginInput
 ): Promise<LoginResponse> {
-  return await UserService.getInstance().retrieveUser(userData);
+  try {
+    return await UserService.getInstance().retrieveUser(userData);
+  } catch (error) {
+    console.error("Error retrieving user:", error);
+    return { success: false, error: "Failed to retrieve user" };
+  }
 }
 
 export async function updateNotificationsMedia(
-  telegram: string | null,
   email: string | null,
   removeTelegram: boolean,
   notifications: NotificationsData
 ): Promise<RegistrationResponse> {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id || session.user?.role !== "CITIZEN") {
+  if (!session?.user?.id || session.user?.role !== "CITIZEN") {
+    console.error("Unauthorized access attempt to update notifications media by user:", session?.user?.username);
     return { success: false, error: "Unauthorized access" };
   }
 
@@ -93,54 +130,88 @@ export async function updateNotificationsMedia(
     };
   }
 
-  //need to connect the transaction!!!!
-  const updateMediaResponse =
-    await UserService.getInstance().updateNotificationsMedia(
-      session.user.id,
-      telegram,
-      email,
-      removeTelegram
-    );
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const updateMediaResponse =
+        await UserService.getInstance().updateNotificationsMedia(
+          session.user.id,
+          email,
+          removeTelegram,
+          tx
+        );
 
-  const notificationsResponse = await updateNotificationsPreferences(
-    notifications
-  );
-
-  if (!notificationsResponse.success) {
-    return {
-      success: false,
-      error:
-        notificationsResponse.error ??
-        "Failed to update notification preferences",
-    };
-  } else {
-    return updateMediaResponse;
+      const notificationsResponse = await updateNotificationsPreferences(
+        notifications,
+        tx
+      );
+      if (notificationsResponse.success) {
+        return updateMediaResponse;
+      } else {
+        console.error(notificationsResponse.error ?? "Failed to update notification preferences for user:", session?.user?.username);
+        throw new Error("Failed to update notification preferences");
+      }
+    });
+  } catch (error) {
+    console.error("Error updating notifications media or preferences:", error);
+    return { success: false, error: "Failed to update notifications" };
   }
 }
 
 export async function getMe(): Promise<MeType | RegistrationResponse> {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id) {
+  if (!session?.user?.id) {
+    console.error("Unauthorized access attempt to get user info");
     return { success: false, error: "Unauthorized access" };
   }
 
   let notifications: NotificationsResponse;
-
-    if(session.user.role === "CITIZEN"){
+  let emailEnabled = false;
+  let telegramEnabled = false;
+  if(session.user.role === "CITIZEN"){
+    try {
       notifications = await NotificationService.getInstance().getNotificationsPreferences(session.user.username);
-      if(!notifications.success){
-        return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
-      } 
+    } catch (error) {
+      console.error("Error retrieving notification preferences:", error);
+      return { success: false, error: "Failed to retrieve notification preferences" };
     }
-
+    if(notifications.success){
+      emailEnabled = notifications.data.emailEnabled;
+      telegramEnabled = notifications.data.telegramEnabled ?? false;
+    }else{
+      return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
+    } 
+  }
+  let user;
+  try{
+    user = await UserService.getInstance().getMe(session.user.id);
+  }catch(error){
+    console.error(error instanceof Error ? error.message : "failed to get the personal informations from the database");
+    return {
+      success: false,
+      error: "failed to get the personal informations from the database"
+    }
+  }
+  if(user===null){
+    console.error("The user does not exist on the database");
+    return {
+      success: false,
+      error: "User not found"
+    }
+  }
+  
   return {
-    id: session.user.id,
-    firstName: session.user.firstName,
-    lastName: session.user.lastName,
-    email: session.user.email ?? undefined,
-    username: session.user.username,
-    role: session.user.role as MeType["role"],
-    office: (session.user.office as MeType["office"]) ?? undefined,
-    telegram: session.user.telegram ?? undefined,
+    me:{
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email ?? undefined,
+      username: user.username,
+      role: user.role as MeType["me"]["role"],
+      office: (user.office as MeType["me"]["office"]) ?? undefined,
+      telegram: !!user.telegramChatId,
+      companyId: user.companyId ?? undefined
+    },
+    emailNotifications: emailEnabled,
+    telegramNotifications: telegramEnabled,
+    companyName: user?.company?.name ?? undefined
   };
 }
