@@ -78,7 +78,7 @@ export default function LoginForm({ serverError }: { serverError?: string }) {
     startTransition(async () => {
       try {
         const response = await signIn("credentials", {
-          redirect: false, // handle response client-side
+          redirect: true, // handle response client-side
           callbackUrl: "/",
           username,
           password,

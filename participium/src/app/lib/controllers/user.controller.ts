@@ -209,10 +209,10 @@ export async function getMe(): Promise<MeType | RegistrationResponse> {
       role: user.role as MeType["me"]["role"],
       office: (user.office as MeType["me"]["office"]) ?? undefined,
       telegram: !!user.telegramChatId,
-      companyId: companyId ?? undefined,
-      companyName: companyName ?? undefined,
+      companyId: user.companyId ?? undefined
     },
     emailNotifications: emailEnabled,
-    telegramNotifications: telegramEnabled
+    telegramNotifications: telegramEnabled,
+    companyName: user?.company?.name ?? undefined
   };
 }

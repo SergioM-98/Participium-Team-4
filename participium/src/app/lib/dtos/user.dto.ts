@@ -92,7 +92,7 @@ export const RetrievedUserDataSchema = z
     office: z.enum(Offices).optional(),
     telegram: z.boolean,
     pendingRequest: z.boolean,
-    companyId: z.string().optional(),
+    companyId: z.string().optional()
   })
   .refine(
     (data) =>
@@ -149,5 +149,6 @@ export type LoginResponse =
 export type MeType = {
     me: z.infer<typeof RetrievedUserDataSchema>,
     emailNotifications: boolean,
-    telegramNotifications: boolean
+    telegramNotifications: boolean,
+    companyName?: string
 };
