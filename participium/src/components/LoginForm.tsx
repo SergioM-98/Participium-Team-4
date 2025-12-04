@@ -77,24 +77,12 @@ export default function LoginForm({ serverError }: { serverError?: string }) {
 
     startTransition(async () => {
       try {
-        const response = await signIn("credentials", {
+        await signIn("credentials", {
           redirect: true, // handle response client-side
           callbackUrl: "/",
           username,
           password,
         });
-
-        if (!response || response.error) {
-          const errorMessage = response?.error
-            ? getErrorMessage(response.error)
-            : "Invalid credentials";
-          setError(errorMessage);
-          return;
-        }
-
-        // successo
-        router.push(response.url ?? "/");
-        router.refresh();
       } catch (err: any) {
         console.error(err);
         setError("Something went wrong. Please try again.");
