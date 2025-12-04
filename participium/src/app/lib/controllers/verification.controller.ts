@@ -7,7 +7,7 @@ import { VerificationService } from "@/services/verification.service";
  */
 export async function verifyRegistration(
   email: string,
-  code: string
+  code: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!code) {
     return {
@@ -20,6 +20,24 @@ export async function verifyRegistration(
 
   return await verificationService.verifyRegistration(
     email.trim(),
-    code.trim()
+    code.trim(),
   );
+}
+
+/**
+ * Server action to resend a verification code
+ */
+export async function resendVerificationCode(
+  email: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (!email) {
+    return {
+      success: false,
+      error: "Email is required",
+    };
+  }
+
+  const verificationService = VerificationService.getInstance();
+
+  return await verificationService.resendVerificationCode(email.trim());
 }
