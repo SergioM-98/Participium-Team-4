@@ -5,9 +5,9 @@ import WithNavbarLayout from "@/app/(with-navbar)/layout";
 
 export default async function ReportsLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const session = await getServerSession(authOptions);
 
   if (!session || (session.user?.role !== "CITIZEN" && session.user?.role !== "MUNICIPALITY_OFFICER")) {

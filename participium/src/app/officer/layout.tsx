@@ -5,9 +5,9 @@ import WithNavbarLayout from "@/app/(with-navbar)/layout";
 
 export default async function OfficerLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}): Promise<React.ReactElement> {
+}>): Promise<React.ReactElement> {
   const session = await getServerSession(authOptions);
 
   if (

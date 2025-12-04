@@ -5,14 +5,13 @@ import WithNavbarLayout from "@/app/(with-navbar)/layout";
 
 export default async function MaintainerLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}): Promise<React.ReactElement> {
+}>): Promise<React.ReactElement> {
   const session = await getServerSession(authOptions);
 
   if (
-    !session ||
-    session.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS"
+    session?.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS"
   ) {
     redirect("/forbidden");
   }

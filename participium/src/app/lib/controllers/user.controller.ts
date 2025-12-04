@@ -17,7 +17,6 @@ import {
 } from "@/dtos/notificationPreferences.dto";
 import { NotificationService } from "@/services/notification.service";
 import { prisma } from "@/prisma/db";
-import { no } from "zod/v4/locales";
 
 
 

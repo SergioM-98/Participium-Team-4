@@ -140,7 +140,7 @@ export async function registerTelegram(
 export async function startTelegramRegistration(): Promise<RegistrationResponse> {
   const token = crypto.randomUUID();
   const session = await getServerSession(authOptions);
-  if (!session || !session.user || !session.user.id) {
+  if (!session?.user?.id) {
     console.error("Authentication failed: No valid session or user ID found");
     return {
       success: false,
