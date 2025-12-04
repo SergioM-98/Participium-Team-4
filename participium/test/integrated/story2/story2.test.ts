@@ -96,8 +96,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
         email: null,
         username: "mariorossi",
         role: "TECHNICAL_OFFICER",
-        office: "DEPARTMENT_OF_COMMERCE",
-        telegram: null,
+        office: "DEPARTMENT_OF_COMMERCE"
       });
 
       expect(savedUser!.passwordHash).not.toBe("SecurePass123!");
@@ -350,7 +349,6 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       });
 
       expect(savedUser).not.toBeNull();
-      expect(savedUser!.telegram).toBeNull();
     });
   });
 });

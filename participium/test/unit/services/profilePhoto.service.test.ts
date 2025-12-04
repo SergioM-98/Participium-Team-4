@@ -73,8 +73,6 @@ describe("ProfilePhotoService - Story 9", () => {
 
   it("should handle error when deleting non-existent photo", async () => {
     mockProfilePhotoRepository.getPhotoOfUser.mockResolvedValue(null);
-    const result = await service.deletePhoto("user-id-4");
-    expect(result.success).toBe(false);
-    expect(result.message).toMatch(/not found/);
+    await expect(service.deletePhoto("user-id-4")).rejects.toThrow(/not found/);
   });
 });

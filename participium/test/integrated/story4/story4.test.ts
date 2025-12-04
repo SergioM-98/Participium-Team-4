@@ -70,6 +70,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
     it("should successfully register a new anonimous REPORT through the complete flow", async () => {
       (getServerSession as jest.Mock).mockResolvedValue({
         user: {
+          id: "1",
           firstName: "mock",
           lastName: "mock",
           email: "mock@mock.it",
@@ -108,7 +109,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
           createdAt: expect.any(Date),
           longitude: 10,
           latitude: 10,
-          citizenId: "2",
+          citizenId: "1",
         });
       }
     });

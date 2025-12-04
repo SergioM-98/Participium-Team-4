@@ -70,8 +70,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
                 email: "mario.rossi@example.com",
                 username: "mariorossi",
                 role: "CITIZEN",
-                office: null,
-                telegram: null // Corrected expectation: telegram is not saved at creation
+                office: null
             });
 
             expect(savedUser!.passwordHash).not.toBe("SecurePass123!");
@@ -110,8 +109,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
                 email: "anna.bianchi@example.com",
                 username: "annabianchi",
                 role: "CITIZEN",
-                office: null,
-                telegram: null
+                office: null
             });
         });
 

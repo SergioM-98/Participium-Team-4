@@ -33,7 +33,7 @@ describe("Story 12 - Integration Test: registerTelegramReport", () => {
         username: "telegramUser",
         passwordHash: "hash",
         email: "john@doe.com",
-        telegram: "12345", // <---- MATCHES chatId
+        telegramChatId: "12345", // <---- MATCHES chatId
         role: "CITIZEN",
       },
     });
