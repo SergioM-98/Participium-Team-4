@@ -18,6 +18,7 @@ export function useNavbarMenu() {
         return [
           { title: "Create Officer", url: "/admin/officers/registration" },
           { title: "Create Company", url: "/admin/companies/registration" },
+          { title: "Manage Roles", url: "/admin/officers/roles" },
         ];
       case "CITIZEN":
         return [{ title: "Reports", url: "/reports" }];
