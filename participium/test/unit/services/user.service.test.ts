@@ -26,6 +26,16 @@ jest.mock('@/app/lib/repositories/notifications.repository', () => {
   };
 });
 
+jest.mock('@/app/lib/services/verification.service', () => {
+  return {
+    VerificationService: {
+      getInstance: jest.fn().mockReturnValue({
+        createAndSendVerificationToken: jest.fn().mockResolvedValue({ success: true }),
+      }),
+    },
+  };
+});
+
 jest.mock("@/db/db", () => ({
   prisma: {
     $transaction: jest.fn().mockImplementation(async (cb) => cb({})),

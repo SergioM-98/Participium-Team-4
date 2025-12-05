@@ -1,10 +1,11 @@
-import { PhotoRepository } from "../repositories/photo.repository";
-import { readFile } from "fs/promises";
-import path from "path";
+import { PhotoRepository } from "@/repositories/photo.repository";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { RegistrationResponse } from "@/dtos/user.dto";
 
 class PhotoRetrievalService {
   private static instance: PhotoRetrievalService;
-  private photoRepository: PhotoRepository;
+  private readonly photoRepository: PhotoRepository;
 
   private constructor() {
     this.photoRepository = PhotoRepository.getInstance();
@@ -17,7 +18,7 @@ class PhotoRetrievalService {
     return PhotoRetrievalService.instance;
   }
 
-  public async getPhoto(fileName: string) {
+  public async getPhoto(fileName: string): Promise<RegistrationResponse> {
     try {
       const filePath = path.join(process.cwd(), "uploads", fileName);
       const buffer = await readFile(filePath);
@@ -43,7 +44,7 @@ class PhotoRetrievalService {
         data: dataUrl,
       };
     } catch (err) {
-      return { success: false, error: "Photo not found" };
+      throw new Error(`Error retrieving photo: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 }

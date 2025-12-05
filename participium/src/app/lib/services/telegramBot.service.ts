@@ -1,10 +1,10 @@
-import { RegistrationResponse } from "../dtos/user.dto";
-import { TelegramBotRepository } from "../repositories/telegramBot.repository";
-import { UserAuthenticationResponse } from "../dtos/telegramBot.dto";
+import { RegistrationResponse } from "@/dtos/user.dto";
+import { TelegramBotRepository } from "@/repositories/telegramBot.repository";
+import { UserAuthenticationResponse } from "@/dtos/telegramBot.dto";
 
 class TelegramService {
   private static instance: TelegramService;
-  private telegramRepository: TelegramBotRepository;
+  private readonly telegramRepository: TelegramBotRepository;
   private constructor() {
     this.telegramRepository = TelegramBotRepository.getInstance();
   }

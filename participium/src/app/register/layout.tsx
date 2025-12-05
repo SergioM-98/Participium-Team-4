@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { redirect } from "next/navigation";
-import WithNavbarLayout from "../(with-navbar)/layout";
+import WithNavbarLayout from "@/app/(with-navbar)/layout";
 
 export default async function RegisterLayout({
   children,

@@ -1,10 +1,14 @@
 "use server";
-import { NotificationService } from "../services/notification.service";
-import { NotificationsData, NotificationsResponse } from "../dtos/notificationPreferences.dto";
-import { authOptions } from "../../api/auth/[...nextauth]/route";
+import { NotificationService } from "@/services/notification.service";
+import { NotificationsData, NotificationsResponse } from "@/dtos/notificationPreferences.dto";
+import { authOptions } from "@/auth";
 import { getServerSession } from "next-auth/next";
+import { prisma } from "@/prisma/db";
+import { Prisma, PrismaClient } from "@prisma/client";
 
+type DBClient = PrismaClient | Prisma.TransactionClient;
 const notificationService = NotificationService.getInstance();
+
 
 // ==================== Notification methods ====================
 export async function getInbox() {
@@ -19,6 +23,7 @@ export async function getInbox() {
     );
     return { success: true, data: notifications };
   } catch (error) {
+    console.error("Error retrieving notifications:", error);
     return { success: false, error: "Failed to retrieve notifications" };
   }
 }
@@ -35,6 +40,7 @@ export async function getUnreadCount() {
     );
     return { success: true, data: unread.length };
   } catch (error) {
+    console.error("Error retrieving unread notifications count:", error);
     return { success: false, error: "Failed to retrieve unread count" };
   }
 }
@@ -49,6 +55,7 @@ export async function markAsRead(notificationId: bigint) {
     await notificationService.markNotificationAsRead(notificationId);
     return { success: true, message: "Notification marked as read" };
   } catch (error) {
+    console.error("Error marking notification as read:", error);
     return { success: false, error: "Failed to mark notification as read" };
   }
 }
@@ -63,6 +70,7 @@ export async function markAllAsRead() {
     await notificationService.markAllNotificationsAsRead(session.user.id);
     return { success: true, message: "All notifications marked as read" };
   } catch (error) {
+    console.error("Error marking all notifications as read:", error);
     return { success: false, error: "Failed to mark all notifications as read" };
   }
 }
@@ -73,17 +81,28 @@ export async function getNotificationsPreferences(): Promise<NotificationsRespon
   if (!userRoleCheck.success || !userRoleCheck.data) {
     return { success: false, error: "Unauthorized access" };
   }
-  return notificationService.getNotificationsPreferences(userRoleCheck.data);
+  try{
+    return await notificationService.getNotificationsPreferences(userRoleCheck.data);
+  } catch (error) {
+    console.error("Error retrieving notification preferences:", error);
+    return { success: false, error: "Failed to retrieve notification preferences" };
+  }
 }
 
 export async function updateNotificationsPreferences(
-  notifications: NotificationsData
+  notifications: NotificationsData,
+  db: DBClient = prisma
 ): Promise<NotificationsResponse> {
   const userRoleCheck = await checkUserRole();
   if (!userRoleCheck.success || !userRoleCheck.data) {
     return { success: false, error: "Unauthorized access" };
   }
-  return notificationService.updateNotificationsPreferences(userRoleCheck.data, notifications);
+  try{
+    return await notificationService.updateNotificationsPreferences(userRoleCheck.data, notifications, db);
+  } catch (error) {
+    console.error("Error updating notification preferences:", error);
+    return { success: false, error: "Failed to update notification preferences" };
+  }
 }
 
 async function checkUserRole(): Promise<{
@@ -98,6 +117,6 @@ async function checkUserRole(): Promise<{
   }
   return {
     success: true,
-    data: session.user.username,
+    data: session.user.id,
   };
 }

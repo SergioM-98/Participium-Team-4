@@ -1,12 +1,12 @@
 import {
   ReportsUnassignedResponse,
   ReportsByOfficerResponse,
-} from "../dtos/report.dto";
-import { ReportRepository } from "../repositories/report.repository";
+} from "@/dtos/report.dto";
+import { ReportRepository } from "@/repositories/report.repository";
 
 class ReportRetrievalService {
   private static instance: ReportRetrievalService;
-  private reportRepository: ReportRepository;
+  private readonly reportRepository: ReportRepository;
 
   private constructor() {
     this.reportRepository = ReportRepository.getInstance();
@@ -20,48 +20,42 @@ class ReportRetrievalService {
   }
 
   private normalizeStatus(status: string): string {
-    return status.toLowerCase().replace(/_/g, "_");
+    return status.toLowerCase().replaceAll('_', "_");
   }
 
   public async retrieveReportsByOfficerId(
     officerId: string
   ): Promise<ReportsByOfficerResponse> {
-    try {
-      const reports = await this.reportRepository.getReportsByOfficerId(
-        officerId
-      );
+    const reports = await this.reportRepository.getReportsByOfficerId(
+      officerId
+    );
 
-      const transformedReports = reports.map((r: any) => ({
-        id: r.id.toString(),
-        title: r.title,
-        description: r.description,
-        photos: r.photos
-          .map(
-            (p: { filename?: string | null } | null | undefined) => p?.filename
-          )
-          .filter((f: unknown): f is string => typeof f === "string"),
-        category: r.category,
-        longitude: Number(r.longitude),
-        latitude: Number(r.latitude),
-        userId: r.citizenId.toString(),
-        citizenId: r.citizenId.toString(),
-        officerId: r.officerId?.toString(),
-        citizen: r.citizen,
-        createdAt: r.createdAt,
-        status: this.normalizeStatus(r.status),
-      }));
+    const transformedReports = reports.map((r: any) => ({
+      id: r.id.toString(),
+      title: r.title,
+      description: r.description,
+      photos: r.photos
+        .map(
+          (p: { filename?: string | null } | null | undefined) => p?.filename
+        )
+        .filter((f: unknown): f is string => typeof f === "string"),
+      category: r.category,
+      longitude: Number(r.longitude),
+      latitude: Number(r.latitude),
+      userId: r.citizenId.toString(),
+      citizenId: r.citizenId.toString(),
+      officerId: r.officerId?.toString(),
+      citizen: r.citizen,
+      createdAt: r.createdAt,
+      status: this.normalizeStatus(r.status),
+    }));
 
-      return {
-        success: true,
-        data: transformedReports,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: "Failed to retrieve reports for the given officer ID",
-      };
-    }
+    return {
+      success: true,
+      data: transformedReports,
+    };
   }
+
 
   public async retrievePendingApprovalReports(): Promise<ReportsUnassignedResponse> {
     try {

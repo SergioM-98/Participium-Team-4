@@ -21,7 +21,7 @@ jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
     authOptions: {},
 }));
 
-jest.mock("@/auth", () => ({
+jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
   authOptions: {},
 }));
 
@@ -70,6 +70,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
     it("should successfully register a new anonimous REPORT through the complete flow", async () => {
       (getServerSession as jest.Mock).mockResolvedValue({
         user: {
+          id: "1",
           firstName: "mock",
           lastName: "mock",
           email: "mock@mock.it",
@@ -97,7 +98,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         expect(response.data).toBe(`Report with id: ${id} succesfuly created`);
 
         const savedReport = await prisma.report.findUnique({
-          where: { id: parseInt(id) },
+          where: { id: Number.parseInt(id) },
         });
         expect(savedReport).not.toBeNull();
         expect(savedReport).toMatchObject({
@@ -108,7 +109,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
           createdAt: expect.any(Date),
           longitude: 10,
           latitude: 10,
-          citizenId: "2",
+          citizenId: "1",
         });
       }
     });
@@ -144,7 +145,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         expect(response.data).toBe(`Report with id: ${id} succesfuly created`);
 
         const savedReport = await prisma.report.findUnique({
-          where: { id: parseInt(id) },
+          where: { id: Number.parseInt(id) },
         });
         expect(savedReport).not.toBeNull();
         expect(savedReport).toMatchObject({

@@ -105,7 +105,16 @@ describe("MessageService story 11", () => {
         reportId,
         "John" 
       );
-      expect(result).toEqual(mockMessage);
+      expect(result).toEqual({
+        success: true,
+        data: {
+          id: mockMessage.id,
+          createdAt: mockMessage.createdAt.toISOString(),
+          content: mockMessage.content,
+          authorId: mockMessage.authorId,
+          reportId: mockMessage.reportId,
+        },
+      });
     });
 
     it("should create message but NOT notify if author IS the citizen", async () => {
@@ -126,7 +135,16 @@ describe("MessageService story 11", () => {
   
         const result = await messageService.sendMessage(content, officerId, reportId);
   
-        expect(result).toEqual(mockMessage);
+        expect(result).toEqual({
+          success: true,
+          data: {
+            id: mockMessage.id,
+            createdAt: mockMessage.createdAt.toISOString(),
+            content: mockMessage.content,
+            authorId: mockMessage.authorId,
+            reportId: mockMessage.reportId,
+          },
+        });
         expect(mockNotificationService.notifyNewMessage).not.toHaveBeenCalled();
     });
   });

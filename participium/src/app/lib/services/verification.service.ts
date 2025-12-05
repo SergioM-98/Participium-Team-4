@@ -1,0 +1,180 @@
+import {
+  generateVerificationCode,
+  getVerificationTokenExpiry,
+  isTokenExpired,
+} from "@/utils/verification.utils";
+import { VerificationResponse } from "@/dtos/verification.dto";
+import { VerificationRepository } from "@/repositories/verification.repository";
+import { EmailService } from "@/services/email.service";
+
+class VerificationService {
+  private static instance: VerificationService;
+  private readonly verificationRepository: VerificationRepository;
+  private readonly emailService: EmailService;
+
+  private constructor() {
+    this.verificationRepository = VerificationRepository.getInstance();
+    this.emailService = EmailService.getInstance();
+  }
+
+  public static getInstance(): VerificationService {
+    if (!VerificationService.instance) {
+      VerificationService.instance = new VerificationService();
+    }
+    return VerificationService.instance;
+  }
+
+  public async createAndSendVerificationToken(
+    userId: string,
+    email: string,
+    firstName?: string,
+  ): Promise<VerificationResponse> {
+    try {
+      const code = generateVerificationCode();
+      const expiresAt = getVerificationTokenExpiry();
+
+      await this.verificationRepository.createVerificationToken(
+        userId,
+        code,
+        expiresAt,
+      );
+
+      await this.emailService.sendVerificationEmail(email, code, firstName);
+
+      return { success: true, data: "Verification email sent" };
+    } catch (error) {
+      console.error("Failed to create and send verification token:", error);
+      return {
+        success: false,
+        error: "Failed to send verification email. Please try again.",
+      };
+    }
+  }
+
+  public async resendVerificationCode(
+    email: string,
+  ): Promise<VerificationResponse> {
+    try {
+      const user = await this.verificationRepository.findUserByEmail(email);
+
+      if (!user) {
+        return { success: false, error: "User not found" };
+      }
+
+      if (user.isVerified === true) {
+        return { success: false, error: "User is already verified" };
+      }
+
+      // Check if user has a recent verification token (within 1 minute)
+      const existingToken =
+        await this.verificationRepository.findLatestVerificationToken(user.id);
+
+      if (existingToken && !isTokenExpired(existingToken.expiresAt)) {
+        const createdAt = new Date(existingToken.createdAt);
+        const now = new Date();
+        const minutesPassed = Math.floor(
+          (now.getTime() - createdAt.getTime()) / (1000 * 60),
+        );
+
+        if (minutesPassed < 1) {
+          const secondsLeft =
+            60 - Math.floor((now.getTime() - createdAt.getTime()) / 1000);
+          return {
+            success: false,
+            error: `Please wait ${secondsLeft} seconds before requesting a new code`,
+          };
+        }
+      }
+
+      // Generate and send new code
+      const code = generateVerificationCode();
+      const expiresAt = getVerificationTokenExpiry();
+
+      await this.verificationRepository.createVerificationToken(
+        user.id,
+        code,
+        expiresAt,
+      );
+
+      await this.emailService.sendVerificationEmail(
+        email,
+        code,
+        user.firstName,
+      );
+
+      return { success: true, data: "Verification code resent successfully" };
+    } catch (error) {
+      console.error("Failed to resend verification code:", error);
+      return {
+        success: false,
+        error: "Failed to resend verification code. Please try again.",
+      };
+    }
+  }
+
+  public async verifyRegistration(
+    email: string,
+    code: string,
+  ): Promise<VerificationResponse> {
+    try {
+      const user = await this.verificationRepository.findUserByEmail(email);
+
+      if (!user) {
+        return { success: false, error: "User not found" };
+      }
+
+      if (user.isVerified === true) {
+        return { success: false, error: "User is already verified" };
+      }
+
+      const token = await this.verificationRepository.findVerificationToken(
+        user.id,
+        code,
+      );
+
+      if (!token) {
+        return { success: false, error: "Invalid verification code" };
+      }
+
+      if (isTokenExpired(token.expiresAt)) {
+        this.cleanupExpiredTokens();
+
+        return {
+          success: false,
+          error: "Verification code has expired. Please register again.",
+        };
+      }
+
+      await this.verificationRepository.verifyUserAndMarkToken(
+        user.id,
+        token.id,
+      );
+
+      return { success: true, data: "User verified successfully" };
+    } catch (error) {
+      console.error("Verification failed:", error);
+      return {
+        success: false,
+        error: "Verification failed. Please try again.",
+      };
+    }
+  }
+
+  public async cleanupExpiredTokens(): Promise<void> {
+    try {
+      const expiredTokens =
+        await this.verificationRepository.findExpiredTokenUsers();
+      const userIdsToDelete = expiredTokens.map((t) => t.userId);
+
+      if (userIdsToDelete.length > 0) {
+        await this.verificationRepository.deleteUnverifiedUsers(
+          userIdsToDelete,
+        );
+      }
+    } catch (error) {
+      console.error("Failed to cleanup expired tokens:", error);
+    }
+  }
+}
+
+export { VerificationService };

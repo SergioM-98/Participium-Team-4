@@ -1,7 +1,7 @@
 import NextAuth, { AuthOptions, User } from "next-auth";
 import { JWT as NextAuthJWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
-import { prisma } from "../../../../../prisma/db";
+import { prisma } from "@/prisma/db";
 import bcrypt from "bcrypt";
 
 export const authOptions: AuthOptions = {
@@ -14,7 +14,6 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials): Promise<User | null> {
         if (!credentials) return null;
-
         const user = await prisma.user.findUnique({
           where: { username: credentials.username },
         });
@@ -26,15 +25,16 @@ export const authOptions: AuthOptions = {
         );
         if (!isValid) return null;
 
+        if(!user.isVerified && user.role == "CITIZEN"){
+          // NextAuth will redirect with error query
+          throw new Error("The user is not verified");
+        }
+
         const userResult = {
           id: user.id.toString(),
           username: user.username,
           role: user.role,
-          email: user.email ?? undefined,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          office: user.office ?? undefined,
-          telegram: user.telegram ?? undefined,
+          email: user.email ?? undefined
         } as User;
         return userResult;
       },
@@ -42,6 +42,10 @@ export const authOptions: AuthOptions = {
   ],
   session: { strategy: "jwt" as const },
   secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: "/login", // pagina custom per il form di login
+    error: "/login",  // anche gli error lanciati vanno alla stessa pagina (riceverai ?error=...)
+  },
   callbacks: {
     async jwt({ token, user }: { token: NextAuthJWT; user?: User }) {
       if (user) {
@@ -49,23 +53,15 @@ export const authOptions: AuthOptions = {
         token.role = user.role;
         token.username = user.username;
         token.email = user.email;
-        token.firstName = user.firstName;
-        token.lastName = user.lastName;
-        token.office = user.office;
-        token.telegram = user.telegram;
       }
       return token;
     },
     async session({ session, token }: { session: any; token: NextAuthJWT }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.user.username = token.username as string;
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.username = token.username;
         session.user.email = token.email as string;
-        session.user.firstName = token.firstName as string;
-        session.user.lastName = token.lastName as string;
-        session.user.office = token.office as string | undefined;
-        session.user.telegram = token.telegram as string | undefined;
       }
       return session;
     },

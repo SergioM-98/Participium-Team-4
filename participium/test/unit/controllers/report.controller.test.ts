@@ -2,7 +2,7 @@ import {
   createReport,
   approveReport,
   rejectReport,
-  getReportsByOfficerId,
+  getReportsByAssigneeId,
 } from "../../../src/app/lib/controllers/report.controller";
 import {
   ReportRegistrationResponse,
@@ -631,7 +631,14 @@ describe('ReportController Story 4', () => {
         }],
       });
 
-      const response = await getReportsByOfficerId("5");
+      (getServerSession as jest.Mock).mockResolvedValue({
+        user: {
+          id: "5",
+          role: "TECHNICAL_OFFICER",
+        },
+      });
+
+      const response = await getReportsByAssigneeId();
 
       expect(response.success).toBe(true);
       expect(mockRetrievalService.retrieveReportsByOfficerId).toHaveBeenCalledWith("5");
@@ -643,7 +650,7 @@ describe('ReportController Story 4', () => {
     it("should return error when user is not authorized (CITIZEN)", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
 
-      const response = await getReportsByOfficerId("5");
+      const response = await getReportsByAssigneeId();
 
       expect(response.success).toBe(false);
       expect(mockRetrievalService.retrieveReportsByOfficerId).not.toHaveBeenCalled();
@@ -655,7 +662,7 @@ describe('ReportController Story 4', () => {
     it("should return error when no session exists", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(null);
 
-      const response = await getReportsByOfficerId("5");
+      const response = await getReportsByAssigneeId();
 
       expect(response.success).toBe(false);
       expect(mockRetrievalService.retrieveReportsByOfficerId).not.toHaveBeenCalled();

@@ -1,16 +1,18 @@
 "use server";
-import { authOptions } from "../../api/auth/[...nextauth]/route";
+import { authOptions } from "@/auth";
 import {
   AssignReportToOfficerResponse,
   ReportRegistrationResponse,
   reportRequestSchema,
   ReportsByOfficerResponse,
   ReportsUnassignedResponse,
-} from "../dtos/report.dto";
-import { ReportCreationService } from "../services/reportCreation.service";
+  UpdateReportStatusResponse,
+} from "@/dtos/report.dto";
+import { ReportCreationService } from "@/services/reportCreation.service";
 import { getServerSession } from "next-auth/next";
-import { ReportRetrievalService } from "../services/reportRetrieval.service";
-import { ReportAssignmentService } from "../services/reportAssignment.service";
+import { ReportRetrievalService } from "@/services/reportRetrieval.service";
+import { ReportAssignmentService } from "@/services/reportAssignment.service";
+import { ReportUpdateService } from "@/services/reportUpdate.service";
 
 export async function createReport(
   title: string,
@@ -23,6 +25,7 @@ export async function createReport(
 ): Promise<ReportRegistrationResponse> {
   const session = await getServerSession(authOptions);
   if (!session || (session && session.user.role !== "CITIZEN")) {
+    console.error("Unauthorized report attempt");
     return { success: false, error: "Unauthorized report" };
   }
   const reportData = reportRequestSchema.safeParse({
@@ -32,30 +35,39 @@ export async function createReport(
     category: category,
     longitude,
     latitude,
-    userId: isAnonymous ? "2" : session.user.id,
+    userId: session.user.id,
     isAnonymous,
   });
   if (!reportData.success) {
+    console.error("Invalid report data:", reportData.error);
     return {
       success: false,
       error: "Invalid inputs",
     };
   }
   const reportCreationService = ReportCreationService.getInstance();
-  return reportCreationService.createReport(reportData.data);
+  try{
+    return await reportCreationService.createReport(reportData.data);
+  } catch (error) {
+    console.error("Error creating report:", error);
+    return { success: false, error: "Failed to create report" };
+  }
 }
 
-export async function getReportsByOfficerId(
-  officerId: string
-): Promise<ReportsByOfficerResponse> {
+export async function getReportsByAssigneeId(): Promise<ReportsByOfficerResponse> {
   const session = await getServerSession(authOptions);
 
-  if (!session || (session && session.user.role !== "TECHNICAL_OFFICER")) {
+  if (
+    !session ||
+    (session &&
+      session.user.role !== "TECHNICAL_OFFICER" &&
+      session.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS")
+  ) {
     return { success: false, error: "Unauthorized access" };
   }
 
   const reportRetrievalService = ReportRetrievalService.getInstance();
-  return reportRetrievalService.retrieveReportsByOfficerId(officerId);
+  return reportRetrievalService.retrieveReportsByOfficerId(session.user.id);
 }
 
 export async function getPendingApprovalReports(): Promise<ReportsUnassignedResponse> {
@@ -65,6 +77,7 @@ export async function getPendingApprovalReports(): Promise<ReportsUnassignedResp
     !session ||
     (session && session.user.role !== "PUBLIC_RELATIONS_OFFICER")
   ) {
+    console.error("Unauthorized access attempt to get pending approval reports");
     return { success: false, error: "Unauthorized access" };
   }
 
@@ -74,7 +87,8 @@ export async function getPendingApprovalReports(): Promise<ReportsUnassignedResp
 
 export async function approveReport(
   reportId: number,
-  department: string
+  departmentOrCompanyId: string,
+  isCompany: boolean = false
 ): Promise<AssignReportToOfficerResponse> {
   const session = await getServerSession(authOptions);
 
@@ -83,11 +97,17 @@ export async function approveReport(
     (session.user.role !== "PUBLIC_RELATIONS_OFFICER" &&
       session.user.role !== "ADMIN")
   ) {
+    console.error("Unauthorized access attempt to approve report");
     return { success: false, error: "Unauthorized access" };
   }
 
   const reportAssignmentService = ReportAssignmentService.getInstance();
-  return reportAssignmentService.assignReportToOfficer(reportId, department);
+
+  if (isCompany) {
+    return reportAssignmentService.assignReportToCompany(reportId, departmentOrCompanyId);
+  } else {
+    return reportAssignmentService.assignReportToOfficer(reportId, departmentOrCompanyId);
+  }
 }
 
 export async function rejectReport(
@@ -101,9 +121,30 @@ export async function rejectReport(
     (session.user.role !== "PUBLIC_RELATIONS_OFFICER" &&
       session.user.role !== "ADMIN")
   ) {
+    console.error("Unauthorized access attempt to reject report");
     return { success: false, error: "Unauthorized access" };
+
   }
 
   const reportAssignmentService = ReportAssignmentService.getInstance();
   return reportAssignmentService.rejectReport(reportId, rejectionReason);
+}
+
+export async function updateReportStatus(
+  status: string,
+  reportId: string
+): Promise<UpdateReportStatusResponse> {
+  const session = await getServerSession(authOptions);
+
+  if (
+    !session ||
+    (session &&
+      session.user.role !== "TECHNICAL_OFFICER" &&
+      session.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS")
+  ) {
+    return { success: false, error: "Unauthorized access" };
+  }
+
+  const reportUpdateService = ReportUpdateService.getInstance();
+  return reportUpdateService.updateReportStatus(reportId, status);
 }

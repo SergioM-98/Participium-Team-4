@@ -7,7 +7,7 @@ import MarkerClusterGroup from 'react-leaflet-markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
-import { Report, Bounds } from "../../app/lib/dtos/map.dto"; 
+import { Report, Bounds } from "@/app/lib/dtos/map.dto"; 
 import { createReportIcon, createClusterCustomIcon } from './utils'; 
 
 interface ReportsClusterLayerProps {
@@ -50,7 +50,7 @@ export default function ReportsClusterLayer({
                 <Marker
                     key={report.id}
                     position={[report.latitude, report.longitude]}
-                    icon={createReportIcon(report.category)}
+                    icon={createReportIcon(report.category, report.status)}
                     eventHandlers={{
                         click: (e) => {
                             L.DomEvent.stopPropagation(e.originalEvent);
