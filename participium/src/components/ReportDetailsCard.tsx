@@ -10,14 +10,23 @@ import {
   User,
   Clock,
   AlertCircle,
-  Eye
+  Eye,
+  Lock,
+  ShieldAlert,
+  MessageSquare,
+  Zap,
 } from "lucide-react";
 
 import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
-import MaintainerActionPanel from "@/app/maintainer/my-reports/MaintainerActionPanel";
+// import MaintainerActionPanel from "@/app/maintainer/my-reports/MaintainerActionPanel";
 import ChatPanel, { ChatMessage } from "./ChatPanel";
-import { getReportMessages, sendMessage } from "@/app/lib/controllers/message.controller";
-import dynamic from "next/dist/shared/lib/dynamic";
+import InternalNotesPanel from "./InternalNotesPanel";
+import {
+  getReportMessages,
+  sendMessage,
+} from "@/app/lib/controllers/message.controller";
+
+import dynamic from "next/dynamic";
 
 const LeafletMapFixed = dynamic(() => import("./LeafletMapFixed"), {
   ssr: false,
@@ -34,8 +43,7 @@ interface Report {
     | "in_progress"
     | "suspended"
     | "rejected"
-    | "resolved"
-    /*| string to remove??*/;
+    | "resolved";
   latitude: number;
   longitude: number;
   reporterName: string;
@@ -71,17 +79,29 @@ const getStatusBadge = (status: Report["status"]) => {
     case "pending":
       return <Badge variant="secondary">Pending Approval</Badge>;
     case "assigned":
-      return <Badge className="bg-yellow-500 hover:bg-yellow-500/90">Assigned</Badge>;
+      return (
+        <Badge className="bg-yellow-500 hover:bg-yellow-500/90">Assigned</Badge>
+      );
     case "in_progress":
-      return <Badge className="bg-orange-500 hover:bg-orange-500/90">In Progress</Badge>;
+      return (
+        <Badge className="bg-orange-500 hover:bg-orange-500/90">
+          In Progress
+        </Badge>
+      );
     case "suspended":
-      return <Badge className="bg-gray-500 hover:bg-gray-500/90">Suspended</Badge>;
+      return (
+        <Badge className="bg-gray-500 hover:bg-gray-500/90">Suspended</Badge>
+      );
     case "rejected":
       return <Badge className="bg-red-500 hover:bg-red-500/90">Rejected</Badge>;
     case "resolved":
-      return <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>;
+      return (
+        <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>
+      );
     default:
-      return <Badge variant="secondary">{normalizedStatus.replace(/_/g, " ")}</Badge>;
+      return (
+        <Badge variant="secondary">{normalizedStatus.replace(/_/g, " ")}</Badge>
+      );
   }
 };
 
@@ -95,15 +115,21 @@ export default function ReportDetailsCard({
   showChat = false,
 }: ReportDetailsCardProps) {
   const { data: session } = useSession();
-  
+
   // show chat only if the user is the report creator or the assigned officer
-  const isReportCreator = session?.user?.id && report.citizenId && String(session.user.id) === String(report.citizenId);
-  const isAssignedOfficer = session?.user?.id && report.officerId && String(session.user.id) === String(report.officerId);
+  const isReportCreator =
+    session?.user?.id &&
+    report.citizenId &&
+    String(session.user.id) === String(report.citizenId);
+  const isAssignedOfficer =
+    session?.user?.id &&
+    report.officerId &&
+    String(session.user.id) === String(report.officerId);
   const canViewChat = showChat && (isReportCreator || isAssignedOfficer);
-  
+
   const evidencePhotos = report.photoUrls || report.photos || [];
   const validDate = report.createdAt || new Date().toISOString();
-  
+
   const formattedDate = new Date(validDate).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -115,11 +141,22 @@ export default function ReportDetailsCard({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(true);
 
+  // --- UI State ---
+  const [activeTab, setActiveTab] = useState<"main" | "internal">("main");
   const [isSending, setIsSending] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
 
-  // Use the actual role from the session
-  const currentUserRole = (session?.user as any)?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : (session?.user as any)?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : (session?.user as any)?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ? "EXTERNAL_MAINTAINER_WITH_ACCESS" : "CITIZEN";
+  // 1. Determine Role cleanly based on DTO
+  const sessionRole = (session?.user as any)?.role;
+  const currentUserRole = sessionRole || "CITIZEN";
+  const currentUserName = session?.user?.name || "Me";
+
+  // 2. Access Control Logic
+  const hasInternalAccess = [
+    "TECHNICAL_OFFICER",
+    "PUBLIC_RELATIONS_OFFICER",
+    "EXTERNAL_MAINTAINER_WITH_ACCESS",
+  ].includes(currentUserRole);
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -127,18 +164,22 @@ export default function ReportDetailsCard({
         setIsLoadingMessages(true);
         const reportIdBigInt = BigInt(report.id);
         const response = await getReportMessages(reportIdBigInt);
-        
+
         if (response && Array.isArray(response)) {
-          const transformedMessages: ChatMessage[] = response.map((msg: any) => ({
-            id: msg.id.toString(),
-            senderName: msg.author?.firstName && msg.author?.lastName 
-              ? `${msg.author.firstName} ${msg.author.lastName}`
-              : msg.author?.username || "Unknown",
-            senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
-            senderRole: msg.author?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : msg.author ?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : "CITIZEN",
-            content: msg.content,
-            timestamp: msg.createdAt,
-          }));
+          const transformedMessages: ChatMessage[] = response.map(
+            (msg: any) => ({
+              id: msg.id.toString(),
+              senderName:
+                msg.author?.firstName && msg.author?.lastName
+                  ? `${msg.author.firstName} ${msg.author.lastName}`
+                  : msg.author?.username || "Unknown",
+              senderId:
+                msg.author?.id?.toString() || msg.authorId?.toString() || "",
+              senderRole: msg.author?.role || "CITIZEN",
+              content: msg.content,
+              timestamp: msg.createdAt,
+            })
+          );
           setMessages(transformedMessages);
         }
       } catch (error) {
@@ -148,25 +189,19 @@ export default function ReportDetailsCard({
       }
     };
 
-    loadMessages();
-
-    // Polling of messages every second
-    const interval = setInterval(loadMessages, 1000);
-
-    return () => clearInterval(interval);
-  }, [report.id]);
+    if (canViewChat) {
+      loadMessages();
+      const interval = setInterval(loadMessages, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [report.id, canViewChat]);
 
   const handleSendMessage = async (text: string) => {
-    if (!session?.user?.id) {
-      console.error("User not authenticated");
-      return;
-    }
-
+    if (!session?.user?.id) return;
     try {
       setIsSending(true);
       const authorId = session.user.id;
       const reportIdBigInt = BigInt(report.id);
-
       const response = await sendMessage(text, authorId, reportIdBigInt);
 
       if (response.success) {
@@ -176,7 +211,9 @@ export default function ReportDetailsCard({
           senderId: session.user.id,
           senderRole: currentUserRole,
           content: text,
-          timestamp: response.data.createdAt ? new Date(response.data.createdAt).toISOString() : new Date().toISOString(),
+          timestamp: response.data.createdAt
+            ? new Date(response.data.createdAt).toISOString()
+            : new Date().toISOString(),
         };
         setMessages((prev) => [...prev, newMsg]);
       }
@@ -193,7 +230,9 @@ export default function ReportDetailsCard({
       <div className="flex items-start justify-between px-3 py-2 md:px-6 md:py-5 border-b bg-background flex-shrink-0">
         <div className="space-y-1">
           <div className="flex items-center gap-2 md:gap-3">
-            <h2 className="text-base md:text-xl font-bold tracking-tight text-foreground line-clamp-1">{report.title}</h2>
+            <h2 className="text-base md:text-xl font-bold tracking-tight text-foreground line-clamp-1">
+              {report.title}
+            </h2>
             {getStatusBadge(report.status)}
           </div>
           <div className="flex items-center text-xs md:text-sm text-muted-foreground gap-2 md:gap-4">
@@ -206,110 +245,184 @@ export default function ReportDetailsCard({
         </div>
         <div className="flex items-center gap-2">
           {onClose && (
-            <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="text-muted-foreground hover:text-foreground"
+            >
               <X className="h-5 w-5" />
             </Button>
           )}
         </div>
       </div>
 
-      {/* Row con 3 colonne: map | menu | chat/officer */}
+      {/* Row with 3 columns: map | menu | action-panel */}
       <div className="flex flex-col md:flex-row items-stretch gap-4 p-4 md:p-6 overflow-hidden flex-1 min-h-0">
-        {/* MAP - sinistra (hidden on mobile; available as overlay via button) */}
+        {/* MAP */}
         <div className="hidden md:flex md:flex-1 min-h-0 rounded-lg overflow-hidden border border-border bg-muted/5">
           <div className="w-full h-full">
-            <LeafletMapFixed report={report} showCloseButton={false} className="w-full h-full" />
+            <LeafletMapFixed
+              report={report}
+              showCloseButton={false}
+              className="w-full h-full"
+            />
           </div>
         </div>
- 
-         {/* MENU - centro (riempie lo spazio disponibile, scroll interno) */}
-         <div className="flex-1 min-h-0 rounded-lg border border-border bg-muted/10 p-3 overflow-auto">
-           <div className="space-y-4">
-             <div className="p-1 bg-muted/30 rounded-lg border border-border/50">
-               <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
-                 <Tag className="w-3 h-3" /> Category
-               </div>
-               <div className="font-medium text-sm text-foreground">
-                 {formatCategory(report.category)}
-               </div>
-             </div>
- 
-             <div className="p-1 bg-muted/30 rounded-lg border border-border/50">
-               <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
-                 <User className="w-3 h-3" /> Reported By
-               </div>
-               <div className="font-medium text-sm text-foreground">
-                 {report.reporterName || "Anonymous"}
-               </div>
-             </div>
- 
-             <div className="space-y-2">
-               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                 <AlertCircle className="w-4 h-4 text-primary" /> Problem Description
-               </h3>
-               <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                 {report.description}
-               </p>
-             </div>
- 
-             <div>
-               <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                 Evidence Photos <Badge variant="outline" className="ml-2 text-muted-foreground font-normal">{evidencePhotos.length}</Badge>
-               </h4>
- 
-               {evidencePhotos.length > 0 ? (
-                 <div className="grid grid-cols-2 gap-2">
-                   {evidencePhotos.slice(0,4).map((url, index) => (
-                     <div key={index} className="relative aspect-video rounded-md overflow-hidden border bg-muted">
-                       <img
-                         src={url}
-                         alt={`Evidence ${index + 1}`}
-                         loading="lazy"
-                         className="w-full h-full object-cover"
-                         onError={(e) => { e.currentTarget.style.opacity = "0"; }}
-                       />
-                     </div>
-                   ))}
-                 </div>
-               ) : (
-                 <div className="h-16 border-2 border-dashed border-muted rounded-lg flex items-center justify-center text-muted-foreground bg-muted/10 text-xs">
-                   No photos attached
-                 </div>
-               )}
-             </div>
-           </div>
-         </div>
- 
-        {/* CHAT / OFFICER - destra (riempie lo spazio disponibile) */}
-        <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex">
-           {canViewChat ? (
-            <div className="w-full h-full">
-              <ChatPanel
-                reportId={report.id}
-                currentUserRole={currentUserRole}
-                currentUserId={session?.user?.id || ""}
-                messages={messages}
-                onSendMessage={handleSendMessage}
-              />
+
+        {/* MENU */}
+        <div className="flex-1 min-h-0 rounded-lg border border-border bg-muted/10 p-3 overflow-auto">
+          <div className="space-y-4">
+            <div className="p-1 bg-muted/30 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
+                <Tag className="w-3 h-3" /> Category
+              </div>
+              <div className="font-medium text-sm text-foreground">
+                {formatCategory(report.category)}
+              </div>
             </div>
-           ) : isOfficerMode ? (
-            <div className="w-full h-full overflow-auto p-3">
-               <OfficerActionPanel
-                 reportId={report.id}
-                 currentStatus={report.status}
-                 currentCategory={report.category}
-                 onActionComplete={onOfficerActionComplete}
-               />
-             </div>
-           ) : (
-            <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground">
-               Chat non disponibile
-             </div>
-           )}
-         </div>
+
+            <div className="p-1 bg-muted/30 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
+                <User className="w-3 h-3" /> Reported By
+              </div>
+              <div className="font-medium text-sm text-foreground">
+                {report.reporterName || "Anonymous"}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-primary" /> Problem
+                Description
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                {report.description}
+              </p>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                Evidence Photos{" "}
+                <Badge
+                  variant="outline"
+                  className="ml-2 text-muted-foreground font-normal"
+                >
+                  {evidencePhotos.length}
+                </Badge>
+              </h4>
+              {evidencePhotos.length > 0 ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {evidencePhotos.slice(0, 4).map((url, index) => (
+                    <div
+                      key={index}
+                      className="relative aspect-video rounded-md overflow-hidden border bg-muted"
+                    >
+                      <img
+                        src={url}
+                        alt={`Evidence ${index + 1}`}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.opacity = "0";
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="h-16 border-2 border-dashed border-muted rounded-lg flex items-center justify-center text-muted-foreground bg-muted/10 text-xs">
+                  No photos attached
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT PANEL - Multi-tab Interface */}
+        <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex flex-col">
+          {/* Tab Toggle - SOLO TECHNICAL_OFFICER */}
+          {currentUserRole === "TECHNICAL_OFFICER" && (
+            <div className="flex border-b border-border bg-muted/20">
+              <button
+                onClick={() => setActiveTab("main")}
+                className={`flex-1 py-2 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                  activeTab === "main"
+                    ? "bg-background text-primary border-b-2 border-primary"
+                    : "text-muted-foreground hover:bg-muted/40"
+                }`}
+              >
+                {canViewChat ? (
+                  <>
+                    <MessageSquare className="w-3 h-3" /> Chat
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-3 h-3" /> Actions
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab("internal")}
+                className={`flex-1 py-2 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                  activeTab === "internal"
+                    ? "bg-yellow-50/50 dark:bg-yellow-900/10 text-yellow-700 dark:text-yellow-400 border-b-2 border-yellow-500"
+                    : "text-muted-foreground hover:bg-muted/40"
+                }`}
+              >
+                <Lock className="w-3 h-3" /> Internal Notes
+              </button>
+            </div>
+          )}
+
+          {/* Panel Content */}
+          <div className="flex-1 min-h-0 relative">
+            {/* VIEW 1: Main Actions / Public Chat */}
+            {activeTab === "main" ? (
+              <div className="w-full h-full">
+                {canViewChat ? (
+                  <ChatPanel
+                    reportId={report.id}
+                    currentUserRole={currentUserRole}
+                    currentUserId={session?.user?.id || ""}
+                    messages={messages}
+                    onSendMessage={handleSendMessage}
+                  />
+                ) : isOfficerMode ? (
+                  <div className="w-full h-full overflow-auto p-3">
+                    <OfficerActionPanel
+                      reportId={report.id}
+                      currentStatus={report.status}
+                      currentCategory={report.category}
+                      onActionComplete={onOfficerActionComplete}
+                    />
+                  </div>
+                ) : isMaintainerMode ? (
+                  <div className="w-full h-full overflow-auto p-3">
+                    {/* MaintainerActionPanel placeholder */}
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground p-4 text-center">
+                    <ShieldAlert className="w-10 h-10 mb-2 opacity-20" />
+                    <p className="text-sm">No actions available.</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* VIEW 2: Internal Notes Component */
+              currentUserRole === "TECHNICAL_OFFICER" && (
+                <InternalNotesPanel
+                  reportId={report.id}
+                  currentUserRole={currentUserRole}
+                  currentUserName={currentUserName}
+                />
+              )
+            )}
+          </div>
+        </div>
       </div>
-      
-      {/* Mobile map overlay (on top of modal) */}
+
+      {/* Mobile map overlay */}
       {isMapOpen && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
@@ -320,16 +433,26 @@ export default function ReportDetailsCard({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative w-full h-full">
-              <LeafletMapFixed report={report} showCloseButton={true} onClose={() => setIsMapOpen(false)} className="w-full h-full" />
-             </div>
-           </div>
-         </div>
+              <LeafletMapFixed
+                report={report}
+                showCloseButton={true}
+                onClose={() => setIsMapOpen(false)}
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Mobile footer: view map button (only on small screens) */}
+      {/* Mobile footer */}
       <div className="md:hidden flex items-center justify-center p-3 border-t bg-background/90">
-        <Button variant="secondary" size="sm" onClick={() => setIsMapOpen(true)}>
-          <Eye className="w-4 h-4 mr-2" />View map
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setIsMapOpen(true)}
+        >
+          <Eye className="w-4 h-4 mr-2" />
+          View map
         </Button>
       </div>
     </div>
