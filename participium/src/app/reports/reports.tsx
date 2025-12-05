@@ -2,7 +2,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Loader2 } from "lucide-react"; 
 
 import FileUpload01 from "@/components/file-upload-01";
@@ -17,9 +17,14 @@ const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
   ssr: false,
 });
 
-export default function Reports() {
+interface ReportsProps {
+  userId: string | null;
+}
+
+export default function Reports({ userId }: ReportsProps) {
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapReports, setMapReports] = useState<Report[]>([]); 
+  const [showMyReportsOnly, setShowMyReportsOnly] = useState(false);
 
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [fullReportData, setFullReportData] = useState<any>(null);
@@ -28,6 +33,15 @@ export default function Reports() {
   const [isClusterSheetOpen, setIsClusterSheetOpen] = useState(false);
   const [clusteredReports, setClusteredReports] = useState<Report[]>([]);
   const [isLoadingReports, setIsLoadingReports] = useState(false);
+
+  // Filter reports based on user selection
+  const filteredReports = useMemo(() => {
+    if (!showMyReportsOnly || !userId) {
+      return mapReports;
+    }
+    return mapReports.filter(report =>{ 
+      return report.citizenId === userId});
+  }, [mapReports, showMyReportsOnly, userId]);
 
   
   useEffect(() => {
@@ -92,7 +106,7 @@ export default function Reports() {
     setSelectedReportId(null);
 
     try {
-        const filtered = mapReports.filter((r) => 
+        const filtered = filteredReports.filter((r) => 
             r.latitude <= bounds.north &&
             r.latitude >= bounds.south &&
             r.longitude <= bounds.east &&
@@ -104,7 +118,7 @@ export default function Reports() {
     } finally {
         setIsLoadingReports(false);
     }
-  }, [mapReports]);
+  }, [filteredReports]);
 
   const handleCloseDetails = () => {
       setSelectedReportId(null);
@@ -112,7 +126,7 @@ export default function Reports() {
   };
 
   const reportsLayerProps = {
-    reports: mapReports,
+    reports: filteredReports,
     onReportClick: handleReportClick,
     onClusterClick: handleClusterClick, 
   };
@@ -122,6 +136,22 @@ export default function Reports() {
       <div className="flex flex-col items-center px-4 pt-6 pb-4">
         <h1 className="text-3xl font-bold mb-2 text-center">Report a Location</h1>
         <p className="text-center max-w-3xl text-sm md:text-base">Click on the map to select a location.</p>
+        
+        {userId && (
+          <div className="flex items-center gap-3 mt-4 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-gray-200 shadow-sm">
+            <span className="text-sm font-medium text-gray-700">All Reports</span>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showMyReportsOnly}
+                onChange={(e) => setShowMyReportsOnly(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+            </label>
+            <span className="text-sm font-medium text-gray-700">My Reports</span>
+          </div>
+        )}
       </div>
       
       <div className="flex flex-1 w-full min-h-0 justify-center px-4 md:px-6 lg:px-8 pb-4">

@@ -5,6 +5,7 @@
   "dependencies": {
     "@grammyjs/conversations": "github:grammyjs/conversations",
     "@grammyjs/menu": "github:grammyjs/menu",
+    "@grammyjs/types": "github:grammyjs/types",
     "dotenv": "^17.2.3",
     "grammy": "^1.38.4",
     "path": "^0.12.7",

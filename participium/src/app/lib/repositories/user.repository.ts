@@ -152,15 +152,15 @@ class UserRepository {
       data.telegram = null;
     }
 
-    await db.user.update({
-      where: { username: userId },
-      data,
-    });
-    return {
-      success: true,
-      data: userId,
-    };
-  }
+      await prisma.user.update({
+        where: { id: userId },
+        data,
+      });
+      return {
+        success: true,
+        data: userId,
+      };
+    } 
 
   async getUserByTelegramId(telegramId: string): Promise<RegistrationResponse> {
     const user = await prisma.user.findUnique({

@@ -4,6 +4,27 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { ReportMarkerIcon, ClusterMarkerIcon } from './MapIcons';
 
 
+// Map report status to border colors
+export function getStatusColor(status: string): string {
+    switch (status) {
+        case 'PENDING_APPROVAL':
+            return '#ef4444'; // red
+        case 'ASSIGNED':
+            return '#3b82f6'; // blue
+        case 'IN_PROGRESS':
+            return '#eab308'; // yellow
+        case 'SUSPENDED':
+            return '#f97316'; // orange
+        case 'REJECTED':
+            return '#6b7280'; // gray
+        case 'RESOLVED':
+            return '#22c55e'; // green
+        default:
+            return '#3b82f6'; // default blue
+    }
+}
+
+
 // extract from a GeoJSON object the polygons to be visualized on the map
 export function extractVisualizationPolygons(geoJson: any): [number, number][][] {
     const allPolygons: [number, number][][] = [];
@@ -65,18 +86,19 @@ export function isPointInPolygon(point: LatLng, polygon: [number, number][]): bo
 // Cache to avoid regenerating HTML for the same icon multiple times
 const iconCache: Record<string, L.DivIcon> = {};
 
-export const createReportIcon = (category: string) => {
-    if (!iconCache[category]) {
-        const reportIconHtml = renderToStaticMarkup(<ReportMarkerIcon category={category} />);
+export const createReportIcon = (category: string, status: string) => {
+    const cacheKey = `${category}-${status}`;
+    if (!iconCache[cacheKey]) {
+        const reportIconHtml = renderToStaticMarkup(<ReportMarkerIcon category={category} status={status} />);
         
-        iconCache[category] = L.divIcon({
+        iconCache[cacheKey] = L.divIcon({
             className: 'report-marker-icon', 
             html: reportIconHtml,
             iconSize: new Point(40, 40), 
             iconAnchor: new Point(20, 20),
         });
     }
-    return iconCache[category];
+    return iconCache[cacheKey];
 };
 
 export const createClusterCustomIcon = (cluster: any) => {

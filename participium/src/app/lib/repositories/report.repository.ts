@@ -203,6 +203,7 @@ class ReportRepository {
         longitude: true,
         latitude: true,
         category: true,
+        citizenId: true,
         citizen: {
           select: {
             username: true,

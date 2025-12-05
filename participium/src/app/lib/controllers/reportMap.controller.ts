@@ -26,6 +26,8 @@ export async function getApprovedReportsForMap() {
     longitude: r.longitude,
     latitude: r.latitude,
     category: r.category,
+    status: r.status,
+    citizenId: r.citizenId,
     username: r.citizen?.username
   }));
 
