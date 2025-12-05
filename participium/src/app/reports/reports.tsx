@@ -10,8 +10,8 @@ import ClusterReportsSheet from "@/components/ClusterReportsSheet";
 import ReportDetailsCard from "@/components/ReportDetailsCard"; 
 
 
-import { getApprovedReportsForMap, getReportById } from "@/controllers/reportMap.controller"; 
-import { Report, Bounds } from "@/dtos/map.dto"; 
+import { getReportsForMap, getReportById } from "../lib/controllers/reportMap.controller"; 
+import { Report, Bounds } from "../lib/dtos/map.dto"; 
 
 const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
   ssr: false,
@@ -47,7 +47,7 @@ export default function Reports({ userId }: ReportsProps) {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const result = await getApprovedReportsForMap();
+        const result = await getReportsForMap();
         if (result.success && result.data) {
             setMapReports(result.data); 
         }

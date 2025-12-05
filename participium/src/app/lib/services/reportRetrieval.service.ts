@@ -57,36 +57,41 @@ class ReportRetrievalService {
   }
 
 
-  public async retrievePendingApprovalReports(
-    status: string
-  ): Promise<ReportsUnassignedResponse> {
-    const reports = await this.reportRepository.getPendingApprovalReports(
-      status
-    );
-
-    const transformedReports = reports.map((r: any) => ({
-      id: r.id.toString(),
-      title: r.title,
-      description: r.description,
-      photos: r.photos,
-      category: r.category,
-      longitude: Number(r.longitude),
-      latitude: Number(r.latitude),
-      citizen: r.citizen
-        ? {
-          id: r.citizen.id.toString(),
-          firstName: r.citizen.firstName,
-          lastName: r.citizen.lastName,
-          email: r.citizen.email,
-          username: r.citizen.username,
-        }
-        : null,
-    }));
-    return {
-      success: true,
-      data: transformedReports,
-    };
-
+  public async retrievePendingApprovalReports(): Promise<ReportsUnassignedResponse> {
+    try {
+      const result = await this.reportRepository.getPendingApprovalReports();
+      if (!result.success || !result.data) {
+        return { success: false, error: "No pending approval reports found" };
+      }
+      const transformedReports = result.data.map((r: any) => ({
+        id: r.id.toString(),
+        title: r.title,
+        description: r.description,
+        photos: r.photos,
+        category: r.category,
+        longitude: Number(r.longitude),
+        latitude: Number(r.latitude),
+        citizen: r.citizen
+          ? {
+              id: r.citizen.id.toString(),
+              firstName: r.citizen.firstName,
+              lastName: r.citizen.lastName,
+              email: r.citizen.email,
+              username: r.citizen.username,
+            }
+          : null,
+      }));
+      return {
+        success: true,
+        data: transformedReports,
+      };
+    } catch (error) {
+      console.error("Error retrieving pending approval reports:", error);
+      return {
+        success: false,
+        error: "Failed to retrieve pending approval reports",
+      };
+    }
   }
 }
 
