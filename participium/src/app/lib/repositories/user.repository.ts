@@ -160,10 +160,7 @@ class UserRepository {
         success: true,
         data: userId,
       };
-    } catch (error) {
-      throw new Error(error instanceof Error ? error.message : "Failed to update user in database");
-    }
-  }
+    } 
 
   async getUserByTelegramId(telegramId: string): Promise<RegistrationResponse> {
     const user = await prisma.user.findUnique({

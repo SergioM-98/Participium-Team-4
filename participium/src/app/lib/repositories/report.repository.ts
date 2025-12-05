@@ -203,6 +203,7 @@ class ReportRepository {
         longitude: true,
         latitude: true,
         category: true,
+        citizenId: true,
         citizen: {
           select: {
             username: true,
@@ -265,31 +266,6 @@ class ReportRepository {
         company: true,
       },
     });
-    try {
-      const reports = await prisma.report.findMany({
-        where,
-        select: {
-          id: true,
-          title: true,
-          longitude: true,
-          latitude: true,
-          category: true,
-          status: true,
-          citizenId: true,
-          citizen: {
-            select: {
-              username: true,
-            },
-          },
-        },
-      });
-      if (!reports || reports.length === 0) {
-        return { success: false, error: "No reports found" };
-      }
-      return { success: true, data: reports };
-    } catch (e) {
-      return { success: false, error: "Error retrieving reports" };
-    }
   }
 }
 

@@ -39,7 +39,8 @@ export default function Reports({ userId }: ReportsProps) {
     if (!showMyReportsOnly || !userId) {
       return mapReports;
     }
-    return mapReports.filter(report => report.citizenId === userId);
+    return mapReports.filter(report =>{ 
+      return report.citizenId === userId});
   }, [mapReports, showMyReportsOnly, userId]);
 
   
