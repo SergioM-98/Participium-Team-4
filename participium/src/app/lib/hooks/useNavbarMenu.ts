@@ -16,6 +16,7 @@ export function useNavbarMenu() {
     switch (role) {
       case "ADMIN":
         return [
+          { title: "All Officers", url: "/admin/officers" },
           { title: "Create Officer", url: "/admin/officers/registration" },
           { title: "Create Company", url: "/admin/companies/registration" },
         ];

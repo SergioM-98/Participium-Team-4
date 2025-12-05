@@ -1,40 +1,59 @@
-"use client";
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "@/lib/utils/index";
+import { cn } from "@/lib/utils/index"
 
 const alertVariants = cva(
-  "mb-4 border px-4 py-3 rounded-lg relative text-sm whitespace-pre-wrap wrap-break-word",
+  "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
   {
     variants: {
       variant: {
-        error: "bg-red-100 border-red-400 text-red-700",
-        success:
-          "bg-green-100 border-green-400 text-green-700 animate-in fade-in duration-300",
-        warning: "bg-yellow-100 border-yellow-400 text-yellow-700",
-        info: "bg-blue-100 border-blue-400 text-blue-700",
+        default: "bg-background text-foreground",
+        destructive:
+          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
       },
     },
     defaultVariants: {
-      variant: "info",
+      variant: "default",
     },
   }
-);
+)
 
-export interface AlertProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof alertVariants> {
-  message: string;
-}
+const Alert = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof alertVariants>
+>(({ className, variant, ...props }, ref) => (
+  <div
+    ref={ref}
+    role="alert"
+    className={cn(alertVariants({ variant }), className)}
+    {...props}
+  />
+))
+Alert.displayName = "Alert"
 
-export function Alert({ variant, message, className, ...props }: AlertProps) {
-  return (
-    <div
-      className={cn(alertVariants({ variant }), className)}
-      role="alert"
-      {...props}
-    >
-      <span className="block sm:inline">{message}</span>
-    </div>
-  );
-}
+const AlertTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h5
+    ref={ref}
+    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
+    {...props}
+  />
+))
+AlertTitle.displayName = "AlertTitle"
+
+const AlertDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm [&_p]:leading-relaxed", className)}
+    {...props}
+  />
+))
+AlertDescription.displayName = "AlertDescription"
+
+export { Alert, AlertTitle, AlertDescription }

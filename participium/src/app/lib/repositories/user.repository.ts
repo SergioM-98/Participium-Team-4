@@ -223,7 +223,7 @@ class UserRepository {
               "TECHNICAL_OFFICER",
               "EXTERNAL_MAINTAINER_WITH_ACCESS",
               "EXTERNAL_MAINTAINER_WITHOUT_ACCESS",
-              "ADMIN",
+              //"ADMIN",
             ],
           },
         },

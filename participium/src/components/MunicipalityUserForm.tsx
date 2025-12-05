@@ -36,11 +36,17 @@ export default function MunicipalityUserForm({
   initialData,
   submitLabel = "Save user",
   onCancel,
+  // [NEW] Add these two props
+  customTitle,
+  disableIdentity = false,
 }: Readonly<{
   onSubmit: (data: MunicipalityUserFormData) => void | Promise<void | boolean>;
   initialData?: Partial<MunicipalityUserFormData>;
   submitLabel?: string;
   onCancel?: () => void;
+  // [NEW] prop types
+  customTitle?: string;
+  disableIdentity?: boolean;
 }>) {
   const [data, setData] = useState<MunicipalityUserFormData>({
     username: "",
@@ -76,23 +82,18 @@ export default function MunicipalityUserForm({
     const retrieveCompanies = async () => {
       setLoadingCompanies(true);
       try {
-        // Determina se recuperare aziende con o senza accesso in base al ruolo
         let hasAccess = false;
         if (data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS") {
           hasAccess = true;
         } else if (data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS") {
           hasAccess = false;
         } else {
-          // Se il ruolo non è un EXTERNAL_MAINTAINER, non caricare aziende
           setCompanies([]);
           setLoadingCompanies(false);
           return;
         }
 
         const result = await getCompaniesByAccess(hasAccess);
-        console.log("getCompaniesByAccess result:", result);
-        console.log("result type:", typeof result);
-        console.log("result keys:", result ? Object.keys(result) : "null");
         if (result.success && result.data) {
           setCompanies(result.data || []);
         }
@@ -127,22 +128,25 @@ export default function MunicipalityUserForm({
       next.username =
         "Username must be at least 3 characters and contain only letters, numbers, dots, underscores, or hyphens.";
     }
-    if (!initialData && !data.password) {
-      next.password = "Password is required.";
-    } else if (data.password && data.password.length < 8) {
-      // If the user DECIDES to type a password, it must be valid
-      next.password = "Password must be at least 8 characters long.";
+
+    // Only validate password if we are NOT in disableIdentity mode (or if user tries to set one)
+    if (!disableIdentity) {
+      if (!data.password && !initialData) {
+        next.password = "Password is required.";
+      } else if (data.password && data.password.length < 8) {
+        next.password = "Password must be at least 8 characters long.";
+      }
+      if (!data.confirmPassword && !initialData) {
+        next.confirmPassword = "Confirm password is required.";
+      } else if (data.password !== data.confirmPassword) {
+        next.confirmPassword =
+          "Passwords do not match. Please verify both passwords are identical.";
+      }
     }
-    if (!initialData && !data.confirmPassword) {
-      next.confirmPassword = "Confirm password is required.";
-    } else if (data.password !== data.confirmPassword) {
-      next.confirmPassword =
-        "Passwords do not match. Please verify both passwords are identical.";
-    }
+
     if (!data.role || data.role.trim() === "")
       next.role = "Role selection is required.";
 
-    // Office is required only for non-ADMIN roles except EXTERNAL_MAINTAINER
     if (
       data.role !== "ADMIN" &&
       data.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS" &&
@@ -152,7 +156,6 @@ export default function MunicipalityUserForm({
         next.office = "Office selection is required.";
     }
 
-    // Company is required only for EXTERNAL_MAINTAINER roles
     if (
       data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
       data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
@@ -193,7 +196,6 @@ export default function MunicipalityUserForm({
         confirmPassword: data.confirmPassword,
       };
 
-      // Only include office if not ADMIN and not EXTERNAL_MAINTAINER
       if (
         data.role !== "ADMIN" &&
         data.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS" &&
@@ -202,7 +204,6 @@ export default function MunicipalityUserForm({
         submitData.office = data.office?.trim() ?? "";
       }
 
-      // Include companyId for EXTERNAL_MAINTAINER roles
       if (
         data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
         data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
@@ -226,10 +227,16 @@ export default function MunicipalityUserForm({
           <form onSubmit={handleSubmit}>
             <div className="p-6 pb-4">
               <h2 className="text-lg font-medium text-foreground">
-                Create a new municipality user
+                {/* [NEW] Use customTitle if provided, else default logic */}
+                {customTitle ||
+                  (initialData
+                    ? "Edit municipality user"
+                    : "Create a new municipality user")}
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Fill the form to create a new municipality user.
+                {customTitle
+                  ? "Update the role and office assignment."
+                  : "Fill the form to create a new municipality user."}
               </p>
             </div>
 
@@ -244,6 +251,11 @@ export default function MunicipalityUserForm({
                     placeholder="e.g. Maria"
                     aria-invalid={!!errors.firstName}
                     aria-describedby="firstName-error"
+                    // [NEW] Disable if disableIdentity is true
+                    disabled={disableIdentity}
+                    className={
+                      disableIdentity ? "bg-muted text-muted-foreground" : ""
+                    }
                   />
                   {errors.firstName && (
                     <p
@@ -264,6 +276,11 @@ export default function MunicipalityUserForm({
                     placeholder="e.g. Rossi"
                     aria-invalid={!!errors.lastName}
                     aria-describedby="lastName-error"
+                    // [NEW] Disable if disableIdentity is true
+                    disabled={disableIdentity}
+                    className={
+                      disableIdentity ? "bg-muted text-muted-foreground" : ""
+                    }
                   />
                   {errors.lastName && (
                     <p
@@ -284,6 +301,11 @@ export default function MunicipalityUserForm({
                     placeholder="e.g. m.rossi"
                     aria-invalid={!!errors.username}
                     aria-describedby="username-error"
+                    // [NEW] Disable if disableIdentity is true
+                    disabled={disableIdentity}
+                    className={
+                      disableIdentity ? "bg-muted text-muted-foreground" : ""
+                    }
                   />
                   {errors.username && (
                     <p
@@ -295,6 +317,7 @@ export default function MunicipalityUserForm({
                   )}
                 </div>
 
+                {/* Password Fields - Disabled/Hidden based on prop */}
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <Input
@@ -302,9 +325,14 @@ export default function MunicipalityUserForm({
                     type="password"
                     value={data.password}
                     onChange={handleChange("password")}
-                    placeholder="••••••••"
+                    placeholder={disableIdentity ? "Locked" : "••••••••"}
                     aria-invalid={!!errors.password}
                     aria-describedby="password-error"
+                    // [NEW] Disable if disableIdentity is true
+                    disabled={disableIdentity}
+                    className={
+                      disableIdentity ? "bg-muted text-muted-foreground" : ""
+                    }
                   />
                   {errors.password && (
                     <p
@@ -323,9 +351,14 @@ export default function MunicipalityUserForm({
                     type="password"
                     value={data.confirmPassword}
                     onChange={handleChange("confirmPassword")}
-                    placeholder="••••••••"
+                    placeholder={disableIdentity ? "Locked" : "••••••••"}
                     aria-invalid={!!errors.confirmPassword}
                     aria-describedby="confirmPassword-error"
+                    // [NEW] Disable if disableIdentity is true
+                    disabled={disableIdentity}
+                    className={
+                      disableIdentity ? "bg-muted text-muted-foreground" : ""
+                    }
                   />
                   {errors.confirmPassword && (
                     <p
@@ -337,6 +370,7 @@ export default function MunicipalityUserForm({
                   )}
                 </div>
 
+                {/* Role and Office sections remain untouched/enabled */}
                 <div className="space-y-2">
                   <Label htmlFor="role">Role</Label>
                   <Select
