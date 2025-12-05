@@ -13,12 +13,14 @@ import {
   Eye,
   Lock,
   ShieldAlert,
+  MessageSquare,
+  Zap,
 } from "lucide-react";
 
 import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
 // import MaintainerActionPanel from "@/app/maintainer/my-reports/MaintainerActionPanel";
 import ChatPanel, { ChatMessage } from "./ChatPanel";
-import InternalNotesPanel from "./InternalNotesPanel"; // <--- Import the new component
+import InternalNotesPanel from "./InternalNotesPanel";
 import {
   getReportMessages,
   sendMessage,
@@ -344,13 +346,21 @@ export default function ReportDetailsCard({
             <div className="flex border-b border-border bg-muted/20">
               <button
                 onClick={() => setActiveTab("main")}
-                className={`flex-1 py-2 text-xs font-medium transition-colors ${
+                className={`flex-1 py-2 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
                   activeTab === "main"
                     ? "bg-background text-primary border-b-2 border-primary"
                     : "text-muted-foreground hover:bg-muted/40"
                 }`}
               >
-                Actions / Chat
+                {canViewChat ? (
+                  <>
+                    <MessageSquare className="w-3 h-3" /> Chat
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-3 h-3" /> Actions
+                  </>
+                )}
               </button>
               <button
                 onClick={() => setActiveTab("internal")}
