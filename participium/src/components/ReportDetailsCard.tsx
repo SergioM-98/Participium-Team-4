@@ -26,7 +26,7 @@ import {
   sendMessage,
 } from "@/app/lib/controllers/message.controller";
 
-import dynamic from "next/dist/shared/lib/dynamic";
+import dynamic from "next/dynamic";
 
 const LeafletMapFixed = dynamic(() => import("./LeafletMapFixed"), {
   ssr: false,
@@ -341,8 +341,8 @@ export default function ReportDetailsCard({
 
         {/* RIGHT PANEL - Multi-tab Interface */}
         <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex flex-col">
-          {/* Tab Toggle - ONLY VISIBLE TO INTERNAL STAFF */}
-          {hasInternalAccess && (
+          {/* Tab Toggle - SOLO TECHNICAL_OFFICER */}
+          {currentUserRole === "TECHNICAL_OFFICER" && (
             <div className="flex border-b border-border bg-muted/20">
               <button
                 onClick={() => setActiveTab("main")}
@@ -410,12 +410,13 @@ export default function ReportDetailsCard({
               </div>
             ) : (
               /* VIEW 2: Internal Notes Component */
-              /* Only renders if hasInternalAccess passed the check above */
-              <InternalNotesPanel
-                reportId={report.id}
-                currentUserRole={currentUserRole}
-                currentUserName={currentUserName}
-              />
+              currentUserRole === "TECHNICAL_OFFICER" && (
+                <InternalNotesPanel
+                  reportId={report.id}
+                  currentUserRole={currentUserRole}
+                  currentUserName={currentUserName}
+                />
+              )
             )}
           </div>
         </div>

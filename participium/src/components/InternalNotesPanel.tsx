@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { StickyNote, Lock } from "lucide-react";
+import { getReportComments, createComment } from "@/app/lib/controllers/comment.controller";
 
 // You can move this interface to a shared types file later
 export interface InternalNote {
@@ -15,55 +16,52 @@ export interface InternalNote {
 
 interface InternalNotesPanelProps {
   reportId: string;
-  currentUserRole: string;
-  currentUserName: string;
 }
 
 export default function InternalNotesPanel({
   reportId,
-  currentUserRole,
-  currentUserName,
 }: InternalNotesPanelProps) {
   const [internalNotes, setInternalNotes] = useState<InternalNote[]>([]);
   const [newNote, setNewNote] = useState("");
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
-
-  // Mock Loading Internal Notes
+  
   useEffect(() => {
-    // TODO: Replace with actual fetch: const notes = await getInternalNotes(reportId);
-
-    // Mock data
-    setInternalNotes([
-      {
-        id: "1",
-        authorName: "System Admin",
-        authorRole: "TECHNICAL_OFFICER",
-        content:
-          "Internal Note: Please check the jurisdiction of this location.",
-        createdAt: new Date(Date.now() - 10000000).toISOString(),
-      },
-    ]);
+    async function fetchNotes() {
+      const res = await getReportComments(BigInt(reportId));
+      if (res.success && Array.isArray(res.data)) {
+        setInternalNotes(
+          res.data.map((c) => ({
+            id: c.id.toString(),
+            authorName: c.author.firstName + " " + c.author.lastName,
+            authorRole: c.author.role,
+            content: c.content,
+            createdAt: c.createdAt,
+          }))
+        );
+      } else {
+        setInternalNotes([]);
+      }
+    }
+    fetchNotes();
   }, [reportId]);
 
   const handleAddInternalNote = async () => {
     if (!newNote.trim()) return;
     setIsSubmittingNote(true);
-
-    // TODO: Connect to backend API: await addInternalNote(reportId, newNote);
-
-    // Simulating API success
-    setTimeout(() => {
+    const res = await createComment(newNote, BigInt(reportId));
+    if (res.success && res.data) {
+      const c = res.data;
       const note: InternalNote = {
-        id: Date.now().toString(),
-        authorName: currentUserName,
-        authorRole: currentUserRole,
-        content: newNote,
-        createdAt: new Date().toISOString(),
+        id: c.id.toString(),
+        authorName: c.author.firstName + " " + c.author.lastName,
+        authorRole: c.author.role,
+        content: c.content,
+        createdAt: c.createdAt,
       };
       setInternalNotes((prev) => [...prev, note]);
       setNewNote("");
-      setIsSubmittingNote(false);
-    }, 500);
+    }
+    setIsSubmittingNote(false);
   };
 
   return (

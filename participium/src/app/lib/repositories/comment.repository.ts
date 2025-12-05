@@ -14,7 +14,22 @@ export class CommentRepository {
     }
 
     public async createComment(data: { content: string; authorId: string; reportId: bigint }): Promise<Comment> {
-        return prisma.comment.create({ data });
+        const comment = await prisma.comment.create({ data });
+
+        return prisma.comment.findUnique({
+            where: { id: comment.id },
+            include: {
+                author: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        username: true,
+                    }
+                }
+            }
+        });
     }
 
     public async getCommentsByReport(reportId: bigint): Promise<Comment[]> {
