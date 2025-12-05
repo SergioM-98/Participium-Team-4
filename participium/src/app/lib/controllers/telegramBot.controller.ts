@@ -1,17 +1,17 @@
 "use server";
-import { RegistrationResponse } from "../dtos/user.dto";
-import { TelegramService } from "../services/telegramBot.service";
+import { RegistrationResponse } from "@/dtos/user.dto";
+import { TelegramService } from "@/services/telegramBot.service";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../../../auth";
-import { Category, ReportRegistrationResponse } from "../dtos/report.dto";
+import { authOptions } from "@/auth";
+import { Category, ReportRegistrationResponse } from "@/dtos/report.dto";
 import {
   TelegramAPIReportRequest,
   UserAuthenticationResponse,
-} from "../dtos/telegramBot.dto";
-import { UserService } from "../services/user.service";
+} from "@/dtos/telegramBot.dto";
+import { UserService } from "@/services/user.service";
 import { createUploadPhoto } from "./uploader.controller";
-import { ControllerSuccessResponse } from "../dtos/tus.dto";
-import { ReportCreationService } from "../services/reportCreation.service";
+import { ControllerSuccessResponse } from "@/dtos/tus.dto";
+import { ReportCreationService } from "@/services/reportCreation.service";
 
 export async function registerTelegramReport(
   report: TelegramAPIReportRequest,
@@ -26,13 +26,13 @@ export async function registerTelegramReport(
     "[registerTelegramReport] Getting user by telegram ID:",
     report.chatId
   );
-  const username = await userService.getUserByTelegramId(
+  //remember that this function returns the id of the user under the field 'data'
+  const user = await userService.getUserByTelegramId(
     report.chatId.toString()
   );
 
-  console.log("[registerTelegramReport] User lookup result:", username);
-
-  if (!username.success) {
+  console.log("[registerTelegramReport] User lookup result:", user);
+  if (!user.success) {
     return {
       success: false,
       error: "User not found for the given Chat ID.",
@@ -70,41 +70,58 @@ export async function registerTelegramReport(
   );
 
   const reportService = ReportCreationService.getInstance();
-
-  const reportData = {
-    title: report.title,
-    description: report.description,
-    photos: locations,
-    category: report.category as Category,
-    longitude: parseFloat(report.longitude),
-    latitude: parseFloat(report.latitude),
-    userId: report.isAnonymous ? "2" : username.data,
-    isAnonymous: report.isAnonymous,
-  };
+  let reportData;
+  try {
+    reportData = {
+      title: report.title,
+      description: report.description,
+      photos: locations,
+      category: report.category as Category,
+      longitude: Number.parseFloat(report.longitude),
+      latitude: Number.parseFloat(report.latitude),
+      userId: user.data,
+      isAnonymous: report.isAnonymous,
+    };
+  } catch (error) {
+    console.error("Error creating report data:", error);
+    return { success: false, error: "Failed to create report data" };
+  }
 
   console.log(
     "[registerTelegramReport] Creating report with data:",
     reportData
   );
-  const registrationResult = await reportService.createReport(reportData);
-  console.log(
-    "[registerTelegramReport] Report creation result:",
-    registrationResult
-  );
-
-  return registrationResult;
+  try {
+    const registrationResult = await reportService.createReport(reportData);
+    console.log(
+      "[registerTelegramReport] Report creation result:",
+      registrationResult
+    );
+    return registrationResult;
+  } catch (error) {
+    console.error("Error creating report:", error);
+    return { success: false, error: "Failed to create report" };
+  }
 }
 
 async function uploadPhoto(photo: File): Promise<ControllerSuccessResponse> {
   const formData = new FormData();
-
-  formData.append("tus-resumable", "1.0.0");
-  formData.append("upload-length", photo.size.toString());
-  formData.append("upload-metadata", `filename ${btoa(photo.name)}`);
-  formData.append("file", photo);
-
-  const result = await createUploadPhoto(formData);
-  return result;
+  try {
+    formData.append("tus-resumable", "1.0.0");
+    formData.append("upload-length", photo.size.toString());
+    formData.append("upload-metadata", `filename ${btoa(photo.name)}`);
+    formData.append("file", photo);
+  } catch (error) {
+    console.error("Error preparing form data for photo upload:", error);
+    return { success: false, error: "Failed to prepare photo upload data", tusHeaders: {} };
+  }
+  try {
+    const result = await createUploadPhoto(formData);
+    return result;
+  } catch (error) {
+    console.error("Error uploading photo:", error);
+    return { success: false, error: "Failed to upload photo", tusHeaders: {} };
+  }
 }
 
 export async function registerTelegram(
@@ -112,25 +129,41 @@ export async function registerTelegram(
   telegramId: number
 ): Promise<RegistrationResponse> {
   const telegramService = TelegramService.getInstance();
-  return telegramService.registerTelegram(token, telegramId);
+  try {
+    return await telegramService.registerTelegram(token, telegramId);
+  } catch (error) {
+    console.error("Error registering telegram:", error);
+    return { success: false, error: "Failed to register telegram" };
+  }
 }
 
 export async function startTelegramRegistration(): Promise<RegistrationResponse> {
   const token = crypto.randomUUID();
   const session = await getServerSession(authOptions);
-  if (!session || !session.user || !session.user.id) {
+  if (!session?.user?.id) {
+    console.error("Authentication failed: No valid session or user ID found");
     return {
       success: false,
       error: "Authentication failed",
     };
   }
   const telegramService = TelegramService.getInstance();
-  return telegramService.startTelegramRegistration(session?.user?.id, token);
+  try {
+    return await telegramService.startTelegramRegistration(session?.user?.id, token);
+  } catch (error) {
+    console.error("Error starting telegram registration:", error);
+    return { success: false, error: "Failed to start telegram registration" };
+  }
 }
 
 export async function isUserAuthenticatedByTelegram(
   chatId: number
 ): Promise<UserAuthenticationResponse> {
   const telegramService = TelegramService.getInstance();
-  return telegramService.isAuthenticated(chatId);
+  try {
+    return await telegramService.isAuthenticated(chatId);
+  } catch (error) {
+    console.error("Error checking telegram authentication:", error);
+    return { success: false, error: "Failed to check telegram authentication" };
+  }
 }

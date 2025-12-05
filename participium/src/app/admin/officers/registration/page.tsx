@@ -3,8 +3,8 @@
 import { useState } from "react";
 import MunicipalityUserForm, {
   MunicipalityUserFormData,
-} from "../../../../components/MunicipalityUserForm";
-import { register } from "../../../lib/controllers/user.controller";
+} from "@/components/MunicipalityUserForm";
+import { register } from "@/controllers/user.controller";
 
 export default function OfficerRegistrationPage() {
   const [error, setError] = useState<string>("");
@@ -25,6 +25,9 @@ export default function OfficerRegistrationPage() {
       formData.append("password", payload.password);
       if (payload.office) {
         formData.append("office", payload.office);
+      }
+      if (payload.companyId) {
+        formData.append("companyId", payload.companyId);
       }
       formData.append("confirmPassword", payload.confirmPassword);
 

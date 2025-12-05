@@ -8,17 +8,16 @@ export default function MapMarkers({
     onMapClick,
     cityPolygons,
     markerIcon
-}: {
+}: Readonly<{
     markers: LatLngExpression[];
     onMapClick: (pos: LatLngExpression) => void;
     cityPolygons: [number, number][][];
     markerIcon: L.DivIcon;
-}) {
+}>) {
     useMapEvents({
         click(e) {
             // add markers only inside the city polygons
             if (
-                cityPolygons.length > 0 &&
                 cityPolygons.some((polygon) => isPointInPolygon(e.latlng, polygon))
             ) {
                 onMapClick(e.latlng);

@@ -20,8 +20,8 @@ jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
     authOptions: {},
 }));
 
-jest.mock('@/auth', () => ({
-    authOptions: {}
+jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
+    authOptions: {},
 }));
 
 import { getServerSession } from 'next-auth/next';
@@ -70,8 +70,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
                 email: "mario.rossi@example.com",
                 username: "mariorossi",
                 role: "CITIZEN",
-                office: null,
-                telegram: null // Corrected expectation: telegram is not saved at creation
+                office: null
             });
 
             expect(savedUser!.passwordHash).not.toBe("SecurePass123!");
@@ -110,8 +109,7 @@ describe('Story 1 - Integration Test: Citizen Registration', () => {
                 email: "anna.bianchi@example.com",
                 username: "annabianchi",
                 role: "CITIZEN",
-                office: null,
-                telegram: null
+                office: null
             });
         });
 

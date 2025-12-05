@@ -1,8 +1,8 @@
 import {
   registerTelegramReport,
   isUserAuthenticatedByTelegram,
-} from "../../../lib/controllers/telegramBot.controller";
-import { telegramAPIReportRequestSchema } from "../../../lib/dtos/telegramBot.dto";
+} from "@/controllers/telegramBot.controller";
+import { telegramAPIReportRequestSchema } from "@/dtos/telegramBot.dto";
 
 export async function POST(req: Request) {
   try {

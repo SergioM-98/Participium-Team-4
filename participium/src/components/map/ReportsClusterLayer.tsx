@@ -7,7 +7,7 @@ import MarkerClusterGroup from 'react-leaflet-markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
-import { Report, Bounds } from "../../app/lib/dtos/map.dto"; 
+import { Report, Bounds } from "@/app/lib/dtos/map.dto"; 
 import { createReportIcon, createClusterCustomIcon } from './utils'; 
 
 interface ReportsClusterLayerProps {

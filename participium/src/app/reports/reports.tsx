@@ -5,15 +5,15 @@ import dynamic from "next/dynamic";
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { Loader2 } from "lucide-react"; 
 
-import FileUpload01 from "../../components/file-upload-01";
-import ClusterReportsSheet from "../../components/ClusterReportsSheet"; 
-import ReportDetailsCard from "../../components/ReportDetailsCard"; 
+import FileUpload01 from "@/components/file-upload-01";
+import ClusterReportsSheet from "@/components/ClusterReportsSheet"; 
+import ReportDetailsCard from "@/components/ReportDetailsCard"; 
 
 
-import { getApprovedReportsForMap, getReportById } from "../lib/controllers/reportMap.controller"; 
-import { Report, Bounds } from "../lib/dtos/map.dto"; 
+import { getApprovedReportsForMap, getReportById } from "@/controllers/reportMap.controller"; 
+import { Report, Bounds } from "@/dtos/map.dto"; 
 
-const LeafletMap = dynamic(() => import("../../components/LeafletMap"), {
+const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
   ssr: false,
 });
 
