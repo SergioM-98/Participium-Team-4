@@ -20,6 +20,7 @@ model Report {
   status      ReportStatus @default(PENDING_APPROVAL)
   photos      Photo[]
   messages    Message[]
+  comments    Comment[]
   notifications Notification[]
   category    Category     @default(OTHER)
   createdAt   DateTime     @default(now())
@@ -111,10 +112,11 @@ model User {
   passwordHash            String   @db.VarChar(255)
   companyId               String?
 
-  createdReports          Report[] @relation("createdBy")
-  managedReports          Report[] @relation("managedBy")
-  messages                Message[]
-  notifications           Notification[]
+  createdReports  Report[] @relation("createdBy")
+  managedReports  Report[] @relation("managedBy")
+  messages        Message[]
+  comments        Comment[]
+  notifications   Notification[]
   notificationPreferences NotificationPreferences?
   profilePhoto            ProfilePhoto?
   verificationTokens      VerificationToken[]
@@ -198,4 +200,15 @@ model Message {
   report    Report   @relation(fields: [reportId], references: [id])
   reportId  BigInt
   @@map("message")
+}
+
+model Comment {
+  id        BigInt   @id @default(autoincrement())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  report    Report   @relation(fields: [reportId], references: [id])
+  reportId  BigInt
+  @@map("comment")
 }
