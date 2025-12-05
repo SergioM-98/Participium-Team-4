@@ -110,7 +110,12 @@ export async function approveReport(
   }
 
   const reportAssignmentService = ReportAssignmentService.getInstance();
-  return reportAssignmentService.assignReportToOfficer(reportId, departmentOrCompanyId);
+  try{
+    return reportAssignmentService.assignReportToOfficer(reportId, departmentOrCompanyId);
+  }catch(error){
+    console.error("Error approving report:", error);
+    return { success: false, error: "The selected department could not be assigned" };
+  }
 }
 
 export async function assignReportToCompany(
@@ -118,11 +123,17 @@ export async function assignReportToCompany(
   companyId: string
 ): Promise<AssignReportToMaintainerResponse> {
   const session = await getServerSession(authOptions);
-  if ( session?.user.role !== "THECHNICAL_OFFICER" ) {
-    throw new Error("Unauthorized access");
+  if ( session?.user.role !== "TECHNICAL_OFFICER" ) {
+    console.error("Unauthorized access attempt to assign report to company");
+    return { success: false, error: "Unauthorized access" };
   }
     const reportAssignmentService = ReportAssignmentService.getInstance();
-    return reportAssignmentService.assignReportToCompany(reportId, companyId);
+    try{
+      return await reportAssignmentService.assignReportToCompany(reportId, companyId);  
+    }catch(error){
+      console.error("Error assigning report to company:", error);
+      return { success: false, error: "Failed to assign report to company" };
+    }
 }
 
 
@@ -152,6 +163,10 @@ export async function updateReportStatus(
   reportId: string
 ): Promise<UpdateReportStatusResponse> {
   const session = await getServerSession(authOptions);
+  if(status !== "IN_PROGRESS" && status !== "RESOLVED" && status != "SUSPENDED"){
+    console.error("Invalid status update attempt:", status);
+    return { success: false, error: "Invalid status" };
+  }
 
   if (
     !session ||

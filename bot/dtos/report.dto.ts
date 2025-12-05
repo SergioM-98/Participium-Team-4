@@ -37,6 +37,7 @@ export const retrieveReportsByOfficerResponseSchema = reportBaseSchema.extend({
   citizenId: z.string().or(z.number()).optional(),
   officerId: z.string().or(z.number()).nullable().optional(),
   createdAt: z.string().optional(),
+  companyId: z.string().nullable().optional(),
   citizen: z
     .object({
       id: z.string().or(z.number()),

@@ -27,6 +27,7 @@ export default async function createCitizen() {
       lastName: "Neri",
       email: "mneri@team4.it",
       role: "CITIZEN" as const,
+      isVerified: true,
       notificationPreferences: {
         create: {
           emailEnabled: true,

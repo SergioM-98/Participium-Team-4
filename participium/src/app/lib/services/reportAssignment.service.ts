@@ -1,7 +1,6 @@
 import { ReportRepository } from "@/repositories/report.repository";
-import { AssignReportToOfficerResponse } from "@/dtos/report.dto";
+import { AssignReportToMaintainerResponse, AssignReportToOfficerResponse } from "@/dtos/report.dto";
 import { NotificationService } from "@/services/notification.service";
-import { AssignReportToMaintainerResponse } from "@/dtos/report.dto";
 
 class ReportAssignmentService {
   private static instance: ReportAssignmentService;
@@ -98,16 +97,16 @@ class ReportAssignmentService {
     companyId: string
   ): Promise<AssignReportToMaintainerResponse> {
     const company = await this.reportRepository.getCompanyById(companyId);
-    const access = company?.hasAccess ?? false;
+    if(!company){
+      throw new Error(`Company with ID ${companyId} not found`);
+    }
+    const access = company.hasAccess ?? false;
     const employee = await this.reportRepository.getCompanyEmployeeWithLeastReports(
       companyId
     );
 
     if (!employee) {
-      return {
-        success: false,
-        error: "No external maintainers available in the specified company",
-      };
+      throw new Error(`No available employees in company ID: ${companyId}`);
     }
     const report = await this.reportRepository.assignReportToMaintainer(
       reportId,
@@ -128,10 +127,10 @@ class ReportAssignmentService {
     }
     return {
       success: true,
-      data: `Report assigned to company ID ${companyId} and employee ID ${employee.id}`,
+      data: `Report assigned to company ${company.name} and employee ID ${employee.id}`,
       access: access,
       email: employee.email || null,
-      };
+    };
   }
 }
 

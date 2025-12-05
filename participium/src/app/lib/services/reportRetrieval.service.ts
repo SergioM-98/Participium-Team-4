@@ -47,6 +47,7 @@ class ReportRetrievalService {
       officerId: r.officerId?.toString(),
       citizen: r.citizen,
       createdAt: r.createdAt,
+      companyId: r.companyId?.toString(),
       status: this.normalizeStatus(r.status),
     }));
 
@@ -72,6 +73,7 @@ class ReportRetrievalService {
       category: r.category,
       longitude: Number(r.longitude),
       latitude: Number(r.latitude),
+      companyId: r.companyId,
       citizen: r.citizen
         ? {
           id: r.citizen.id.toString(),

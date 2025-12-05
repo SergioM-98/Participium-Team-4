@@ -62,6 +62,15 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
   const [error, setError] = useState<string | null>(null);
   const [photoCache, setPhotoCache] = useState<Record<string, string>>({}); // Store photo data URLs
 
+  const [refreshFlag, setRefreshFlag] = useState(false);
+
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const showToast = (type: 'success' | 'error', text: string) => {
+    setToast({ type, text });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+
   useEffect(() => {
     async function fetchReports() {
       try {
@@ -69,6 +78,8 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
         setError(null);
 
         const response = await getReportsByAssigneeId();
+
+        console.log("Fetched reports response:", response);
 
         if (!response.success) {
           setError(response.error || "Failed to load reports");
@@ -85,7 +96,7 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
     }
 
     fetchReports();
-  }, []);
+  }, [refreshFlag]);
 
   useEffect(() => {
     async function fetchPhotos() {
@@ -307,7 +318,10 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
                 <Button
                   className="w-full"
                   variant="outline"
-                  onClick={() => setSelectedReport(report)}
+                  onClick={() => {
+                    console.log(report)
+                    setSelectedReport(report)
+                  }}
                 >
                   View Details
                 </Button>
@@ -342,12 +356,27 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
                   .filter(Boolean),
                 citizenId: selectedReport.citizenId,
                 officerId: selectedReport.officerId || undefined,
+                companyId: selectedReport.companyId,
               }}
               onClose={() => setSelectedReport(null)}
               showChat={true}
               isOfficerMode={false}
+              setRefreshFlag={setRefreshFlag}
+              setReport={setSelectedReport}
+              showToast={showToast}
             />
           </div>
+        </div>
+      )}
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-sm font-medium z-[9000] animate-in fade-in slide-in-from-top-2 duration-300 ${
+            toast.type === 'success'
+              ? 'bg-green-100 border border-green-400 text-green-700'
+              : 'bg-red-100 border border-red-400 text-red-700'
+          }`}
+        >
+          {toast.text}
         </div>
       )}
     </div>

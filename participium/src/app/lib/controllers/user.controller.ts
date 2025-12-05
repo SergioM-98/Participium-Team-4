@@ -208,6 +208,7 @@ export async function getMe(): Promise<MeType | RegistrationResponse> {
       role: user.role as MeType["me"]["role"],
       office: (user.office as MeType["me"]["office"]) ?? undefined,
       telegram: !!user.telegramChatId,
+      pendingRequest: user.telegramRequestPending ?? false,
       companyId: user.companyId ?? undefined
     },
     emailNotifications: emailEnabled,

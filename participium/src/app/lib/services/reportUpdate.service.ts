@@ -36,13 +36,14 @@ class ReportUpdateService {
         };
       }
 
-      const updatedReport = await this.reportRepository.updateReportStatus(
+      await this.reportRepository.updateReportStatus(
         reportId,
         status
       );
 
       return { success: true, data: "Report status updated successfully" };
     } catch (error) {
+      console.error("Error updating report status:", error);
       return {
         success: false,
         error: "Failed to update report status",

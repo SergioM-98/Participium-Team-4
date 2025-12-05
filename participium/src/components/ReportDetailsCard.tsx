@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -10,14 +10,18 @@ import {
   User,
   Clock,
   AlertCircle,
-  Eye
+  Eye,
+  MessageSquare,
+  Menu
 } from "lucide-react";
 
 import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
 import MaintainerActionPanel from "@/app/maintainer/my-reports/MaintainerActionPanel";
 import ChatPanel, { ChatMessage } from "./ChatPanel";
 import { getReportMessages, sendMessage } from "@/app/lib/controllers/message.controller";
-import dynamic from "next/dist/shared/lib/dynamic";
+import dynamic from "next/dynamic";
+import OfficerReportMenu from "./OfficerReportMenu";
+import { is } from "zod/v4/locales";
 
 const LeafletMapFixed = dynamic(() => import("./LeafletMapFixed"), {
   ssr: false,
@@ -40,6 +44,7 @@ interface Report {
   longitude: number;
   reporterName: string;
   createdAt: string;
+  companyId: string | null;
   photoUrls?: string[];
   photos?: string[];
   citizenId?: string | number;
@@ -54,6 +59,9 @@ interface ReportDetailsCardProps {
   onOfficerActionComplete?: () => void;
   onMaintainerActionComplete?: () => void;
   showChat?: boolean;
+  setRefreshFlag?: Dispatch<SetStateAction<boolean>>;
+  setReport?: Dispatch<SetStateAction<any>>;
+  showToast?: (type: 'success' | 'error', text: string) => void;
 }
 
 const formatCategory = (category: string) => {
@@ -93,6 +101,9 @@ export default function ReportDetailsCard({
   onOfficerActionComplete,
   onMaintainerActionComplete,
   showChat = false,
+  setRefreshFlag,
+  setReport,
+  showToast,
 }: ReportDetailsCardProps) {
   const { data: session } = useSession();
   
@@ -117,6 +128,8 @@ export default function ReportDetailsCard({
 
   const [isSending, setIsSending] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
+
+  const [seeOfficerChat, setSeeOfficerChat] = useState(true);
 
   // Use the actual role from the session
   const currentUserRole = (session?.user as any)?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : (session?.user as any)?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : (session?.user as any)?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ? "EXTERNAL_MAINTAINER_WITH_ACCESS" : "CITIZEN";
@@ -186,7 +199,7 @@ export default function ReportDetailsCard({
       setIsSending(false);
     }
   };
-
+  
   return (
     <div className="w-full h-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
@@ -213,16 +226,16 @@ export default function ReportDetailsCard({
         </div>
       </div>
 
-      {/* Row con 3 colonne: map | menu | chat/officer */}
+      {/* Row with 3 columns: map | menu | chat/officer */}
       <div className="flex flex-col md:flex-row items-stretch gap-4 p-4 md:p-6 overflow-hidden flex-1 min-h-0">
-        {/* MAP - sinistra (hidden on mobile; available as overlay via button) */}
-        <div className="hidden md:flex md:flex-1 min-h-0 rounded-lg overflow-hidden border border-border bg-muted/5">
+        {/* MAP - left (hidden on mobile; available as overlay via button) */}
+        {(isOfficerMode || isAssignedOfficer) && (<div className="hidden md:flex md:flex-1 min-h-0 rounded-lg overflow-hidden border border-border bg-muted/5">
           <div className="w-full h-full">
             <LeafletMapFixed report={report} showCloseButton={false} className="w-full h-full" />
           </div>
-        </div>
+        </div>)}
  
-         {/* MENU - centro (riempie lo spazio disponibile, scroll interno) */}
+         {/* MENU - center (fills the available space, internal scroll) */}
          <div className="flex-1 min-h-0 rounded-lg border border-border bg-muted/10 p-3 overflow-auto">
            <div className="space-y-4">
              <div className="p-1 bg-muted/30 rounded-lg border border-border/50">
@@ -280,33 +293,88 @@ export default function ReportDetailsCard({
            </div>
          </div>
  
-        {/* CHAT / OFFICER - destra (riempie lo spazio disponibile) */}
-        <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex">
-           {canViewChat ? (
-            <div className="w-full h-full">
-              <ChatPanel
-                reportId={report.id}
-                currentUserRole={currentUserRole}
-                currentUserId={session?.user?.id || ""}
-                messages={messages}
-                onSendMessage={handleSendMessage}
-              />
-            </div>
-           ) : isOfficerMode ? (
-            <div className="w-full h-full overflow-auto p-3">
-               <OfficerActionPanel
-                 reportId={report.id}
-                 currentStatus={report.status}
-                 currentCategory={report.category}
-                 onActionComplete={onOfficerActionComplete}
-               />
-             </div>
-           ) : (
-            <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground">
-               Chat non disponibile
-             </div>
-           )}
-         </div>
+        {/* CHAT / OFFICER - right (fills the available space) */}
+        <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex flex-col relative">
+          {/* Header / Toggle (in-flow, non overlaid) */}
+          <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/5 flex-shrink-0">
+            <div className="text-sm font-medium text-muted-foreground">Dettagli report</div>
+
+            {/* Inline segmented control — chiaro cosa fa */}
+            {canViewChat && isAssignedOfficer ? (
+              <div className="flex items-center gap-2 bg-muted/10 p-1 rounded-md">
+                <span className="text-xs text-muted-foreground hidden sm:inline">Visualizza</span>
+
+                <button
+                  onClick={() => setSeeOfficerChat(true)}
+                  aria-pressed={seeOfficerChat}
+                  className={`flex items-center gap-2 px-2 py-1 rounded text-xs transition-colors ${seeOfficerChat ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span className="hidden md:inline">Chat</span>
+                </button>
+
+                <button
+                  onClick={() => setSeeOfficerChat(false)}
+                  aria-pressed={!seeOfficerChat}
+                  className={`flex items-center gap-2 px-2 py-1 rounded text-xs transition-colors ${!seeOfficerChat ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                >
+                  <Menu className="w-4 h-4" />
+                  <span className="hidden md:inline">Menu</span>
+                </button>
+              </div>
+            ) : (
+              <div className="text-xs text-muted-foreground"> </div>
+            )}
+          </div>
+
+          {/* Content area: chat or menu placeholder - both fill same space */}
+          <div className="flex-1 min-h-0 overflow-auto p-3">
+            {canViewChat ? (
+              isAssignedOfficer ? (
+                // Officer view: can toggle between chat and menu placeholder
+                <div className="w-full h-full flex flex-col">
+                  <div className="flex-1 min-h-0">
+                    {seeOfficerChat ? (
+                      <ChatPanel
+                        reportId={report.id}
+                        currentUserRole={currentUserRole}
+                        currentUserId={session?.user?.id || ""}
+                        messages={messages}
+                        onSendMessage={handleSendMessage}
+                      />
+                    ) : (
+                      <OfficerReportMenu reportId={report.id} status={report.status} companyId={report.companyId || ""} setRefreshFlag={setRefreshFlag} setReport={setReport} showToast={showToast} />
+                    )}
+                  </div>
+                </div>
+              ) : (
+                // Regular user: solo chat
+                <div className="w-full h-full">
+                  <ChatPanel
+                    reportId={report.id}
+                    currentUserRole={currentUserRole}
+                    currentUserId={session?.user?.id || ""}
+                    messages={messages}
+                    onSendMessage={handleSendMessage}
+                  />
+                </div>
+              )
+            ) : isOfficerMode ? (
+              <div className="w-full h-full overflow-auto p-3">
+                <OfficerActionPanel
+                  reportId={report.id}
+                  currentStatus={report.status}
+                  currentCategory={report.category}
+                  onActionComplete={onOfficerActionComplete}
+                />
+              </div>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground">
+                Chat non disponibile
+              </div>
+            )}
+          </div>
+        </div>
       </div>
       
       {/* Mobile map overlay (on top of modal) */}
@@ -327,11 +395,11 @@ export default function ReportDetailsCard({
       )}
 
       {/* Mobile footer: view map button (only on small screens) */}
-      <div className="md:hidden flex items-center justify-center p-3 border-t bg-background/90">
+      {isOfficerMode  && (<div className="md:hidden flex items-center justify-center p-3 border-t bg-background/90">
         <Button variant="secondary" size="sm" onClick={() => setIsMapOpen(true)}>
           <Eye className="w-4 h-4 mr-2" />View map
         </Button>
-      </div>
+      </div>)}
     </div>
   );
 }

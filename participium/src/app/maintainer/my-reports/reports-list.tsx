@@ -30,7 +30,7 @@ import type { RetrieveReportByAssignee } from "@/dtos/report.dto";
 import { getPhoto } from "@/controllers/photo.controller";
 import ReportDetailsCard from "@/components/ReportDetailsCard";
 
-type Report = RetrieveReportByAssignee;
+type Report = RetrieveReportByAssignee & { companyId: string | null };
 
 interface ReportsListProps {
   maintainerId: string;
@@ -376,6 +376,7 @@ export default function ReportsList({ maintainerId }: ReportsListProps) {
                   .filter(Boolean),
                 citizenId: selectedReport.citizenId,
                 officerId: selectedReport.officerId || undefined,
+                companyId: selectedReport.companyId || null,
               }}
               onClose={() => setSelectedReport(null)}
               showChat={true}

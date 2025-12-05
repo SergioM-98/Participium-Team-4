@@ -12,12 +12,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { approveReport, rejectReport } from "@/controllers/report.controller";
-import { getAllCompanies } from "@/controllers/company.controller";
-
-interface CompanyOption {
-  id: string;
-  name: string;
-}
 
 interface OfficerActionPanelProps {
   reportId: string | number;
@@ -34,49 +28,19 @@ export default function OfficerActionPanel({
 }: Readonly<OfficerActionPanelProps>) {
   const [isLoading, setIsLoading] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-  const [companies, setCompanies] = useState<CompanyOption[]>([]);
-  const [companiesLoading, setCompaniesLoading] = useState(true);
 
   const [selectedCategory, setSelectedCategory] = useState<string>(currentCategory);
   const [selectedDepartment, setSelectedDepartment] = useState<string>("");
-  const [selectedCompany, setSelectedCompany] = useState<string>("");
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [showRejectInput, setShowRejectInput] = useState(false);
 
   const handleDepartmentChange = (value: string) => {
-    if (value === "NONE" || selectedDepartment === value) {
+    if (value === "NONE") {
       setSelectedDepartment("");
     } else {
       setSelectedDepartment(value);
-      setSelectedCompany("");
     }
   };
-
-  const handleCompanyChange = (value: string) => {
-    if (value === "NONE" || selectedCompany === value) {
-      setSelectedCompany("");
-    } else {
-      setSelectedCompany(value);
-      setSelectedDepartment("");
-    }
-  };
-
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      try {
-        const result = await getAllCompanies();
-        
-        if (result.success && result.data) {
-          setCompanies(result.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch companies:", error);
-      } finally {
-        setCompaniesLoading(false);
-      }
-    };
-    fetchCompanies();
-  }, []);
 
   const canModerate =
     currentStatus === "pending_approval" || currentStatus === "PENDING";
@@ -195,7 +159,6 @@ export default function OfficerActionPanel({
           <Select
             value={selectedDepartment}
             onValueChange={handleDepartmentChange}
-            disabled={selectedCompany !== ""}
           >
             <SelectTrigger className="w-full h-9 text-sm bg-background">
               <SelectValue placeholder="Select Department..." />
@@ -243,32 +206,9 @@ export default function OfficerActionPanel({
           </Select>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-            Assign Company
-          </label>
-          <Select
-            value={selectedCompany}
-            onValueChange={handleCompanyChange}
-            disabled={companiesLoading || selectedDepartment !== ""}
-          >
-            <SelectTrigger className="w-full h-9 text-sm bg-background">
-              <SelectValue placeholder={companiesLoading ? "Loading companies..." : "Select Company..."} />
-            </SelectTrigger>
-            <SelectContent className="z-[9999] max-h-[250px]">
-              <SelectItem value="NONE">None</SelectItem>
-              {companies.map((company) => (
-                <SelectItem key={company.id} value={company.id}>
-                  {company.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
         <Button
           onClick={handleApprove}
-          disabled={isLoading || (selectedDepartment === "" || selectedDepartment === "NONE") && (selectedCompany === "" || selectedCompany === "NONE") || showRejectInput}
+          disabled={isLoading || (selectedDepartment === "" || selectedDepartment === "NONE") || showRejectInput}
           className="w-full bg-green-600 hover:bg-green-700 text-white h-9 text-sm"
         >
           {isLoading && !showRejectInput ? (

@@ -65,7 +65,9 @@ export default function Reports() {
                         createdAt: response.data.createdAt,
                         photoUrls: response.data.photos || [],
                         citizenId: response.data.citizenId,
-                        officerId: response.data.officerId
+                        officerId: response.data.officerId,
+                        companyId: response.data.companyId,
+
                     });
                 } else {
                     console.error("Error fetching report details:", response.error);

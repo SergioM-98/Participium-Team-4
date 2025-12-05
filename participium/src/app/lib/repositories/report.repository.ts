@@ -31,6 +31,7 @@ class ReportRepository {
         status: true,
         citizenId: true,
         officerId: true,
+        companyId: true,
         citizen: {
           select: {
             username: true,
