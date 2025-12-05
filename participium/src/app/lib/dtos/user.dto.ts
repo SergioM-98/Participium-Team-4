@@ -92,12 +92,16 @@ export const RetrievedUserDataSchema = z
     office: z.enum(Offices).optional(),
     telegram: z.boolean,
     pendingRequest: z.boolean,
-    companyId: z.string().optional()
+    companyId: z.string().optional(),
   })
   .refine(
     (data) =>
-      ((data.role === "PUBLIC_RELATIONS_OFFICER" || data.role === "TECHNICAL_OFFICER") && data.office) ||
-      ((data.role !== "PUBLIC_RELATIONS_OFFICER" && data.role !== "TECHNICAL_OFFICER") && !data.office),
+      ((data.role === "PUBLIC_RELATIONS_OFFICER" ||
+        data.role === "TECHNICAL_OFFICER") &&
+        data.office) ||
+      (data.role !== "PUBLIC_RELATIONS_OFFICER" &&
+        data.role !== "TECHNICAL_OFFICER" &&
+        !data.office),
     {
       message: "Only OFFICER can and must have an office",
       path: ["office"],
@@ -131,6 +135,30 @@ export const LoginInputSchema = z.object({
   password: z.string().min(8),
 });
 
+// [NEW] Schema specifically for Updating Users (Password is optional)
+export const UpdateUserInputSchema = BaseUserSchema.safeExtend({
+  id: z.string(),
+  // Password is optional. We allow undefined or empty string.
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .optional()
+    .or(z.literal("")),
+  confirmPassword: z.string().optional().or(z.literal("")),
+}).refine(
+  (data) => {
+    // Only validate matching passwords IF a password was actually provided and is not empty
+    if (data.password && data.password.length > 0) {
+      return data.password === data.confirmPassword;
+    }
+    return true;
+  },
+  {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  }
+);
+
 type RetrievedUserData = z.infer<typeof RetrievedUserDataSchema>;
 export type Citizen = z.infer<typeof CitizenSchema>;
 export type RegistrationInput = z.infer<typeof RegistrationInputSchema>;
@@ -147,8 +175,9 @@ export type LoginResponse =
   | { success: true; data: RetrievedUserData }
   | { success: false; error: string };
 export type MeType = {
-    me: z.infer<typeof RetrievedUserDataSchema>,
-    emailNotifications: boolean,
-    telegramNotifications: boolean,
-    companyName?: string
+  me: z.infer<typeof RetrievedUserDataSchema>;
+  emailNotifications: boolean;
+  telegramNotifications: boolean;
+  companyName?: string;
 };
+export type UpdateUserInput = z.infer<typeof UpdateUserInputSchema>;

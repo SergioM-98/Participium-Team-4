@@ -127,12 +127,13 @@ export default function MunicipalityUserForm({
       next.username =
         "Username must be at least 3 characters and contain only letters, numbers, dots, underscores, or hyphens.";
     }
-    if (!data.password) {
+    if (!initialData && !data.password) {
       next.password = "Password is required.";
-    } else if (data.password.length < 8) {
+    } else if (data.password && data.password.length < 8) {
+      // If the user DECIDES to type a password, it must be valid
       next.password = "Password must be at least 8 characters long.";
     }
-    if (!data.confirmPassword) {
+    if (!initialData && !data.confirmPassword) {
       next.confirmPassword = "Confirm password is required.";
     } else if (data.password !== data.confirmPassword) {
       next.confirmPassword =

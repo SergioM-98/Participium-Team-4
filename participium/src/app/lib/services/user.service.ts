@@ -30,7 +30,7 @@ class UserService {
   }
 
   public async createUser(
-    userData: RegistrationInput,
+    userData: RegistrationInput
   ): Promise<RegistrationResponse> {
     return await prisma.$transaction(async (tx) => {
       const result = await this.userRepository.createUser(userData, tx);
@@ -45,13 +45,12 @@ class UserService {
               emailEnabled: true,
               telegramEnabled: false,
             },
-            tx,
+            tx
           );
 
         if (!res.success) {
           throw new Error(res.error);
         }
-      
 
         if (!userData.email) {
           throw new Error("Email is required for CITIZEN users");
@@ -62,14 +61,14 @@ class UserService {
           await this.verificationService.createAndSendVerificationToken(
             userData.id,
             userData.email,
-            userData.firstName,
+            userData.firstName
           );
 
         console.log("Verification Result:", verificationResult);
 
         if (!verificationResult.success) {
           throw new Error(
-            verificationResult.error || "Failed to send verification email",
+            verificationResult.error || "Failed to send verification email"
           );
         }
       }
@@ -82,7 +81,6 @@ class UserService {
   }
 
   public async updateNotificationsMedia(
-
     userId: string,
     email: string | null,
     removeTelegram: boolean,
@@ -97,18 +95,29 @@ class UserService {
   }
 
   public async getUserByTelegramId(
-    telegramId: string,
+    telegramId: string
   ): Promise<RegistrationResponse> {
     return this.userRepository.getUserByTelegramId(telegramId);
   }
 
-  public async getMe(userId:string){
+  public async getMe(userId: string) {
     return this.userRepository.getUserById(userId);
   }
 
-
   public async getUserWithCompany(userId: string) {
     return this.userRepository.getUserWithCompany(userId);
+  }
+
+  public async getAllOfficers() {
+    return await this.userRepository.getAllOfficers();
+  }
+
+  public async updateUser(
+    userId: string,
+    userData: RegistrationInput
+  ): Promise<RegistrationResponse> {
+    // We can add specific business logic here if needed (e.g. sending emails on change)
+    return await this.userRepository.updateUser(userId, userData);
   }
 }
 
