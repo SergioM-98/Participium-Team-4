@@ -7,9 +7,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../../components/ui/card";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   MapPin,
   Search,
@@ -18,10 +18,10 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { getReportsByAssigneeId } from "../../lib/controllers/report.controller";
-import type { RetrieveReportByAssignee } from "../../lib/dtos/report.dto";
-import { getPhoto } from "../../lib/controllers/photo.controller";
-import ReportDetailsCard from "../../../components/ReportDetailsCard";
+import { getReportsByAssigneeId } from "@/controllers/report.controller";
+import type { RetrieveReportByAssignee } from "@/dtos/report.dto";
+import { getPhoto } from "@/controllers/photo.controller";
+import ReportDetailsCard from "@/components/ReportDetailsCard";
 
 type Report = RetrieveReportByAssignee;
 
@@ -53,7 +53,7 @@ const categoryColors: Record<string, string> = {
   OTHER: "bg-gray-100 text-gray-800",
 };
 
-export default function ReportsList({ officerId }: ReportsListProps) {
+export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [isLoading, setIsLoading] = useState(true);
@@ -77,6 +77,7 @@ export default function ReportsList({ officerId }: ReportsListProps) {
 
         setReports(response.data);
       } catch (err) {
+        console.error("Error fetching reports:", err);
         setError("An unexpected error occurred");
       } finally {
         setIsLoading(false);
@@ -322,16 +323,16 @@ export default function ReportsList({ officerId }: ReportsListProps) {
           onClick={() => setSelectedReport(null)}
         >
           <div
-            className="relative w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] max-h-[85vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
+            className="w-screen h-screen md:w-[70vw] md:h-[70vh] max-w-[95vw] max-h-[95vh] rounded-xl shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300"
+             onClick={(e) => e.stopPropagation()}
+           >
             <ReportDetailsCard
               report={{
                 id: selectedReport.id.toString(),
                 title: selectedReport.title,
                 description: selectedReport.description,
                 category: selectedReport.category,
-                status: selectedReport.status || "PENDING_APPROVAL",
+                status: selectedReport.status as "pending_approval" | "assigned" | "in_progress" | "suspended" | "rejected" | "resolved" || "pending_approval",
                 latitude: selectedReport.latitude,
                 longitude: selectedReport.longitude,
                 reporterName: selectedReport.citizen?.username || "Anonymous",

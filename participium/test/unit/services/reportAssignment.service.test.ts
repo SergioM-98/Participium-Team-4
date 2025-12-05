@@ -65,17 +65,15 @@ describe('ReportAssignment Service - Story 6', () => {
         it("should return error when no officers available", async () => {
             mockRepository.getOfficerWithLeastReports.mockResolvedValue(null);
 
-            const response = await reportAssignmentService.assignReportToOfficer(
-                1,
-                'DEPARTMENT_OF_COMMERCE'
-            );
+            await expect(
+                reportAssignmentService.assignReportToOfficer(
+                    1,
+                    'DEPARTMENT_OF_COMMERCE'
+                )
+            ).rejects.toThrow('No available officers in department: DEPARTMENT_OF_COMMERCE');
 
-            expect(response.success).toBe(false);
             expect(mockRepository.getOfficerWithLeastReports).toHaveBeenCalled();
             expect(mockRepository.assignReportToOfficer).not.toHaveBeenCalled();
-            if (!response.success) {
-                expect(response.error).toBe('No officers available in the specified department');
-            }
         });
 
         it("should return error when assignment fails", async () => {
@@ -89,15 +87,12 @@ describe('ReportAssignment Service - Story 6', () => {
             mockRepository.getOfficerWithLeastReports.mockResolvedValue(mockOfficer);
             mockRepository.assignReportToOfficer.mockRejectedValue(new Error('Database error'));
 
-            const response = await reportAssignmentService.assignReportToOfficer(
-                1,
-                'DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES'
-            );
-
-            expect(response.success).toBe(false);
-            if (!response.success) {
-                expect(response.error).toBe('Failed to assign report to officer');
-            }
+            await expect(
+                reportAssignmentService.assignReportToOfficer(
+                    1,
+                    'DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES'
+                )
+            ).rejects.toThrow('Database error');
         });
     });
 
@@ -135,7 +130,7 @@ describe('ReportAssignment Service - Story 6', () => {
             expect(response.success).toBe(false);
             expect(mockRepository.rejectReport).toHaveBeenCalled();
             if (!response.success) {
-                expect(response.error).toBe('Failed to reject report');
+                expect(response.error).toBe('Failed to reject report with ID 1');
             }
         });
     });

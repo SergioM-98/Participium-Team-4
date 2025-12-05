@@ -1,12 +1,12 @@
-import { CreateUploadRequest, CreateUploadRequestSchema, TusCreateResponse, TusCreateResponseSchema } from "../dtos/tus.dto";
-import { PhotoRepository } from "../repositories/photo.repository";
-import { savePhotoFile } from "../utils/fileUtils";
+import { CreateUploadRequest, CreateUploadRequestSchema, TusCreateResponse, TusCreateResponseSchema } from "@/dtos/tus.dto";
+import { PhotoRepository } from "@/repositories/photo.repository";
+import { savePhotoFile } from "@/utils/fileUtils";
 import { renameSync, existsSync } from 'node:fs';
 import path from 'node:path';
 
 class PhotoUploaderService {
     private static instance: PhotoUploaderService;
-    private photoRepository: PhotoRepository;
+    private readonly photoRepository: PhotoRepository;
 
     private constructor() {
         this.photoRepository = PhotoRepository.getInstance();
@@ -34,7 +34,7 @@ class PhotoUploaderService {
     }
 
     public async createUploadPhoto(request: CreateUploadRequest): Promise<TusCreateResponse> {
-        try {
+        
             const validatedRequest = CreateUploadRequestSchema.parse(request);
             
             if (validatedRequest.body.byteLength !== validatedRequest.uploadLength) {
@@ -88,11 +88,8 @@ class PhotoUploaderService {
                 location: `${photoRecord.id}`, 
                 uploadOffset: savedFileSize,
             });
-        } catch (error) {
-            console.error('Error in createUploadPhoto:', error);
-            throw new Error('Failed to create and save photo');
-        }
-    }
+        } 
+    
 
 
     private extractAndSanitizeFilename(metadata: string | undefined, fallbackId: string): string {
@@ -119,8 +116,8 @@ class PhotoUploaderService {
 
     private sanitizeFilename(filename: string): string {
         let sanitized = filename
-            .replace(/[\/\\]/g, '')
-            .replace(/[<>:"|?*\x00-\x1f]/g, '')
+            .replaceAll(/[\/\\]/g, '')
+            .replaceAll(/[<>:"|?*\x00-\x1f]/g, '')
             .replace(/^\.+/, '')
             .trim();
         if (!sanitized || sanitized.length === 0) sanitized = 'photo';

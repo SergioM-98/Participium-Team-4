@@ -32,10 +32,6 @@ jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
   authOptions: {},
 }));
 
-jest.mock("@/auth", () => ({
-  authOptions: {},
-}));
-
 import { getServerSession } from "next-auth/next";
 import { bigint } from "zod";
 

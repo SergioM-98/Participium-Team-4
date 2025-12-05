@@ -25,7 +25,7 @@ export function LogoutButton({
   variant = "outline",
   size = "sm",
   className,
-}: LogoutButtonProps) {
+}: Readonly<LogoutButtonProps>) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogout = async () => {

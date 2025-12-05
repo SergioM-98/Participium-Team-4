@@ -36,12 +36,12 @@ export default function MunicipalityUserForm({
   initialData,
   submitLabel = "Save user",
   onCancel,
-}: {
+}: Readonly<{
   onSubmit: (data: MunicipalityUserFormData) => void | Promise<void | boolean>;
   initialData?: Partial<MunicipalityUserFormData>;
   submitLabel?: string;
   onCancel?: () => void;
-}) {
+}>) {
   const [data, setData] = useState<MunicipalityUserFormData>({
     username: "",
     firstName: "",

@@ -1,1 +1,6 @@
-{}
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "sergiom-98",
+        "projectKey": "SergioM-98_Participium-Team-4"
+    }
+}

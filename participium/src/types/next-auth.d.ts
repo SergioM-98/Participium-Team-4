@@ -6,11 +6,6 @@ declare module "next-auth" {
       id: string;
       username: string;
       role: string;
-      office?: string;
-      firstName: string;
-      lastName: string;
-      companyId?: string;
-      telegram?: string;
       email?: string;
     } & DefaultSession["user"];
   }
@@ -19,11 +14,6 @@ declare module "next-auth" {
     id: string;
     username: string;
     role: string;
-    office?: string;
-    firstName: string;
-    lastName: string;
-    companyId?: string;
-    telegram?: string;
     email?: string;
   }
 }
@@ -33,11 +23,6 @@ declare module "next-auth/jwt" {
     id: string;
     username: string;
     role: string;
-    office?: string;
-    firstName: string;
-    lastName: string;
-    companyId?: string;
-    telegram?: string;
     email?: string;
   }
 }

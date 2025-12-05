@@ -9,7 +9,7 @@ jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
 }));
 
-jest.mock("@/auth", () => ({
+jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
   authOptions: {},
 }));
 
@@ -104,6 +104,7 @@ describe("Story 5 - Integration Test: uploader", () => {
       new File(["a".repeat(100)], "photo.jpg", { type: "image/jpeg" })
     );
 
-    await expect(createUploadPhoto(data)).rejects.toThrow();
+    const result = await createUploadPhoto(data);
+    expect(result.success).toBe(false);
   });
 });

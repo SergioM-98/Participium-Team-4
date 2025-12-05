@@ -1,5 +1,5 @@
 import { prisma } from "../../setup";
-import { getReportsByOfficerId } from "../../../src/app/lib/controllers/report.controller";
+import { getReportsByAssigneeId } from "../../../src/app/lib/controllers/report.controller";
 import bcrypt from "bcrypt";
 import path from "path";
 import fs from "fs/promises";
@@ -19,10 +19,6 @@ jest.mock("next-auth", () => ({
 }));
 
 jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
-  authOptions: {},
-}));
-
-jest.mock("@/auth", () => ({
   authOptions: {},
 }));
 
@@ -193,21 +189,19 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
   });
 
   describe("Approved Reports Map Display Flow", () => {
-    const officerSession = {
-      user: {
-        id: testOfficerId,
-        name: "Test Officer",
-        role: "TECHNICAL_OFFICER",
-      },
-      expires: "2024-12-31T23:59:59.999Z",
-    };
-
     beforeEach(() => {
-      (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+      (getServerSession as jest.Mock).mockResolvedValue({
+        user: {
+          id: testOfficerId,
+          name: "Test Officer",
+          role: "TECHNICAL_OFFICER",
+        },
+        expires: "2024-12-31T23:59:59.999Z",
+      });
     });
 
     it("should return only approved (ASSIGNED) reports to the officer", async () => {
-      const result = await getReportsByOfficerId(testOfficerId);
+      const result = await getReportsByAssigneeId();
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -228,7 +222,7 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
     });
 
     it("should not return pending reports to the officer", async () => {
-      const result = await getReportsByOfficerId(testOfficerId);
+      const result = await getReportsByAssigneeId();
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -241,7 +235,14 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
     });
 
     it("should give no reports for non existing officer ID", async () => {
-      const result = await getReportsByOfficerId("non-existing-officer-id");
+      (getServerSession as jest.Mock).mockResolvedValue({
+        user: {
+          id: "non-existing-officer-id",
+          role: "TECHNICAL_OFFICER",
+        },
+        expires: "2024-12-31T23:59:59.999Z",
+      });
+      const result = await getReportsByAssigneeId();
 
       expect(result.success).toBe(true);
       if (result.success) {

@@ -77,16 +77,12 @@ describe('ReportRepository Story 4', () => {
 
         it("should return success false if the db fails", async () => {
             mockedPrisma.report.create.mockRejectedValue(new Error());
-            const response = await reportRepository.createReport(mockData.title, mockData.description,
-                                                                mockData.photos, mockData.category,
-                                                                mockData.longitude, mockData.latitude,
-                                                                mockData.userId);
-            expect(response).toHaveProperty('success');
-            expect(response).toHaveProperty('error');
-            expect(response.success).toBe(false);
-            if (!response.success) {
-                expect(response.error).toBe("Failed to add the report to the database");
-            }
+            await expect(
+                reportRepository.createReport(mockData.title, mockData.description,
+                    mockData.photos, mockData.category,
+                    mockData.longitude, mockData.latitude,
+                    mockData.userId)
+            ).rejects.toThrow();
         });
     })
 
@@ -269,13 +265,7 @@ describe('ReportRepository Story 4', () => {
 
         it("should return error when db fails", async () => {
             mockedPrisma.report.findUnique = jest.fn().mockRejectedValue(new Error());
-            const response = await reportRepository.getReportById("1");
-            expect(response).toHaveProperty('success');
-            expect(response).toHaveProperty('error');
-            expect(response.success).toBe(false);
-            if (!response.success) {
-                expect(response.error).toBe("Error retrieving report");
-            }
+            await expect(reportRepository.getReportById("1")).rejects.toThrow();
         });
 
         /****************************/
@@ -332,13 +322,7 @@ describe('ReportRepository Story 4', () => {
 
         it("should return error when db fails while retrieving approved reports", async () => {
             mockedPrisma.report.findMany = jest.fn().mockRejectedValue(new Error());
-            const response = await reportRepository.getApprovedReports();
-            expect(response).toHaveProperty('success');
-            expect(response).toHaveProperty('error');
-            expect(response.success).toBe(false);
-            if (!response.success) {
-                expect(response.error).toBe("Error retrieving reports");
-            }
+            await expect(reportRepository.getApprovedReports()).rejects.toThrow();
         });
 
         /******************************/
