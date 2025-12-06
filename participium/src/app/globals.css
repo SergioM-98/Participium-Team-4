@@ -114,8 +114,7 @@
 }
 
 @layer base {
-  /* --- LEAFLET CUSTOMIZATIONS --- */
-
+  /* --- LEAFLET GENERIC CUSTOMIZATIONS --- */
   .leaflet-marker-icon:focus,
   .leaflet-marker-icon:hover,
   .leaflet-marker-icon:focus-visible,
@@ -129,6 +128,7 @@
   .leaflet-marker-cluster-custom {
     background: none;
     border: none;
+    background-color: transparent;
   }
 
   .leaflet-interactive,
@@ -136,10 +136,7 @@
     -webkit-tap-highlight-color: transparent !important;
   }
 
-  .leaflet-marker-cluster-custom {
-    background-color: transparent;
-  }
-
+  /* --- MARKER CLUSTERS --- */
   .leaflet-marker-cluster-custom div {
     background-color: rgba(255, 255, 255, 0.9);
     color: oklch(var(--primary));
@@ -153,9 +150,19 @@
     justify-content: center;
     text-align: center;
     border-radius: 9999px;
-    padding: 4px;
+    padding: 0;
+
+    /* Font Reset: Prevents numbers from inheriting global 18px size */
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
   }
 
+  .leaflet-marker-cluster-custom div svg {
+    margin-bottom: 2px;
+  }
+
+  /* Marker Sizes: Using PX to ensure alignment with Leaflet JS anchors */
   .leaflet-marker-cluster-custom div.size-8 {
     width: 32px;
     height: 32px;
@@ -163,29 +170,30 @@
   .leaflet-marker-cluster-custom div.size-10 {
     width: 40px;
     height: 40px;
+    font-size: 0.875rem;
   }
   .leaflet-marker-cluster-custom div.size-12 {
     width: 48px;
     height: 48px;
+    font-size: 1rem;
   }
   .leaflet-marker-cluster-custom div.size-14 {
     width: 56px;
     height: 56px;
+    font-size: 1.125rem;
   }
   .leaflet-marker-cluster-custom div.size-16 {
     width: 64px;
     height: 64px;
+    font-size: 1.25rem;
   }
 
-  .leaflet-marker-cluster-custom div svg {
-    margin-bottom: 2px;
-  }
-
-  /* Global Font Scaling */
+  /* --- GLOBAL APP SCALING --- */
   html {
-    /* Default is usually 16px. 
-       Increasing this scales all 'rem' based values (padding, margin, font-size). */
-    font-size: 18px;
+    /* 112.5% of standard 16px = 18px.
+      This preserves accessibility by respecting browser defaults.
+    */
+    font-size: 112.5%;
   }
 
   * {
@@ -203,6 +211,7 @@
     border: none;
   }
 }
+
 @layer utilities {
   .z-\[9999\] {
     z-index: 9999 !important;
