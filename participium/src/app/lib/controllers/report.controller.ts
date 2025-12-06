@@ -15,7 +15,6 @@ import { ReportRetrievalService } from "@/services/reportRetrieval.service";
 import { ReportAssignmentService } from "@/services/reportAssignment.service";
 import { ReportUpdateService } from "@/services/reportUpdate.service";
 
-
 export async function createReport(
   title: string,
   description: string,
@@ -23,7 +22,7 @@ export async function createReport(
   category: string,
   longitude: number,
   latitude: number,
-  isAnonymous: boolean
+  isAnonymous: boolean,
 ): Promise<ReportRegistrationResponse> {
   const session = await getServerSession(authOptions);
   if (!session || (session && session.user.role !== "CITIZEN")) {
@@ -48,7 +47,7 @@ export async function createReport(
     };
   }
   const reportCreationService = ReportCreationService.getInstance();
-  try{
+  try {
     return await reportCreationService.createReport(reportData.data);
   } catch (error) {
     console.error("Error creating report:", error);
@@ -56,7 +55,7 @@ export async function createReport(
   }
 }
 
-export async function getReportsByAssigneeId(): Promise<ReportsByOfficerResponse> {
+export async function getReportsByOfficerId(): Promise<ReportsByOfficerResponse> {
   const session = await getServerSession(authOptions);
 
   if (
@@ -72,8 +71,24 @@ export async function getReportsByAssigneeId(): Promise<ReportsByOfficerResponse
   return reportRetrievalService.retrieveReportsByOfficerId(session.user.id);
 }
 
+export async function getReportsByMaintainerId(): Promise<ReportsByOfficerResponse> {
+  const session = await getServerSession(authOptions);
+
+  if (
+    !session ||
+    (session &&
+      session.user.role !== "TECHNICAL_OFFICER" &&
+      session.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS")
+  ) {
+    return { success: false, error: "Unauthorized access" };
+  }
+
+  const reportRetrievalService = ReportRetrievalService.getInstance();
+  return reportRetrievalService.retrieveReportsByMaintainerId(session.user.id);
+}
+
 export async function getPendingApprovalReports(
-  status: string
+  status: string,
 ): Promise<ReportsUnassignedResponse> {
   const session = await getServerSession(authOptions);
 
@@ -81,7 +96,9 @@ export async function getPendingApprovalReports(
     !session ||
     (session && session.user.role !== "PUBLIC_RELATIONS_OFFICER")
   ) {
-    console.error("Unauthorized access attempt to get pending approval reports");
+    console.error(
+      "Unauthorized access attempt to get pending approval reports",
+    );
     return { success: false, error: "Unauthorized access" };
   }
 
@@ -96,7 +113,7 @@ export async function getPendingApprovalReports(
 
 export async function approveReport(
   reportId: number,
-  departmentOrCompanyId: string
+  departmentOrCompanyId: string,
 ): Promise<AssignReportToOfficerResponse> {
   const session = await getServerSession(authOptions);
 
@@ -110,37 +127,44 @@ export async function approveReport(
   }
 
   const reportAssignmentService = ReportAssignmentService.getInstance();
-  try{
-    return reportAssignmentService.assignReportToOfficer(reportId, departmentOrCompanyId);
-  }catch(error){
+  try {
+    return await reportAssignmentService.assignReportToOfficer(
+      reportId,
+      departmentOrCompanyId,
+    );
+  } catch (error) {
     console.error("Error approving report:", error);
-    return { success: false, error: "The selected department could not be assigned" };
+    return {
+      success: false,
+      error: "The selected department could not be assigned",
+    };
   }
 }
 
 export async function assignReportToCompany(
   reportId: number,
-  companyId: string
+  companyId: string,
 ): Promise<AssignReportToMaintainerResponse> {
   const session = await getServerSession(authOptions);
-  if ( session?.user.role !== "TECHNICAL_OFFICER" ) {
+  if (session?.user.role !== "TECHNICAL_OFFICER") {
     console.error("Unauthorized access attempt to assign report to company");
     return { success: false, error: "Unauthorized access" };
   }
-    const reportAssignmentService = ReportAssignmentService.getInstance();
-    try{
-      return await reportAssignmentService.assignReportToCompany(reportId, companyId);  
-    }catch(error){
-      console.error("Error assigning report to company:", error);
-      return { success: false, error: "Failed to assign report to company" };
-    }
+  const reportAssignmentService = ReportAssignmentService.getInstance();
+  try {
+    return await reportAssignmentService.assignReportToCompany(
+      reportId,
+      companyId,
+    );
+  } catch (error) {
+    console.error("Error assigning report to company:", error);
+    return { success: false, error: "Failed to assign report to company" };
+  }
 }
-
-
 
 export async function rejectReport(
   reportId: number,
-  rejectionReason: string
+  rejectionReason: string,
 ): Promise<AssignReportToOfficerResponse> {
   const session = await getServerSession(authOptions);
 
@@ -151,7 +175,6 @@ export async function rejectReport(
   ) {
     console.error("Unauthorized access attempt to reject report");
     return { success: false, error: "Unauthorized access" };
-
   }
 
   const reportAssignmentService = ReportAssignmentService.getInstance();
@@ -160,10 +183,14 @@ export async function rejectReport(
 
 export async function updateReportStatus(
   status: string,
-  reportId: string
+  reportId: string,
 ): Promise<UpdateReportStatusResponse> {
   const session = await getServerSession(authOptions);
-  if(status !== "IN_PROGRESS" && status !== "RESOLVED" && status != "SUSPENDED"){
+  if (
+    status !== "IN_PROGRESS" &&
+    status !== "RESOLVED" &&
+    status != "SUSPENDED"
+  ) {
     console.error("Invalid status update attempt:", status);
     return { success: false, error: "Invalid status" };
   }

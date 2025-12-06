@@ -18,7 +18,7 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { getReportsByAssigneeId } from "@/controllers/report.controller";
+import { getReportsByOfficerId } from "@/controllers/report.controller";
 import type { RetrieveReportByAssignee } from "@/dtos/report.dto";
 import { getPhoto } from "@/controllers/photo.controller";
 import ReportDetailsCard from "@/components/ReportDetailsCard";
@@ -77,7 +77,7 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
         setIsLoading(true);
         setError(null);
 
-        const response = await getReportsByAssigneeId();
+        const response = await getReportsByOfficerId();
 
         console.log("Fetched reports response:", response);
 

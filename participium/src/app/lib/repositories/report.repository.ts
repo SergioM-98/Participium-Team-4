@@ -58,7 +58,7 @@ class ReportRepository {
     category: string,
     longitude: number,
     latitude: number,
-    userId: string
+    userId: string,
   ): Promise<ReportRegistrationResponse> {
     category = category.toUpperCase();
     const report = await prisma.report.create({
@@ -88,6 +88,25 @@ class ReportRepository {
     return await prisma.report.findMany({
       where: {
         officerId: officerId,
+      },
+      include: {
+        photos: {
+          select: { url: true, filename: true },
+        },
+        citizen: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+    });
+  }
+
+  public async getReportsByMaintainerId(maintainerId: string) {
+    return await prisma.report.findMany({
+      where: {
+        maintainerId: maintainerId,
       },
       include: {
         photos: {
@@ -147,7 +166,7 @@ class ReportRepository {
 
   public async assignReportToOfficer(
     reportId: number,
-    officerId: string
+    officerId: string,
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
@@ -162,7 +181,7 @@ class ReportRepository {
 
   public async assignReportToMaintainer(
     reportId: number,
-    maintainerId: string
+    maintainerId: string,
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
@@ -176,7 +195,7 @@ class ReportRepository {
 
   public async rejectReport(
     reportId: number,
-    rejectionReason: string
+    rejectionReason: string,
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
@@ -233,7 +252,7 @@ class ReportRepository {
 
   public async updateReportStatus(
     reportId: string,
-    status: string
+    status: string,
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
@@ -250,7 +269,10 @@ class ReportRepository {
       where: {
         companyId: companyId,
         role: {
-          in: ["EXTERNAL_MAINTAINER_WITH_ACCESS", "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"] as Role[],
+          in: [
+            "EXTERNAL_MAINTAINER_WITH_ACCESS",
+            "EXTERNAL_MAINTAINER_WITHOUT_ACCESS",
+          ] as Role[],
         },
       },
       orderBy: {
@@ -267,10 +289,10 @@ class ReportRepository {
       },
     });
   }
-  
+
   public async assignReportToCompany(
     reportId: number,
-    companyId: string
+    companyId: string,
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
