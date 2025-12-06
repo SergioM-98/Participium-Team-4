@@ -23,7 +23,7 @@ const BaseUserSchema = z
     {
       message: "Only OFFICER can have an office",
       path: ["office"],
-    }
+    },
   )
   .refine(
     (data) =>
@@ -32,7 +32,7 @@ const BaseUserSchema = z
     {
       message: "Only CITIZEN can have an email",
       path: ["email"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -45,7 +45,7 @@ const BaseUserSchema = z
     {
       message: "Only CITIZEN can have a telegram account",
       path: ["telegram"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -62,7 +62,7 @@ const BaseUserSchema = z
     {
       message: "Only EXTERNAL_MAINTAINER roles must have a company assigned",
       path: ["companyId"],
-    }
+    },
   );
 
 export const RegistrationInputSchema = BaseUserSchema.safeExtend({
@@ -92,16 +92,20 @@ export const RetrievedUserDataSchema = z
     office: z.enum(Offices).optional(),
     telegram: z.boolean,
     pendingRequest: z.boolean,
-    companyId: z.string().optional()
+    companyId: z.string().optional(),
   })
   .refine(
     (data) =>
-      ((data.role === "PUBLIC_RELATIONS_OFFICER" || data.role === "TECHNICAL_OFFICER") && data.office) ||
-      ((data.role !== "PUBLIC_RELATIONS_OFFICER" && data.role !== "TECHNICAL_OFFICER") && !data.office),
+      ((data.role === "PUBLIC_RELATIONS_OFFICER" ||
+        data.role === "TECHNICAL_OFFICER") &&
+        data.office) ||
+      (data.role !== "PUBLIC_RELATIONS_OFFICER" &&
+        data.role !== "TECHNICAL_OFFICER" &&
+        !data.office),
     {
       message: "Only OFFICER can and must have an office",
       path: ["office"],
-    }
+    },
   )
   .refine(
     (data) =>
@@ -110,7 +114,7 @@ export const RetrievedUserDataSchema = z
     {
       message: "Only CITIZEN can and must have an email",
       path: ["email"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -123,7 +127,7 @@ export const RetrievedUserDataSchema = z
     {
       message: "Only CITIZEN can have a telegram account",
       path: ["telegram"],
-    }
+    },
   );
 
 export const LoginInputSchema = z.object({
@@ -131,7 +135,16 @@ export const LoginInputSchema = z.object({
   password: z.string().min(8),
 });
 
+export const UserAuthorSchema = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string().nullable(),
+  username: z.string(),
+});
+
 type RetrievedUserData = z.infer<typeof RetrievedUserDataSchema>;
+export type UserAuthor = z.infer<typeof UserAuthorSchema>;
 export type Citizen = z.infer<typeof CitizenSchema>;
 export type RegistrationInput = z.infer<typeof RegistrationInputSchema>;
 export type CheckDuplicatesResponse = z.infer<
@@ -147,8 +160,8 @@ export type LoginResponse =
   | { success: true; data: RetrievedUserData }
   | { success: false; error: string };
 export type MeType = {
-    me: z.infer<typeof RetrievedUserDataSchema>,
-    emailNotifications: boolean,
-    telegramNotifications: boolean,
-    companyName?: string
+  me: z.infer<typeof RetrievedUserDataSchema>;
+  emailNotifications: boolean;
+  telegramNotifications: boolean;
+  companyName?: string;
 };
