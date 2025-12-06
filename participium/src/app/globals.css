@@ -1,4 +1,4 @@
-@import url('leaflet/dist/leaflet.css');
+@import url("leaflet/dist/leaflet.css");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -116,97 +116,92 @@
 @layer base {
   /* --- LEAFLET CUSTOMIZATIONS --- */
 
-  
   .leaflet-marker-icon:focus,
   .leaflet-marker-icon:hover,
   .leaflet-marker-icon:focus-visible,
   .leaflet-interactive:focus,
   .leaflet-interactive:focus-visible,
   .leaflet-marker-cluster:focus {
-      outline: none !important;
-      box-shadow: none !important;
+    outline: none !important;
+    box-shadow: none !important;
   }
-  @layer base {
 
   .leaflet-marker-cluster-custom {
-      background: none;
-      border: none;
+    background: none;
+    border: none;
   }
-  
 
-  .leaflet-interactive, 
+  .leaflet-interactive,
   .report-marker-icon {
-      -webkit-tap-highlight-color: transparent !important;
+    -webkit-tap-highlight-color: transparent !important;
   }
-}
-  
 
   .leaflet-marker-cluster-custom {
-      background-color: transparent; 
+    background-color: transparent;
   }
 
   .leaflet-marker-cluster-custom div {
-
-      background-color: rgba(255, 255, 255, 0.9); 
-      
-
-      color: oklch(var(--primary)); 
-      border: 2px solid oklch(var(--primary));
-      
-      transition: all 0.2s ease-in-out;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-      
-
-      display: flex;
-      flex-direction: column; 
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      border-radius: 9999px; 
-      padding: 4px;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: oklch(var(--primary));
+    border: 2px solid oklch(var(--primary));
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 9999px;
+    padding: 4px;
   }
-  
 
   .leaflet-marker-cluster-custom div.size-8 {
-      width: 32px;
-      height: 32px;
+    width: 32px;
+    height: 32px;
   }
   .leaflet-marker-cluster-custom div.size-10 {
-      width: 40px;
-      height: 40px;
+    width: 40px;
+    height: 40px;
   }
   .leaflet-marker-cluster-custom div.size-12 {
-      width: 48px;
-      height: 48px;
+    width: 48px;
+    height: 48px;
   }
   .leaflet-marker-cluster-custom div.size-14 {
-      width: 56px;
-      height: 56px;
+    width: 56px;
+    height: 56px;
   }
   .leaflet-marker-cluster-custom div.size-16 {
-      width: 64px;
-      height: 64px;
+    width: 64px;
+    height: 64px;
   }
-
 
   .leaflet-marker-cluster-custom div svg {
-      margin-bottom: 2px;
+    margin-bottom: 2px;
   }
 
+  /* Global Font Scaling */
+  html {
+    /* Default is usually 16px. 
+       Increasing this scales all 'rem' based values (padding, margin, font-size). */
+    font-size: 18px;
+  }
 
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
 @layer components {
-    .report-marker-icon {
-        background: transparent;
-        border: none;
-    }
+  .report-marker-icon {
+    background: transparent;
+    border: none;
+  }
 }
 @layer utilities {
   .z-\[9999\] {
