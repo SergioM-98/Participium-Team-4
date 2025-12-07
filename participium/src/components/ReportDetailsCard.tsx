@@ -12,7 +12,8 @@ import {
   AlertCircle,
   Eye,
   MessageSquare,
-  Menu
+  Menu,
+  StickyNote
 } from "lucide-react";
 
 import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
@@ -317,8 +318,8 @@ export default function ReportDetailsCard({
                   aria-pressed={seeOfficerChat === 2}
                   className={`flex items-center gap-2 px-1 py-1 rounded text-xs transition-colors ${seeOfficerChat === 2 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
                 >
-                  <MessageSquare className="w-4 h-4" />
-                  <span className="hidden xl:inline">Notifications</span>
+                  <StickyNote className="w-4 h-4" />
+                  <span className="hidden xl:inline">Internal Notes</span>
                 </button>
 
                 <button
