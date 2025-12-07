@@ -28,11 +28,13 @@ describe('InternalNotesPanel - Integration Tests (Real Database)', () => {
     prisma = setupModule.prisma;
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await prisma.comment.deleteMany({});
     await prisma.report.deleteMany({});
     await prisma.user.deleteMany({});
+  });
 
+  beforeEach(async () => {
     const createdOfficer = await prisma.user.create({
       data: {
         firstName: 'John',

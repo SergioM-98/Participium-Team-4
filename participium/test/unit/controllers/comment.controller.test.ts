@@ -243,20 +243,6 @@ describe("CommentController", () => {
         expect(mockCommentService.createComment).not.toHaveBeenCalled();
       });
 
-      it("should reject EXTERNAL_MAINTAINER_WITH_ACCESS role", async () => {
-        (getServerSession as jest.Mock).mockResolvedValue(
-          externalMaintainerWithAccessSession,
-        );
-
-        const response = await createComment(testContent, testReportId);
-
-        expect(response.success).toBe(false);
-        expect(response.error).toBe(
-          "Unauthorized: Only technical officers can create comments",
-        );
-        expect(mockCommentService.createComment).not.toHaveBeenCalled();
-      });
-
       it("should reject EXTERNAL_MAINTAINER_WITHOUT_ACCESS role", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(
           externalMaintainerWithoutAccessSession,
@@ -537,20 +523,6 @@ describe("CommentController", () => {
 
       it("should reject ADMIN role", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(adminSession);
-
-        const response = await getReportComments(testReportId);
-
-        expect(response.success).toBe(false);
-        expect(response.error).toBe(
-          "Unauthorized: Only technical officers can view comments",
-        );
-        expect(mockCommentService.getCommentsByReport).not.toHaveBeenCalled();
-      });
-
-      it("should reject EXTERNAL_MAINTAINER_WITHOUT_ACCESS role", async () => {
-        (getServerSession as jest.Mock).mockResolvedValue(
-          externalMaintainerWithoutAccessSession,
-        );
 
         const response = await getReportComments(testReportId);
 

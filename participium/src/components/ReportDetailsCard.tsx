@@ -32,7 +32,7 @@ const LeafletMapFixed = dynamic(() => import("./LeafletMapFixed"), {
   ssr: false,
 });
 
-interface Report {
+export interface Report {
   id: string;
   title: string;
   description: string;
@@ -263,7 +263,15 @@ export default function ReportDetailsCard({
         <div className="hidden md:flex md:flex-1 min-h-0 rounded-lg overflow-hidden border border-border bg-muted/5">
           <div className="w-full h-full">
             <LeafletMapFixed
-              report={report}
+              report={{
+                id: report.id,
+                latitude: report.latitude,
+                longitude: report.longitude,
+                title: report.title,
+                category: report.category,
+                status: report.status,
+                citizenId: report.citizenId !== undefined ? String(report.citizenId) : undefined
+              }}
               showCloseButton={false}
               className="w-full h-full"
             />
@@ -410,11 +418,9 @@ export default function ReportDetailsCard({
               </div>
             ) : (
               /* VIEW 2: Internal Notes Component */
-              currentUserRole === "TECHNICAL_OFFICER" && (
+              (currentUserRole === "TECHNICAL_OFFICER" || currentUserRole === "EXTERNAL_MAINTAINER_WITH_ACCESS") && (
                 <InternalNotesPanel
                   reportId={report.id}
-                  currentUserRole={currentUserRole}
-                  currentUserName={currentUserName}
                 />
               )
             )}
@@ -434,7 +440,15 @@ export default function ReportDetailsCard({
           >
             <div className="relative w-full h-full">
               <LeafletMapFixed
-                report={report}
+                report={{
+                  id: report.id,
+                  latitude: report.latitude,
+                  longitude: report.longitude,
+                  title: report.title,
+                  category: report.category,
+                  status: report.status,
+                  citizenId: report.citizenId !== undefined ? String(report.citizenId) : undefined
+                }}
                 showCloseButton={true}
                 onClose={() => setIsMapOpen(false)}
                 className="w-full h-full"

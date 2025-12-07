@@ -20,6 +20,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 describe("Comment Backend Integration Tests (Story 26)", () => {
   let prisma: PrismaClient;
   let testTechnicalOfficer: TestUser;
+  let testExternalMaintainer: TestUser;
   let testCitizen: TestUser;
   let testReport: TestReport;
   let anotherTechnicalOfficer: TestUser;
@@ -47,6 +48,19 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
       },
     });
     testTechnicalOfficer = createdOfficer as TestUser;
+
+    const createdExternalMaintainer = await prisma.user.create({
+      data: {
+        firstName: "External",
+        lastName: "Maintainer",
+        email: "external@test.com",
+        username: "externalmaintainer",
+        role: "EXTERNAL_MAINTAINER_WITH_ACCESS",
+        passwordHash: "hashedpassword",
+        office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+      },
+    });
+    testExternalMaintainer = createdExternalMaintainer as TestUser;
 
     const createdSecondOfficer = await prisma.user.create({
       data: {
@@ -100,7 +114,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
   });
 
   describe("Full Stack Comment Workflows", () => {
-    it("should create comment going through all the backend layers", async () => {
+    it("should create comment going through all the backend layers for TECHNICAL_OFFICER", async () => {
       (getServerSession as jest.Mock).mockResolvedValue({
         user: {
           id: testTechnicalOfficer.id,
@@ -127,6 +141,37 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         expect(dbComment).toBeDefined();
         expect(dbComment?.content).toBe("Full stack integration test");
         expect(dbComment?.author.username).toBe("johndoe");
+        expect(dbComment?.report.id).toBe(testReport.id);
+      }
+    });
+
+    it("should create comment going through all the backend layers for EXTERNAL_MAINTAINER_WITH_ACCESS", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue({
+        user: {
+          id: testExternalMaintainer.id,
+          email: testExternalMaintainer.email,
+          role: "EXTERNAL_MAINTAINER_WITH_ACCESS",
+        },
+      });
+
+      const result = await createComment(
+        "Full stack integration test",
+        testReport.id,
+      );
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.content).toBe("Full stack integration test");
+        expect(result.data.author?.firstName).toBe("External");
+
+        const dbComment = await prisma.comment.findUnique({
+          where: { id: result.data.id },
+          include: { author: true, report: true },
+        });
+
+        expect(dbComment).toBeDefined();
+        expect(dbComment?.content).toBe("Full stack integration test");
+        expect(dbComment?.author.username).toBe("externalmaintainer");
         expect(dbComment?.report.id).toBe(testReport.id);
       }
     });

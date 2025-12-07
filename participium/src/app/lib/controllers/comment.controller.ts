@@ -17,7 +17,10 @@ export async function createComment(
     return { success: false, error: "Unauthorized: No session found" };
   }
 
-  if (session.user.role !== "TECHNICAL_OFFICER") {
+  if (
+    session.user.role !== "TECHNICAL_OFFICER" &&
+    session.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS"
+  ) {
     return {
       success: false,
       error: "Unauthorized: Only technical officers can create comments",

@@ -26,7 +26,7 @@ export default function InternalNotesPanel({
             id: c.id.toString(),
             authorName: c.author.firstName + " " + c.author.lastName,
             content: c.content,
-            createdAt: c.createdAt,
+            createdAt: c.createdAt.toString(),
           }))
         );
       } else {
