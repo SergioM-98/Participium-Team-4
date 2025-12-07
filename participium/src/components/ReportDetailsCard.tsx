@@ -113,7 +113,6 @@ export default function ReportDetailsCard({
   showChat = false,
 }: Readonly<ReportDetailsCardProps>) {
   const { data: session } = useSession();
-
   // show chat only if the user is the report creator or the assigned officer
   const isReportCreator =
     session?.user?.id &&
@@ -145,8 +144,14 @@ export default function ReportDetailsCard({
   const [isMapOpen, setIsMapOpen] = useState(false);
 
   // 1. Determine Role cleanly based on DTO
-  const sessionRole = (session?.user as any)?.role;
-  const currentUserRole = sessionRole || "CITIZEN";
+  const currentUserRole =
+    isReportCreator
+      ? "CITIZEN"
+      : isAssignedOfficer
+        ? "TECHNICAL_OFFICER"
+        : isMaintainerMode
+          ? "EXTERNAL_MAINTAINER_WITH_ACCESS"
+          : "PUBLIC_RELATIONS_OFFICER";
 
 
   useEffect(() => {
