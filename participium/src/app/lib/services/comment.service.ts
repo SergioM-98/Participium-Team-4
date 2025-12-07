@@ -1,5 +1,5 @@
 import { CommentRepository } from "../repositories/comment.repository";
-import { Comment } from "@prisma/client";
+import { CommentWithAuthor } from "../dtos/comment.dto";
 
 class CommentService {
   private static instance: CommentService;
@@ -20,7 +20,7 @@ class CommentService {
     content: string,
     authorId: string,
     reportId: bigint,
-  ): Promise<Comment> {
+  ): Promise<CommentWithAuthor> {
     return this.commentRepository.createComment({
       content,
       authorId,
@@ -28,7 +28,9 @@ class CommentService {
     });
   }
 
-  public async getCommentsByReport(reportId: bigint): Promise<Comment[]> {
+  public async getCommentsByReport(
+    reportId: bigint,
+  ): Promise<CommentWithAuthor[]> {
     return this.commentRepository.getCommentsByReport(reportId);
   }
 }
