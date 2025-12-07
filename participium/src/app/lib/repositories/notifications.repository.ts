@@ -113,7 +113,7 @@ class NotificationsRepository {
             return { success: false, error: "Only CITIZEN can have notification preferences" };
         }
 
-        if (user.telegram === null && notifications.telegramEnabled) {
+        if (user.telegramChatId === null && notifications.telegramEnabled) {
             return { success: false, error: "Cannot enable telegram notifications without telegram media" };
         }
 

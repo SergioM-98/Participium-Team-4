@@ -113,6 +113,8 @@ export default function ProfilePage() {
     telegramEnabled: false,
   });
 
+  const [removeTelegram, setRemoveTelegram] = useState(false);
+
   const [telegramStatus, setTelegramStatus] = useState<
     "idle" | "opening" | "opened"
   >("idle");
@@ -383,8 +385,6 @@ export default function ProfilePage() {
 
     startTransition(async () => {
       try {
-        const removeTelegram = false;
-
         const notificationsData: NotificationsData = {
           emailEnabled: formData.emailEnabled,
           telegramEnabled: formData.telegramEnabled,
@@ -398,19 +398,27 @@ export default function ProfilePage() {
 
         if (result.success) {
           setIsEditing(false);
+          setRemoveTelegram(false);
           setUser((prev) =>
             prev
               ? {
                   ...prev,
                   email: formData.email,
-                  telegram: formData.telegram,
+                  telegram: removeTelegram ? "" : formData.telegram,
                   notifications: {
                     emailEnabled: formData.emailEnabled,
-                    telegramEnabled: formData.telegramEnabled,
+                    telegramEnabled: removeTelegram ? false : formData.telegramEnabled,
                   },
                 }
               : null
           );
+          if (removeTelegram) {
+            setFormData({
+              ...formData,
+              telegram: "",
+              telegramEnabled: false,
+            });
+          }
           router.refresh();
         } else {
           const errorMessage =
@@ -434,6 +442,7 @@ export default function ProfilePage() {
       emailEnabled: user.notifications.emailEnabled,
       telegramEnabled: user.notifications.telegramEnabled ?? false,
     });
+    setRemoveTelegram(false);
     setValidationError(null);
     setError(null);
     setIsEditing(false);
@@ -730,11 +739,40 @@ export default function ProfilePage() {
             {isCitizen && (
               <div className="space-y-2 md:col-span-2">
                 {isTelegramConnected ? (
-                  <div className="flex items-center h-9 gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    <span className="text-green-600 font-medium text-sm">
-                      Telegram Connected
-                    </span>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <span className="text-green-600 font-medium text-sm">
+                        Telegram Connected
+                      </span>
+                    </div>
+                    {isEditing && (
+                      <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-red-200 bg-red-50/50 p-4">
+                        <Checkbox
+                          id="removeTelegram"
+                          checked={removeTelegram}
+                          onCheckedChange={(checked) => {
+                            setRemoveTelegram(checked as boolean);
+                            setFormData({
+                              ...formData,
+                              telegramEnabled: checked ? false : user?.notifications.telegramEnabled ?? false,
+                            });
+                          }}
+                          disabled={isPending}
+                        />
+                        <div className="space-y-1 leading-none">
+                          <Label
+                            htmlFor="removeTelegram"
+                            className="cursor-pointer font-medium text-red-700"
+                          >
+                            Disconnect Telegram Account
+                          </Label>
+                          <p className="text-xs text-red-600/80 pt-1">
+                            Check this box to remove your Telegram connection. You can uncheck it before saving to undo.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div>

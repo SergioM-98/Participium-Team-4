@@ -117,6 +117,6 @@ async function checkUserRole(): Promise<{
   }
   return {
     success: true,
-    data: session.user.username,
+    data: session.user.id,
   };
 }
