@@ -32,10 +32,10 @@ export default function InternalNotesPanel({
         setInternalNotes(
           res.data.map((c) => ({
             id: c.id.toString(),
-            authorName: c.author.firstName + " " + c.author.lastName,
-            authorRole: c.author.role,
+            authorName: c.authorId,
+            authorRole: "",
             content: c.content,
-            createdAt: c.createdAt,
+            createdAt: c.createdAt.toString(),
           }))
         );
       } else {
@@ -53,10 +53,10 @@ export default function InternalNotesPanel({
       const c = res.data;
       const note: InternalNote = {
         id: c.id.toString(),
-        authorName: c.author.firstName + " " + c.author.lastName,
-        authorRole: c.author.role,
+        authorName: c.authorId,
+        authorRole: "",
         content: c.content,
-        createdAt: c.createdAt,
+        createdAt: c.createdAt.toString(),
       };
       setInternalNotes((prev) => [...prev, note]);
       setNewNote("");

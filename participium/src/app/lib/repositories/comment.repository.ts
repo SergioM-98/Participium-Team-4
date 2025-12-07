@@ -13,7 +13,7 @@ export class CommentRepository {
         return CommentRepository.instance;
     }
 
-    public async createComment(data: { content: string; authorId: string; reportId: bigint }): Promise<Comment> {
+    public async createComment(data: { content: string; authorId: string; reportId: bigint }): Promise<Comment | null> {
         const comment = await prisma.comment.create({ data });
 
         return prisma.comment.findUnique({

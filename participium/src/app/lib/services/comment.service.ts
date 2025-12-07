@@ -20,7 +20,7 @@ class CommentService {
     content: string,
     authorId: string,
     reportId: bigint,
-  ): Promise<Comment> {
+  ): Promise<Comment | null> {
     return this.commentRepository.createComment({
       content,
       authorId,

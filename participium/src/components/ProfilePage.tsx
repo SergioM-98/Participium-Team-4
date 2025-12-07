@@ -404,7 +404,7 @@ export default function ProfilePage() {
               ? {
                   ...prev,
                   email: formData.email,
-                  telegram: removeTelegram ? "" : formData.telegram,
+                  telegram: removeTelegram ? false : Boolean(formData.telegram),
                   notifications: {
                     emailEnabled: formData.emailEnabled,
                     telegramEnabled: removeTelegram ? false : formData.telegramEnabled,
@@ -415,7 +415,7 @@ export default function ProfilePage() {
           if (removeTelegram) {
             setFormData({
               ...formData,
-              telegram: "",
+              telegram: false,
               telegramEnabled: false,
             });
           }
