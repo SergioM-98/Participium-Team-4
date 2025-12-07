@@ -32,20 +32,15 @@ class ReportUpdateService {
       };
     }
 
-      await this.reportRepository.updateReportStatus(
-        reportId,
-        status
-      );
+    await this.reportRepository.updateReportStatus(
+      reportId,
+      status
+    );
 
-      return { success: true, data: "Report status updated successfully" };
-    } catch (error) {
-      console.error("Error updating report status:", error);
-      return {
-        success: false,
-        error: "Failed to update report status",
-      };
-    }
-  }
+    return { success: true, data: "Report status updated successfully" };
+  } 
+    
+  
 
   private normalizeStatus(status: string): string {
     return status.toUpperCase().replaceAll(/_/g, "_");

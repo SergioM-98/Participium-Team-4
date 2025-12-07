@@ -356,7 +356,7 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
                   .filter(Boolean),
                 citizenId: selectedReport.citizenId,
                 officerId: selectedReport.officerId || undefined,
-                companyId: selectedReport.companyId,
+                companyId: selectedReport.companyId ?? null,
               }}
               onClose={() => setSelectedReport(null)}
               showChat={true}

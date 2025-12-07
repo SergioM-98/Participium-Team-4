@@ -168,10 +168,6 @@ export default function OfficerActionPanel({
         .toLowerCase()
         .replace(/\b\w/g, (c) => c.toUpperCase());
     }
-    if (selectedCompany && selectedCompany !== "NONE") {
-      const company = companies.find((c) => c.id === selectedCompany);
-      return company ? company.name : "Unknown Company";
-    }
     return "None";
   };
 

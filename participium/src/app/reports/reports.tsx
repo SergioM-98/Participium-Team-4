@@ -21,7 +21,7 @@ interface ReportsProps {
   userId: string | null;
 }
 
-export default function Reports({ userId }: ReportsProps) {
+export default function Reports({ userId }: Readonly<ReportsProps>) {
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapReports, setMapReports] = useState<Report[]>([]); 
   const [showMyReportsOnly, setShowMyReportsOnly] = useState(false);
