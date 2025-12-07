@@ -3,7 +3,7 @@ import { Comment } from "@prisma/client";
 
 class CommentService {
   private static instance: CommentService;
-  private commentRepository: CommentRepository;
+  private readonly commentRepository: CommentRepository;
 
   private constructor() {
     this.commentRepository = CommentRepository.getInstance();

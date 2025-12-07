@@ -6,9 +6,9 @@ import ReportsList from "./reports-list";
 export default async function OfficerReportsPage() {
   const session = await getServerSession(authOptions);
 
-  if (session?.user.role !== "TECHNICAL_OFFICER") {
+  if (session?.user.role.includes("TECHNICAL_OFFICER") === false) {
     redirect("/login");
   }
 
-  return <ReportsList officerId={session.user.id} />;
+  return <ReportsList officerId={session!.user.id} />;
 }

@@ -71,7 +71,7 @@ class UserRepository {
           office: userData.office ?? undefined,
           companyId: userData.companyId ?? undefined,
           passwordHash: hashedPassword,
-          isVerified: userData.role === "CITIZEN" ? false : null,
+          isVerified: userData.role.includes("CITIZEN") ? false : null,
         },
       });
 
@@ -93,7 +93,7 @@ class UserRepository {
       }
 
       // Check if CITIZEN user is verified
-      if (user.role === "CITIZEN" && user.isVerified === false) {
+      if (user.role.includes("CITIZEN") && user.isVerified === false) {
         return {
           success: false,
           error:

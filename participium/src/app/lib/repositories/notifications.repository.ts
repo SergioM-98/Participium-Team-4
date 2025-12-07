@@ -69,7 +69,7 @@ class NotificationsRepository {
             return { success: false, error: "Invalid credentials" };
         }
 
-        if (user.role !== "CITIZEN") {
+        if (user.role.includes("CITIZEN") === false ) {
             return { success: false, error: "Only CITIZEN can have notification preferences" };
         }
 
@@ -109,7 +109,7 @@ class NotificationsRepository {
             return { success: false, error: "User not found" };
         }
 
-        if (user.role !== "CITIZEN") {
+        if (user.role.includes("CITIZEN") === false ) {
             return { success: false, error: "Only CITIZEN can have notification preferences" };
         }
 

@@ -12,8 +12,8 @@ export default async function OfficerLayout({
 
   if (
     !session ||
-    (session.user.role !== "TECHNICAL_OFFICER" &&
-      session.user.role !== "PUBLIC_RELATIONS_OFFICER")
+    (session.user.role.includes("TECHNICAL_OFFICER") === false &&
+      session.user.role.includes("PUBLIC_RELATIONS_OFFICER") === false)
   ) {
     redirect("/forbidden");
   }

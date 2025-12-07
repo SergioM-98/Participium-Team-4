@@ -8,13 +8,13 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
   const session = await getServerSession(authOptions);
 
   if (session) {
-    if (session.user?.role === "CITIZEN") {
+    if (session.user?.role.includes("CITIZEN")) {
       redirect("/reports");
-    } else if (session.user?.role === "ADMIN") {
+    } else if (session.user?.role.includes("ADMIN")) {
       redirect("/admin/officers/registration");
-    } else if (session.user?.role === "TECHNICAL_OFFICER") {
+    } else if (session.user?.role.includes("TECHNICAL_OFFICER") && !session.user?.role.includes("PUBLIC_RELATIONS_OFFICER")) {
       redirect("/officer/my-reports");
-    } else if (session.user?.role === "PUBLIC_RELATIONS_OFFICER") {
+    } else if (session.user?.role.includes("PUBLIC_RELATIONS_OFFICER")) {
       redirect("/officer/all-reports");
     } else {
       redirect("/");

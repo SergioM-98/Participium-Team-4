@@ -21,7 +21,7 @@ interface ReportsProps {
   userId: string | null;
 }
 
-export default function Reports({ userId }: ReportsProps) {
+export default function Reports({ userId }: Readonly<ReportsProps>) {
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapReports, setMapReports] = useState<Report[]>([]); 
   const [showMyReportsOnly, setShowMyReportsOnly] = useState(false);
@@ -54,6 +54,7 @@ export default function Reports({ userId }: ReportsProps) {
               status: r.status ?? "assigned"
             }))); 
         }
+        console.log("Loaded map reports:", result.data);
       } catch (error) {
         console.error("Failed to load map reports:", error);
       }
@@ -82,7 +83,9 @@ export default function Reports({ userId }: ReportsProps) {
                         createdAt: response.data.createdAt,
                         photoUrls: response.data.photos || [],
                         citizenId: response.data.citizenId,
-                        officerId: response.data.officerId
+                        officerId: response.data.officerId,
+                        companyId: response.data.companyId,
+
                     });
                 } else {
                     console.error("Error fetching report details:", response.error);
