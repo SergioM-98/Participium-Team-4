@@ -62,6 +62,7 @@ export default function OfficerReportMenu(props: Readonly<Props>) {
             setSelectedCompany("");
         } else {
             setSelectedCompany(value);
+            console.log(`Selected company: ${value}`);
         }
     };
 

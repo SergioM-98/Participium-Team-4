@@ -88,7 +88,7 @@ export default function OfficerActionPanel({
   };
 
   const canModerate =
-    currentStatus === "pending_approval" || currentStatus === "PENDING";
+    currentStatus === "pending_approval" || currentStatus === "PENDING" || currentStatus === "pending";
 
   const handlePreApproveCheck = () => {
     const deptValue = selectedDepartment === "NONE" ? "" : selectedDepartment;

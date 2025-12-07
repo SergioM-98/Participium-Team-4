@@ -103,8 +103,11 @@ class ReportRepository {
           longitude: true,
           latitude: true,
           category: true,
+          citizenId: true,
+          status: true,
           citizen: {
             select: {
+              id: true,
               username: true,
             },
           },
@@ -126,8 +129,11 @@ class ReportRepository {
           longitude: true,
             latitude: true,
             category: true,
+            citizenId: true,
+            status: true,
             citizen: {
               select: {
+                id: true,
                 username: true,
               },
             },
@@ -170,8 +176,11 @@ class ReportRepository {
           longitude: true,
           latitude: true,
           category: true,
+          citizenId: true,
+          status: true,
           citizen: {
             select: {
+              id: true,
               username: true,
             },
           },
@@ -309,9 +318,12 @@ class ReportRepository {
   }
 
   public async getApprovedReports() {
-    const where: any = { status: "ASSIGNED" };
     const reports = await prisma.report.findMany({
-      where,
+      where: {
+        status: {
+          in: ["ASSIGNED", "IN_PROGRESS", "SUSPENDED"],
+        }
+      },
       select: {
         id: true,
         title: true,
@@ -319,8 +331,10 @@ class ReportRepository {
         latitude: true,
         category: true,
         citizenId: true,
+        status: true,
         citizen: {
           select: {
+            id: true,
             username: true,
           },
         },

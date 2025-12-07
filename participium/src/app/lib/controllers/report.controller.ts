@@ -141,7 +141,7 @@ export async function assignReportToCompany(
   companyId: string,
 ): Promise<AssignReportToMaintainerResponse> {
   const session = await getServerSession(authOptions);
-  if (session?.user.role.includes("TECHNICAL_OFFICER")) {
+  if (!session?.user.role.includes("TECHNICAL_OFFICER")) {
     console.error("Unauthorized access attempt to assign report to company");
     return { success: false, error: "Unauthorized access" };
   }
