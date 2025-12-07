@@ -303,7 +303,7 @@ export default function ReportDetailsCard({
 
             {/* Inline segmented control — chiaro cosa fa */}
             {canViewChat && isAssignedOfficer ? (
-              <div className="flex items-center gap-2 bg-muted/10 p-1 rounded-md">
+              <div className="flex items-center gap-1 bg-muted/10 p-0 rounded-md">
 
                 <button
                   onClick={() => setSeeOfficerChat(1)}
