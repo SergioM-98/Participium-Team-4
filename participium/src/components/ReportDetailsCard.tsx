@@ -354,9 +354,14 @@ export default function ReportDetailsCard({
                     ) : seeOfficerChat === 3 ? (
                       <OfficerReportMenu reportId={report.id} status={report.status} companyId={report.companyId || ""} setRefreshFlag={setRefreshFlag} setReport={setReport} showToast={showToast} />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground">
-                        Menu Placeholder
-                        </div>)}
+                  <div className="w-full h-full overflow-auto p-3">
+                    <OfficerActionPanel
+                      reportId={report.id}
+                      currentStatus={report.status}
+                      currentCategory={report.category}
+                      onActionComplete={onOfficerActionComplete}
+                    />
+                  </div>)}
                   </div>
                 </div>
               ) : (
