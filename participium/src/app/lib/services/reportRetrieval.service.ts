@@ -75,7 +75,7 @@ class ReportRetrievalService {
         companyId: r.companyId,
         citizen: r.citizen
           ? {
-              id: r.citizen.id.toString(),
+              id: r.citizen.id,
               firstName: r.citizen.firstName,
               lastName: r.citizen.lastName,
               email: r.citizen.email,

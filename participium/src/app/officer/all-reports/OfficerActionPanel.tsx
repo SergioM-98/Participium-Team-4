@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { approveReport, rejectReport } from "@/controllers/report.controller";
-import { getAllCompanies } from "@/controllers/company.controller";
 import { cn } from "@/lib/utils";
 
 // --- CUSTOM COMPONENT START ---
@@ -53,11 +52,6 @@ const HighZDialogContent = React.forwardRef<
 HighZDialogContent.displayName = DialogPrimitive.Content.displayName;
 // --- CUSTOM COMPONENT END ---
 
-interface CompanyOption {
-  id: string;
-  name: string;
-}
-
 interface OfficerActionPanelProps {
   reportId: string | number;
   currentStatus: string;
@@ -76,8 +70,6 @@ export default function OfficerActionPanel({
     type: "success" | "error";
     text: string;
   } | null>(null);
-  const [companies, setCompanies] = useState<CompanyOption[]>([]);
-  const [companiesLoading, setCompaniesLoading] = useState(true);
 
   const [selectedCategory, setSelectedCategory] =
     useState<string>(currentCategory);
@@ -92,15 +84,6 @@ export default function OfficerActionPanel({
       setSelectedDepartment("");
     } else {
       setSelectedDepartment(value);
-    }
-  };
-
-  const handleCompanyChange = (value: string) => {
-    if (value === "NONE" || selectedCompany === value) {
-      setSelectedCompany("");
-    } else {
-      setSelectedCompany(value);
-      setSelectedDepartment("");
     }
   };
 
@@ -125,12 +108,11 @@ export default function OfficerActionPanel({
 
   const handlePreApproveCheck = () => {
     const deptValue = selectedDepartment === "NONE" ? "" : selectedDepartment;
-    const companyValue = selectedCompany === "NONE" ? "" : selectedCompany;
 
-    if (!deptValue && !companyValue) {
+    if (!deptValue) {
       setFeedbackMessage({
         type: "error",
-        text: "Please select a Department or Company",
+        text: "Please select a Department",
       });
       return;
     }
@@ -141,14 +123,12 @@ export default function OfficerActionPanel({
 
   const handleApproveConfirm = async () => {
     const deptValue = selectedDepartment === "NONE" ? "" : selectedDepartment;
-    const companyValue = selectedCompany === "NONE" ? "" : selectedCompany;
 
     setIsLoading(true);
     setFeedbackMessage(null);
 
     try {
-      const assignmentValue = deptValue || companyValue;
-      const isCompanyAssignment = !!companyValue;
+      const assignmentValue = deptValue;
 
       const response = await approveReport(
         Number(reportId),
@@ -203,10 +183,6 @@ export default function OfficerActionPanel({
         .replace(/_/g, " ")
         .toLowerCase()
         .replace(/\b\w/g, (c) => c.toUpperCase());
-    }
-    if (selectedCompany && selectedCompany !== "NONE") {
-      const company = companies.find((c) => c.id === selectedCompany);
-      return company ? company.name : "Unknown Company";
     }
     return "None";
   };
@@ -325,42 +301,12 @@ export default function OfficerActionPanel({
           </Select>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-            Assign Company
-          </label>
-          <Select
-            value={selectedCompany}
-            onValueChange={handleCompanyChange}
-            disabled={companiesLoading || selectedDepartment !== ""}
-          >
-            <SelectTrigger className="w-full h-9 text-sm bg-background">
-              <SelectValue
-                placeholder={
-                  companiesLoading
-                    ? "Loading companies..."
-                    : "Select Company..."
-                }
-              />
-            </SelectTrigger>
-            <SelectContent className="z-[9999] max-h-[250px]">
-              <SelectItem value="NONE">None</SelectItem>
-              {companies.map((company) => (
-                <SelectItem key={company.id} value={company.id}>
-                  {company.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
         <div className="pt-2 space-y-2">
           <Button
             onClick={handlePreApproveCheck}
             disabled={
               isLoading ||
-              ((selectedDepartment === "" || selectedDepartment === "NONE") &&
-                (selectedCompany === "" || selectedCompany === "NONE")) ||
+              (selectedDepartment === "" || selectedDepartment === "NONE") ||
               showRejectInput
             }
             className="w-full bg-green-600 hover:bg-green-700 text-white h-9 text-sm"
@@ -435,9 +381,6 @@ export default function OfficerActionPanel({
               <span className="font-semibold text-muted-foreground text-xs uppercase">
                 Category
               </span>
-              <span className="col-span-2 font-medium">
-                {selectedCategory.replace(/_/g, " ")}
-              </span>
             </div>
 
             <div className="h-px bg-border/50 w-full" />
@@ -457,10 +400,10 @@ export default function OfficerActionPanel({
               </span>
               <div className="col-span-2">
                 <Badge
-                  variant={selectedCompany ? "secondary" : "outline"}
+                  variant={"outline"}
                   className="font-normal"
                 >
-                  {selectedCompany ? "External Company" : "Internal Department"}
+                  {"Internal Department"}
                 </Badge>
               </div>
             </div>

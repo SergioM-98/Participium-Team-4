@@ -13,7 +13,8 @@ import {
   Eye,
   MessageSquare,
   Menu,
-  StickyNote
+  StickyNote,
+  ShieldAlert
 } from "lucide-react";
 
 import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
@@ -299,12 +300,9 @@ export default function ReportDetailsCard({
         <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex flex-col relative">
           {/* Header / Toggle (in-flow, non overlaid) */}
           <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/5 flex-shrink-0">
-            
-
-            {/* Inline segmented control — chiaro cosa fa */}
-            {canViewChat && isAssignedOfficer ? (
+            {/* CASE 1: canViewChat && isAssignedOfficer - show tabs */}
+            {canViewChat && isAssignedOfficer && (
               <div className="flex items-center gap-1 bg-muted/10 p-0 rounded-md">
-
                 <button
                   onClick={() => setSeeOfficerChat(1)}
                   aria-pressed={seeOfficerChat === 1}
@@ -332,59 +330,77 @@ export default function ReportDetailsCard({
                   <span className="hidden xl:inline">Menu</span>
                 </button>
               </div>
-            ) : (
+            )}
+
+            {/* CASE 2: canViewChat && !isAssignedOfficer - empty space */}
+            {canViewChat && !isAssignedOfficer && (
+              <div className="text-xs text-muted-foreground"> </div>
+            )}
+
+            {/* CASE 3: !canViewChat - empty space */}
+            {!canViewChat && (
               <div className="text-xs text-muted-foreground"> </div>
             )}
           </div>
 
-          {/* Content area: chat or menu placeholder - both fill same space */}
+          {/* Content area */}
           <div className="flex-1 min-h-0 overflow-auto p-3">
-            {canViewChat ? (
-              isAssignedOfficer ? (
-                // Officer view: can toggle between chat and menu placeholder
-                <div className="w-full h-full flex flex-col">
-                  <div className="flex-1 min-h-0">
-                    {seeOfficerChat === 1 ? (
-                      <ChatPanel
-                        reportId={report.id}
-                        currentUserRole={currentUserRole}
-                        currentUserId={session?.user?.id || ""}
-                        messages={messages}
-                        onSendMessage={handleSendMessage}
-                      />
-                    ) : seeOfficerChat === 3 ? (
-                      <OfficerReportMenu reportId={report.id} status={report.status} companyId={report.companyId || ""} setRefreshFlag={setRefreshFlag} setReport={setReport} showToast={showToast} />
-                    ) : (<InternalNotesPanel
-                  reportId={report.id}
-                />)}
-                  </div>
-                </div>
-              ) : (
-                // Regular user: solo chat
-                <div className="w-full h-full">
-                  <ChatPanel
-                    reportId={report.id}
-                    currentUserRole={currentUserRole}
-                    currentUserId={session?.user?.id || ""}
-                    messages={messages}
-                    onSendMessage={handleSendMessage}
-                  />
-                </div>
-              )
-            ) : isOfficerMode ? (
-              <div className="w-full h-full overflow-auto p-3">
-                <OfficerActionPanel
-                  reportId={report.id}
-                  currentStatus={report.status}
-                  currentCategory={report.category}
-                  onActionComplete={onOfficerActionComplete}
-                />
-              </div>
-            ) : (
+            {/* CASE 1: canViewChat && isAssignedOfficer && seeOfficerChat === 1 (Chat) */}
+            {canViewChat && isAssignedOfficer && seeOfficerChat === 1 && (
+              <ChatPanel
+                reportId={report.id}
+                currentUserRole={currentUserRole}
+                currentUserId={session?.user?.id || ""}
+                messages={messages}
+                onSendMessage={handleSendMessage}
+              />
+            )}
+
+            {/* CASE 2: canViewChat && isAssignedOfficer && seeOfficerChat === 2 (Internal Notes) */}
+            {canViewChat && seeOfficerChat === 2 && (
+              <InternalNotesPanel reportId={report.id} />
+            )}
+
+            {/* CASE 3: canViewChat && isAssignedOfficer && seeOfficerChat === 3 (Menu) */}
+            {canViewChat && isAssignedOfficer && seeOfficerChat === 3 && (
+              <OfficerReportMenu
+                reportId={report.id}
+                status={report.status}
+                companyId={report.companyId || ""}
+                setRefreshFlag={setRefreshFlag!}
+                setReport={setReport!}
+                showToast={showToast!}
+              />
+            )}
+
+            {/* CASE 4: canViewChat && !isAssignedOfficer (Regular user - only Chat) */}
+            {canViewChat && !isAssignedOfficer && (
+              <ChatPanel
+                reportId={report.id}
+                currentUserRole={currentUserRole}
+                currentUserId={session?.user?.id || ""}
+                messages={messages}
+                onSendMessage={handleSendMessage}
+              />
+            )}
+
+            {/* CASE 5: !canViewChat && isOfficerMode (Officer Action Panel) */}
+            {!canViewChat && isOfficerMode && (
+              <OfficerActionPanel
+                reportId={report.id}
+                currentStatus={report.status}
+                currentCategory={report.category}
+                onActionComplete={onOfficerActionComplete}
+              />
+            )}
+
+            {/* CASE 6: !canViewChat && !isOfficerMode (No chat available) */}
+            {!canViewChat && !isOfficerMode && (
               <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground">
                 Chat non disponibile
               </div>
             )}
+            
           </div>
         </div>
       </div>
