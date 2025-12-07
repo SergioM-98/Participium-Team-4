@@ -20,13 +20,13 @@ export default async function createCitizen() {
 
   await prisma.user.create({
     data: {
-      id: id as string,
+      id: id,
       username: "mneri",
       passwordHash: hashedPassword,
       firstName: "Marco",
       lastName: "Neri",
       email: "mneri@team4.it",
-      role: "CITIZEN" as const,
+      role: ["CITIZEN" as const],
       notificationPreferences: {
         create: {
           emailEnabled: true,

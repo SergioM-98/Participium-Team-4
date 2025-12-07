@@ -24,7 +24,7 @@ export async function createReport(
   isAnonymous: boolean
 ): Promise<ReportRegistrationResponse> {
   const session = await getServerSession(authOptions);
-  if (!session || (session && session.user.role !== "CITIZEN")) {
+  if (!session || (session && !session.user.role.includes("CITIZEN"))) {
     console.error("Unauthorized report attempt");
     return { success: false, error: "Unauthorized report" };
   }
@@ -60,8 +60,8 @@ export async function getReportsByAssigneeId(): Promise<ReportsByOfficerResponse
   if (
     !session ||
     (session &&
-      session.user.role !== "TECHNICAL_OFFICER" &&
-      session.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS")
+      !session.user.role.includes("TECHNICAL_OFFICER") &&
+      !session.user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS"))
   ) {
     return { success: false, error: "Unauthorized access" };
   }
@@ -75,7 +75,7 @@ export async function getPendingApprovalReports(): Promise<ReportsUnassignedResp
 
   if (
     !session ||
-    (session && session.user.role !== "PUBLIC_RELATIONS_OFFICER")
+    (session && !session.user.role.includes("PUBLIC_RELATIONS_OFFICER"))
   ) {
     console.error("Unauthorized access attempt to get pending approval reports");
     return { success: false, error: "Unauthorized access" };
@@ -94,8 +94,8 @@ export async function approveReport(
 
   if (
     !session ||
-    (session.user.role !== "PUBLIC_RELATIONS_OFFICER" &&
-      session.user.role !== "ADMIN")
+    (!session.user.role.includes("PUBLIC_RELATIONS_OFFICER") &&
+      !session.user.role.includes("ADMIN"))
   ) {
     console.error("Unauthorized access attempt to approve report");
     return { success: false, error: "Unauthorized access" };
@@ -118,8 +118,8 @@ export async function rejectReport(
 
   if (
     !session ||
-    (session.user.role !== "PUBLIC_RELATIONS_OFFICER" &&
-      session.user.role !== "ADMIN")
+    (!session.user.role.includes("PUBLIC_RELATIONS_OFFICER") &&
+      !session.user.role.includes("ADMIN"))
   ) {
     console.error("Unauthorized access attempt to reject report");
     return { success: false, error: "Unauthorized access" };
@@ -139,8 +139,8 @@ export async function updateReportStatus(
   if (
     !session ||
     (session &&
-      session.user.role !== "TECHNICAL_OFFICER" &&
-      session.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS")
+      !session.user.role.includes("TECHNICAL_OFFICER") &&
+      !session.user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS"))
   ) {
     return { success: false, error: "Unauthorized access" };
   }

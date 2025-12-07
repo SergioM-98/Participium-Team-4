@@ -99,7 +99,7 @@ export async function getTusOptions(): Promise<ControllerSuccessResponse> {
 
 export async function deletePhoto() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id || session.user?.role !== "CITIZEN") {
+  if (!session?.user?.id || !session.user?.role.includes("CITIZEN")) {
     console.error("Unauthorized access: No valid session found or invalid role.");
     return { success: false, error: "Unauthorized access" };
   }

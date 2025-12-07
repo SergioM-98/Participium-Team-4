@@ -15,9 +15,9 @@ class ReportMapService {
     return ReportMapService.instance;
   }
 
-  public async getReportsForMap(userId?: string, role?: string) {
+  public async getReportsForMap(userId?: string, role?: string[]) {
     let approved, pending, unapproved;
-    if (role === "CITIZEN" && userId) {
+    if (role?.includes("CITIZEN") && userId) {
       approved = await this.reportRepository.getApprovedReports(); // Se serve filtrare per citizenId, aggiungi citizenId al where
       pending = await this.reportRepository.getPendingApprovalReportsByCitizenId(userId);
       unapproved = await this.reportRepository.getUnapprovedReportsByCitizenId(userId);

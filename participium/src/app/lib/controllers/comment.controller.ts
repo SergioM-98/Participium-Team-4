@@ -9,11 +9,11 @@ export async function createComment(
 ) {
   const session = await getServerSession(authOptions);
 
-  if (!session || !session.user) {
+  if (!session?.user) {
     return { success: false, error: "Unauthorized: No session found" };
   }
 
-  if (session.user.role !== "TECHNICAL_OFFICER" && session.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS") {
+  if (session.user.role.includes("TECHNICAL_OFFICER") && session.user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")) {
     return { success: false, error: "Unauthorized: Only technical officers can create comments" };
   }
 
@@ -30,11 +30,11 @@ export async function createComment(
 export async function getReportComments(reportId: bigint) {
   const session = await getServerSession(authOptions);
 
-  if (!session || !session.user) {
+  if (!session?.user) {
     return { success: false, error: "Unauthorized: No session found" };
   }
 
-  if (session.user.role !== "TECHNICAL_OFFICER") {
+  if (!session.user.role.includes("TECHNICAL_OFFICER")) {
     return { success: false, error: "Unauthorized: Only technical officers can view comments" };
   }
 

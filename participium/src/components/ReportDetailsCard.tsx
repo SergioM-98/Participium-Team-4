@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 
 import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
-// import MaintainerActionPanel from "@/app/maintainer/my-reports/MaintainerActionPanel";
 import ChatPanel, { ChatMessage } from "./ChatPanel";
 import InternalNotesPanel from "./InternalNotesPanel";
 import {
@@ -100,7 +99,7 @@ const getStatusBadge = (status: Report["status"]) => {
       );
     default:
       return (
-        <Badge variant="secondary">{normalizedStatus.replace(/_/g, " ")}</Badge>
+        <Badge variant="secondary">{normalizedStatus.replaceAll(/_/g, " ")}</Badge>
       );
   }
 };
@@ -111,9 +110,8 @@ export default function ReportDetailsCard({
   isOfficerMode = false,
   isMaintainerMode = false,
   onOfficerActionComplete,
-  onMaintainerActionComplete,
   showChat = false,
-}: ReportDetailsCardProps) {
+}: Readonly<ReportDetailsCardProps>) {
   const { data: session } = useSession();
 
   // show chat only if the user is the report creator or the assigned officer
@@ -149,14 +147,7 @@ export default function ReportDetailsCard({
   // 1. Determine Role cleanly based on DTO
   const sessionRole = (session?.user as any)?.role;
   const currentUserRole = sessionRole || "CITIZEN";
-  const currentUserName = session?.user?.name || "Me";
 
-  // 2. Access Control Logic
-  const hasInternalAccess = [
-    "TECHNICAL_OFFICER",
-    "PUBLIC_RELATIONS_OFFICER",
-    "EXTERNAL_MAINTAINER_WITH_ACCESS",
-  ].includes(currentUserRole);
 
   useEffect(() => {
     const loadMessages = async () => {
