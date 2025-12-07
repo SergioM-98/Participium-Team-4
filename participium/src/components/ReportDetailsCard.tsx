@@ -23,6 +23,7 @@ import { getReportMessages, sendMessage } from "@/app/lib/controllers/message.co
 import dynamic from "next/dynamic";
 import OfficerReportMenu from "./OfficerReportMenu";
 import { is } from "zod/v4/locales";
+import InternalNotesPanel from "./InternalNotesPanel";
 
 const LeafletMapFixed = dynamic(() => import("./LeafletMapFixed"), {
   ssr: false,
@@ -353,15 +354,9 @@ export default function ReportDetailsCard({
                       />
                     ) : seeOfficerChat === 3 ? (
                       <OfficerReportMenu reportId={report.id} status={report.status} companyId={report.companyId || ""} setRefreshFlag={setRefreshFlag} setReport={setReport} showToast={showToast} />
-                    ) : (
-                  <div className="w-full h-full overflow-auto p-3">
-                    <OfficerActionPanel
-                      reportId={report.id}
-                      currentStatus={report.status}
-                      currentCategory={report.category}
-                      onActionComplete={onOfficerActionComplete}
-                    />
-                  </div>)}
+                    ) : (<InternalNotesPanel
+                  reportId={report.id}
+                />)}
                   </div>
                 </div>
               ) : (
