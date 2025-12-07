@@ -128,34 +128,36 @@ export default function OfficerReportMenu(props: Readonly<Props>) {
           )}
         </div>
 
-        {/* BOTTOM: left = current/next, right = update button */}
-        <div className="flex items-center gap-4">
-          <div className="flex-1">
+        {/* BOTTOM: current/next status display */}
+        <div className="mb-3">
+          <div className="text-[12px] text-muted-foreground flex items-center justify-between">
+            <span>Current</span>
+            <span className="font-medium">{props.status === "in_progress" ? "In Progress" : props.status}</span>
+          </div>
+          {props.status !== "resolved" && (
             <div className="text-[12px] text-muted-foreground flex items-center justify-between">
-              <span>Current</span>
-              <span className="font-medium">{props.status === "in_progress" ? "In Progress" : props.status}</span>
-            </div>
-            {props.status !== "resolved" && (<div className="text-[12px] text-muted-foreground flex items-center justify-between mb-1">
               <span>Next</span>
               <span className="font-medium">{props.status === "assigned" || props.status === "suspended" ? "In progress" : "Resolved"}</span>
-            </div>)}
-          </div>
+            </div>
+          )}
+        </div>
 
-          {props.status !== "resolved" && (<div className="w-36 flex-shrink-0 flex flex-col items-stretch">
+        {/* Update button: full width */}
+        {props.status !== "resolved" && (
+          <div className="mb-3">
             <Button
-              className="w-full h-9 text-sm mb-2"
+              className="w-full h-9 text-sm"
               onClick={async ()=>{ await handleUpdateReportStatus(props.status === "assigned" || props.status=== "suspended" ? "IN_PROGRESS" : "RESOLVED"); }}
               disabled={selectedCompany != ""}
             >
               Update
             </Button>
-            {/* NOTE: il pulsante Suspend è stato spostato sotto tutto per occupare tutta la larghezza */}
-          </div>)}
-        </div>
+          </div>
+        )}
 
-        {/* Suspend: full width, sotto tutto */}
+        {/* Suspend: full width */}
         {(props.status === "assigned" || props.status === "in_progress") && (
-          <div className="mt-3">
+          <div>
             <Button className="w-full h-9 text-sm" onClick={async ()=>await handleUpdateReportStatus("SUSPENDED")} disabled={selectedCompany != ""}>
               Suspend
             </Button>

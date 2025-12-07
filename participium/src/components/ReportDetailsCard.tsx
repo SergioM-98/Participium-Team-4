@@ -129,7 +129,7 @@ export default function ReportDetailsCard({
   const [isSending, setIsSending] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
 
-  const [seeOfficerChat, setSeeOfficerChat] = useState(true);
+  const [seeOfficerChat, setSeeOfficerChat] = useState(1);
 
   // Use the actual role from the session
   const currentUserRole = (session?.user as any)?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : (session?.user as any)?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : (session?.user as any)?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ? "EXTERNAL_MAINTAINER_WITH_ACCESS" : "CITIZEN";
@@ -297,29 +297,37 @@ export default function ReportDetailsCard({
         <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex flex-col relative">
           {/* Header / Toggle (in-flow, non overlaid) */}
           <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/5 flex-shrink-0">
-            <div className="text-sm font-medium text-muted-foreground">Dettagli report</div>
+            
 
             {/* Inline segmented control — chiaro cosa fa */}
             {canViewChat && isAssignedOfficer ? (
               <div className="flex items-center gap-2 bg-muted/10 p-1 rounded-md">
-                <span className="text-xs text-muted-foreground hidden sm:inline">Visualizza</span>
 
                 <button
-                  onClick={() => setSeeOfficerChat(true)}
-                  aria-pressed={seeOfficerChat}
-                  className={`flex items-center gap-2 px-2 py-1 rounded text-xs transition-colors ${seeOfficerChat ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                  onClick={() => setSeeOfficerChat(1)}
+                  aria-pressed={seeOfficerChat === 1}
+                  className={`flex items-center gap-2 px-1 py-1 rounded text-xs transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
                 >
                   <MessageSquare className="w-4 h-4" />
-                  <span className="hidden md:inline">Chat</span>
+                  <span className="hidden xl:inline">Chat</span>
                 </button>
 
                 <button
-                  onClick={() => setSeeOfficerChat(false)}
-                  aria-pressed={!seeOfficerChat}
-                  className={`flex items-center gap-2 px-2 py-1 rounded text-xs transition-colors ${!seeOfficerChat ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                  onClick={() => setSeeOfficerChat(2)}
+                  aria-pressed={seeOfficerChat === 2}
+                  className={`flex items-center gap-2 px-1 py-1 rounded text-xs transition-colors ${seeOfficerChat === 2 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span className="hidden xl:inline">Notifications</span>
+                </button>
+
+                <button
+                  onClick={() => setSeeOfficerChat(3)}
+                  aria-pressed={seeOfficerChat === 3}
+                  className={`flex items-center gap-2 px-1 py-1 rounded text-xs transition-colors ${seeOfficerChat === 3 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
                 >
                   <Menu className="w-4 h-4" />
-                  <span className="hidden md:inline">Menu</span>
+                  <span className="hidden xl:inline">Menu</span>
                 </button>
               </div>
             ) : (
@@ -334,7 +342,7 @@ export default function ReportDetailsCard({
                 // Officer view: can toggle between chat and menu placeholder
                 <div className="w-full h-full flex flex-col">
                   <div className="flex-1 min-h-0">
-                    {seeOfficerChat ? (
+                    {seeOfficerChat === 1 ? (
                       <ChatPanel
                         reportId={report.id}
                         currentUserRole={currentUserRole}
@@ -342,9 +350,12 @@ export default function ReportDetailsCard({
                         messages={messages}
                         onSendMessage={handleSendMessage}
                       />
-                    ) : (
+                    ) : seeOfficerChat === 3 ? (
                       <OfficerReportMenu reportId={report.id} status={report.status} companyId={report.companyId || ""} setRefreshFlag={setRefreshFlag} setReport={setReport} showToast={showToast} />
-                    )}
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground">
+                        Menu Placeholder
+                        </div>)}
                   </div>
                 </div>
               ) : (
