@@ -117,15 +117,15 @@ class UserRepository {
           email: rest.email ?? undefined,
           office: rest.office ?? undefined,
           companyId: rest.companyId ?? undefined,
-          id: rest.id,
+          pendingRequest: !!rest.telegramRequestPending,
           firstName: rest.firstName,
           lastName: rest.lastName,
           username: rest.username,
           role: rest.role,
-          telegram: rest.telegram ?? undefined,
+          telegram: !!rest.telegramChatId,
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new Error("Failed to fetch user from database");
     }
   
@@ -152,15 +152,15 @@ class UserRepository {
       data.telegram = null;
     }
 
-    await db.user.update({
-      where: { username: userId },
-      data,
-    });
-    return {
-      success: true,
-      data: userId,
-    };
-  }
+      await prisma.user.update({
+        where: { id: userId },
+        data,
+      });
+      return {
+        success: true,
+        data: userId,
+      };
+    } 
 
   async getUserByTelegramId(telegramId: string): Promise<RegistrationResponse> {
     const user = await prisma.user.findUnique({

@@ -70,9 +70,7 @@ export async function getReportsByAssigneeId(): Promise<ReportsByOfficerResponse
   return reportRetrievalService.retrieveReportsByOfficerId(session.user.id);
 }
 
-export async function getPendingApprovalReports(
-  status: string
-): Promise<ReportsUnassignedResponse> {
+export async function getPendingApprovalReports(): Promise<ReportsUnassignedResponse> {
   const session = await getServerSession(authOptions);
 
   if (
@@ -84,12 +82,7 @@ export async function getPendingApprovalReports(
   }
 
   const reportRetrievalService = ReportRetrievalService.getInstance();
-  try {
-    return await reportRetrievalService.retrievePendingApprovalReports(status);
-  } catch (error) {
-    console.error("Error retrieving pending approval reports:", error);
-    return { success: false, error: "Failed to retrieve reports" };
-  }
+  return reportRetrievalService.retrievePendingApprovalReports();
 }
 
 export async function approveReport(

@@ -1,14 +1,9 @@
-/**
- * Email service for sending emails
- * Uses Resend API to send emails
- * Falls back to console logging if RESEND_API_KEY is not configured
- */
-
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
+import path from "path";
 
 class EmailService {
   private static instance: EmailService;
-  private resend: Resend | null = null;
+  private transporter: nodemailer.Transporter | null = null;
 
   private constructor() {}
 
@@ -20,21 +15,44 @@ class EmailService {
   }
 
   private isEmailConfigured(): boolean {
-    return !!process.env.RESEND_API_KEY;
+    return !!(
+      process.env.SMTP_HOST &&
+      process.env.SMTP_PORT &&
+      process.env.SMTP_USER &&
+      process.env.SMTP_PASS
+    );
   }
 
-  private getResendClient(): Resend {
-    if (this.resend) {
-      return this.resend;
+  private async getTransporter(): Promise<nodemailer.Transporter> {
+    if (this.transporter) {
+      return this.transporter;
     }
 
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      throw new Error("RESEND_API_KEY is not configured");
+    if (this.isEmailConfigured()) {
+      this.transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || "587"),
+        secure: process.env.SMTP_SECURE === "true",
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+    } else {
+      // Use Ethereal Email for development
+      const testAccount = await nodemailer.createTestAccount();
+      this.transporter = nodemailer.createTransport({
+        host: "smtp.ethereal.email",
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass,
+        },
+      });
     }
 
-    this.resend = new Resend(apiKey);
-    return this.resend;
+    return this.transporter;
   }
 
   public async sendVerificationEmail(
@@ -43,25 +61,13 @@ class EmailService {
     firstName?: string,
   ): Promise<void> {
     try {
-      if (!this.isEmailConfigured()) {
-        console.log("\n" + "=".repeat(60));
-        console.log("📧 VERIFICATION EMAIL (Development Mode)");
-        console.log("=".repeat(60));
-        console.log(`To: ${email}`);
-        console.log(`Name: ${firstName || "User"}`);
-        console.log(`\n🔐 Verification Code: ${code}`);
-        console.log(`⏱️  Expires in: 30 minutes`);
-        console.log("=".repeat(60) + "\n");
-        return;
-      }
-
-      const client = this.getResendClient();
+      const transporter = await this.getTransporter();
       const appName = process.env.APP_NAME || "Participium";
-      const emailFrom = process.env.EMAIL_FROM || "onboarding@resend.dev";
+      const emailFrom = process.env.EMAIL_FROM || "noreply@participium.local";
 
       const greeting = firstName ? `Hello ${firstName}` : "Hello";
 
-      await client.emails.send({
+      const mailOptions = {
         from: emailFrom,
         to: email,
         subject: `${appName} - Email Verification`,
@@ -80,7 +86,21 @@ class EmailService {
             <p>Best regards,<br/>The ${appName} Team</p>
           </div>
         `,
-      });
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+
+      if (!this.isEmailConfigured()) {
+        console.log("\n" + "=".repeat(60));
+        console.log("📧 VERIFICATION EMAIL (Development Mode - Ethereal)");
+        console.log("=".repeat(60));
+        console.log(`To: ${email}`);
+        console.log(`Name: ${firstName || "User"}`);
+        console.log(`\n🔐 Verification Code: ${code}`);
+        console.log(`⏱️  Expires in: 30 minutes`);
+        console.log(`\n📨 Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+        console.log("=".repeat(60) + "\n");
+      }
     } catch (error) {
       console.error("Failed to send verification email:", error);
       throw new Error("Failed to send verification email");

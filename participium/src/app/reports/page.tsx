@@ -1,8 +1,11 @@
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/auth";
 import Reports from "./reports";
 
 
-
-export default function ReportsPage() {
-  return <Reports />;
+export default async function ReportsPage() {
+  const session = await getServerSession(authOptions);
+  
+  return <Reports userId={session?.user?.id || null} />;
 }
 
