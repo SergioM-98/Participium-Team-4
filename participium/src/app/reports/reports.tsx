@@ -49,7 +49,10 @@ export default function Reports({ userId }: ReportsProps) {
       try {
         const result = await getReportsForMap();
         if (result.success && result.data) {
-            setMapReports(result.data); 
+            setMapReports(result.data.map((r: any) => ({
+              ...r,
+              status: r.status ?? "assigned"
+            }))); 
         }
       } catch (error) {
         console.error("Failed to load map reports:", error);
