@@ -20,17 +20,17 @@ import {
 import {
   MapPin,
   Search,
-  Filter,
   FileText,
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { getReportsByAssigneeId } from "@/controllers/report.controller";
+import { getReportsByMaintainerId, getReportsByOfficerId } from "@/controllers/report.controller";
 import type { RetrieveReportByAssignee } from "@/dtos/report.dto";
 import { getPhoto } from "@/controllers/photo.controller";
 import ReportDetailsCard from "@/components/ReportDetailsCard";
+import { Category } from "@prisma/client";
 
-type Report = RetrieveReportByAssignee & { companyId: string | null };
+type Report = RetrieveReportByAssignee;
 
 interface ReportsListProps {
   maintainerId: string;
@@ -90,12 +90,14 @@ export default function ReportsList({ maintainerId }: ReportsListProps) {
         setIsLoading(true);
         setError(null);
 
-        const response = await getReportsByAssigneeId();
+        const response = await getReportsByMaintainerId();
 
         if (!response.success) {
           setError(response.error || "Failed to load reports");
           return;
         }
+
+        console.log(response);
 
         setReports(response.data);
       } catch (err) {
@@ -366,7 +368,7 @@ export default function ReportsList({ maintainerId }: ReportsListProps) {
                 title: selectedReport.title,
                 description: selectedReport.description,
                 category: selectedReport.category,
-                status: selectedReport.status || "ASSIGNED",
+                status: (selectedReport.status || "ASSIGNED"),
                 latitude: selectedReport.latitude,
                 longitude: selectedReport.longitude,
                 reporterName: selectedReport.citizen?.username || "Anonymous",
