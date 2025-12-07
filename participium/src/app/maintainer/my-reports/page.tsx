@@ -6,9 +6,9 @@ import ReportsList from "./reports-list";
 export default async function MaintainerReportsPage() {
   const session = await getServerSession(authOptions);
 
-  if (session?.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS") {
+  if (session?.user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") === false) {
     redirect("/login");
   }
 
-  return <ReportsList maintainerId={session.user.id} />;
+  return <ReportsList maintainerId={session!.user.id} />;
 }

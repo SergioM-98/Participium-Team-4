@@ -10,7 +10,7 @@ export default async function AdminLayout({
 }>) {
   const session = await getServerSession(authOptions);
 
-  if (!session || session.user?.role !== "ADMIN") {
+  if (!session || session.user?.role.includes("ADMIN") === false) {
     redirect("/forbidden");
   }
 

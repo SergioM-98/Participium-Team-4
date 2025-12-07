@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 // UPDATED: Removed 'data-[state=closed]' animation classes from Overlay and Content
 // to ensure the modal closes immediately without delay.
 const HighZDialogContent = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <DialogPrimitive.Portal>
@@ -164,9 +164,13 @@ export default function OfficerActionPanel({
     if (selectedDepartment && selectedDepartment !== "NONE") {
       return selectedDepartment
         .replace("DEPARTMENT_OF_", "")
-        .replace(/_/g, " ")
+        .replaceAll(/_/g, " ")
         .toLowerCase()
         .replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+    if (selectedCompany && selectedCompany !== "NONE") {
+      const company = companies.find((c) => c.id === selectedCompany);
+      return company ? company.name : "Unknown Company";
     }
     return "None";
   };
@@ -364,6 +368,9 @@ export default function OfficerActionPanel({
             <div className="grid grid-cols-3 gap-2 items-center">
               <span className="font-semibold text-muted-foreground text-xs uppercase">
                 Category
+              </span>
+              <span className="col-span-2 font-medium">
+                {selectedCategory.replaceAll(/_/g, " ")}
               </span>
             </div>
 

@@ -74,7 +74,7 @@ const statusColors: Record<string, string> = {
   RESOLVED: "bg-green-100 text-green-800",
 };
 
-export default function ReportsList({ maintainerId }: ReportsListProps) {
+export default function ReportsList({ maintainerId }: Readonly<ReportsListProps>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
@@ -102,6 +102,7 @@ export default function ReportsList({ maintainerId }: ReportsListProps) {
         setReports(response.data);
       } catch (err) {
         setError("An unexpected error occurred");
+        console.error("Failed to fetch reports:", err);
       } finally {
         setIsLoading(false);
       }
@@ -368,7 +369,7 @@ export default function ReportsList({ maintainerId }: ReportsListProps) {
                 title: selectedReport.title,
                 description: selectedReport.description,
                 category: selectedReport.category,
-                status: (selectedReport.status || "ASSIGNED"),
+                status: (selectedReport.status?.toLowerCase() as "pending_approval"|"assigned"|"in_progress"|"suspended"|"rejected"|"resolved") || "assigned",
                 latitude: selectedReport.latitude,
                 longitude: selectedReport.longitude,
                 reporterName: selectedReport.citizen?.username || "Anonymous",

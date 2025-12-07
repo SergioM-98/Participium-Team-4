@@ -30,7 +30,7 @@ const LeafletMapFixed = dynamic(() => import("./LeafletMapFixed"), {
   ssr: false,
 });
 
-interface Report {
+export interface Report {
   id: string;
   title: string;
   description: string;
@@ -92,7 +92,9 @@ const getStatusBadge = (status: Report["status"]) => {
     case "resolved":
       return <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>;
     default:
-      return <Badge variant="secondary">{normalizedStatus.replace(/_/g, " ")}</Badge>;
+      return (
+        <Badge variant="secondary">{normalizedStatus.replaceAll(/_/g, " ")}</Badge>
+      );
   }
 };
 
@@ -102,12 +104,12 @@ export default function ReportDetailsCard({
   isOfficerMode = false,
   isMaintainerMode = false,
   onOfficerActionComplete,
-  onMaintainerActionComplete,
   showChat = false,
   setRefreshFlag,
   setReport,
   showToast,
-}: ReportDetailsCardProps) {
+  onMaintainerActionComplete,
+}: Readonly<ReportDetailsCardProps>) {
   const { data: session } = useSession();
   
   // show chat only if the user is the report creator or the assigned officer
@@ -132,10 +134,18 @@ export default function ReportDetailsCard({
   const [isSending, setIsSending] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
 
+  // 1. Determine Role cleanly based on DTO
+  const currentUserRole =
+    isReportCreator
+      ? "CITIZEN"
+      : isAssignedOfficer
+        ? "TECHNICAL_OFFICER"
+        : isMaintainerMode
+          ? "EXTERNAL_MAINTAINER_WITH_ACCESS"
+          : "PUBLIC_RELATIONS_OFFICER";
+
   const [seeOfficerChat, setSeeOfficerChat] = useState(1);
 
-  // Use the actual role from the session
-  const currentUserRole = (session?.user as any)?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : (session?.user as any)?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : (session?.user as any)?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ? "EXTERNAL_MAINTAINER_WITH_ACCESS" : "CITIZEN";
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -234,7 +244,19 @@ export default function ReportDetailsCard({
         {/* MAP - left (hidden on mobile; available as overlay via button) */}
         {(isOfficerMode || isAssignedOfficer) && (<div className="hidden md:flex md:flex-1 min-h-0 rounded-lg overflow-hidden border border-border bg-muted/5">
           <div className="w-full h-full">
-            <LeafletMapFixed report={report} showCloseButton={false} className="w-full h-full" />
+            <LeafletMapFixed
+              report={{
+                id: report.id,
+                latitude: report.latitude,
+                longitude: report.longitude,
+                title: report.title,
+                category: report.category,
+                status: report.status,
+                citizenId: report.citizenId !== undefined ? String(report.citizenId) : undefined
+              }}
+              showCloseButton={false}
+              className="w-full h-full"
+            />
           </div>
         </div>)}
  
@@ -418,10 +440,23 @@ export default function ReportDetailsCard({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative w-full h-full">
-              <LeafletMapFixed report={report} showCloseButton={true} onClose={() => setIsMapOpen(false)} className="w-full h-full" />
-             </div>
-           </div>
-         </div>
+              <LeafletMapFixed
+                report={{
+                  id: report.id,
+                  latitude: report.latitude,
+                  longitude: report.longitude,
+                  title: report.title,
+                  category: report.category,
+                  status: report.status,
+                  citizenId: report.citizenId !== undefined ? String(report.citizenId) : undefined
+                }}
+                showCloseButton={true}
+                onClose={() => setIsMapOpen(false)}
+                className="w-full h-full"
+              />
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Mobile footer: view map button (only on small screens) */}

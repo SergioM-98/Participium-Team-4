@@ -2,7 +2,6 @@ import { prisma } from "@/prisma/db";
 import { Category, Report, Offices, ReportStatus, Role } from "@prisma/client";
 import {
   ReportRegistrationResponse,
-  UpdateReportStatusResponse,
 } from "@/dtos/report.dto";
 
 class ReportRepository {
@@ -96,40 +95,35 @@ class ReportRepository {
 
     public async getUnapprovedReports() {
       const where: any = { status: "REJECTED" };
-      try {
-        const reports = await prisma.report.findMany({
-          where,
-          select: {
-            id: true,
-            title: true,
-            longitude: true,
-            latitude: true,
-            category: true,
-            citizen: {
-              select: {
-                username: true,
-              },
+      const reports = await prisma.report.findMany({
+        where,
+        select: {
+          id: true,
+          title: true,
+          longitude: true,
+          latitude: true,
+          category: true,
+          citizen: {
+            select: {
+              username: true,
             },
           },
-        });
-        if (!reports || reports.length === 0) {
-          return { success: false, error: "No unapproved reports found" };
-        }
-        return { success: true, data: reports };
-      } catch (e) {
-        return { success: false, error: "Error retrieving unapproved reports" };
+        },
+      });
+      if (!reports || reports.length === 0) {
+        return { success: false, error: "No unapproved reports found" };
       }
+      return { success: true, data: reports };
     }
 
     public async getUnapprovedReportsByCitizenId(citizenId: string) {
       const where: any = { status: "REJECTED", citizenId };
-      try {
-        const reports = await prisma.report.findMany({
-          where,
-          select: {
-            id: true,
-            title: true,
-            longitude: true,
+      const reports = await prisma.report.findMany({
+        where,
+        select: {
+          id: true,
+          title: true,
+          longitude: true,
             latitude: true,
             category: true,
             citizen: {
@@ -143,10 +137,7 @@ class ReportRepository {
           return { success: false, error: "No unapproved reports found for this citizen" };
         }
         return { success: true, data: reports };
-      } catch (e) {
-        return { success: false, error: "Error retrieving unapproved reports for citizen" };
       }
-    }
   
 
   public async getReportsByOfficerId(officerId: string) {
@@ -168,6 +159,29 @@ class ReportRepository {
     });
   }
 
+
+    public async getPendingApprovalReportsByCitizenId(citizenId: string) {
+      const where: any = { status: "PENDING_APPROVAL", citizenId };
+      const reports = await prisma.report.findMany({
+        where,
+        select: {
+          id: true,
+          title: true,
+          longitude: true,
+          latitude: true,
+          category: true,
+          citizen: {
+            select: {
+              username: true,
+            },
+          },
+        },
+      });
+      if (!reports || reports.length === 0) {
+        return { success: false, error: "No pending approval reports found for this citizen" };
+      }
+      return { success: true, data: reports };
+    }
   public async getReportsByMaintainerId(maintainerId: string) {
     return await prisma.report.findMany({
       where: {
@@ -218,7 +232,9 @@ class ReportRepository {
 
     return await prisma.user.findFirst({
       where: {
-        role: "TECHNICAL_OFFICER" as Role,
+        role: {
+          has: "TECHNICAL_OFFICER" as Role
+        },
         office,
       },
       orderBy: {
@@ -335,10 +351,7 @@ class ReportRepository {
       where: {
         companyId: companyId,
         role: {
-          in: [
-            "EXTERNAL_MAINTAINER_WITH_ACCESS",
-            "EXTERNAL_MAINTAINER_WITHOUT_ACCESS",
-          ] as Role[],
+          hasSome: ["EXTERNAL_MAINTAINER_WITH_ACCESS", "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"] as Role[],
         },
       },
       orderBy: {

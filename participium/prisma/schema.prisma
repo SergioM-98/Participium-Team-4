@@ -109,7 +109,7 @@ model User {
   telegramRequestPending  Boolean @default(false)
   isVerified              Boolean?
   telegramRequestTTL      DateTime?
-  role                    Role    @default(CITIZEN)
+  role                    Role[]    @default([CITIZEN])
   office                  Offices?
   passwordHash            String   @db.VarChar(255)
   companyId               String?

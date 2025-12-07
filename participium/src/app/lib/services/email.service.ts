@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-import path from "path";
 
 class EmailService {
   private static instance: EmailService;
@@ -31,7 +30,7 @@ class EmailService {
     if (this.isEmailConfigured()) {
       this.transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || "587"),
+        port: Number.parseInt(process.env.SMTP_PORT || "587"),
         secure: process.env.SMTP_SECURE === "true",
         auth: {
           user: process.env.SMTP_USER,

@@ -11,7 +11,7 @@ export default async function MaintainerLayout({
   const session = await getServerSession(authOptions);
 
   if (
-    session?.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS"
+    session?.user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") === false
   ) {
     redirect("/forbidden");
   }

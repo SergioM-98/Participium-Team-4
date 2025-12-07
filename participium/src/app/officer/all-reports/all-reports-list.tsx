@@ -634,7 +634,7 @@ export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
                 title: selectedReport.title,
                 description: selectedReport.description,
                 category: selectedReport.category,
-                status: selectedReport.status,
+                status: (selectedReport.status?.toLowerCase() as "pending_approval"|"assigned"|"in_progress"|"suspended"|"rejected"|"resolved") || "assigned",
                 latitude: selectedReport.latitude,
                 longitude: selectedReport.longitude,
                 reporterName: selectedReport.citizen?.username || "Anonymous",

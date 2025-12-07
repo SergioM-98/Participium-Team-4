@@ -19,12 +19,12 @@ export default async function createAdmin() {
 
     await prisma.user.create({
         data: {
-        id: id as string,
+        id: id,
         username: "admin",
         passwordHash: hashedPassword,
         firstName: "admin",
         lastName: "admin",
-        role: "ADMIN" as const,
+        role: ["ADMIN" as const],
         },
     });
 

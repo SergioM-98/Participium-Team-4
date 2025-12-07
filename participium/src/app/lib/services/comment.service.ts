@@ -3,7 +3,7 @@ import { Comment } from "@prisma/client";
 
 class CommentService {
   private static instance: CommentService;
-  private commentRepository: CommentRepository;
+  private readonly commentRepository: CommentRepository;
 
   private constructor() {
     this.commentRepository = CommentRepository.getInstance();
@@ -20,7 +20,7 @@ class CommentService {
     content: string,
     authorId: string,
     reportId: bigint
-  ): Promise<Comment> {
+  ): Promise<Comment | null> {
     return this.commentRepository.createComment({
       content,
       authorId,

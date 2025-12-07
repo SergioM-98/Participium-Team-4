@@ -71,7 +71,7 @@ class UserRepository {
           office: userData.office ?? undefined,
           companyId: userData.companyId ?? undefined,
           passwordHash: hashedPassword,
-          isVerified: userData.role === "CITIZEN" ? false : null,
+          isVerified: userData.role.includes("CITIZEN") ? false : null,
         },
       });
 
@@ -93,7 +93,7 @@ class UserRepository {
       }
 
       // Check if CITIZEN user is verified
-      if (user.role === "CITIZEN" && user.isVerified === false) {
+      if (user.role.includes("CITIZEN") && user.isVerified === false) {
         return {
           success: false,
           error:
@@ -117,15 +117,15 @@ class UserRepository {
           email: rest.email ?? undefined,
           office: rest.office ?? undefined,
           companyId: rest.companyId ?? undefined,
-          id: rest.id,
+          pendingRequest: !!rest.telegramRequestPending,
           firstName: rest.firstName,
           lastName: rest.lastName,
           username: rest.username,
           role: rest.role,
-          telegram: rest.telegram ?? undefined,
+          telegram: !!rest.telegramChatId,
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new Error("Failed to fetch user from database");
     }
   
