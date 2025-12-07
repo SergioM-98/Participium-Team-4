@@ -87,22 +87,6 @@ export default function OfficerActionPanel({
     }
   };
 
-  useEffect(() => {
-    const fetchCompanies = async () => {
-      try {
-        const result = await getAllCompanies();
-        if (result.success && result.data) {
-          setCompanies(result.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch companies:", error);
-      } finally {
-        setCompaniesLoading(false);
-      }
-    };
-    fetchCompanies();
-  }, []);
-
   const canModerate =
     currentStatus === "pending_approval" || currentStatus === "PENDING";
 

@@ -393,14 +393,16 @@ export default function ReportDetailsCard({
                 onActionComplete={onOfficerActionComplete}
               />
             )}
-
-            {/* CASE 6: !canViewChat && !isOfficerMode (No chat available) */}
-            {!canViewChat && !isOfficerMode && (
-              <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground">
-                Chat non disponibile
-              </div>
-            )}
             
+            {/* CASE 7: isMaintainerMode (Maintainer Action Panel) */}
+            {isMaintainerMode && (
+              <MaintainerActionPanel
+                reportId={report.id}
+                currentStatus={report.status}
+                onActionComplete={onMaintainerActionComplete}
+              />
+            )}
+
           </div>
         </div>
       </div>
