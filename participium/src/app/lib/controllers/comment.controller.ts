@@ -13,8 +13,8 @@ export async function createComment(
     return { success: false, error: "Unauthorized: No session found" };
   }
 
-  if (session.user.role.includes("TECHNICAL_OFFICER") && session.user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")) {
-    return { success: false, error: "Unauthorized: Only technical officers can create comments" };
+  if (!session.user.role.includes("TECHNICAL_OFFICER") && !session.user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")) {
+    return { success: false, error: "Unauthorized: Only technical officers and external maintainers can create comments" };
   }
 
   try {
@@ -34,8 +34,8 @@ export async function getReportComments(reportId: bigint) {
     return { success: false, error: "Unauthorized: No session found" };
   }
 
-  if (!session.user.role.includes("TECHNICAL_OFFICER")) {
-    return { success: false, error: "Unauthorized: Only technical officers can view comments" };
+  if (!session.user.role.includes("TECHNICAL_OFFICER") && !session.user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")) {
+    return { success: false, error: "Unauthorized: Only technical officers and external maintainers can view comments" };
   }
 
   try {
