@@ -38,7 +38,7 @@ describe("Story 5 - Integration Test: uploader", () => {
         passwordHash: "password",
         firstName: "user",
         lastName: "user",
-        role: "CITIZEN",
+        role: ["CITIZEN"],
       },
     });
 
@@ -49,7 +49,7 @@ describe("Story 5 - Integration Test: uploader", () => {
         passwordHash: "password",
         firstName: "user",
         lastName: "user",
-        role: "CITIZEN",
+        role: ["CITIZEN"],
       },
     });
   });
@@ -62,7 +62,7 @@ describe("Story 5 - Integration Test: uploader", () => {
           lastName: "mock",
           email: "mock@mock.it",
           username: "mock",
-          role: "CITIZEN",
+          role: ["CITIZEN"],
         },
         expires: "2099-01-01T00:00:00.000Z",
       });
@@ -92,7 +92,7 @@ describe("Story 5 - Integration Test: uploader", () => {
         lastName: "mock",
         email: "mock@mock.it",
         username: "mock",
-        role: "CITIZEN",
+        role: ["CITIZEN"],
       },
       expires: "2099-01-01T00:00:00.000Z",
     });

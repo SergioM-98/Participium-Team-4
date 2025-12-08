@@ -33,7 +33,7 @@ describe("CommentController", () => {
     user: {
       id: "2",
       name: "Citizen User",
-      role: "CITIZEN",
+      role: ["CITIZEN"],
     },
     expires: "2026-12-31T23:59:59.999Z",
   };
@@ -42,7 +42,7 @@ describe("CommentController", () => {
     user: {
       id: "2",
       name: "Officer User",
-      role: "TECHNICAL_OFFICER",
+      role: ["TECHNICAL_OFFICER"],
     },
     expires: "2026-12-31T23:59:59.999Z",
   };
@@ -51,7 +51,7 @@ describe("CommentController", () => {
     user: {
       id: "3",
       name: "Public Relations Officer",
-      role: "PUBLIC_RELATIONS_OFFICER",
+      role: ["PUBLIC_RELATIONS_OFFICER"],
     },
     expires: "2026-12-31T23:59:59.999Z",
   };
@@ -60,7 +60,7 @@ describe("CommentController", () => {
     user: {
       id: "4",
       name: "Admin User",
-      role: "ADMIN",
+      role: ["ADMIN"],
     },
     expires: "2026-12-31T23:59:59.999Z",
   };

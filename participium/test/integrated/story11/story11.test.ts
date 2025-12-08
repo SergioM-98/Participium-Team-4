@@ -40,7 +40,7 @@ describe("Story 11 - officer updates", () => {
     user: {
       id: "1",
       name: "Logged User",
-      role: "CITIZEN",
+      role: ["CITIZEN"],
     },
     expires: "2024-12-31T23:59:59.999Z",
   };
@@ -64,7 +64,7 @@ describe("Story 11 - officer updates", () => {
         firstName: "Test",
         lastName: "Citizen",
         passwordHash: hashedPassword,
-        role: "CITIZEN",
+        role: ["CITIZEN"],
       },
     });
     testCitizenId = citizen.id;
@@ -76,7 +76,7 @@ describe("Story 11 - officer updates", () => {
         firstName: "Test",
         lastName: "Officer",
         passwordHash: hashedPassword,
-        role: "TECHNICAL_OFFICER",
+        role: ["TECHNICAL_OFFICER"],
         office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
       },
     });
@@ -217,7 +217,7 @@ describe("Story 11 - officer updates", () => {
       user: {
         id: testCitizenId,
         name: "Test Citizen",
-        role: "CITIZEN",
+        role: ["CITIZEN"],
       },
       expires: "2024-12-31T23:59:59.999Z",
     };
@@ -359,7 +359,7 @@ describe("Story 11 - officer updates", () => {
       user: {
         id: testCitizenId,
         name: "Test Citizen",
-        role: "CITIZEN",
+        role: ["CITIZEN"],
       },
       expires: "2024-12-31T23:59:59.999Z",
     };

@@ -31,7 +31,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     user: {
       id: "1",
       name: "Admin User",
-      role: "ADMIN",
+      role: ["ADMIN"],
     },
     expires: "2024-12-31T23:59:59.999Z",
   };
@@ -40,7 +40,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     user: {
       id: "2",
       name: "Officer User",
-      role: "TECHNICAL_OFFICER",
+      role: ["TECHNICAL_OFFICER"],
     },
     expires: "2024-12-31T23:59:59.999Z",
   };
@@ -49,7 +49,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     user: {
       id: "3",
       name: "Citizen User",
-      role: "CITIZEN",
+      role: ["CITIZEN"],
     },
     expires: "2024-12-31T23:59:59.999Z",
   };
@@ -95,7 +95,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
         lastName: "Rossi",
         email: null,
         username: "mariorossi",
-        role: "TECHNICAL_OFFICER",
+        role: ["TECHNICAL_OFFICER"],
         office: "DEPARTMENT_OF_COMMERCE"
       });
 
@@ -147,7 +147,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
           lastName: "Officer",
           username: "existingofficer",
           passwordHash: "hashedpassword",
-          role: "TECHNICAL_OFFICER",
+          role: ["TECHNICAL_OFFICER"],
           office: "DEPARTMENT_OF_COMMERCE",
         },
       });

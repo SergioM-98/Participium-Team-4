@@ -13,7 +13,7 @@ jest.mock("../../../src/app/lib/services/profilePhoto.service", () => ({
 }));
 
 jest.mock("next-auth/next", () => ({
-  getServerSession: jest.fn().mockResolvedValue({ user: { id: "user-id-1", role: "CITIZEN" } }),
+  getServerSession: jest.fn().mockResolvedValue({ user: { id: "user-id-1", role: ["CITIZEN"] } }),
 }));
 
 jest.mock("@/app/api/auth/[...nextauth]/route", () => ({ authOptions: {} }));

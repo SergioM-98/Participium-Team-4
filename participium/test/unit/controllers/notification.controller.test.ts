@@ -1,12 +1,12 @@
-import { NotificationService } from '../../../src/app/lib/services/notification.service';
-import { 
-  getInbox, 
-  getUnreadCount, 
-  markAsRead, 
-  markAllAsRead, 
-  getNotificationsPreferences, 
-  updateNotificationsPreferences 
-} from '../../../src/app/lib/controllers/notification.controller';
+import { NotificationService } from "../../../src/app/lib/services/notification.service";
+import {
+  getInbox,
+  getUnreadCount,
+  markAsRead,
+  markAllAsRead,
+  getNotificationsPreferences,
+  updateNotificationsPreferences,
+} from "../../../src/app/lib/controllers/notification.controller";
 import { getServerSession } from "next-auth/next";
 
 jest.mock("next-auth/next", () => ({
@@ -17,7 +17,7 @@ jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
   authOptions: {},
 }));
 
-jest.mock('@/services/notification.service', () => {
+jest.mock("@/services/notification.service", () => {
   const mockNotificationServiceInstance = {
     getUserNotifications: jest.fn(),
     getUnreadNotifications: jest.fn(),
@@ -44,210 +44,269 @@ const mockInstance = mockNotificationService.getInstance() as jest.Mocked<{
   updateNotificationsPreferences: jest.MockedFunction<any>;
 }>;
 
-describe('NotificationController story 11', () => {
-    const mockSession = {
-        user: {
-            id: "1",
-            username: "testuser",
-            role: "CITIZEN",
-        },
-    };
+describe("NotificationController story 11", () => {
+  const mockSession = {
+    user: {
+      id: "1",
+      username: "testuser",
+      role: ["CITIZEN"],
+    },
+  };
 
-    const mockOfficerSession = {
-        user: {
-            id: "2",
-            username: "officer",
-            role: "PUBLIC_RELATIONS_OFFICER",
-        },
-    };
+  const mockOfficerSession = {
+    user: {
+      id: "2",
+      username: "officer",
+      role: ["PUBLIC_RELATIONS_OFFICER"],
+    },
+  };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe("getInbox", () => {
+    it("should retrieve user notifications successfully", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+      const mockNotifications = [
+        { id: 1, message: "Test notification", isRead: false },
+      ];
+
+      mockInstance.getUserNotifications.mockResolvedValue(mockNotifications);
+
+      const response = await getInbox();
+
+      expect(
+        mockNotificationService.getInstance().getUserNotifications,
+      ).toHaveBeenCalled();
+      expect(mockInstance.getUserNotifications).toHaveBeenCalledWith("1");
+      expect(response).toEqual({ success: true, data: mockNotifications });
     });
 
-    describe('getInbox', () => {
-        it('should retrieve user notifications successfully', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-            const mockNotifications = [
-                { id: 1, message: 'Test notification', isRead: false }
-            ];
+    it("should return unauthorized if no session exists", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
 
-            mockInstance.getUserNotifications.mockResolvedValue(mockNotifications);
+      const response = await getInbox();
 
-            const response = await getInbox();
-
-            expect(mockNotificationService.getInstance().getUserNotifications).toHaveBeenCalled();
-            expect(mockInstance.getUserNotifications).toHaveBeenCalledWith("1");
-            expect(response).toEqual({ success: true, data: mockNotifications });
-        });
-
-        it('should return unauthorized if no session exists', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(null);
-
-            const response = await getInbox();
-
-            expect(response).toEqual({ success: false, error: "Unauthorized" });
-            expect(mockInstance.getUserNotifications).not.toHaveBeenCalled();
-        });
-
-        it('should handle service failure', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-            mockInstance.getUserNotifications.mockRejectedValue(new Error("DB Error"));
-
-            const response = await getInbox();
-
-            expect(response).toEqual({ success: false, error: "Failed to retrieve notifications" });
-        });
+      expect(response).toEqual({ success: false, error: "Unauthorized" });
+      expect(mockInstance.getUserNotifications).not.toHaveBeenCalled();
     });
 
-    describe('getUnreadCount', () => {
-        it('should retrieve unread count successfully', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-            const mockUnread = [{ id: 1 }, { id: 2 }];
+    it("should handle service failure", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+      mockInstance.getUserNotifications.mockRejectedValue(
+        new Error("DB Error"),
+      );
 
-            mockInstance.getUnreadNotifications.mockResolvedValue(mockUnread);
+      const response = await getInbox();
 
-            const response = await getUnreadCount();
+      expect(response).toEqual({
+        success: false,
+        error: "Failed to retrieve notifications",
+      });
+    });
+  });
 
-            expect(mockInstance.getUnreadNotifications).toHaveBeenCalledWith("1");
-            expect(response).toEqual({ success: true, data: 2 });
-        });
+  describe("getUnreadCount", () => {
+    it("should retrieve unread count successfully", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+      const mockUnread = [{ id: 1 }, { id: 2 }];
 
-        it('should return unauthorized if no session exists', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(null);
+      mockInstance.getUnreadNotifications.mockResolvedValue(mockUnread);
 
-            const response = await getUnreadCount();
+      const response = await getUnreadCount();
 
-            expect(response).toEqual({ success: false, error: "Unauthorized" });
-        });
-
-        it('should handle service failure', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-            mockInstance.getUnreadNotifications.mockRejectedValue(new Error("DB Error"));
-
-            const response = await getUnreadCount();
-
-            expect(response).toEqual({ success: false, error: "Failed to retrieve unread count" });
-        });
+      expect(mockInstance.getUnreadNotifications).toHaveBeenCalledWith("1");
+      expect(response).toEqual({ success: true, data: 2 });
     });
 
-    describe('markAsRead', () => {
-        it('should mark notification as read successfully', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-            mockInstance.markNotificationAsRead.mockResolvedValue({ id: 10, isRead: true });
+    it("should return unauthorized if no session exists", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
 
-            const response = await markAsRead(BigInt(10));
+      const response = await getUnreadCount();
 
-            expect(mockInstance.markNotificationAsRead).toHaveBeenCalledWith(BigInt(10));
-            expect(response).toEqual({ success: true, message: "Notification marked as read" });
-        });
-
-        it('should return unauthorized if no session exists', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(null);
-
-            const response = await markAsRead(BigInt(10));
-
-            expect(response).toEqual({ success: false, error: "Unauthorized" });
-        });
-
-        it('should handle service failure', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-            mockInstance.markNotificationAsRead.mockRejectedValue(new Error("DB Error"));
-
-            const response = await markAsRead(BigInt(10));
-
-            expect(response).toEqual({ success: false, error: "Failed to mark notification as read" });
-        });
+      expect(response).toEqual({ success: false, error: "Unauthorized" });
     });
 
-    describe('markAllAsRead', () => {
-        it('should mark all notifications as read successfully', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-            mockInstance.markAllNotificationsAsRead.mockResolvedValue({ count: 5 });
+    it("should handle service failure", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+      mockInstance.getUnreadNotifications.mockRejectedValue(
+        new Error("DB Error"),
+      );
 
-            const response = await markAllAsRead();
+      const response = await getUnreadCount();
 
-            expect(mockInstance.markAllNotificationsAsRead).toHaveBeenCalledWith("1");
-            expect(response).toEqual({ success: true, message: "All notifications marked as read" });
-        });
+      expect(response).toEqual({
+        success: false,
+        error: "Failed to retrieve unread count",
+      });
+    });
+  });
 
-        it('should return unauthorized if no session exists', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(null);
+  describe("markAsRead", () => {
+    it("should mark notification as read successfully", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+      mockInstance.markNotificationAsRead.mockResolvedValue({
+        id: 10,
+        isRead: true,
+      });
 
-            const response = await markAllAsRead();
+      const response = await markAsRead(BigInt(10));
 
-            expect(response).toEqual({ success: false, error: "Unauthorized" });
-        });
-
-        it('should handle service failure', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-            mockInstance.markAllNotificationsAsRead.mockRejectedValue(new Error("DB Error"));
-
-            const response = await markAllAsRead();
-
-            expect(response).toEqual({ success: false, error: "Failed to mark all notifications as read" });
-        });
+      expect(mockInstance.markNotificationAsRead).toHaveBeenCalledWith(
+        BigInt(10),
+      );
+      expect(response).toEqual({
+        success: true,
+        message: "Notification marked as read",
+      });
     });
 
-    describe('getNotificationsPreferences', () => {
-        it('should retrieve preferences successfully for CITIZEN', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-            const mockPrefs = { emailEnabled: true, telegramEnabled: false };
-            
-            mockInstance.getNotificationsPreferences.mockResolvedValue({ success: true, data: mockPrefs });
+    it("should return unauthorized if no session exists", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
 
-            const response = await getNotificationsPreferences();
+      const response = await markAsRead(BigInt(10));
 
-            expect(mockInstance.getNotificationsPreferences).toHaveBeenCalledWith("testuser");
-            expect(response).toEqual({ success: true, data: mockPrefs });
-        });
-
-        it('should fail for non-CITIZEN roles', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(mockOfficerSession);
-
-            const response = await getNotificationsPreferences();
-
-            expect(response).toEqual({ success: false, error: "Unauthorized access" });
-            expect(mockInstance.getNotificationsPreferences).not.toHaveBeenCalled();
-        });
-
-        it('should fail if no session exists', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(null);
-
-            const response = await getNotificationsPreferences();
-
-            expect(response).toEqual({ success: false, error: "Unauthorized access" });
-        });
+      expect(response).toEqual({ success: false, error: "Unauthorized" });
     });
 
-    describe('updateNotificationsPreferences', () => {
-        const newPrefs = { emailEnabled: false, telegramEnabled: true };
+    it("should handle service failure", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+      mockInstance.markNotificationAsRead.mockRejectedValue(
+        new Error("DB Error"),
+      );
 
-        it('should update preferences successfully for CITIZEN', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-            mockInstance.updateNotificationsPreferences.mockResolvedValue({ success: true, data: newPrefs });
+      const response = await markAsRead(BigInt(10));
 
-            const response = await updateNotificationsPreferences(newPrefs);
-
-            expect(mockInstance.updateNotificationsPreferences).toHaveBeenCalledWith("testuser", newPrefs, expect.anything());
-            expect(response).toEqual({ success: true, data: newPrefs });
-        });
-
-        it('should fail for non-CITIZEN roles', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(mockOfficerSession);
-
-            const response = await updateNotificationsPreferences(newPrefs);
-
-            expect(response).toEqual({ success: false, error: "Unauthorized access" });
-            expect(mockInstance.updateNotificationsPreferences).not.toHaveBeenCalled();
-        });
-
-        it('should fail if no session exists', async () => {
-            (getServerSession as jest.Mock).mockResolvedValue(null);
-
-            const response = await updateNotificationsPreferences(newPrefs);
-
-            expect(response).toEqual({ success: false, error: "Unauthorized access" });
-        });
+      expect(response).toEqual({
+        success: false,
+        error: "Failed to mark notification as read",
+      });
     });
+  });
+
+  describe("markAllAsRead", () => {
+    it("should mark all notifications as read successfully", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+      mockInstance.markAllNotificationsAsRead.mockResolvedValue({ count: 5 });
+
+      const response = await markAllAsRead();
+
+      expect(mockInstance.markAllNotificationsAsRead).toHaveBeenCalledWith("1");
+      expect(response).toEqual({
+        success: true,
+        message: "All notifications marked as read",
+      });
+    });
+
+    it("should return unauthorized if no session exists", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
+
+      const response = await markAllAsRead();
+
+      expect(response).toEqual({ success: false, error: "Unauthorized" });
+    });
+
+    it("should handle service failure", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+      mockInstance.markAllNotificationsAsRead.mockRejectedValue(
+        new Error("DB Error"),
+      );
+
+      const response = await markAllAsRead();
+
+      expect(response).toEqual({
+        success: false,
+        error: "Failed to mark all notifications as read",
+      });
+    });
+  });
+
+  describe("getNotificationsPreferences", () => {
+    it("should retrieve preferences successfully for CITIZEN", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+      const mockPrefs = { emailEnabled: true, telegramEnabled: false };
+
+      mockInstance.getNotificationsPreferences.mockResolvedValue({
+        success: true,
+        data: mockPrefs,
+      });
+
+      const response = await getNotificationsPreferences();
+
+      expect(mockInstance.getNotificationsPreferences).toHaveBeenCalledWith(
+        "1",
+      );
+      expect(response).toEqual({ success: true, data: mockPrefs });
+    });
+
+    it("should fail for non-CITIZEN roles", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockOfficerSession);
+
+      const response = await getNotificationsPreferences();
+
+      expect(response).toEqual({
+        success: false,
+        error: "Unauthorized access",
+      });
+      expect(mockInstance.getNotificationsPreferences).not.toHaveBeenCalled();
+    });
+
+    it("should fail if no session exists", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
+
+      const response = await getNotificationsPreferences();
+
+      expect(response).toEqual({
+        success: false,
+        error: "Unauthorized access",
+      });
+    });
+  });
+
+  describe("updateNotificationsPreferences", () => {
+    const newPrefs = { emailEnabled: false, telegramEnabled: true };
+
+    it("should update preferences successfully for CITIZEN", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockSession);
+      mockInstance.updateNotificationsPreferences.mockResolvedValue({
+        success: true,
+        data: newPrefs,
+      });
+
+      const response = await updateNotificationsPreferences(newPrefs);
+
+      expect(mockInstance.updateNotificationsPreferences).toHaveBeenCalledWith(
+        "1",
+        newPrefs,
+        expect.anything(),
+      );
+      expect(response).toEqual({ success: true, data: newPrefs });
+    });
+
+    it("should fail for non-CITIZEN roles", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(mockOfficerSession);
+
+      const response = await updateNotificationsPreferences(newPrefs);
+
+      expect(response).toEqual({
+        success: false,
+        error: "Unauthorized access",
+      });
+      expect(
+        mockInstance.updateNotificationsPreferences,
+      ).not.toHaveBeenCalled();
+    });
+
+    it("should fail if no session exists", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
+
+      const response = await updateNotificationsPreferences(newPrefs);
+
+      expect(response).toEqual({
+        success: false,
+        error: "Unauthorized access",
+      });
+    });
+  });
 });

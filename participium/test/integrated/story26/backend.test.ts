@@ -119,7 +119,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         user: {
           id: testTechnicalOfficer.id,
           email: testTechnicalOfficer.email,
-          role: "TECHNICAL_OFFICER",
+          role: ["TECHNICAL_OFFICER"],
         },
       });
 
@@ -181,7 +181,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         user: {
           id: testTechnicalOfficer.id,
           email: testTechnicalOfficer.email,
-          role: "TECHNICAL_OFFICER",
+          role: ["TECHNICAL_OFFICER"],
         },
       });
 
@@ -216,7 +216,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         user: {
           id: testCitizen.id,
           email: testCitizen.email,
-          role: "CITIZEN",
+          role: ["CITIZEN"],
         },
       });
 
@@ -240,7 +240,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         user: {
           id: testTechnicalOfficer.id,
           email: testTechnicalOfficer.email,
-          role: "TECHNICAL_OFFICER",
+          role: ["TECHNICAL_OFFICER"],
         },
       });
 
@@ -262,7 +262,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         user: {
           id: testTechnicalOfficer.id,
           email: testTechnicalOfficer.email,
-          role: "TECHNICAL_OFFICER",
+          role: ["TECHNICAL_OFFICER"],
         },
       });
 
@@ -275,7 +275,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         user: {
           id: anotherTechnicalOfficer.id,
           email: anotherTechnicalOfficer.email,
-          role: "TECHNICAL_OFFICER",
+          role: ["TECHNICAL_OFFICER"],
         },
       });
 
@@ -314,7 +314,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         user: {
           id: testTechnicalOfficer.id,
           email: testTechnicalOfficer.email,
-          role: "TECHNICAL_OFFICER",
+          role: ["TECHNICAL_OFFICER"],
         },
       });
 
@@ -356,7 +356,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         user: {
           id: testTechnicalOfficer.id,
           email: testTechnicalOfficer.email,
-          role: "TECHNICAL_OFFICER",
+          role: ["TECHNICAL_OFFICER"],
         },
       });
 
@@ -397,7 +397,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         user: {
           id: testTechnicalOfficer.id,
           email: testTechnicalOfficer.email,
-          role: "TECHNICAL_OFFICER",
+          role: ["TECHNICAL_OFFICER"],
         },
       });
 
