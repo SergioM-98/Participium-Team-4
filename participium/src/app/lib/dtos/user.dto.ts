@@ -8,7 +8,7 @@ const BaseUserSchema = z
     email: z.email("Invalid email").optional(),
     username: z.string().min(3, "Username must be at least 3 characters"),
     role: z.array(z.enum(Role)).min(1, "At least one role is required"),    
-    office: z.enum(Offices).optional(),
+    office: z.array(z.enum(Offices)).default([]),
     telegram: z.string().optional(),
     companyId: z.string().optional(),
   })
@@ -16,12 +16,12 @@ const BaseUserSchema = z
     (data) =>
       ((data.role.includes("PUBLIC_RELATIONS_OFFICER") ||
         data.role.includes("TECHNICAL_OFFICER")) &&
-        data.office) ||
+        data.office.length > 0) ||
       (!data.role.includes("PUBLIC_RELATIONS_OFFICER") &&
         !data.role.includes("TECHNICAL_OFFICER") &&
-        !data.office),
+        data.office.length === 0),
     {
-      message: "Only OFFICER can have an office",
+      message: "Only OFFICER can have offices",
       path: ["office"],
     }
   )
@@ -101,7 +101,7 @@ export const RetrievedUserDataSchema = z
     email: z.email().optional(),
     username: z.string(),
     role: z.array(z.enum(Role)),
-    office: z.enum(Offices).optional(),
+    office: z.array(z.enum(Offices)).default([]),
     telegram: z.boolean,
     pendingRequest: z.boolean,
     companyId: z.string().optional()
@@ -110,12 +110,12 @@ export const RetrievedUserDataSchema = z
     (data) =>
       ((data.role.includes("PUBLIC_RELATIONS_OFFICER") ||
         data.role.includes("TECHNICAL_OFFICER")) &&
-        data.office) ||
+        data.office.length > 0) ||
       (!data.role.includes("PUBLIC_RELATIONS_OFFICER") &&
         !data.role.includes("TECHNICAL_OFFICER") &&
-        !data.office),
+        data.office.length === 0),
     {
-      message: "Only OFFICER can have an office",
+      message: "Only OFFICER can have offices",
       path: ["office"],
     }
   )

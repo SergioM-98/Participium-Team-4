@@ -68,7 +68,7 @@ class UserRepository {
           username: userData.username,
           id: userData.id,
           role: userData.role,
-          office: userData.office ?? undefined,
+          office: userData.office,
           companyId: userData.companyId ?? undefined,
           passwordHash: hashedPassword,
           isVerified: userData.role.includes("CITIZEN") ? false : null,
@@ -115,7 +115,7 @@ class UserRepository {
         success: true,
         data: {
           email: rest.email ?? undefined,
-          office: rest.office ?? undefined,
+          office: rest.office,
           companyId: rest.companyId ?? undefined,
           pendingRequest: !!rest.telegramRequestPending,
           firstName: rest.firstName,

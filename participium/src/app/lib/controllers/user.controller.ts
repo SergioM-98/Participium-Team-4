@@ -43,7 +43,7 @@ export async function register(
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
     role: formData.get("role"),
-    office: formData.get("office")?.toString().trim() || undefined,
+    office: formData.get("office") ? [formData.get("office")!.toString()] : [],
     companyId: formData.get("companyId")?.toString().trim() || undefined,
   });
 
@@ -206,7 +206,7 @@ export async function getMe(): Promise<MeType | RegistrationResponse> {
       email: user.email ?? undefined,
       username: user.username,
       role: user.role as MeType["me"]["role"],
-      office: (user.office as MeType["me"]["office"]) ?? undefined,
+      office: user.office as MeType["me"]["office"],
       telegram: !!user.telegramChatId,
       pendingRequest: !!user.telegramRequestPending,
       companyId: user.companyId ?? undefined

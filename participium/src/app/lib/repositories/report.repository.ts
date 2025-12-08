@@ -244,7 +244,9 @@ class ReportRepository {
         role: {
           has: "TECHNICAL_OFFICER" as Role
         },
-        office,
+        office: {
+          has: office
+        },
       },
       orderBy: {
         managedReports: {
