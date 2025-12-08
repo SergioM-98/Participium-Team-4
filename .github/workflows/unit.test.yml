@@ -18,16 +18,18 @@ jobs:
     - name: Cache node modules
       uses: actions/cache@v3
       with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        path: participium/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('participium/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
 
     - name: Install dependencies
       run: npm i
+      working-directory: participium
 
     - name: Run unit tests with coverage
       run: npm run test:ci:unit
+      working-directory: participium
       env:
         NODE_ENV: test
         CI: true
@@ -36,6 +38,6 @@ jobs:
       uses: codecov/codecov-action@v3
       if: always()
       with:
-        file: ./coverage/lcov.info
+        file: ./participium/coverage/lcov.info
         flags: unit-tests
         name: unit-test-coverage
