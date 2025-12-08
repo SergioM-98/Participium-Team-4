@@ -36,7 +36,7 @@ class UserService {
       const result = await this.userRepository.createUser(userData, tx);
       if (!result.success) return result;
 
-      if (userData.role === "CITIZEN") {
+      if (userData.role.includes("CITIZEN")) {
         // Set up notification preferences
         const res =
           await this.notificationsRepository.updateNotificationsPreferences(

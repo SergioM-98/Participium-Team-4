@@ -3,12 +3,13 @@ import { ReportMapService } from "@/services/reportMap.service";
 import { z } from "zod";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { th } from "zod/v4/locales";
 
 const idSchema = z.string();
 
 export async function getReportsForMap() {
   const { getServerSession } = await import("next-auth/next");
-  const { authOptions } = await import("../../api/auth/[...nextauth]/route");
+  const { authOptions } = await import("@/auth");
     const service = ReportMapService.getInstance();
     const session = await getServerSession(authOptions);
 
@@ -26,7 +27,9 @@ export async function getReportsForMap() {
       longitude: r.longitude,
       latitude: r.latitude,
       category: r.category,
-      username: r.citizen?.username
+      username: r.citizen?.username,
+      citizenId: r.citizenId,
+      status: r.status,
     }));
 
     return { success: true, data };
@@ -89,6 +92,7 @@ export async function getReportById(params: { id: string }) {
     username: repoResult.data.citizen?.username,
     citizenId: repoResult.data.citizenId,
     officerId: repoResult.data.officerId,
+    companyId: repoResult.data.companyId,
     photos: processedPhotos.filter((url) => url !== null)
   };
 

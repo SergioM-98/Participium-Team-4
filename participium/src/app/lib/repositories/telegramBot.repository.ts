@@ -88,7 +88,7 @@ class TelegramBotRepository {
     if(!user){
       throw new Error("User not found");
     }
-    if(user.role !== "CITIZEN"){
+    if(user.role.includes("CITIZEN") === false){
       throw new Error("Only citizens can register telegram accounts");
     }
     if(user.telegramRequestPending){

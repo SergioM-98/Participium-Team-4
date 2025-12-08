@@ -6,21 +6,22 @@ import { ReportMarkerIcon, ClusterMarkerIcon } from './MapIcons';
 
 // Map report status to border colors
 export function getStatusColor(status: string): string {
+    status = status.toUpperCase().trim();
     switch (status) {
         case 'PENDING_APPROVAL':
-            return '#ef4444'; // red
+            return '#64748b'; // slate grey - pending approval
         case 'ASSIGNED':
-            return '#3b82f6'; // blue
+            return '#0891b2'; // cyan - assigned
         case 'IN_PROGRESS':
-            return '#eab308'; // yellow
+            return '#f59e0b'; // amber - in progress
         case 'SUSPENDED':
-            return '#f97316'; // orange
+            return '#a855f7'; // violet - suspended
         case 'REJECTED':
-            return '#6b7280'; // gray
+            return '#dc2626'; // dark red - rejected
         case 'RESOLVED':
-            return '#22c55e'; // green
+            return '#10b981'; // emmerald green - resolved
         default:
-            return '#3b82f6'; // default blue
+            return '#6366f1'; // indigo - unknown status
     }
 }
 

@@ -25,7 +25,7 @@ export const authOptions: AuthOptions = {
         );
         if (!isValid) return null;
 
-        if(!user.isVerified && user.role == "CITIZEN"){
+        if(!user.isVerified && user.role.includes("CITIZEN")){
           // NextAuth will redirect with error query
           throw new Error("The user is not verified");
         }

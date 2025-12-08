@@ -24,7 +24,7 @@ export default async function createAnonymous() {
         passwordHash: hashedPassword,
         firstName: "Anonymous",
         lastName: "User",
-        role: "CITIZEN",
+        role: ["CITIZEN"],
         },
     });
 

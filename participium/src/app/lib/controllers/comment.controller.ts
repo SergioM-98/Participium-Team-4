@@ -3,26 +3,35 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import CommentService from "../services/comment.service";
 
-export async function createComment(
-  content: string,
-  reportId: bigint
-) {
+export async function createComment(content: string, reportId: bigint) {
   const session = await getServerSession(authOptions);
 
-  if (!session || !session.user) {
+  if (!session?.user) {
     return { success: false, error: "Unauthorized: No session found" };
   }
 
-  if (session.user.role !== "TECHNICAL_OFFICER" && session.user.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS") {
-    return { success: false, error: "Unauthorized: Only technical officers can create comments" };
+  if (
+    !session.user.role.includes("TECHNICAL_OFFICER") &&
+    !session.user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")
+  ) {
+    return {
+      success: false,
+      error:
+        "Unauthorized: Only technical officers and external maintainers with access can create comments",
+    };
   }
 
   try {
     const commentService = CommentService.getInstance();
-    const comment = await commentService.createComment(content, session.user.id, reportId);
+    const comment = await commentService.createComment(
+      content,
+      session.user.id,
+      reportId,
+    );
     return { success: true, data: comment };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Failed to create comment";
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to create comment";
     return { success: false, error: errorMessage };
   }
 }
@@ -30,12 +39,19 @@ export async function createComment(
 export async function getReportComments(reportId: bigint) {
   const session = await getServerSession(authOptions);
 
-  if (!session || !session.user) {
+  if (!session?.user) {
     return { success: false, error: "Unauthorized: No session found" };
   }
 
-  if (session.user.role !== "TECHNICAL_OFFICER") {
-    return { success: false, error: "Unauthorized: Only technical officers can view comments" };
+  if (
+    !session.user.role.includes("TECHNICAL_OFFICER") &&
+    !session.user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")
+  ) {
+    return {
+      success: false,
+      error:
+        "Unauthorized: Only technical officers and external maintainers with access can view comments",
+    };
   }
 
   try {
@@ -43,7 +59,8 @@ export async function getReportComments(reportId: bigint) {
     const comments = await commentService.getCommentsByReport(reportId);
     return { success: true, data: comments };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Failed to retrieve comments";
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to retrieve comments";
     return { success: false, error: errorMessage };
   }
 }

@@ -8,7 +8,10 @@ export default async function createExternalMaintainerWithAccess() {
 
   let companyId: string;
 
-  if (!existingCompany) {
+  if (existingCompany) {
+    companyId = existingCompany.id;
+    console.log("Company already exists. Using existing company.");
+  } else {
     const company = await prisma.company.create({
       data: {
         name: "Verdi Maintenance Services",
@@ -19,9 +22,6 @@ export default async function createExternalMaintainerWithAccess() {
     });
     companyId = company.id;
     console.log("Company created successfully!");
-  } else {
-    companyId = existingCompany.id;
-    console.log("Company already exists. Using existing company.");
   }
 
   const existing = await prisma.user.findUnique({
@@ -44,13 +44,13 @@ export default async function createExternalMaintainerWithAccess() {
 
   await prisma.user.create({
     data: {
-      id: id as string,
+      id: id,
       username: "everdi",
       passwordHash: hashedPassword,
       firstName: "Emma",
       lastName: "Verdi",
       email: "everdi@team4.it",
-      role: "EXTERNAL_MAINTAINER_WITH_ACCESS" as const,
+      role: ["EXTERNAL_MAINTAINER_WITH_ACCESS" as const],
       companyId: companyId,
     },
   });
