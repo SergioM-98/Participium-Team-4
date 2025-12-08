@@ -6,6 +6,7 @@ import {
   RegistrationInput,
   RegistrationInputSchema,
   RegistrationResponse,
+  getAllOfficersResponse
 } from "@/dtos/user.dto";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
@@ -157,17 +158,17 @@ export async function updateNotificationsMedia(
   }
 }
 
-export async function getAllofficers(): Promise<getAllOfficersResponse[]> {
+export async function getAllofficers(): Promise<getAllOfficersResponse> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id || !session.user?.role.includes("ADMIN")) {
     console.error("Unauthorized access attempt to get all officers by user:", session?.user?.username);
-    return [];
+    return { success: false, error: "Unauthorized access" };
   }
   try {
     return await UserService.getInstance().getAllOfficers();
   } catch (error) {
     console.error("Error retrieving all officers:", error);
-    return [];
+    return { success: false, error: "Failed to retrieve all officers" };
   }
 }
 

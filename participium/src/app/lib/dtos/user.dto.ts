@@ -171,6 +171,14 @@ export const RetrievedUserDataSchema = z
     }
   );
 
+export const OfficerUserSchema = z.object({
+  firstName: z.string(),
+  lastName: z.string(),
+  username: z.string(),
+  role: z.array(z.enum(Role)),
+  department: z.array(z.enum(Offices)).default([]),
+});
+
 export const LoginInputSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(8),
@@ -196,4 +204,12 @@ export type MeType = {
     emailNotifications: boolean,
     telegramNotifications: boolean,
     companyName?: string
+};
+
+export type getAllOfficersResponse = {
+  success: true;
+  data: z.infer<typeof OfficerUserSchema>[];
+} | {
+  success: false;
+  error: string;
 };
