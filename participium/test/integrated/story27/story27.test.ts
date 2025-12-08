@@ -39,7 +39,7 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
       username,
       password: "TestPassword123!",
       confirmPassword: "TestPassword123!",
-      role: "CITIZEN" as const,
+      role: ["CITIZEN"] as const,
     };
 
     const userService = UserService.getInstance();
@@ -86,7 +86,7 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
       expect(user).not.toBeNull();
       expect(user?.isVerified).toBe(false);
       expect(user?.email).toBe(testCitizenEmail);
-      expect(user?.role).toBe("CITIZEN");
+      expect(user?.role).toEqual(["CITIZEN"]);
     });
 
     it("should create a verification token when citizen registers", async () => {
