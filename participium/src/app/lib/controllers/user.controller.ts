@@ -35,6 +35,8 @@ export async function register(
 ): Promise<RegistrationResponse> {
   const session = await getServerSession(authOptions);
 
+  //throw new Error(formData.get("role")?.toString());
+
   const validatedData = RegistrationInputSchema.safeParse({
     id: crypto.randomUUID(),
     firstName: formData.get("firstName"),
@@ -43,7 +45,7 @@ export async function register(
     username: formData.get("username"),
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
-    role: formData.get("role"),
+    role: formData.get("role") ? JSON.parse(formData.get("role") as string) : [],
     office: formData.get("office") ? [formData.get("office")!.toString()] : [],
     companyId: formData.get("companyId")?.toString().trim() || undefined,
   });
