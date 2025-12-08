@@ -11,7 +11,10 @@ const config: Config = {
     {
       // Progetto per Unit Tests
       displayName: "Unit Tests",
-      testMatch: ["<rootDir>/test/unit/**/*.test.ts"],
+      testMatch: [
+        "<rootDir>/test/unit/**/*.test.ts",
+        "!<rootDir>/test/unit/components/**/*.test.tsx",
+      ],
       testEnvironment: "jest-environment-node",
       clearMocks: true,
       preset: "ts-jest",
@@ -80,7 +83,7 @@ const config: Config = {
       },
     },
     {
-      // Progetto per Integration Tests
+      // Progetto per Integration Tests - Backend API tests
       displayName: "Integration Tests",
       testMatch: ["<rootDir>/test/integrated/**/*.test.ts"],
       testEnvironment: "jest-environment-node",
@@ -108,6 +111,43 @@ const config: Config = {
           },
         ],
       },
+      extensionsToTreatAsEsm: [".ts", ".tsx"],
+      globals: {
+        "ts-jest": {
+          useESM: true,
+        },
+      },
+    },
+    {
+      // Progetto per Integration Tests - Component integration tests
+      displayName: "Component Integration Tests",
+      testMatch: ["<rootDir>/test/integrated/**/*.test.tsx"],
+      testEnvironment: "jsdom",
+      clearMocks: true,
+      preset: "ts-jest",
+      setupFilesAfterEnv: ["<rootDir>/test/setup.ts"],
+      moduleNameMapper: {
+        "^@/auth$": "<rootDir>/src/app/api/auth/[...nextauth]/route.ts",
+        "^@/repositories/(.*)$": "<rootDir>/src/app/lib/repositories/$1",
+        "^@/dtos/(.*)$": "<rootDir>/src/app/lib/dtos/$1",
+        "^@/services/(.*)$": "<rootDir>/src/app/lib/services/$1",
+        "^@/controllers/(.*)$": "<rootDir>/src/app/lib/controllers/$1",
+        "^@/utils/(.*)$": "<rootDir>/src/app/lib/utils/$1",
+        "^@/prisma/(.*)$": "<rootDir>/prisma/$1",
+        "^@/db/(.*)$": "<rootDir>/prisma/$1",
+        "^@/lib/(.*)$": "<rootDir>/src/app/lib/$1",
+        "^@/(.*)$": "<rootDir>/src/$1",
+        "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+      },
+      transform: {
+        "^.+\\.(ts|tsx)$": [
+          "ts-jest",
+          {
+            useESM: true,
+          },
+        ],
+      },
+      transformIgnorePatterns: ["node_modules/(?!(jose|openid-client)/)"],
       extensionsToTreatAsEsm: [".ts", ".tsx"],
       globals: {
         "ts-jest": {

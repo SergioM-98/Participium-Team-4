@@ -4,18 +4,10 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { StickyNote, Lock } from "lucide-react";
 import { getReportComments, createComment } from "@/app/lib/controllers/comment.controller";
-
-// You can move this interface to a shared types file later
-export interface InternalNote {
-  id: string;
-  authorName: string;
-  authorRole: string;
-  content: string;
-  createdAt: string;
-}
+import type { InternalNote } from "@/app/lib/dtos/comment.dto";
 
 interface InternalNotesPanelProps {
-  reportId: string;
+  readonly reportId: string;
 }
 
 export default function InternalNotesPanel({
@@ -32,8 +24,7 @@ export default function InternalNotesPanel({
         setInternalNotes(
           res.data.map((c) => ({
             id: c.id.toString(),
-            authorName: c.authorId,
-            authorRole: "",
+            authorName: c.author.firstName + " " + c.author.lastName,
             content: c.content,
             createdAt: c.createdAt.toString(),
           }))
@@ -48,20 +39,24 @@ export default function InternalNotesPanel({
   const handleAddInternalNote = async () => {
     if (!newNote.trim()) return;
     setIsSubmittingNote(true);
-    const res = await createComment(newNote, BigInt(reportId));
-    if (res.success && res.data) {
-      const c = res.data;
-      const note: InternalNote = {
-        id: c.id.toString(),
-        authorName: c.authorId,
-        authorRole: "",
-        content: c.content,
-        createdAt: c.createdAt.toString(),
-      };
-      setInternalNotes((prev) => [...prev, note]);
-      setNewNote("");
+    try {
+      const res = await createComment(newNote, BigInt(reportId));
+      if (res.success && res.data) {
+        const c = res.data;
+        const note: InternalNote = {
+          id: c.id.toString(),
+          authorName: c.author.firstName + " " + c.author.lastName,
+          content: c.content,
+          createdAt: c.createdAt,
+        };
+        setInternalNotes((prev) => [...prev, note]);
+        setNewNote("");
+      }
+    } catch (error) {
+      console.error("Error adding note:", error);
+    } finally {
+      setIsSubmittingNote(false);
     }
-    setIsSubmittingNote(false);
   };
 
   return (
