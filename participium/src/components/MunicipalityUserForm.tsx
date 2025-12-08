@@ -65,7 +65,7 @@ export default function MunicipalityUserForm({
         ...prev,
         ...initialData,
         role: initialData.role ?? [""],
-        office: initialData.office ?? "",
+        office: Array.isArray(initialData.office) ? initialData.office[0] ?? "" : initialData.office ?? "",
         companyId: initialData.companyId,
       }));
       setErrors({});
@@ -196,7 +196,8 @@ export default function MunicipalityUserForm({
         !data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") &&
         !data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
       ) {
-        submitData.office = data.office?.trim() ?? "";
+        const officeValue = data.office?.trim();
+        submitData.office = officeValue ? [officeValue] : [];
       }
 
       // Include companyId for EXTERNAL_MAINTAINER roles

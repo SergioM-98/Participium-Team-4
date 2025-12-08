@@ -6,17 +6,18 @@ import {
   LoginResponse,
   RegistrationInput,
   RegistrationResponse,
+  getAllOfficersResponse
 } from "@/dtos/user.dto";
 import { prisma } from "@/prisma/db";
 import bcrypt from "bcrypt";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient, Offices } from "@prisma/client";
 
 type DBClient = PrismaClient | Prisma.TransactionClient;
 
 class UserRepository {
   private static instance: UserRepository;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): UserRepository {
     if (!UserRepository.instance) {
@@ -60,20 +61,20 @@ class UserRepository {
 
     const hashedPassword = await bcrypt.hash(userData.password, 12);
 
-      const user = await prisma.user.create({
-        data: {
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          email: userData.email ?? undefined,
-          username: userData.username,
-          id: userData.id,
-          role: userData.role,
-          office: userData.office ?? undefined,
-          companyId: userData.companyId ?? undefined,
-          passwordHash: hashedPassword,
-          isVerified: userData.role.includes("CITIZEN") ? false : null,
-        },
-      });
+    const user = await prisma.user.create({
+      data: {
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email ?? undefined,
+        username: userData.username,
+        id: userData.id,
+        role: userData.role,
+        office: userData.office,
+        companyId: userData.companyId ?? undefined,
+        passwordHash: hashedPassword,
+        isVerified: userData.role.includes("CITIZEN") ? false : null,
+      },
+    });
 
     return {
       success: true,
@@ -88,47 +89,47 @@ class UserRepository {
       },
     });
 
-      if (!user) {
-        return { success: false, error: "Invalid credentials" };
-      }
+    if (!user) {
+      return { success: false, error: "Invalid credentials" };
+    }
 
-      // Check if CITIZEN user is verified
-      if (user.role.includes("CITIZEN") && user.isVerified === false) {
-        return {
-          success: false,
-          error:
-            "Account verification pending. Please check your email for the verification code.",
-        };
-      }
+    // Check if CITIZEN user is verified
+    if (user.role.includes("CITIZEN") && user.isVerified === false) {
+      return {
+        success: false,
+        error:
+          "Account verification pending. Please check your email for the verification code.",
+      };
+    }
 
-      const passwordMatch = await bcrypt.compare(
-        userData.password,
-        user.passwordHash,
-      );
+    const passwordMatch = await bcrypt.compare(
+      userData.password,
+      user.passwordHash,
+    );
 
     if (!passwordMatch) {
       return { success: false, error: "Invalid credentials" };
     }
 
-      const { passwordHash, ...rest } = user;
-      return {
-        success: true,
-        data: {
-          email: rest.email ?? undefined,
-          office: rest.office ?? undefined,
-          companyId: rest.companyId ?? undefined,
-          pendingRequest: !!rest.telegramRequestPending,
-          firstName: rest.firstName,
-          lastName: rest.lastName,
-          username: rest.username,
-          role: rest.role,
-          telegram: !!rest.telegramChatId,
-        },
-      };
-    } catch (error: any) {
-      throw new Error("Failed to fetch user from database");
-    }
-  
+    const { passwordHash, ...rest } = user;
+    return {
+      success: true,
+      data: {
+        email: rest.email ?? undefined,
+        office: rest.office,
+        companyId: rest.companyId ?? undefined,
+        pendingRequest: !!rest.telegramRequestPending,
+        firstName: rest.firstName,
+        lastName: rest.lastName,
+        username: rest.username,
+        role: rest.role,
+        telegram: !!rest.telegramChatId,
+      },
+    };
+  } catch(error: any) {
+    throw new Error("Failed to fetch user from database");
+  }
+
 
   async updateNotificationsMedia(
     userId: string,
@@ -152,15 +153,15 @@ class UserRepository {
       data.telegram = null;
     }
 
-      await prisma.user.update({
-        where: { id: userId },
-        data,
-      });
-      return {
-        success: true,
-        data: userId,
-      };
-    } 
+    await prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+    return {
+      success: true,
+      data: userId,
+    };
+  }
 
   async getUserByTelegramId(telegramId: string): Promise<RegistrationResponse> {
     const user = await prisma.user.findUnique({
@@ -175,12 +176,12 @@ class UserRepository {
         error: "No user found with the provided telegram ID.",
       };
     }
-      return {
-        success: true,
-        data: user.id,
-      };
-    }
-  
+    return {
+      success: true,
+      data: user.id,
+    };
+  }
+
 
   async getUserById(userId: string) {
     try {
@@ -195,7 +196,26 @@ class UserRepository {
       return null;
     }
   }
-    async getUserWithCompany(userId: string) {
+  async getOfficer(userId: string) {
+    try {
+      return await prisma.user.findUnique({
+        where: { id: userId },
+        include: { managedReports: true },
+      });
+    } catch (error) {
+      console.error("Failed to fetch officer from database", error);
+      return null;
+    }
+  }
+
+  async deleteOfficer(userId: string) {
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+    return true;
+  }
+
+  async getUserWithCompany(userId: string) {
     try {
       return await prisma.user.findUnique({
         where: { id: userId },
@@ -207,9 +227,42 @@ class UserRepository {
     }
   }
 
+  async getAllOfficers(): Promise<getAllOfficersResponse> {
+    try {
+      const officers = await prisma.user.findMany({
+        where: {
+          role: {
+            has: "TECHNICAL_OFFICER",
+          },
+        },
+        include: {
+          company: true,
+        },
+      });
+      return { success: true, data: officers };
+    } catch (error) {
+      console.error("Failed to fetch officers from database", error);
+      return { success: false, error: "Failed to retrieve officers" };
+    }
+  }
+
+  async updateOfficerOffices(
+    userId: string,
+    offices: string[],
+  ): Promise<boolean> {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        office: offices as Offices[],
+      },
+    });
+    return true;
+  }
+
   async deleteUserById(userId: string) {
     await prisma.user.delete({
       where: { id: userId },
+      include: { managedReports: true }
     });
   }
 }

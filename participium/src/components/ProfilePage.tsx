@@ -168,7 +168,7 @@ export default function ProfilePage() {
             telegram: !!userData.telegram,
             pendingRequest: !!userData.pendingRequest,
             role: userData.role || session.user.role,
-            office: userData.office || undefined,
+            office: userData.office || [],
             companyId: userData.companyId || undefined,
             companyName: (userData as any).companyName || undefined,
             image: imageUrl,
@@ -816,13 +816,17 @@ export default function ProfilePage() {
             {(user.role.includes("TECHNICAL_OFFICER") ||
               user.role.includes("PUBLIC_RELATIONS_OFFICER") ||
               user.role.includes("ADMIN")) &&
-              user.office && (
+              user.office && user.office.length > 0 && (
                 <div className="space-y-2 md:col-span-2">
                   <Label className="flex items-center gap-2 text-muted-foreground">
                     <Building2 className="h-4 w-4" /> Department / Office
                   </Label>
-                  <div className="flex items-center h-12 w-full rounded-md border border-input bg-muted/30 px-3 text-sm font-medium text-foreground shadow-sm">
-                    {user.office.replaceAll('_', " ")}
+                  <div className="flex flex-wrap items-center min-h-12 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm font-medium text-foreground shadow-sm gap-2">
+                    {user.office.map((office, index) => (
+                      <span key={index} className="bg-primary/10 px-2 py-1 rounded">
+                        {office.replaceAll('_', " ")}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}

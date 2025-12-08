@@ -6,6 +6,7 @@ import {
   RegistrationInput,
   RegistrationInputSchema,
   RegistrationResponse,
+  getAllOfficersResponse
 } from "@/dtos/user.dto";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
@@ -42,8 +43,8 @@ export async function register(
     username: formData.get("username"),
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
-    role: formData.get("role"),
-    office: formData.get("office")?.toString().trim() || undefined,
+    role: formData.get("role") ? JSON.parse(formData.get("role") as string) : [],
+    office: formData.get("office") ? [formData.get("office")!.toString()] : [],
     companyId: formData.get("companyId")?.toString().trim() || undefined,
   });
 
@@ -51,17 +52,17 @@ export async function register(
     console.error("Validation errors:", validatedData.error);
     const errorMessages = validatedData.error.issues?.length
       ? validatedData.error.issues
-          .map(
-            (issue: any) =>
-              `${issue.path?.join(".") || "unknown"} - ${issue.message}`
-          )
-          .join("; ")
+        .map(
+          (issue: any) =>
+            `${issue.path?.join(".") || "unknown"} - ${issue.message}`
+        )
+        .join("; ")
       : "Invalid input data";
     return { success: false, error: errorMessages };
   }
 
   if (session || (!session && !validatedData.data?.role.includes("CITIZEN"))) {
-    if (session?.user.role.includes("ADMIN")) {
+    if (!session?.user.role.includes("ADMIN")) {
       console.error("Unauthorized registration attempt by user:", session?.user.username);
       return { success: false, error: "Unauthorized registration" };
     }
@@ -94,7 +95,7 @@ export async function register(
       };
     }
     return result;
-  }catch (error) {
+  } catch (error) {
     console.error("Error during user registration:", error);
     return { success: false, error: "Failed to register user" };
   }
@@ -157,6 +158,48 @@ export async function updateNotificationsMedia(
   }
 }
 
+export async function getAllofficers(): Promise<getAllOfficersResponse> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id || !session.user?.role.includes("ADMIN")) {
+    console.error("Unauthorized access attempt to get all officers by user:", session?.user?.username);
+    return { success: false, error: "Unauthorized access" };
+  }
+  try {
+    return await UserService.getInstance().getAllOfficers();
+  } catch (error) {
+    console.error("Error retrieving all officers:", error);
+    return { success: false, error: "Failed to retrieve all officers" };
+  }
+}
+
+export async function deleteOfficer(officerId: string): Promise<boolean> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id || !session.user?.role.includes("ADMIN")) {
+    console.error("Unauthorized access attempt to delete officer by user:", session?.user?.username);
+    return false;
+  }
+  try {
+    return await UserService.getInstance().deleteOfficer(officerId);
+  } catch (error) {
+    console.error("Error deleting officer:", error);
+    return false;
+  }
+}
+
+export async function updateOfficerOffices(officerId: string, offices: string[]): Promise<boolean> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id || !session.user?.role.includes("ADMIN")) {
+    console.error("Unauthorized access attempt to update officer offices by user:", session?.user?.username);
+    return false;
+  }
+  try {
+    return await UserService.getInstance().updateOfficerOffices(officerId, offices);
+  } catch (error) {
+    console.error("Error updating officer offices:", error);
+    return false;
+  }
+}
+
 export async function getMe(): Promise<MeType | RegistrationResponse> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -167,46 +210,46 @@ export async function getMe(): Promise<MeType | RegistrationResponse> {
   let notifications: NotificationsResponse;
   let emailEnabled = false;
   let telegramEnabled = false;
-  if(session.user.role.includes("CITIZEN")){
+  if (session.user.role.includes("CITIZEN")) {
     try {
       notifications = await NotificationService.getInstance().getNotificationsPreferences(session.user.username);
     } catch (error) {
       console.error("Error retrieving notification preferences:", error);
       return { success: false, error: "Failed to retrieve notification preferences" };
     }
-    if(notifications.success){
+    if (notifications.success) {
       emailEnabled = notifications.data.emailEnabled;
       telegramEnabled = notifications.data.telegramEnabled ?? false;
-    }else{
+    } else {
       return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
-    } 
+    }
   }
   let user;
-  try{
+  try {
     user = await UserService.getInstance().getMe(session.user.id);
-  }catch(error){
+  } catch (error) {
     console.error(error instanceof Error ? error.message : "failed to get the personal informations from the database");
     return {
       success: false,
       error: "failed to get the personal informations from the database"
     }
   }
-  if(user===null){
+  if (user === null) {
     console.error("The user does not exist on the database");
     return {
       success: false,
       error: "User not found"
     }
   }
-  
+
   return {
-    me:{
+    me: {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email ?? undefined,
       username: user.username,
       role: user.role as MeType["me"]["role"],
-      office: (user.office as MeType["me"]["office"]) ?? undefined,
+      office: user.office as MeType["me"]["office"],
       telegram: !!user.telegramChatId,
       pendingRequest: !!user.telegramRequestPending,
       companyId: user.companyId ?? undefined

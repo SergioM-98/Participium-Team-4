@@ -27,7 +27,7 @@ export default async function createTechnicalOfficer() {
       lastName: "Curie",
       email: "mcurie@team4.it",
       role: ["TECHNICAL_OFFICER" as const],
-      office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+      office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
     },
   });
 
