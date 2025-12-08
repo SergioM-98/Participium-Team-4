@@ -207,7 +207,7 @@ describe('InternalNotesPanel - UI Tests', () => {
       render(<InternalNotesPanel reportId="1" />);
 
       await waitFor(() => {
-        const timestamp = screen.getByText(/12\/6\/2025/);
+        const timestamp = screen.getByText(/06\/12\/2025/);
         expect(timestamp).toBeInTheDocument();
       });
     });

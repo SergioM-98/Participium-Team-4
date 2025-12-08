@@ -62,7 +62,7 @@ describe("UserController Story 1", () => {
     mockFormData.append("firstName", mockUserData.firstName);
     mockFormData.append("lastName", mockUserData.lastName);
     mockFormData.append("email", mockUserData.email || "");
-    mockFormData.append("role", mockUserData.role);
+    mockFormData.append("role", JSON.stringify(["CITIZEN"]));
     mockFormData.append("office", mockUserData.office || "");
     mockFormData.append("telegram", mockUserData.telegram || "");
   });
@@ -142,7 +142,7 @@ describe("UserController Story 3", () => {
     mockFormData.append("firstName", mockUserData.firstName);
     mockFormData.append("lastName", mockUserData.lastName);
     mockFormData.append("email", mockUserData.email || "");
-    mockFormData.append("role", "PUBLIC_RELATIONS_OFFICER");
+    mockFormData.append("role", JSON.stringify(["PUBLIC_RELATIONS_OFFICER"]));
     mockFormData.append("office", mockUserData.office || "");
     mockFormData.append("telegram", mockUserData.telegram || "");
   });
@@ -229,7 +229,7 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
       lastName: "Officer",
       email: undefined,
       role: ["PUBLIC_RELATIONS_OFFICER"],
-      office: "DEPARTMENT_OF_COMMERCE",
+      office: ["DEPARTMENT_OF_COMMERCE"],
       telegram: undefined,
     };
     formData = new FormData();
@@ -239,7 +239,7 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
     formData.append("firstName", mockUserData.firstName);
     formData.append("lastName", mockUserData.lastName);
     formData.append("email", mockUserData.email || "");
-    formData.append("role", "PUBLIC_RELATIONS_OFFICER");
+    formData.append("role", JSON.stringify(["PUBLIC_RELATIONS_OFFICER"]));
     formData.append("office", mockUserData.office || "");
     formData.append("telegram", mockUserData.telegram || "");
   });
@@ -293,6 +293,7 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
         confirmPassword: mockUserData.confirmPassword,
         role: mockUserData.role,
         office: mockUserData.office,
+        companyId: undefined,
       });
     });
 

@@ -48,7 +48,7 @@ describe("Story 1 - Integration Test: Citizen Registration", () => {
       formData.append("username", "mariorossi");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "CITIZEN");
+      formData.append("role", JSON.stringify(["CITIZEN"]));
       formData.append("office", "");
       formData.append("telegram", "@mariorossi");
 
@@ -70,7 +70,7 @@ describe("Story 1 - Integration Test: Citizen Registration", () => {
         email: "mario.rossi@example.com",
         username: "mariorossi",
         role: ["CITIZEN"],
-        office: null,
+        office: [],
       });
 
       expect(savedUser!.passwordHash).not.toBe("SecurePass123!");
@@ -87,7 +87,7 @@ describe("Story 1 - Integration Test: Citizen Registration", () => {
       formData.append("username", "annabianchi");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "CITIZEN");
+      formData.append("role", JSON.stringify(["CITIZEN"]));
       formData.append("office", "");
       formData.append("telegram", "");
 
@@ -109,7 +109,7 @@ describe("Story 1 - Integration Test: Citizen Registration", () => {
         email: "anna.bianchi@example.com",
         username: "annabianchi",
         role: ["CITIZEN"],
-        office: null,
+        office: [],
       });
     });
 
@@ -134,7 +134,7 @@ describe("Story 1 - Integration Test: Citizen Registration", () => {
       formData.append("username", "existinguser");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "CITIZEN");
+      formData.append("role", JSON.stringify(["CITIZEN"]));
       formData.append("office", "");
       formData.append("telegram", "");
 
@@ -160,7 +160,7 @@ describe("Story 1 - Integration Test: Citizen Registration", () => {
       formData.append("email", "invalid-email");
       formData.append("username", "ab");
       formData.append("password", "123");
-      formData.append("role", "CITIZEN");
+      formData.append("role", JSON.stringify(["CITIZEN"]));
       formData.append("office", "");
       formData.append("telegram", "");
 
@@ -188,7 +188,7 @@ describe("Story 1 - Integration Test: Citizen Registration", () => {
       formData.append("username", "testuser");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!"); // Added confirmPassword
-      formData.append("role", "CITIZEN");
+      formData.append("role", JSON.stringify(["CITIZEN"]));
       formData.append("office", "");
       formData.append("telegram", "");
 
@@ -232,7 +232,7 @@ describe("Story 1 - Integration Test: Citizen Registration", () => {
       formData.append("username", "newcitizen");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "CITIZEN");
+      formData.append("role", JSON.stringify(["CITIZEN"]));
       formData.append("office", "");
       formData.append("telegram", "");
 

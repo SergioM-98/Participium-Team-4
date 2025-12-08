@@ -65,7 +65,7 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
         lastName: "Officer",
         passwordHash: hashedPassword,
         role: ["TECHNICAL_OFFICER"],
-        office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+        office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
       },
     });
     testOfficerId = officer.id;
@@ -78,7 +78,7 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
         lastName: "Officer2",
         passwordHash: hashedPassword,
         role: ["TECHNICAL_OFFICER"],
-        office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+        office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
       },
     });
     testOfficerId2 = officer2.id;

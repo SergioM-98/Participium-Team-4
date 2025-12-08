@@ -44,7 +44,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         username: "johndoe",
         role: ["TECHNICAL_OFFICER" as const],
         passwordHash: "hashedpassword",
-        office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+        office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
       },
     });
     testTechnicalOfficer = createdOfficer as TestUser;
@@ -57,7 +57,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         username: "externalmaintainer",
         role: ["EXTERNAL_MAINTAINER_WITH_ACCESS" as const],
         passwordHash: "hashedpassword",
-        office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+        office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
       },
     });
     testExternalMaintainer = createdExternalMaintainer as TestUser;
@@ -70,7 +70,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         username: "janesmith",
         role: ["TECHNICAL_OFFICER" as const],
         passwordHash: "hashedpassword",
-        office: "DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY",
+        office: ["DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY"],
       },
     });
     anotherTechnicalOfficer = createdSecondOfficer as TestUser;
