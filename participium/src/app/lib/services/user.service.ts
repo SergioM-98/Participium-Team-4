@@ -115,6 +115,16 @@ class UserService {
     return await this.userRepository.deleteOfficer(userId);
   }
 
+  public async updateOfficerOffices(
+    userId: string,
+    offices: string[],): Promise<boolean> {
+    const officer = await this.userRepository.getOfficer(userId);
+    if (!officer || !officer.role.includes("TECHNICAL_OFFICER")) {
+      throw new Error(`Officer with ID ${userId} not found`);
+    }
+    return await this.userRepository.updateOfficerOffices(userId, offices);
+  }
+
   public async getUserByTelegramId(
     telegramId: string,
   ): Promise<RegistrationResponse> {

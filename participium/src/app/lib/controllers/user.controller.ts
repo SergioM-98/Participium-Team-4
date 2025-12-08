@@ -186,14 +186,14 @@ export async function deleteOfficer(officerId: string): Promise<boolean> {
   }
 }
 
-export async function updateOfficerDepartment(officerId: string, departmentId: string[]): Promise<boolean> {
+export async function updateOfficerDepartment(officerId: string, offices: string[]): Promise<boolean> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id || !session.user?.role.includes("ADMIN")) {
     console.error("Unauthorized access attempt to update officer department by user:", session?.user?.username);
     return false;
   }
   try {
-    return await UserService.getInstance().updateOfficerDepartment(officerId, departmentId);
+    return await UserService.getInstance().updateOfficerOffices(officerId, offices);
   } catch (error) {
     console.error("Error updating officer department:", error);
     return false;

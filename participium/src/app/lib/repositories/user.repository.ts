@@ -10,7 +10,7 @@ import {
 } from "@/dtos/user.dto";
 import { prisma } from "@/prisma/db";
 import bcrypt from "bcrypt";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient, Offices } from "@prisma/client";
 
 type DBClient = PrismaClient | Prisma.TransactionClient;
 
@@ -244,6 +244,19 @@ class UserRepository {
       console.error("Failed to fetch officers from database", error);
       return { success: false, error: "Failed to retrieve officers" };
     }
+  }
+
+  async updateOfficerOffices(
+    userId: string,
+    offices: string[],
+  ): Promise<boolean> {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        office: offices as Offices[],
+      },
+    });
+    return true;
   }
 
   async deleteUserById(userId: string) {
