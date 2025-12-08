@@ -1,9 +1,10 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "@/prisma/db";
-import { RegistrationInput, RegistrationResponse } from "@/dtos/user.dto";
+import { RegistrationInput, RegistrationResponse, getAllOfficersResponse } from "@/dtos/user.dto";
 import { NotificationsRepository } from "@/repositories/notifications.repository";
 import { UserRepository } from "@/repositories/user.repository";
 import { VerificationService } from "@/services/verification.service";
+import { ReportAssignmentService } from "./reportAssignment.service";
 
 type DBClient = PrismaClient | Prisma.TransactionClient;
 
@@ -94,6 +95,20 @@ class UserService {
       removeTelegram,
       db
     );
+  }
+
+  public async getAllOfficers(): Promise<getAllOfficersResponse> {
+    return this.userRepository.getAllOfficers();
+  }
+
+  public async deleteOfficer(userId: string): Promise<boolean> {
+    const officer = await this.userRepository.getOfficer(userId);
+    if (!officer || !officer.role.includes("TECHNICAL_OFFICER")) {
+      throw new Error(`Officer with ID ${userId} not found`);
+    }
+    await ReportAssignmentService.getInstance().unassignReportsOfDeletedOfficer(officer.managedReports);
+
+    return this.userRepository.deleteOfficer(userId);
   }
 
   public async getUserByTelegramId(
