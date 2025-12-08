@@ -1,5 +1,5 @@
-import { CommentRepository } from "../repositories/comment.repository";
-import { CommentWithAuthor } from "../dtos/comment.dto";
+import { CommentRepository } from "@/repositories/comment.repository";
+import { CommentWithAuthor } from "@/dtos/comment.dto";
 
 class CommentService {
   private static instance: CommentService;

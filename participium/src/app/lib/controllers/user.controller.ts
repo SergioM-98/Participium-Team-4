@@ -11,7 +11,7 @@ import {
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { UserService } from "@/services/user.service";
-import { updateNotificationsPreferences } from "./notification.controller";
+import { updateNotificationsPreferences } from "@/controllers/notification.controller";
 import {
   NotificationsData,
   NotificationsResponse,
