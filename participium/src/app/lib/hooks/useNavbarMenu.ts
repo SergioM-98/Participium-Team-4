@@ -17,7 +17,8 @@ export function useNavbarMenu() {
     
     if (role?.includes("ADMIN")) {
       heads.push({ title: "Create Officer", url: "/admin/officers/registration" },
-                { title: "Create Company", url: "/admin/companies/registration" }
+                { title: "Create Company", url: "/admin/companies/registration" },
+                { title: "Manage Officers", url: "/admin/officers/roles"}
       );
     }
     

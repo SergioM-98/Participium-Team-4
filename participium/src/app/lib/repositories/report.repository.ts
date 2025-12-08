@@ -244,7 +244,9 @@ class ReportRepository {
         role: {
           has: "TECHNICAL_OFFICER" as Role
         },
-        office,
+        office: {
+          has: office
+        },
       },
       orderBy: {
         managedReports: {
@@ -400,6 +402,33 @@ class ReportRepository {
       },
       include: {
         company: true,
+      },
+    });
+  }
+
+  public async unassignOfficerFromReport(
+    reportId: bigint,
+  ): Promise<Report> {
+    return await prisma.report.update({
+      where: {
+        id: reportId,
+      },
+      data: {
+        officerId: null,
+        status: ReportStatus.PENDING_APPROVAL,
+      },
+    });
+  }
+
+  public async removeOfficerFromReport(
+    reportId: bigint,
+  ): Promise<Report> {
+    return await prisma.report.update({
+      where: {
+        id: reportId,
+      },
+      data: {
+        officerId: null,
       },
     });
   }

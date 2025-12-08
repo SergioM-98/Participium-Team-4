@@ -1,5 +1,5 @@
 import { MessageRepository } from "@/repositories/message.repository";
-import { NotificationService } from "./notification.service";
+import { NotificationService } from "@/services/notification.service";
 import { ReportRepository } from "@/repositories/report.repository";
 import { UserRepository } from "@/repositories/user.repository";
 import { SendMessageResponse } from "@/dtos/message.dto";

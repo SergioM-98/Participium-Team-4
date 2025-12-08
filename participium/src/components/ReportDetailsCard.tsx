@@ -242,7 +242,7 @@ export default function ReportDetailsCard({
       {/* Row with 3 columns: map | menu | chat/officer */}
       <div className="flex flex-col md:flex-row items-stretch gap-4 p-4 md:p-6 overflow-hidden flex-1 min-h-0">
         {/* MAP - left (hidden on mobile; available as overlay via button) */}
-        {(isOfficerMode || isAssignedOfficer) && (<div className="hidden md:flex md:flex-1 min-h-0 rounded-lg overflow-hidden border border-border bg-muted/5">
+        {(isOfficerMode || isAssignedOfficer || isMaintainerMode) && (<div className="hidden md:flex md:flex-1 min-h-0 rounded-lg overflow-hidden border border-border bg-muted/5">
           <div className="w-full h-full">
             <LeafletMapFixed
               report={{
@@ -323,16 +323,25 @@ export default function ReportDetailsCard({
           {/* Header / Toggle (in-flow, non overlaid) */}
           <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/5 flex-shrink-0">
             {/* CASE 1: canViewChat && isAssignedOfficer - show tabs */}
-            {canViewChat && isAssignedOfficer && (
+            {((canViewChat && isAssignedOfficer)|| isMaintainerMode) && (
               <div className="flex items-center gap-1 bg-muted/10 p-0 rounded-md">
-                <button
+                {!isMaintainerMode && (<button
                   onClick={() => setSeeOfficerChat(1)}
                   aria-pressed={seeOfficerChat === 1}
                   className={`flex items-center gap-2 px-1 py-1 rounded text-xs transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
                 >
                   <MessageSquare className="w-4 h-4" />
                   <span className="hidden xl:inline">Chat</span>
-                </button>
+                </button>)}
+
+                {isMaintainerMode && (<button
+                  onClick={() => setSeeOfficerChat(1)}
+                  aria-pressed={seeOfficerChat === 1}
+                  className={`flex items-center gap-2 px-1 py-1 rounded text-xs transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                >
+                  <Menu className="w-4 h-4" />
+                  <span className="hidden xl:inline">Menu</span>
+                </button>)}
 
                 <button
                   onClick={() => setSeeOfficerChat(2)}
@@ -343,14 +352,14 @@ export default function ReportDetailsCard({
                   <span className="hidden xl:inline">Internal Notes</span>
                 </button>
 
-                <button
+                {!isMaintainerMode && (<button
                   onClick={() => setSeeOfficerChat(3)}
                   aria-pressed={seeOfficerChat === 3}
                   className={`flex items-center gap-2 px-1 py-1 rounded text-xs transition-colors ${seeOfficerChat === 3 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
                 >
                   <Menu className="w-4 h-4" />
                   <span className="hidden xl:inline">Menu</span>
-                </button>
+                </button>)}
               </div>
             )}
 
@@ -417,13 +426,19 @@ export default function ReportDetailsCard({
             )}
             
             {/* CASE 7: isMaintainerMode (Maintainer Action Panel) */}
-            {isMaintainerMode && (
+            {isMaintainerMode && seeOfficerChat===1 && (
               <MaintainerActionPanel
                 reportId={report.id}
                 currentStatus={report.status}
                 onActionComplete={onMaintainerActionComplete}
               />
             )}
+            {/* CASE 8: isMaintainerMode (Maintainer Action Panel) */}
+            {
+              isMaintainerMode && seeOfficerChat===2 && (
+                <InternalNotesPanel reportId={report.id} />
+              )
+            }
 
           </div>
         </div>

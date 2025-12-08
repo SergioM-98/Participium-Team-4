@@ -51,7 +51,7 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
         lastName: "Officer",
         passwordHash: hashedPassword,
         role: ["TECHNICAL_OFFICER"],
-        office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+        office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
       },
     });
     testOfficerId = officer.id;

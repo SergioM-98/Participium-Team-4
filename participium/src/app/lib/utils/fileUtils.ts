@@ -1,5 +1,5 @@
-import { writeFile, mkdir, stat } from 'fs/promises';
-import path from 'path';
+import { writeFile, mkdir, stat } from 'node:fs/promises';
+import path from 'node:path';
 
 export async function savePhotoFile(body: ArrayBuffer, filePath: string): Promise<number> {
     try {

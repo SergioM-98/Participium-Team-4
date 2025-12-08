@@ -7,8 +7,8 @@ const BaseUserSchema = z
     lastName: z.string().min(1, "Last name is required"),
     email: z.email("Invalid email").optional(),
     username: z.string().min(3, "Username must be at least 3 characters"),
-    role: z.array(z.enum(Role)).min(1, "At least one role is required"),
-    office: z.enum(Offices).optional(),
+    role: z.array(z.enum(Role)).min(1, "At least one role is required"),    
+    office: z.array(z.enum(Offices)).default([]),
     telegram: z.string().optional(),
     companyId: z.string().optional(),
   })
@@ -16,12 +16,12 @@ const BaseUserSchema = z
     (data) =>
       ((data.role.includes("PUBLIC_RELATIONS_OFFICER") ||
         data.role.includes("TECHNICAL_OFFICER")) &&
-        data.office) ||
+        data.office.length > 0) ||
       (!data.role.includes("PUBLIC_RELATIONS_OFFICER") &&
         !data.role.includes("TECHNICAL_OFFICER") &&
-        !data.office),
+        data.office.length === 0),
     {
-      message: "Only OFFICER can have an office",
+      message: "Only OFFICER can have offices",
       path: ["office"],
     },
   )
@@ -107,7 +107,7 @@ export const RetrievedUserDataSchema = z
     email: z.email().optional(),
     username: z.string(),
     role: z.array(z.enum(Role)),
-    office: z.enum(Offices).optional(),
+    office: z.array(z.enum(Offices)).default([]),
     telegram: z.boolean,
     pendingRequest: z.boolean,
     companyId: z.string().optional(),
@@ -116,12 +116,12 @@ export const RetrievedUserDataSchema = z
     (data) =>
       ((data.role.includes("PUBLIC_RELATIONS_OFFICER") ||
         data.role.includes("TECHNICAL_OFFICER")) &&
-        data.office) ||
+        data.office.length > 0) ||
       (!data.role.includes("PUBLIC_RELATIONS_OFFICER") &&
         !data.role.includes("TECHNICAL_OFFICER") &&
-        !data.office),
+        data.office.length === 0),
     {
-      message: "Only OFFICER can have an office",
+      message: "Only OFFICER can have offices",
       path: ["office"],
     },
   )
@@ -183,6 +183,15 @@ export const RetrievedUserDataSchema = z
     },
   );
 
+export const OfficerUserSchema = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  username: z.string(),
+  role: z.array(z.enum(Role)),
+  office: z.array(z.enum(Offices)).default([]),
+});
+
 export const LoginInputSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(8),
@@ -228,8 +237,16 @@ export type LoginResponse =
   | { success: true; data: RetrievedUserData }
   | { success: false; error: string };
 export type MeType = {
-  me: z.infer<typeof RetrievedUserDataSchema>;
-  emailNotifications: boolean;
-  telegramNotifications: boolean;
-  companyName?: string;
+    me: z.infer<typeof RetrievedUserDataSchema>;
+    emailNotifications: boolean;
+    telegramNotifications: boolean;
+    companyName?: string
+};
+
+export type getAllOfficersResponse = {
+  success: true;
+  data: z.infer<typeof OfficerUserSchema>[];
+} | {
+  success: false;
+  error: string;
 };

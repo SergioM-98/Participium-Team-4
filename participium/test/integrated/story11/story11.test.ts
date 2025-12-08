@@ -77,7 +77,7 @@ describe("Story 11 - officer updates", () => {
         lastName: "Officer",
         passwordHash: hashedPassword,
         role: ["TECHNICAL_OFFICER"],
-        office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+        office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
       },
     });
     testOfficerId = officer.id;

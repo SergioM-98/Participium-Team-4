@@ -43,7 +43,7 @@ describe('InternalNotesPanel - Integration Tests (Real Database)', () => {
         username: 'johndoe',
         role: ['TECHNICAL_OFFICER' as const],
         passwordHash: 'hashedpassword',
-        office: 'DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES',
+        office: ['DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES'],
       },
     });
     testTechnicalOfficer = createdOfficer as TestUser;

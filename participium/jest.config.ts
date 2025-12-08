@@ -52,7 +52,7 @@ const config: Config = {
       testEnvironment: "jsdom",
       clearMocks: true,
       preset: "ts-jest",
-      setupFilesAfterEnv: ["<rootDir>/test/setup.ts"],
+      setupFilesAfterEnv: ["<rootDir>/test/setup-components.ts"],
       moduleNameMapper: {
         "^@/auth$": "<rootDir>/src/app/api/auth/[...nextauth]/route.ts",
         "^@/repositories/(.*)$": "<rootDir>/src/app/lib/repositories/$1",

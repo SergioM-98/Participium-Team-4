@@ -110,7 +110,7 @@ model User {
   isVerified              Boolean?
   telegramRequestTTL      DateTime?
   role                    Role[]    @default([CITIZEN])
-  office                  Offices?
+  office                  Offices[] @default([])
   passwordHash            String   @db.VarChar(255)
   companyId               String?
 

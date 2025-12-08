@@ -27,7 +27,7 @@ export default async function createPublicRelationsOfficer() {
       lastName: "Rossi",
       email: "arossi@team4.it",
       role: ["PUBLIC_RELATIONS_OFFICER" as const],
-      office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+      office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
     },
   });
 

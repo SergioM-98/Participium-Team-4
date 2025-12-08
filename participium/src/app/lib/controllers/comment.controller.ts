@@ -1,7 +1,7 @@
 "use server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import CommentService from "../services/comment.service";
+import CommentService from "@/services/comment.service";
 import {
   CreateCommentResponse,
   GetReportCommentsResponse,
