@@ -70,6 +70,20 @@ export const reportResponseSchema = z.object({
   }),
 });
 
+export const testReportSchema = z.object({
+  id: z.bigint(),
+  title: z.string(),
+  description: z.string(),
+  citizenId: z.string(),
+  longitude: z.number(),
+  latitude: z.number(),
+  status: z.string(),
+  createdAt: z.date(),
+  category: z.string().optional(),
+  officerId: z.string().nullable().optional(),
+  companyId: z.string().nullable().optional(),
+});
+
 export type Report = z.infer<typeof reportBaseSchema>;
 export type Category = z.infer<typeof categoryEnum>;
 
@@ -85,6 +99,8 @@ export type RetrieveReportByAssignee = z.infer<
 export type UnassignedReport = z.infer<
   typeof rertieveUnassignedReportResponseSchema
 >;
+
+export type TestReport = z.infer<typeof testReportSchema>;
 
 export type ReportsUnassignedResponse =
   | { success: true; data: UnassignedReport[] }

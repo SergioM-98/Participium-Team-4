@@ -2,8 +2,15 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import CommentService from "../services/comment.service";
+import {
+  CreateCommentResponse,
+  GetReportCommentsResponse,
+} from "../dtos/comment.dto";
 
-export async function createComment(content: string, reportId: bigint) {
+export async function createComment(
+  content: string,
+  reportId: bigint,
+): Promise<CreateCommentResponse> {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
@@ -36,7 +43,9 @@ export async function createComment(content: string, reportId: bigint) {
   }
 }
 
-export async function getReportComments(reportId: bigint) {
+export async function getReportComments(
+  reportId: bigint,
+): Promise<GetReportCommentsResponse> {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {

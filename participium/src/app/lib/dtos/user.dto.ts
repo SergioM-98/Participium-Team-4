@@ -196,6 +196,20 @@ export const UserAuthorSchema = z.object({
   username: z.string(),
 });
 
+export const TestUserSchema = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string().nullable(),
+  username: z.string(),
+  role: z.enum(Role),
+  passwordHash: z.string(),
+  office: z.enum(Offices).nullable().optional(),
+  telegramChatId: z.string().nullable().optional(),
+  telegramToken: z.string().nullable().optional(),
+  companyId: z.string().nullable().optional(),
+});
+
 type RetrievedUserData = z.infer<typeof RetrievedUserDataSchema>;
 export type UserAuthor = z.infer<typeof UserAuthorSchema>;
 export type Citizen = z.infer<typeof CitizenSchema>;
@@ -204,6 +218,7 @@ export type CheckDuplicatesResponse = z.infer<
   typeof CheckDuplicatesResponseSchema
 >;
 export type LoginInput = z.infer<typeof LoginInputSchema>;
+export type TestUser = z.infer<typeof TestUserSchema>;
 
 export type RegistrationResponse =
   | { success: true; data: string; pendingVerification?: boolean }
