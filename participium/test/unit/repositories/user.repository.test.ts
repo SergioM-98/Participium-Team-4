@@ -7,6 +7,9 @@ jest.mock("@/db/db", () => ({
       findUnique: jest.fn(),
       findFirst: jest.fn(),
       create: jest.fn(),
+      findMany: jest.fn(),
+      delete: jest.fn(),
+      update: jest.fn(),
     },
   },
 }));
@@ -71,6 +74,7 @@ describe("UserRepository Story 1", () => {
     });
   });
 });
+
 describe("UserRepository Story 2 - OFFICER Registration by ADMIN", () => {
   let userRepository: UserRepository;
   const mockUserData: RegistrationInput = {
@@ -148,6 +152,162 @@ describe("UserRepository Story 2 - OFFICER Registration by ADMIN", () => {
         new Error("Unique constraint failed")
       );
       await expect(userRepository.createUser(mockUserData)).rejects.toThrow();
+    });
+  });
+});
+
+describe("UserRepository Story 10 - Officer Management", () => {
+  let userRepository: UserRepository;
+
+  beforeEach(() => {
+    userRepository = UserRepository.getInstance();
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe("getAllOfficers", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("should retrieve all officers successfully", async () => {
+      const mockOfficers = [
+        {
+          id: "1",
+          name: "Officer 1",
+          surname: "Test",
+          role: ["TECHNICAL_OFFICER"],
+          office: ["PUBLIC_WORKS"],
+        },
+        {
+          id: "2",
+          name: "Officer 2",
+          surname: "Test",
+          role: ["TECHNICAL_OFFICER"],
+          office: ["EDUCATION"],
+        },
+      ];
+
+      mockedPrisma.user.findMany.mockResolvedValue(mockOfficers);
+      const result = await userRepository.getAllOfficers();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockOfficers);
+      expect(mockedPrisma.user.findMany).toHaveBeenCalledWith({
+        where: {
+          role: { has: "TECHNICAL_OFFICER" },
+        },
+        include: {
+          company: true,
+        },
+      });
+    });
+
+    it("should handle database errors", async () => {
+      mockedPrisma.user.findMany.mockRejectedValue(
+        new Error("Database error")
+      );
+      const result = await userRepository.getAllOfficers();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Failed to retrieve officers");
+    });
+
+    it("should return empty array when no officers exist", async () => {
+      mockedPrisma.user.findMany.mockResolvedValue([]);
+      const result = await userRepository.getAllOfficers();
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([]);
+    });
+  });
+
+  describe("deleteOfficer", () => {
+    it("should delete officer successfully", async () => {
+      mockedPrisma.user.delete.mockResolvedValue({
+        id: "officer-1",
+        email: "officer@test.com",
+        role: ["TECHNICAL_OFFICER"],
+        office: ["PUBLIC_WORKS"],
+      });
+
+      const result = await userRepository.deleteOfficer("officer-1");
+
+      expect(result).toBe(true);
+      expect(mockedPrisma.user.delete).toHaveBeenCalledWith({
+        where: { id: "officer-1" },
+      });
+    });
+
+    it("should handle database errors", async () => {
+      mockedPrisma.user.delete.mockRejectedValue(new Error("Delete failed"));
+      await expect(userRepository.deleteOfficer("officer-1")).rejects.toThrow();
+    });
+
+    it("should handle non-existent officer", async () => {
+      mockedPrisma.user.delete.mockRejectedValue(
+        new Error("Record not found")
+      );
+      await expect(userRepository.deleteOfficer("non-existent")).rejects.toThrow();
+    });
+  });
+
+  describe("updateOfficerOffices", () => {
+    it("should update officer offices successfully", async () => {
+      const newOffices = ["PUBLIC_WORKS", "EDUCATION"];
+      mockedPrisma.user.update.mockResolvedValue({
+        id: "officer-1",
+        email: "officer@test.com",
+        role: ["TECHNICAL_OFFICER"],
+        office: newOffices,
+      });
+
+      const result = await userRepository.updateOfficerOffices(
+        "officer-1",
+        newOffices
+      );
+
+      expect(result).toBe(true);
+      expect(mockedPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: "officer-1" },
+        data: { office: newOffices },
+      });
+    });
+
+    it("should handle database errors", async () => {
+      mockedPrisma.user.update.mockRejectedValue(new Error("Update failed"));
+      await expect(
+        userRepository.updateOfficerOffices("officer-1", ["PUBLIC_WORKS"])
+      ).rejects.toThrow();
+    });
+
+    it("should handle empty office array", async () => {
+      mockedPrisma.user.update.mockResolvedValue({
+        id: "officer-1",
+        email: "officer@test.com",
+        role: ["TECHNICAL_OFFICER"],
+        office: [],
+      });
+
+      const result = await userRepository.updateOfficerOffices("officer-1", []);
+
+      expect(result).toBe(true);
+      expect(mockedPrisma.user.update).toHaveBeenCalledWith({
+        where: { id: "officer-1" },
+        data: { office: [] },
+      });
+    });
+
+    it("should handle non-existent officer", async () => {
+      mockedPrisma.user.update.mockRejectedValue(
+        new Error("Record not found")
+      );
+      await expect(
+        userRepository.updateOfficerOffices("non-existent", ["PUBLIC_WORKS"])
+      ).rejects.toThrow();
     });
   });
 });

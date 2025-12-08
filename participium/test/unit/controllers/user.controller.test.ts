@@ -1,6 +1,9 @@
 import {
   checkDuplicates,
   register,
+  getAllofficers,
+  deleteOfficer,
+  updateOfficerOffices,
 } from "../../../src/app/lib/controllers/user.controller";
 import {
   RegistrationInput,
@@ -12,6 +15,9 @@ import { getServerSession } from "next-auth/next";
 const mockUserService = {
   checkDuplicates: jest.fn(),
   createUser: jest.fn(),
+  getAllOfficers: jest.fn(),
+  deleteOfficer: jest.fn(),
+  updateOfficerOffices: jest.fn(),
 };
 
 jest.mock("next-auth/next", () => ({
@@ -342,6 +348,214 @@ describe("UserController Story 2 - OFFICER Registration by ADMIN", () => {
       expect(response.success).toBe(false);
       expect(response).toHaveProperty("error");
       expect(mockUserService.createUser).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe("UserController Story 10 - Officer Management", () => {
+  const adminUserSession = {
+    user: {
+      id: "admin-id",
+      email: "admin@example.com",
+      role: ["ADMIN"],
+      username: "admin",
+    },
+    expires: "2099-12-31T23:59:59.999Z",
+  };
+
+  const nonAdminUserSession = {
+    user: {
+      id: "citizen-id",
+      email: "citizen@example.com",
+      role: ["CITIZEN"],
+      username: "citizen",
+    },
+    expires: "2099-12-31T23:59:59.999Z",
+  };
+
+  beforeEach(() => {
+    (UserService.getInstance as jest.Mock).mockReturnValue(mockUserService);
+    jest.clearAllMocks();
+  });
+
+  describe("getAllofficers", () => {
+    it("should successfully retrieve all officers when user is ADMIN", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
+      const mockOfficers = [
+        {
+          id: "officer-1",
+          username: "officer1",
+          firstName: "John",
+          lastName: "Doe",
+          role: ["TECHNICAL_OFFICER"],
+          office: ["DEPARTMENT_OF_COMMERCE"],
+        },
+        {
+          id: "officer-2",
+          username: "officer2",
+          firstName: "Jane",
+          lastName: "Smith",
+          role: ["TECHNICAL_OFFICER"],
+          office: ["DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY"],
+        },
+      ];
+
+      mockUserService.getAllOfficers.mockResolvedValue({
+        success: true,
+        data: mockOfficers,
+      });
+
+      const response = await getAllofficers();
+
+      expect(response.success).toBe(true);
+      if (response.success) {
+        expect(response.data).toEqual(mockOfficers);
+        expect(response.data).toHaveLength(2);
+      }
+      expect(mockUserService.getAllOfficers).toHaveBeenCalledTimes(1);
+    });
+
+    it("should return error when user is not ADMIN", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(nonAdminUserSession);
+
+      const response = await getAllofficers();
+
+      expect(response.success).toBe(false);
+      if (!response.success) {
+        expect(response.error).toBe("Unauthorized access");
+      }
+      expect(mockUserService.getAllOfficers).not.toHaveBeenCalled();
+    });
+
+    it("should return error when user session is null", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
+
+      const response = await getAllofficers();
+
+      expect(response.success).toBe(false);
+      if (!response.success) {
+        expect(response.error).toBe("Unauthorized access");
+      }
+      expect(mockUserService.getAllOfficers).not.toHaveBeenCalled();
+    });
+
+    it("should handle service errors gracefully", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
+      mockUserService.getAllOfficers.mockRejectedValue(
+        new Error("Database connection error")
+      );
+
+      const response = await getAllofficers();
+
+      expect(response.success).toBe(false);
+      if (!response.success) {
+        expect(response.error).toBe("Failed to retrieve all officers");
+      }
+    });
+  });
+
+  describe("deleteOfficer", () => {
+    const officerId = "officer-123";
+
+    it("should successfully delete officer when user is ADMIN", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
+      mockUserService.deleteOfficer.mockResolvedValue(true);
+
+      const result = await deleteOfficer(officerId);
+
+      expect(result).toBe(true);
+      expect(mockUserService.deleteOfficer).toHaveBeenCalledWith(officerId);
+      expect(mockUserService.deleteOfficer).toHaveBeenCalledTimes(1);
+    });
+
+    it("should return false when user is not ADMIN", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(nonAdminUserSession);
+
+      const result = await deleteOfficer(officerId);
+
+      expect(result).toBe(false);
+      expect(mockUserService.deleteOfficer).not.toHaveBeenCalled();
+    });
+
+    it("should return false when user session is null", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
+
+      const result = await deleteOfficer(officerId);
+
+      expect(result).toBe(false);
+      expect(mockUserService.deleteOfficer).not.toHaveBeenCalled();
+    });
+
+    it("should handle service errors gracefully", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
+      mockUserService.deleteOfficer.mockRejectedValue(
+        new Error("Officer not found")
+      );
+
+      const result = await deleteOfficer(officerId);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("updateOfficerOffices", () => {
+    const officerId = "officer-123";
+    const offices = ["DEPARTMENT_OF_COMMERCE", "DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY"];
+
+    it("should successfully update officer offices when user is ADMIN", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
+      mockUserService.updateOfficerOffices.mockResolvedValue(true);
+
+      const result = await updateOfficerOffices(officerId, offices);
+
+      expect(result).toBe(true);
+      expect(mockUserService.updateOfficerOffices).toHaveBeenCalledWith(
+        officerId,
+        offices
+      );
+      expect(mockUserService.updateOfficerOffices).toHaveBeenCalledTimes(1);
+    });
+
+    it("should return false when user is not ADMIN", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(nonAdminUserSession);
+
+      const result = await updateOfficerOffices(officerId, offices);
+
+      expect(result).toBe(false);
+      expect(mockUserService.updateOfficerOffices).not.toHaveBeenCalled();
+    });
+
+    it("should return false when user session is null", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
+
+      const result = await updateOfficerOffices(officerId, offices);
+
+      expect(result).toBe(false);
+      expect(mockUserService.updateOfficerOffices).not.toHaveBeenCalled();
+    });
+
+    it("should handle empty offices array", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
+      mockUserService.updateOfficerOffices.mockResolvedValue(true);
+
+      const result = await updateOfficerOffices(officerId, []);
+
+      expect(result).toBe(true);
+      expect(mockUserService.updateOfficerOffices).toHaveBeenCalledWith(
+        officerId,
+        []
+      );
+    });
+
+    it("should handle service errors gracefully", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(adminUserSession);
+      mockUserService.updateOfficerOffices.mockRejectedValue(
+        new Error("Officer not found")
+      );
+
+      const result = await updateOfficerOffices(officerId, offices);
+
+      expect(result).toBe(false);
     });
   });
 });
