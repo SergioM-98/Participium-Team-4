@@ -158,21 +158,49 @@ describe("VerificationRepository - Story PT27", () => {
         orderBy: { createdAt: "desc" },
       });
     });
+
+    it("should return null if no token found for user", async () => {
+      (prisma.verificationToken.findFirst as jest.Mock).mockResolvedValue(null);
+
+      const result =
+        await verificationRepository.findLatestVerificationToken("user-123");
+
+      expect(result).toBeNull();
+    });
+
+    it("should return null if user has no unused tokens", async () => {
+      (prisma.verificationToken.findFirst as jest.Mock).mockResolvedValue(null);
+
+      const result =
+        await verificationRepository.findLatestVerificationToken("user-456");
+
+      expect(result).toBeNull();
+      expect(prisma.verificationToken.findFirst).toHaveBeenCalledWith({
+        where: { userId: "user-456", used: false },
+        orderBy: { createdAt: "desc" },
+      });
+    });
   });
 
   describe("verifyUserAndMarkToken", () => {
     it("should verify user and mark token as used in transaction", async () => {
-      (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-        const mockPrisma = {
-          user: {
-            update: jest.fn().mockResolvedValue({ id: "user-123", isVerified: true }),
-          },
-          verificationToken: {
-            update: jest.fn().mockResolvedValue({ id: "token-123", used: true }),
-          },
-        };
-        return callback(mockPrisma);
-      });
+      (prisma.$transaction as jest.Mock).mockImplementation(
+        async (callback) => {
+          const mockPrisma = {
+            user: {
+              update: jest
+                .fn()
+                .mockResolvedValue({ id: "user-123", isVerified: true }),
+            },
+            verificationToken: {
+              update: jest
+                .fn()
+                .mockResolvedValue({ id: "token-123", used: true }),
+            },
+          };
+          return callback(mockPrisma);
+        },
+      );
 
       await verificationRepository.verifyUserAndMarkToken(
         "user-123",
@@ -216,6 +244,35 @@ describe("VerificationRepository - Story PT27", () => {
         distinct: ["userId"],
       });
     });
+
+    it("should return empty array if no expired tokens found", async () => {
+      (prisma.verificationToken.findMany as jest.Mock).mockResolvedValue([]);
+
+      const result = await verificationRepository.findExpiredTokenUsers();
+
+      expect(result).toEqual([]);
+      expect(prisma.verificationToken.findMany).toHaveBeenCalled();
+    });
+
+    it("should only return distinct userIds", async () => {
+      const mockExpiredTokens = [
+        { userId: "user-1", id: "token-1" },
+        { userId: "user-1", id: "token-2" },
+      ];
+
+      (prisma.verificationToken.findMany as jest.Mock).mockResolvedValue(
+        mockExpiredTokens,
+      );
+
+      const result = await verificationRepository.findExpiredTokenUsers();
+
+      expect(result).toHaveLength(2);
+      expect(prisma.verificationToken.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          distinct: ["userId"],
+        }),
+      );
+    });
   });
 
   describe("deleteUnverifiedUsers", () => {
@@ -224,7 +281,8 @@ describe("VerificationRepository - Story PT27", () => {
 
       (prisma.user.deleteMany as jest.Mock).mockResolvedValue({ count: 2 });
 
-      const result = await verificationRepository.deleteUnverifiedUsers(userIds);
+      const result =
+        await verificationRepository.deleteUnverifiedUsers(userIds);
 
       expect(result).toEqual({ count: 2 });
       expect(prisma.user.deleteMany).toHaveBeenCalledWith({
@@ -233,6 +291,77 @@ describe("VerificationRepository - Story PT27", () => {
           isVerified: false,
         },
       });
+    });
+
+    it("should handle empty user list", async () => {
+      (prisma.user.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
+
+      const result = await verificationRepository.deleteUnverifiedUsers([]);
+
+      expect(result).toEqual({ count: 0 });
+      expect(prisma.user.deleteMany).toHaveBeenCalledWith({
+        where: {
+          id: { in: [] },
+          isVerified: false,
+        },
+      });
+    });
+
+    it("should handle case where no users match deletion criteria", async () => {
+      const userIds = ["user-1", "user-2"];
+
+      (prisma.user.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
+
+      const result =
+        await verificationRepository.deleteUnverifiedUsers(userIds);
+
+      expect(result).toEqual({ count: 0 });
+    });
+  });
+
+  describe("verifyUserAndMarkToken - Transaction Scenarios", () => {
+    it("should verify user and mark token as used in transaction", async () => {
+      const mockTransactionTx = {
+        user: {
+          update: jest
+            .fn()
+            .mockResolvedValue({ id: "user-123", isVerified: true }),
+        },
+        verificationToken: {
+          update: jest.fn().mockResolvedValue({ id: "token-123", used: true }),
+        },
+      };
+
+      (prisma.$transaction as jest.Mock).mockImplementation(
+        async (callback) => {
+          return callback(mockTransactionTx);
+        },
+      );
+
+      await verificationRepository.verifyUserAndMarkToken(
+        "user-123",
+        "token-123",
+      );
+
+      expect(prisma.$transaction).toHaveBeenCalled();
+      expect(mockTransactionTx.verificationToken.update).toHaveBeenCalledWith({
+        where: { id: "token-123" },
+        data: { used: true },
+      });
+      expect(mockTransactionTx.user.update).toHaveBeenCalledWith({
+        where: { id: "user-123" },
+        data: { isVerified: true },
+      });
+    });
+
+    it("should handle transaction errors", async () => {
+      (prisma.$transaction as jest.Mock).mockRejectedValue(
+        new Error("Transaction failed"),
+      );
+
+      await expect(
+        verificationRepository.verifyUserAndMarkToken("user-123", "token-123"),
+      ).rejects.toThrow("Transaction failed");
     });
   });
 });

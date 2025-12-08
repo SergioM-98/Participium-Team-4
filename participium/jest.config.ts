@@ -43,6 +43,43 @@ const config: Config = {
       },
     },
     {
+      // Progetto per Component Tests
+      displayName: "Component Tests",
+      testMatch: ["<rootDir>/test/unit/components/**/*.test.tsx"],
+      testEnvironment: "jsdom",
+      clearMocks: true,
+      preset: "ts-jest",
+      setupFilesAfterEnv: ["<rootDir>/test/setup.ts"],
+      moduleNameMapper: {
+        "^@/auth$": "<rootDir>/src/app/api/auth/[...nextauth]/route.ts",
+        "^@/repositories/(.*)$": "<rootDir>/src/app/lib/repositories/$1",
+        "^@/dtos/(.*)$": "<rootDir>/src/app/lib/dtos/$1",
+        "^@/services/(.*)$": "<rootDir>/src/app/lib/services/$1",
+        "^@/controllers/(.*)$": "<rootDir>/src/app/lib/controllers/$1",
+        "^@/utils/(.*)$": "<rootDir>/src/app/lib/utils/$1",
+        "^@/prisma/(.*)$": "<rootDir>/prisma/$1",
+        "^@/db/(.*)$": "<rootDir>/prisma/$1",
+        "^@/lib/(.*)$": "<rootDir>/src/app/lib/$1",
+        "^@/(.*)$": "<rootDir>/src/$1",
+        "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+      },
+      transform: {
+        "^.+\\.(ts|tsx)$": [
+          "ts-jest",
+          {
+            useESM: true,
+          },
+        ],
+      },
+      transformIgnorePatterns: ["node_modules/(?!(jose|openid-client)/)"],
+      extensionsToTreatAsEsm: [".ts", ".tsx"],
+      globals: {
+        "ts-jest": {
+          useESM: true,
+        },
+      },
+    },
+    {
       // Progetto per Integration Tests
       displayName: "Integration Tests",
       testMatch: ["<rootDir>/test/integrated/**/*.test.ts"],
@@ -90,17 +127,14 @@ const config: Config = {
     "/node_modules/",
     "/test/",
     "/src/app/api/auth/", // NextAuth implementation - library code
-    '/src/app/lib/services/photoRetrieval.service.ts',
-    '/src/app/lib/services/photoStatus.service.ts',
-    '/src/app/lib/services/photoUpdate.service.ts',
-    '/src/app/lib/services/photoDelete.service.ts',
+    "/src/app/lib/services/photoRetrieval.service.ts",
+    "/src/app/lib/services/photoStatus.service.ts",
+    "/src/app/lib/services/photoUpdate.service.ts",
+    "/src/app/lib/services/photoDelete.service.ts",
   ],
 
   // Escludi dai test paths
-  testPathIgnorePatterns: [
-    "/node_modules/",
-    "/src/app/api/auth/",
-  ],
+  testPathIgnorePatterns: ["/node_modules/", "/src/app/api/auth/"],
 
   // Escludi dalla collezione coverage
   collectCoverageFrom: [
@@ -128,16 +162,16 @@ const config: Config = {
     "!src/app/lib/utils/index.ts", // Re-export utils
     "!src/app/lib/utils/canvasUtils.ts", // Utility canvas (UI)
     "!src/lib/**", // Utility generiche
-    '!src/app/lib/services/photoRetrieval.service.ts',
-    '!src/app/lib/services/photoStatus.service.ts',
-    '!src/app/lib/services/photoUpdate.service.ts',
-    '!src/app/lib/services/photoDelete.service.ts',
-    '!src/app/lib/repositories/telegramBot.repository.ts',
+    "!src/app/lib/services/photoRetrieval.service.ts",
+    "!src/app/lib/services/photoStatus.service.ts",
+    "!src/app/lib/services/photoUpdate.service.ts",
+    "!src/app/lib/services/photoDelete.service.ts",
+    "!src/app/lib/repositories/telegramBot.repository.ts",
   ],
 
   // Estensioni dei moduli
   moduleFileExtensions: [
-    "js", 
+    "js",
     "mjs",
     "cjs",
     "jsx",

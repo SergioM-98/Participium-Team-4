@@ -34,7 +34,9 @@ jest.mock("@/app/lib/services/email.service", () => {
 
 jest.mock("@/app/lib/utils/verification.utils", () => ({
   generateVerificationCode: jest.fn(() => "123456"),
-  getVerificationTokenExpiry: jest.fn(() => new Date(Date.now() + 30 * 60 * 1000)),
+  getVerificationTokenExpiry: jest.fn(
+    () => new Date(Date.now() + 30 * 60 * 1000),
+  ),
   isTokenExpired: jest.fn((expiresAt: Date) => new Date() > expiresAt),
 }));
 
@@ -67,7 +69,9 @@ describe("VerificationService - Story PT27", () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe("Verification email sent");
-      expect(mockVerificationRepository.createVerificationToken).toHaveBeenCalled();
+      expect(
+        mockVerificationRepository.createVerificationToken,
+      ).toHaveBeenCalled();
       expect(mockEmailService.sendVerificationEmail).toHaveBeenCalledWith(
         "test@example.com",
         "123456",
@@ -91,6 +95,45 @@ describe("VerificationService - Story PT27", () => {
       expect(result.success).toBe(false);
       expect(result.error).toBe(
         "Failed to send verification email. Please try again.",
+      );
+    });
+
+    it("should handle errors when creating verification token fails", async () => {
+      mockVerificationRepository.createVerificationToken.mockRejectedValue(
+        new Error("Database error"),
+      );
+
+      const result = await verificationService.createAndSendVerificationToken(
+        "user-123",
+        "test@example.com",
+        "John",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(
+        "Failed to send verification email. Please try again.",
+      );
+      expect(mockEmailService.sendVerificationEmail).not.toHaveBeenCalled();
+    });
+
+    it("should create verification token without firstName", async () => {
+      mockVerificationRepository.createVerificationToken.mockResolvedValue({
+        success: true,
+      });
+      mockEmailService.sendVerificationEmail.mockResolvedValue({
+        success: true,
+      });
+
+      const result = await verificationService.createAndSendVerificationToken(
+        "user-123",
+        "test@example.com",
+      );
+
+      expect(result.success).toBe(true);
+      expect(mockEmailService.sendVerificationEmail).toHaveBeenCalledWith(
+        "test@example.com",
+        "123456",
+        undefined,
       );
     });
   });
@@ -127,10 +170,9 @@ describe("VerificationService - Story PT27", () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toBe("User verified successfully");
-      expect(mockVerificationRepository.verifyUserAndMarkToken).toHaveBeenCalledWith(
-        "user-123",
-        "token-123",
-      );
+      expect(
+        mockVerificationRepository.verifyUserAndMarkToken,
+      ).toHaveBeenCalledWith("user-123", "token-123");
     });
 
     it("should return error if user not found", async () => {
@@ -212,6 +254,38 @@ describe("VerificationService - Story PT27", () => {
       expect(result.error).toBe(
         "Verification code has expired. Please register again.",
       );
+    });
+
+    it("should handle error when verifyUserAndMarkToken fails", async () => {
+      const mockUser = {
+        id: "user-123",
+        email: "test@example.com",
+        isVerified: false,
+      };
+
+      const mockToken = {
+        id: "token-123",
+        userId: "user-123",
+        code: "123456",
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+        createdAt: new Date(),
+      };
+
+      mockVerificationRepository.findUserByEmail.mockResolvedValue(mockUser);
+      mockVerificationRepository.findVerificationToken.mockResolvedValue(
+        mockToken,
+      );
+      mockVerificationRepository.verifyUserAndMarkToken.mockRejectedValue(
+        new Error("Transaction failed"),
+      );
+
+      const result = await verificationService.verifyRegistration(
+        "test@example.com",
+        "123456",
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Verification failed. Please try again.");
     });
   });
 
@@ -310,6 +384,138 @@ describe("VerificationService - Story PT27", () => {
       expect(result.error).toContain("Please wait");
       expect(result.error).toContain("seconds before requesting a new code");
     });
+
+    it("should allow resend when no previous token exists", async () => {
+      const mockUser = {
+        id: "user-123",
+        email: "test@example.com",
+        isVerified: false,
+        firstName: "John",
+      };
+
+      mockVerificationRepository.findUserByEmail.mockResolvedValue(mockUser);
+      mockVerificationRepository.findLatestVerificationToken.mockResolvedValue(
+        null,
+      );
+      mockVerificationRepository.createVerificationToken.mockResolvedValue({
+        success: true,
+      });
+      mockEmailService.sendVerificationEmail.mockResolvedValue({
+        success: true,
+      });
+
+      const result =
+        await verificationService.resendVerificationCode("test@example.com");
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe("Verification code resent successfully");
+      expect(
+        mockVerificationRepository.createVerificationToken,
+      ).toHaveBeenCalled();
+    });
+
+    it("should handle error when creating new token fails during resend", async () => {
+      const mockUser = {
+        id: "user-123",
+        email: "test@example.com",
+        isVerified: false,
+        firstName: "John",
+      };
+
+      const oldToken = {
+        id: "old-token",
+        userId: "user-123",
+        code: "old-code",
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+        createdAt: new Date(Date.now() - 2 * 60 * 1000),
+      };
+
+      mockVerificationRepository.findUserByEmail.mockResolvedValue(mockUser);
+      mockVerificationRepository.findLatestVerificationToken.mockResolvedValue(
+        oldToken,
+      );
+      mockVerificationRepository.createVerificationToken.mockRejectedValue(
+        new Error("Database error"),
+      );
+
+      const result =
+        await verificationService.resendVerificationCode("test@example.com");
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(
+        "Failed to resend verification code. Please try again.",
+      );
+    });
+
+    it("should handle error when sending email fails during resend", async () => {
+      const mockUser = {
+        id: "user-123",
+        email: "test@example.com",
+        isVerified: false,
+        firstName: "John",
+      };
+
+      const oldToken = {
+        id: "old-token",
+        userId: "user-123",
+        code: "old-code",
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+        createdAt: new Date(Date.now() - 2 * 60 * 1000),
+      };
+
+      mockVerificationRepository.findUserByEmail.mockResolvedValue(mockUser);
+      mockVerificationRepository.findLatestVerificationToken.mockResolvedValue(
+        oldToken,
+      );
+      mockVerificationRepository.createVerificationToken.mockResolvedValue({
+        success: true,
+      });
+      mockEmailService.sendVerificationEmail.mockRejectedValue(
+        new Error("Email service error"),
+      );
+
+      const result =
+        await verificationService.resendVerificationCode("test@example.com");
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe(
+        "Failed to resend verification code. Please try again.",
+      );
+    });
+
+    it("should allow resend when token is expired but user tries again", async () => {
+      const mockUser = {
+        id: "user-123",
+        email: "test@example.com",
+        isVerified: false,
+        firstName: "John",
+      };
+
+      const expiredToken = {
+        id: "expired-token",
+        userId: "user-123",
+        code: "expired-code",
+        expiresAt: new Date(Date.now() - 60 * 60 * 1000), // expired 1 hour ago
+        createdAt: new Date(Date.now() - 90 * 60 * 1000),
+      };
+
+      mockVerificationRepository.findUserByEmail.mockResolvedValue(mockUser);
+      mockVerificationRepository.findLatestVerificationToken.mockResolvedValue(
+        expiredToken,
+      );
+      mockVerificationRepository.createVerificationToken.mockResolvedValue({
+        success: true,
+      });
+      mockEmailService.sendVerificationEmail.mockResolvedValue({
+        success: true,
+      });
+
+      const result =
+        await verificationService.resendVerificationCode("test@example.com");
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBe("Verification code resent successfully");
+    });
   });
 
   describe("cleanupExpiredTokens", () => {
@@ -347,6 +553,38 @@ describe("VerificationService - Story PT27", () => {
       expect(
         mockVerificationRepository.deleteUnverifiedUsers,
       ).not.toHaveBeenCalled();
+    });
+
+    it("should handle error when finding expired tokens fails", async () => {
+      mockVerificationRepository.findExpiredTokenUsers.mockRejectedValue(
+        new Error("Database error"),
+      );
+
+      await verificationService.cleanupExpiredTokens();
+
+      expect(
+        mockVerificationRepository.findExpiredTokenUsers,
+      ).toHaveBeenCalled();
+      expect(
+        mockVerificationRepository.deleteUnverifiedUsers,
+      ).not.toHaveBeenCalled();
+    });
+
+    it("should handle error when deleting expired users fails", async () => {
+      const expiredTokenUsers = [{ userId: "user-1", id: "token-1" }];
+
+      mockVerificationRepository.findExpiredTokenUsers.mockResolvedValue(
+        expiredTokenUsers,
+      );
+      mockVerificationRepository.deleteUnverifiedUsers.mockRejectedValue(
+        new Error("Delete failed"),
+      );
+
+      await verificationService.cleanupExpiredTokens();
+
+      expect(
+        mockVerificationRepository.deleteUnverifiedUsers,
+      ).toHaveBeenCalledWith(["user-1"]);
     });
   });
 });

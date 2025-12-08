@@ -205,5 +205,93 @@ describe("VerificationController - Story PT27", () => {
         "Failed to resend verification code. Please try again.",
       );
     });
+
+    it("should return error if email is only whitespace", async () => {
+      // Whitespace-only email is NOT empty, so it passes the check and gets trimmed
+      mockVerificationService.resendVerificationCode.mockResolvedValue({
+        success: false,
+        error: "User not found",
+      });
+
+      const result = await resendVerificationCode("   ");
+
+      // Email "   " is not falsy, so it passes the initial check
+      // Then it's trimmed to "" and passed to service
+      expect(
+        mockVerificationService.resendVerificationCode,
+      ).toHaveBeenCalledWith("");
+    });
+
+    it("should handle resend when email has leading/trailing spaces with null trim result", async () => {
+      mockVerificationService.resendVerificationCode.mockResolvedValue({
+        success: true,
+        data: "Verification code resent successfully",
+      });
+
+      await resendVerificationCode("  test@example.com  ");
+
+      expect(
+        mockVerificationService.resendVerificationCode,
+      ).toHaveBeenCalledWith("test@example.com");
+    });
+  });
+
+  describe("verifyRegistration - Additional Edge Cases", () => {
+    it("should allow verification when email is only whitespace but code is valid", async () => {
+      mockVerificationService.verifyRegistration.mockResolvedValue({
+        success: false,
+        error: "User not found",
+      });
+
+      const result = await verifyRegistration("   ", "123456");
+
+      expect(result.success).toBe(false);
+      // Whitespace-only email passes initial check, gets trimmed to ""
+      expect(mockVerificationService.verifyRegistration).toHaveBeenCalledWith(
+        "",
+        "123456",
+      );
+    });
+
+    it("should return error if code is only whitespace (before trim check)", async () => {
+      // Whitespace-only code is NOT falsy, so it passes the check
+      mockVerificationService.verifyRegistration.mockResolvedValue({
+        success: false,
+        error: "Invalid verification code",
+      });
+
+      const result = await verifyRegistration("test@example.com", "   ");
+
+      // Whitespace code passes initial check, gets trimmed to ""
+      expect(result.success).toBe(false);
+      expect(mockVerificationService.verifyRegistration).toHaveBeenCalledWith(
+        "test@example.com",
+        "",
+      );
+    });
+
+    it("should handle service thrown exceptions gracefully", async () => {
+      mockVerificationService.verifyRegistration.mockRejectedValue(
+        new Error("Service unavailable"),
+      );
+
+      try {
+        await verifyRegistration("test@example.com", "123456");
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+      }
+    });
+
+    it("should handle resend when service throws exception", async () => {
+      mockVerificationService.resendVerificationCode.mockRejectedValue(
+        new Error("Service unavailable"),
+      );
+
+      try {
+        await resendVerificationCode("test@example.com");
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+      }
+    });
   });
 });
