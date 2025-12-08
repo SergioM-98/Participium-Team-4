@@ -2,7 +2,6 @@ import { prisma } from "@/prisma/db";
 import { Category, Report, Offices, ReportStatus, Role } from "@prisma/client";
 import {
   ReportRegistrationResponse,
-  UpdateReportStatusResponse,
 } from "@/dtos/report.dto";
 
 class ReportRepository {
@@ -32,6 +31,7 @@ class ReportRepository {
         status: true,
         citizenId: true,
         officerId: true,
+        companyId: true,
         citizen: {
           select: {
             username: true,
@@ -58,7 +58,7 @@ class ReportRepository {
     category: string,
     longitude: number,
     latitude: number,
-    userId: string
+    userId: string,
   ): Promise<ReportRegistrationResponse> {
     try {
       category = category.toUpperCase();
@@ -95,44 +95,45 @@ class ReportRepository {
 
     public async getUnapprovedReports() {
       const where: any = { status: "REJECTED" };
-      try {
-        const reports = await prisma.report.findMany({
-          where,
-          select: {
-            id: true,
-            title: true,
-            longitude: true,
-            latitude: true,
-            category: true,
-            citizen: {
-              select: {
-                username: true,
-              },
+      const reports = await prisma.report.findMany({
+        where,
+        select: {
+          id: true,
+          title: true,
+          longitude: true,
+          latitude: true,
+          category: true,
+          citizenId: true,
+          status: true,
+          citizen: {
+            select: {
+              id: true,
+              username: true,
             },
           },
-        });
-        if (!reports || reports.length === 0) {
-          return { success: false, error: "No unapproved reports found" };
-        }
-        return { success: true, data: reports };
-      } catch (e) {
-        return { success: false, error: "Error retrieving unapproved reports" };
+        },
+      });
+      if (!reports || reports.length === 0) {
+        return { success: false, error: "No unapproved reports found" };
       }
+      return { success: true, data: reports };
     }
 
     public async getUnapprovedReportsByCitizenId(citizenId: string) {
       const where: any = { status: "REJECTED", citizenId };
-      try {
-        const reports = await prisma.report.findMany({
-          where,
-          select: {
-            id: true,
-            title: true,
-            longitude: true,
+      const reports = await prisma.report.findMany({
+        where,
+        select: {
+          id: true,
+          title: true,
+          longitude: true,
             latitude: true,
             category: true,
+            citizenId: true,
+            status: true,
             citizen: {
               select: {
+                id: true,
                 username: true,
               },
             },
@@ -142,10 +143,7 @@ class ReportRepository {
           return { success: false, error: "No unapproved reports found for this citizen" };
         }
         return { success: true, data: reports };
-      } catch (e) {
-        return { success: false, error: "Error retrieving unapproved reports for citizen" };
       }
-    }
   
 
   public async getReportsByOfficerId(officerId: string) {
@@ -167,9 +165,9 @@ class ReportRepository {
     });
   }
 
-  public async getPendingApprovalReports() {
-    const where: any = { status: "PENDING_APPROVAL" };
-    try {
+
+    public async getPendingApprovalReportsByCitizenId(citizenId: string) {
+      const where: any = { status: "PENDING_APPROVAL", citizenId };
       const reports = await prisma.report.findMany({
         where,
         select: {
@@ -178,48 +176,61 @@ class ReportRepository {
           longitude: true,
           latitude: true,
           category: true,
+          citizenId: true,
+          status: true,
           citizen: {
             select: {
+              id: true,
               username: true,
             },
           },
         },
       });
       if (!reports || reports.length === 0) {
-        return { success: false, error: "No pending approval reports found" };
+        return { success: false, error: "No pending approval reports found for this citizen" };
       }
       return { success: true, data: reports };
-    } catch (e) {
-      return { success: false, error: "Error retrieving pending approval reports" };
     }
-  }
-
-    public async getPendingApprovalReportsByCitizenId(citizenId: string) {
-      const where: any = { status: "PENDING_APPROVAL", citizenId };
-      try {
-        const reports = await prisma.report.findMany({
-          where,
+  public async getReportsByMaintainerId(maintainerId: string) {
+    return await prisma.report.findMany({
+      where: {
+        maintainerId: maintainerId,
+      },
+      include: {
+        photos: {
+          select: { url: true, filename: true },
+        },
+        citizen: {
           select: {
             id: true,
-            title: true,
-            longitude: true,
-            latitude: true,
-            category: true,
-            citizen: {
-              select: {
-                username: true,
-              },
-            },
+            username: true,
           },
-        });
-        if (!reports || reports.length === 0) {
-          return { success: false, error: "No pending approval reports found for this citizen" };
-        }
-        return { success: true, data: reports };
-      } catch (e) {
-        return { success: false, error: "Error retrieving pending approval reports for citizen" };
-      }
-    }
+        },
+      },
+    });
+  }
+
+  public async getPendingApprovalReports(status: string) {
+    return await prisma.report.findMany({
+      where: {
+        status: status as ReportStatus,
+      },
+      include: {
+        photos: {
+          select: { filename: true, url: true },
+        },
+        citizen: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            username: true,
+          },
+        },
+      },
+    });
+  }
 
   public async getOfficerWithLeastReports(department: string) {
     const office = this.normalizeOffice(department);
@@ -230,7 +241,9 @@ class ReportRepository {
 
     return await prisma.user.findFirst({
       where: {
-        role: "TECHNICAL_OFFICER" as Role,
+        role: {
+          has: "TECHNICAL_OFFICER" as Role
+        },
         office,
       },
       orderBy: {
@@ -243,7 +256,7 @@ class ReportRepository {
 
   public async assignReportToOfficer(
     reportId: number,
-    officerId: string
+    officerId: string,
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
@@ -256,9 +269,23 @@ class ReportRepository {
     });
   }
 
+  public async assignReportToMaintainer(
+    reportId: number,
+    maintainerId: string,
+  ): Promise<Report> {
+    return await prisma.report.update({
+      where: {
+        id: BigInt(reportId),
+      },
+      data: {
+        maintainerId: maintainerId,
+      },
+    });
+  }
+
   public async rejectReport(
     reportId: number,
-    rejectionReason: string
+    rejectionReason: string,
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
@@ -291,9 +318,12 @@ class ReportRepository {
   }
 
   public async getApprovedReports() {
-    const where: any = { status: "ASSIGNED" };
     const reports = await prisma.report.findMany({
-      where,
+      where: {
+        status: {
+          in: ["ASSIGNED", "IN_PROGRESS", "SUSPENDED"],
+        }
+      },
       select: {
         id: true,
         title: true,
@@ -301,8 +331,10 @@ class ReportRepository {
         latitude: true,
         category: true,
         citizenId: true,
+        status: true,
         citizen: {
           select: {
+            id: true,
             username: true,
           },
         },
@@ -316,7 +348,7 @@ class ReportRepository {
 
   public async updateReportStatus(
     reportId: string,
-    status: string
+    status: string,
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
@@ -333,7 +365,7 @@ class ReportRepository {
       where: {
         companyId: companyId,
         role: {
-          in: ["EXTERNAL_MAINTAINER_WITH_ACCESS", "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"] as Role[],
+          hasSome: ["EXTERNAL_MAINTAINER_WITH_ACCESS", "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"] as Role[],
         },
       },
       orderBy: {
@@ -343,10 +375,17 @@ class ReportRepository {
       },
     });
   }
+  public async getCompanyById(companyId: string) {
+    return await prisma.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
+  }
 
   public async assignReportToCompany(
     reportId: number,
-    companyId: string
+    companyId: string,
   ): Promise<Report> {
     return await prisma.report.update({
       where: {

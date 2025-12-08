@@ -127,7 +127,7 @@ function Navbar1({
               </>
             ) : (
               <>
-                {role === "CITIZEN" && (
+                {role.includes("CITIZEN") && (
                   <NotificationBell className={isHomepage ? "text-white" : "text-black"} />
                 )}
 
@@ -162,7 +162,7 @@ function Navbar1({
             {/* Right side group: Notification + Menu Trigger */}
             <div className="flex items-center gap-3">
               {/* --- NOTIFICATION BELL (MOBILE) - Only for CITIZEN --- */}
-              {role === "CITIZEN" && (
+              {role?.includes("CITIZEN") && (
                 <NotificationBell className={isHomepage ? "text-white" : undefined} />
               )}
 

@@ -7,18 +7,18 @@ const BaseUserSchema = z
     lastName: z.string().min(1, "Last name is required"),
     email: z.email("Invalid email").optional(),
     username: z.string().min(3, "Username must be at least 3 characters"),
-    role: z.enum(Role),
+    role: z.array(z.enum(Role)).min(1, "At least one role is required"),
     office: z.enum(Offices).optional(),
     telegram: z.string().optional(),
     companyId: z.string().optional(),
   })
   .refine(
     (data) =>
-      ((data.role === "PUBLIC_RELATIONS_OFFICER" ||
-        data.role === "TECHNICAL_OFFICER") &&
+      ((data.role.includes("PUBLIC_RELATIONS_OFFICER") ||
+        data.role.includes("TECHNICAL_OFFICER")) &&
         data.office) ||
-      (data.role !== "PUBLIC_RELATIONS_OFFICER" &&
-        data.role !== "TECHNICAL_OFFICER" &&
+      (!data.role.includes("PUBLIC_RELATIONS_OFFICER") &&
+        !data.role.includes("TECHNICAL_OFFICER") &&
         !data.office),
     {
       message: "Only OFFICER can have an office",
@@ -27,8 +27,8 @@ const BaseUserSchema = z
   )
   .refine(
     (data) =>
-      (data.role === "CITIZEN" && data.email) ||
-      (data.role !== "CITIZEN" && !data.email),
+      (data.role.includes("CITIZEN") && data.email) ||
+      (!data.role.includes("CITIZEN") && !data.email),
     {
       message: "Only CITIZEN can have an email",
       path: ["email"],
@@ -36,7 +36,7 @@ const BaseUserSchema = z
   )
   .refine(
     (data) => {
-      if (data.role === "CITIZEN") {
+      if (data.role.includes("CITIZEN")) {
         return true;
       }
 
@@ -50,8 +50,8 @@ const BaseUserSchema = z
   .refine(
     (data) => {
       const isExternalMaintainer =
-        data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
-        data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS";
+        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+        data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS");
 
       if (isExternalMaintainer) {
         return !!data.companyId;
@@ -62,6 +62,24 @@ const BaseUserSchema = z
     {
       message: "Only EXTERNAL_MAINTAINER roles must have a company assigned",
       path: ["companyId"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (
+        data.role.includes("CITIZEN") ||
+        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+        data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
+      ) {
+        return data.role.length === 1;
+      }
+
+      return true;
+    },
+    {
+      message:
+        "CITIZEN and EXTERNAL_MAINTAINER roles cannot be combined with other roles",
+      path: ["role"],
     },
   );
 
@@ -88,7 +106,7 @@ export const RetrievedUserDataSchema = z
     lastName: z.string(),
     email: z.email().optional(),
     username: z.string(),
-    role: z.enum(Role),
+    role: z.array(z.enum(Role)),
     office: z.enum(Offices).optional(),
     telegram: z.boolean,
     pendingRequest: z.boolean,
@@ -96,29 +114,29 @@ export const RetrievedUserDataSchema = z
   })
   .refine(
     (data) =>
-      ((data.role === "PUBLIC_RELATIONS_OFFICER" ||
-        data.role === "TECHNICAL_OFFICER") &&
+      ((data.role.includes("PUBLIC_RELATIONS_OFFICER") ||
+        data.role.includes("TECHNICAL_OFFICER")) &&
         data.office) ||
-      (data.role !== "PUBLIC_RELATIONS_OFFICER" &&
-        data.role !== "TECHNICAL_OFFICER" &&
+      (!data.role.includes("PUBLIC_RELATIONS_OFFICER") &&
+        !data.role.includes("TECHNICAL_OFFICER") &&
         !data.office),
     {
-      message: "Only OFFICER can and must have an office",
+      message: "Only OFFICER can have an office",
       path: ["office"],
     },
   )
   .refine(
     (data) =>
-      (data.role === "CITIZEN" && data.email) ||
-      (data.role !== "CITIZEN" && !data.email),
+      (data.role.includes("CITIZEN") && data.email) ||
+      (!data.role.includes("CITIZEN") && !data.email),
     {
-      message: "Only CITIZEN can and must have an email",
+      message: "Only CITIZEN can have an email",
       path: ["email"],
     },
   )
   .refine(
     (data) => {
-      if (data.role === "CITIZEN") {
+      if (data.role.includes("CITIZEN")) {
         return true;
       }
 
@@ -127,6 +145,41 @@ export const RetrievedUserDataSchema = z
     {
       message: "Only CITIZEN can have a telegram account",
       path: ["telegram"],
+    },
+  )
+  .refine(
+    (data) => {
+      const isExternalMaintainer =
+        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+        data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS");
+
+      if (isExternalMaintainer) {
+        return !!data.companyId;
+      }
+
+      return !data.companyId;
+    },
+    {
+      message: "Only EXTERNAL_MAINTAINER roles must have a company assigned",
+      path: ["companyId"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (
+        data.role.includes("CITIZEN") ||
+        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+        data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
+      ) {
+        return data.role.length === 1;
+      }
+
+      return true;
+    },
+    {
+      message:
+        "CITIZEN and EXTERNAL_MAINTAINER roles cannot be combined with other roles",
+      path: ["role"],
     },
   );
 

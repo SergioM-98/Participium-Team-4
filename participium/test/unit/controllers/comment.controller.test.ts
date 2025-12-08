@@ -245,7 +245,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can create comments",
+          "Unauthorized: Only technical officers and external maintainers with access can create comments",
         );
         expect(mockCommentService.createComment).not.toHaveBeenCalled();
       });
@@ -259,7 +259,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can create comments",
+          "Unauthorized: Only technical officers and external maintainers with access can create comments",
         );
         expect(mockCommentService.createComment).not.toHaveBeenCalled();
       });
@@ -271,7 +271,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can create comments",
+          "Unauthorized: Only technical officers and external maintainers with access can create comments",
         );
         expect(mockCommentService.createComment).not.toHaveBeenCalled();
       });
@@ -285,7 +285,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can create comments",
+          "Unauthorized: Only technical officers and external maintainers with access can create comments",
         );
         expect(mockCommentService.createComment).not.toHaveBeenCalled();
       });
@@ -535,7 +535,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can view comments",
+          "Unauthorized: Only technical officers and external maintainers with access can view comments",
         );
         expect(mockCommentService.getCommentsByReport).not.toHaveBeenCalled();
       });
@@ -549,7 +549,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can view comments",
+          "Unauthorized: Only technical officers and external maintainers with access can view comments",
         );
         expect(mockCommentService.getCommentsByReport).not.toHaveBeenCalled();
       });
@@ -561,7 +561,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can view comments",
+          "Unauthorized: Only technical officers and external maintainers with access can view comments",
         );
         expect(mockCommentService.getCommentsByReport).not.toHaveBeenCalled();
       });
@@ -575,7 +575,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can view comments",
+          "Unauthorized: Only technical officers and external maintainers with access can view comments",
         );
         expect(mockCommentService.getCommentsByReport).not.toHaveBeenCalled();
       });

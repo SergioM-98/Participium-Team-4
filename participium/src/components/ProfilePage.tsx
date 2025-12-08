@@ -74,7 +74,7 @@ type UserProfileData = {
   email: string;
   telegram: boolean;
   pendingRequest: boolean;
-  role: string;
+  role: string[];
   office?: string;
   companyId?: string;
   companyName?: string;
@@ -144,7 +144,7 @@ export default function ProfilePage() {
         };
         let imageUrl: string | null = null;
 
-        if ("role" in userData && userData.role === "CITIZEN") {
+        if ("role" in userData && userData.role.includes("CITIZEN")) {
           try {
             const url = await getProfilePhotoUrl();
             imageUrl = url === undefined ? null : url;
@@ -380,7 +380,7 @@ export default function ProfilePage() {
   };
 
   const handleSave = () => {
-    if (user?.role !== "CITIZEN" || !validate()) return;
+    if (!user?.role.includes("CITIZEN") || !validate()) return;
     setError(null);
 
     startTransition(async () => {
@@ -469,10 +469,10 @@ export default function ProfilePage() {
     );
   }
 
-  const isCitizen = user.role === "CITIZEN";
+  const isCitizen = user.role.includes("CITIZEN");
   const isExternalMaintainer =
-    user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
-    user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS";
+    user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+    user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS");
   const canEdit = isCitizen;
   const isTelegramConnected = !!user.telegram;
 
@@ -535,13 +535,13 @@ export default function ProfilePage() {
           <div className="space-y-1">
             <CardTitle className="text-2xl font-bold">My Profile</CardTitle>
             <CardDescription>
-              {user.role === "TECHNICAL_OFFICER" ||
-              user.role === "PUBLIC_RELATIONS_OFFICER"
+              {user.role.includes("TECHNICAL_OFFICER") ||
+              user.role.includes("PUBLIC_RELATIONS_OFFICER")
                 ? "View your officer details and office assignment."
-                : user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
-                  user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+                : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+                  user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
                 ? "View your external maintainer details and company assignment."
-                : user.role === "ADMIN"
+                : user.role.includes("ADMIN")
                 ? "System administrator profile."
                 : "Manage your contact information and notification preferences."}
             </CardDescription>
@@ -651,35 +651,35 @@ export default function ProfilePage() {
                 <span
                   className={cn(
                     "px-2.5 py-0.5 rounded-full text-xs font-semibold border flex items-center gap-1 w-fit",
-                    user.role === "TECHNICAL_OFFICER" ||
-                      user.role === "PUBLIC_RELATIONS_OFFICER" ||
-                      user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
-                      user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+                    user.role.includes("TECHNICAL_OFFICER") ||
+                      user.role.includes("PUBLIC_RELATIONS_OFFICER") ||
+                      user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+                      user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
                       ? "bg-blue-50 text-blue-700 border-blue-200"
-                      : user.role === "ADMIN"
+                      : user.role.includes("ADMIN")
                       ? "bg-purple-50 text-purple-700 border-purple-200"
                       : "bg-secondary text-secondary-foreground"
                   )}
                 >
-                  {user.role === "TECHNICAL_OFFICER" ||
-                  user.role === "PUBLIC_RELATIONS_OFFICER" ? (
+                  {user.role.includes("TECHNICAL_OFFICER") ||
+                  user.role.includes("PUBLIC_RELATIONS_OFFICER") ? (
                     <ShieldAlert className="h-3 w-3" />
-                  ) : user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
-                    user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS" ? (
+                  ) : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+                    user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS") ? (
                     <ShieldAlert className="h-3 w-3" />
-                  ) : user.role === "ADMIN" ? (
+                  ) : user.role.includes("ADMIN") ? (
                     <ShieldCheck className="h-3 w-3" />
                   ) : (
                     <UserCheck className="h-3 w-3" />
                   )}
-                  {user.role === "TECHNICAL_OFFICER" ||
-                  user.role === "PUBLIC_RELATIONS_OFFICER"
+                  {user.role.includes("TECHNICAL_OFFICER") ||
+                  user.role.includes("PUBLIC_RELATIONS_OFFICER")
                     ? "Officer"
-                    : user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS"
+                    : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")
                     ? "External Maintainer (with access)"
-                    : user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+                    : user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
                     ? "External Maintainer (without access)"
-                    : user.role === "ADMIN"
+                    : user.role.includes("ADMIN")
                     ? "Administrator"
                     : "Citizen"}
                 </span>
@@ -813,9 +813,9 @@ export default function ProfilePage() {
             )}
 
             {/* Office */}
-            {(user.role === "TECHNICAL_OFFICER" ||
-              user.role === "PUBLIC_RELATIONS_OFFICER" ||
-              user.role === "ADMIN") &&
+            {(user.role.includes("TECHNICAL_OFFICER") ||
+              user.role.includes("PUBLIC_RELATIONS_OFFICER") ||
+              user.role.includes("ADMIN")) &&
               user.office && (
                 <div className="space-y-2 md:col-span-2">
                   <Label className="flex items-center gap-2 text-muted-foreground">
