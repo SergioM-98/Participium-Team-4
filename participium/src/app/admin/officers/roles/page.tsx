@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert } from "@/components/ui/alert";
 import { Search, Save, X } from "lucide-react";
+import { deleteOfficer, getAllofficers, updateOfficerOffices } from "@/app/lib/controllers/user.controller";
 
 // Mock data structure - will be replaced with real API calls
 interface Officer {
@@ -14,54 +15,57 @@ interface Officer {
   username: string;
   firstName: string;
   lastName: string;
-  roles: string[];
+  offices: string[];
 }
 
-const AVAILABLE_ROLES = [
-  { value: "TECHNICAL_OFFICER", label: "Technical Officer" },
-  { value: "PUBLIC_RELATIONS_OFFICER", label: "Public Relations Officer" },
-  { value: "EXTERNAL_MAINTAINER_WITH_ACCESS", label: "External Maintainer (With Access)" },
-  { value: "EXTERNAL_MAINTAINER_WITHOUT_ACCESS", label: "External Maintainer (Without Access)" },
+const AVAILABLE_OFFICES = [
+  { value: "DEPARTMENT_OF_COMMERCE", label: "Department of Commerce" },
+  { value: "DEPARTMENT_OF_EDUCATIONAL_SERVICES", label: "Department of Educational Services" },
+  { value: "DEPARTMENT_OF_DECENTRALIZATION_AND_CIVIC_SERVICES", label: "Department of Decentralization and Civic Services" },
+  { value: "DEPARTMENT_OF_SOCIAL_HEALTH_AND_HOUSING_SERVICES", label: "Department of Social Health and Housing Services" },
+  { value: "DEPARTMENT_OF_INTERNAL_SERVICES", label: "Department of Internal Services" },
+  { value: "DEPARTMENT_OF_CULTURE_SPORT_MAJOR_EVENTS_AND_TOURISM_PROMOTION", label: "Department of Culture, Sport, Major Events and Tourism Promotion" },
+  { value: "DEPARTMENT_OF_FINANCIAL_RESOURCES", label: "Department of Financial Resources" },
+  { value: "DEPARTMENT_OF_GENERAL_SERVICES_PROCUREMENT_AND_SUPPLIES", label: "Department of General Services Procurement and Supplies" },
+  { value: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES", label: "Department of Maintenance and Technical Services" },
+  { value: "DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING", label: "Department of Urban Planning and Private Building" },
+  { value: "DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY", label: "Department of Environment Major Projects Infras and Mobility" },
+  { value: "DEPARTMENT_OF_LOCAL_POLICE", label: "Department of Local Police" },
+  { value: "OTHER", label: "Other" }
 ];
 
-export default function RoleManagementPage() {
+export default function OfficeManagementPage() {
   const [officers, setOfficers] = useState<Officer[]>([]);
   const [filteredOfficers, setFilteredOfficers] = useState<Officer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [tempRoles, setTempRoles] = useState<string[]>([]);
+  const [tempOffices, setTempOffices] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+  const [startFetch, setStartFetch] = useState(false);
 
   // Mock data - replace with real API call
   useEffect(() => {
-    const mockOfficers: Officer[] = [
-      {
-        id: "1",
-        username: "tech_officer1",
-        firstName: "Mario",
-        lastName: "Rossi",
-        roles: ["TECHNICAL_OFFICER"],
-      },
-      {
-        id: "2",
-        username: "pr_officer1",
-        firstName: "Luigi",
-        lastName: "Bianchi",
-        roles: ["PUBLIC_RELATIONS_OFFICER"],
-      },
-      {
-        id: "3",
-        username: "multi_role",
-        firstName: "Giuseppe",
-        lastName: "Verdi",
-        roles: ["TECHNICAL_OFFICER", "PUBLIC_RELATIONS_OFFICER"],
-      },
-    ];
-    setOfficers(mockOfficers);
-    setFilteredOfficers(mockOfficers);
-  }, []);
+    const loadOfficers = async () => {
+      const fetchedOfficers = await getAllofficers();
+      if(!fetchedOfficers.success) return;
+
+      const techOfficers = fetchedOfficers.data.map((officer) =>{
+        return {
+          id: officer.id,
+          username: officer.username,
+          firstName: officer.firstName,
+          lastName: officer.lastName,
+          offices: officer.office
+        }
+      });
+
+      setOfficers(techOfficers);
+      setFilteredOfficers(techOfficers);
+    }
+    loadOfficers();
+  }, [startFetch]);
 
   useEffect(() => {
     const filtered = officers.filter(
@@ -73,45 +77,39 @@ export default function RoleManagementPage() {
     setFilteredOfficers(filtered);
   }, [searchTerm, officers]);
 
-  const handleEditRoles = (officer: Officer) => {
+  const handleEditOffices = (officer: Officer) => {
     setEditingId(officer.id);
-    setTempRoles([...officer.roles]);
+    setTempOffices([...officer.offices]);
     setError("");
     setSuccess("");
   };
 
-  const handleToggleRole = (roleValue: string) => {
-    setTempRoles((prev) =>
-      prev.includes(roleValue)
-        ? prev.filter((r) => r !== roleValue)
-        : [...prev, roleValue]
+  const handleToggleOffice = (officeValue: string) => {
+    setTempOffices((prev) =>
+      prev.includes(officeValue)
+        ? prev.filter((r) => r !== officeValue)
+        : [...prev, officeValue]
     );
   };
 
-  const handleSaveRoles = async (officerId: string) => {
+  const handleSaveOffices = async (officerId: string) => {
     setLoading(true);
     setError("");
     setSuccess("");
 
     try {
-      // TODO: Replace with actual API call
-      // await updateOfficerRoles(officerId, tempRoles);
       
-      // Mock API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const response = await updateOfficerOffices(officerId, tempOffices);
+      if (!response) {
+        setError("Failed to update offices");
+      }
 
-      // Update local state
-      setOfficers((prev) =>
-        prev.map((officer) =>
-          officer.id === officerId ? { ...officer, roles: [...tempRoles] } : officer
-        )
-      );
-
-      setSuccess("Roles updated successfully!");
+      setSuccess("Offices updated successfully!");
       setEditingId(null);
+      setStartFetch(prev => !prev);
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
-      setError(err.message || "Failed to update roles");
+      setError(err.message || "Failed to update offices");
     } finally {
       setLoading(false);
     }
@@ -119,16 +117,36 @@ export default function RoleManagementPage() {
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setTempRoles([]);
+    setTempOffices([]);
     setError("");
   };
+
+  const handleCancelOfficer = async (officerId: string) => {
+    try {
+      
+      const response = await deleteOfficer(officerId);
+      if (!response) {
+        setError("Failed to delete officer");
+      }
+
+      setSuccess("Officer deleted successfully!");
+      setEditingId(null);
+      setStartFetch(prev => !prev);
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err: any) {
+      setError(err.message || "Failed to delete officer");
+    } finally {
+      setLoading(false);
+    }
+
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Manage Officer Roles</h1>
+        <h1 className="text-3xl font-bold mb-2">Manage Officer Offices</h1>
         <p className="text-muted-foreground">
-          Assign or modify roles for municipality staff members
+          Assign or modify offices for municipality staff members
         </p>
       </div>
 
@@ -179,11 +197,11 @@ export default function RoleManagementPage() {
                   </div>
                   {editingId !== officer.id && (
                     <Button
-                      onClick={() => handleEditRoles(officer)}
+                      onClick={() => handleEditOffices(officer)}
                       variant="outline"
                       disabled={editingId !== null}
                     >
-                      Edit Roles
+                      Edit Offices
                     </Button>
                   )}
                 </div>
@@ -192,27 +210,27 @@ export default function RoleManagementPage() {
                 {editingId === officer.id ? (
                   <div className="space-y-4">
                     <div className="space-y-3">
-                      <p className="text-sm font-medium">Select Roles:</p>
-                      {AVAILABLE_ROLES.map((role) => (
-                        <div key={role.value} className="flex items-center space-x-3">
+                      <p className="text-sm font-medium">Select Offices:</p>
+                      {AVAILABLE_OFFICES.map((office) => (
+                        <div key={office.value} className="flex items-center space-x-3">
                           <Checkbox
-                            id={`${officer.id}-${role.value}`}
-                            checked={tempRoles.includes(role.value)}
-                            onCheckedChange={() => handleToggleRole(role.value)}
+                            id={`${officer.id}-${office.value}`}
+                            checked={tempOffices.includes(office.value)}
+                            onCheckedChange={() => handleToggleOffice(office.value)}
                           />
                           <label
-                            htmlFor={`${officer.id}-${role.value}`}
+                            htmlFor={`${officer.id}-${office.value}`}
                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                           >
-                            {role.label}
+                            {office.label}
                           </label>
                         </div>
                       ))}
                     </div>
                     <div className="flex gap-3 pt-4">
                       <Button
-                        onClick={() => handleSaveRoles(officer.id)}
-                        disabled={loading || tempRoles.length === 0}
+                        onClick={() => handleSaveOffices(officer.id)}
+                        disabled={loading || tempOffices.length === 0}
                         className="flex items-center gap-2"
                       >
                         <Save className="h-4 w-4" />
@@ -226,30 +244,38 @@ export default function RoleManagementPage() {
                       >
                         <X className="h-4 w-4" />
                         Cancel
+                      </Button><Button
+                        onClick={() => handleCancelOfficer(officer.id)}
+                        variant="outline"
+                        disabled={loading}
+                        className="flex items-center gap-2"
+                      >
+                        <X className="h-4 w-4" />
+                        Delete officer
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <p className="text-sm font-medium mb-2">Current Roles:</p>
+                    <p className="text-sm font-medium mb-2">Current Offices:</p>
                     <div className="flex flex-wrap gap-2">
-                      {officer.roles.length > 0 ? (
-                        officer.roles.map((role) => {
-                          const roleLabel =
-                            AVAILABLE_ROLES.find((r) => r.value === role)?.label ||
-                            role;
+                      {officer.offices.length > 0 ? (
+                        officer.offices.map((office) => {
+                          const officeLabel =
+                            AVAILABLE_OFFICES.find((o) => o.value === office)?.label ||
+                            office;
                           return (
                             <span
-                              key={role}
+                              key={office}
                               className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary"
                             >
-                              {roleLabel}
+                              {officeLabel}
                             </span>
                           );
                         })
                       ) : (
                         <span className="text-sm text-muted-foreground italic">
-                          No roles assigned
+                          No offices assigned
                         </span>
                       )}
                     </div>
