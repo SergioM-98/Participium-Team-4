@@ -3,6 +3,7 @@ import {
   approveReport,
   rejectReport,
   getReportsByOfficerId,
+  assignReportToCompany,
 } from "../../../src/app/lib/controllers/report.controller";
 import {
   ReportRegistrationResponse,
@@ -22,10 +23,23 @@ const mockRetrievalService = {
 const mockAssignmentService = {
   assignReportToOfficer: jest.fn(),
   rejectReport: jest.fn(),
+  assignReportToCompany: jest.fn(),
 };
 
 jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
+}));
+
+// Mock di next-auth per evitare che NextAuth() venga eseguito
+jest.mock("next-auth", () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    handlers: { GET: jest.fn(), POST: jest.fn() },
+  })),
+}));
+
+jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
+  authOptions: {},
 }));
 
 jest.mock("next-auth", () => ({
@@ -703,6 +717,161 @@ describe("ReportController Story 4", () => {
       ).not.toHaveBeenCalled();
       if (!response.success) {
         expect(response.error).toBe("Unauthorized access");
+      }
+    });
+  });
+
+  describe("assignReportToCompany - Story 24", () => {
+    const officerSession = {
+      user: {
+        id: "1",
+        name: "Officer User",
+        role: ["TECHNICAL_OFFICER"],
+      },
+      expires: "2024-12-31T23:59:59.999Z",
+    };
+
+    const adminSession = {
+      user: {
+        id: "1",
+        name: "Admin User",
+        role: ["ADMIN"],
+      },
+      expires: "2024-12-31T23:59:59.999Z",
+    };
+
+    const citizenSession = {
+      user: {
+        id: "2",
+        name: "Citizen User",
+        role: ["CITIZEN"],
+      },
+      expires: "2024-12-31T23:59:59.999Z",
+    };
+
+    beforeEach(() => {
+      (ReportAssignmentService.getInstance as jest.Mock).mockReturnValue(
+        mockAssignmentService,
+      );
+    });
+
+    it("should assign report to company successfully when user is TECHNICAL_OFFICER", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+      mockAssignmentService.assignReportToCompany.mockResolvedValue({
+        success: true,
+        data: "Report assigned to company Enel X and employee ID: emp123",
+        access: true,
+        email: "employee@enel.com",
+      });
+
+      const response = await assignReportToCompany(1, "company_enel");
+
+      expect(response.success).toBe(true);
+      expect(
+        mockAssignmentService.assignReportToCompany,
+      ).toHaveBeenCalledWith(1, "company_enel");
+      if (response.success) {
+        expect(response.data).toContain("Report assigned to company Enel X");
+      }
+    });
+
+    it("should return error when user is not TECHNICAL_OFFICER (CITIZEN)", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
+
+      const response = await assignReportToCompany(1, "company_enel");
+
+      expect(response.success).toBe(false);
+      expect(
+        mockAssignmentService.assignReportToCompany,
+      ).not.toHaveBeenCalled();
+      if (!response.success) {
+        expect(response.error).toBe("Unauthorized access");
+      }
+    });
+
+    it("should return error when user is ADMIN but not TECHNICAL_OFFICER", async () => {
+      const adminOnlySession = {
+        user: {
+          id: "1",
+          name: "Admin Only",
+          role: ["ADMIN"],
+        },
+        expires: "2024-12-31T23:59:59.999Z",
+      };
+
+      (getServerSession as jest.Mock).mockResolvedValue(adminOnlySession);
+
+      const response = await assignReportToCompany(1, "company_enel");
+
+      expect(response.success).toBe(false);
+      if (!response.success) {
+        expect(response.error).toBe("Unauthorized access");
+      }
+    });
+
+    it("should return error when no session exists", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
+
+      const response = await assignReportToCompany(1, "company_enel");
+
+      expect(response.success).toBe(false);
+      expect(
+        mockAssignmentService.assignReportToCompany,
+      ).not.toHaveBeenCalled();
+      if (!response.success) {
+        expect(response.error).toBe("Unauthorized access");
+      }
+    });
+
+    it("should return error when service fails", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+      mockAssignmentService.assignReportToCompany.mockRejectedValue(
+        new Error("Failed to assign report to company")
+      );
+
+      const response = await assignReportToCompany(1, "invalid_company");
+
+      expect(response.success).toBe(false);
+      expect(
+        mockAssignmentService.assignReportToCompany,
+      ).toHaveBeenCalledWith(1, "invalid_company");
+      if (!response.success) {
+        expect(response.error).toBe("Failed to assign report to company");
+      }
+    });
+
+    it("should include company access information in response", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+      mockAssignmentService.assignReportToCompany.mockResolvedValue({
+        success: true,
+        data: "Report assigned to company Test Company and employee ID: emp456",
+        access: false,
+        email: "emp456@test.com",
+      });
+
+      const response = await assignReportToCompany(1, "test_company");
+
+      expect(response.success).toBe(true);
+      if (response.success) {
+        expect(response.access).toBe(false);
+        expect(response.email).toBe("emp456@test.com");
+      }
+    });
+
+    it("should handle null email from employee", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+      mockAssignmentService.assignReportToCompany.mockResolvedValue({
+        success: true,
+        data: "Report assigned to company Enel X and employee ID: emp123",
+        access: true,
+        email: null,
+      });
+
+      const response = await assignReportToCompany(1, "company_enel");
+
+      expect(response.success).toBe(true);
+      if (response.success) {
+        expect(response.email).toBeNull();
       }
     });
   });
