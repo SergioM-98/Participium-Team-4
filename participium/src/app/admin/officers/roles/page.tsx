@@ -44,6 +44,7 @@ export default function OfficeManagementPage() {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [startFetch, setStartFetch] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // Mock data - replace with real API call
   useEffect(() => {
@@ -123,7 +124,6 @@ export default function OfficeManagementPage() {
 
   const handleCancelOfficer = async (officerId: string) => {
     try {
-      
       const response = await deleteOfficer(officerId);
       if (!response) {
         setError("Failed to delete officer");
@@ -131,6 +131,7 @@ export default function OfficeManagementPage() {
 
       setSuccess("Officer deleted successfully!");
       setEditingId(null);
+      setConfirmDeleteId(null);
       setStartFetch(prev => !prev);
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
@@ -138,7 +139,6 @@ export default function OfficeManagementPage() {
     } finally {
       setLoading(false);
     }
-
   }
 
   return (
@@ -151,13 +151,13 @@ export default function OfficeManagementPage() {
       </div>
 
       {success && (
-        <Alert className="mb-6 bg-green-50 border-green-200">
+        <Alert message={success} className="mb-6 bg-green-50 border-green-200">
           <div className="text-green-800">{success}</div>
         </Alert>
       )}
 
       {error && (
-        <Alert className="mb-6 bg-red-50 border-red-200">
+        <Alert message={error} className="mb-6 bg-red-50 border-red-200">
           <div className="text-red-800">{error}</div>
         </Alert>
       )}
@@ -244,8 +244,9 @@ export default function OfficeManagementPage() {
                       >
                         <X className="h-4 w-4" />
                         Cancel
-                      </Button><Button
-                        onClick={() => handleCancelOfficer(officer.id)}
+                      </Button>
+                      <Button
+                        onClick={() => setConfirmDeleteId(officer.id)}
                         variant="outline"
                         disabled={loading}
                         className="flex items-center gap-2"
@@ -253,6 +254,31 @@ export default function OfficeManagementPage() {
                         <X className="h-4 w-4" />
                         Delete officer
                       </Button>
+                      
+                      {confirmDeleteId === officer.id && (
+                        <div className="mt-4 p-4 border border-red-200 bg-red-50 rounded-lg">
+                          <p className="text-sm font-medium text-red-800 mb-3">
+                            Are you sure you want to delete this officer? This action cannot be undone.
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => handleCancelOfficer(officer.id)}
+                              variant="destructive"
+                              disabled={loading}
+                              className="flex items-center gap-2"
+                            >
+                              Confirm Delete
+                            </Button>
+                            <Button
+                              onClick={() => setConfirmDeleteId(null)}
+                              variant="outline"
+                              disabled={loading}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
