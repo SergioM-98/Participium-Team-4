@@ -172,6 +172,7 @@ export const RetrievedUserDataSchema = z
   );
 
 export const OfficerUserSchema = z.object({
+  id: z.string(),
   firstName: z.string(),
   lastName: z.string(),
   username: z.string(),
