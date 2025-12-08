@@ -150,7 +150,7 @@ class UserRepository {
     }
 
     if (removeTelegram) {
-      data.telegram = null;
+      data.telegramChatId = null;
     }
 
     await prisma.user.update({
