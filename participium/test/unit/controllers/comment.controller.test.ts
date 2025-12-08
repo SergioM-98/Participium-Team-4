@@ -144,6 +144,39 @@ describe("CommentController", () => {
         );
       });
 
+      it("should successfully create a comment when user is a EXTERNAL_MAINTAINER_WITH_ACCESS", async () => {
+        mockCommentService.createComment.mockResolvedValue(mockCommentData);
+        (getServerSession as jest.Mock).mockResolvedValue(
+          externalMaintainerWithAccessSession,
+        );
+
+        const response = await createComment(testContent, testReportId);
+
+        expect(response.success).toBe(true);
+        expect(response.data).toEqual(mockCommentData);
+        expect(mockCommentService.createComment).toHaveBeenCalledWith(
+          testContent,
+          externalMaintainerWithAccessSession.user.id,
+          testReportId,
+        );
+        expect(CommentService.getInstance).toHaveBeenCalled();
+      });
+
+      it("should pass correct parameters to service", async () => {
+        mockCommentService.createComment.mockResolvedValue(mockCommentData);
+        (getServerSession as jest.Mock).mockResolvedValue(
+          technicalOfficerSession,
+        );
+
+        await createComment(testContent, testReportId);
+
+        expect(mockCommentService.createComment).toHaveBeenCalledWith(
+          testContent,
+          "2",
+          testReportId,
+        );
+      });
+
       it("should handle empty comment content", async () => {
         const emptyComment = mockCommentData;
         mockCommentService.createComment.mockResolvedValue(emptyComment);
@@ -212,7 +245,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can create comments",
+          "Unauthorized: Only technical officers and external maintainers with access can create comments",
         );
         expect(mockCommentService.createComment).not.toHaveBeenCalled();
       });
@@ -226,7 +259,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can create comments",
+          "Unauthorized: Only technical officers and external maintainers with access can create comments",
         );
         expect(mockCommentService.createComment).not.toHaveBeenCalled();
       });
@@ -238,7 +271,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can create comments",
+          "Unauthorized: Only technical officers and external maintainers with access can create comments",
         );
         expect(mockCommentService.createComment).not.toHaveBeenCalled();
       });
@@ -252,7 +285,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can create comments",
+          "Unauthorized: Only technical officers and external maintainers with access can create comments",
         );
         expect(mockCommentService.createComment).not.toHaveBeenCalled();
       });
@@ -502,7 +535,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can view comments",
+          "Unauthorized: Only technical officers and external maintainers with access can view comments",
         );
         expect(mockCommentService.getCommentsByReport).not.toHaveBeenCalled();
       });
@@ -516,7 +549,7 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can view comments",
+          "Unauthorized: Only technical officers and external maintainers with access can view comments",
         );
         expect(mockCommentService.getCommentsByReport).not.toHaveBeenCalled();
       });
@@ -528,7 +561,21 @@ describe("CommentController", () => {
 
         expect(response.success).toBe(false);
         expect(response.error).toBe(
-          "Unauthorized: Only technical officers can view comments",
+          "Unauthorized: Only technical officers and external maintainers with access can view comments",
+        );
+        expect(mockCommentService.getCommentsByReport).not.toHaveBeenCalled();
+      });
+
+      it("should reject EXTERNAL_MAINTAINER_WITHOUT_ACCESS role", async () => {
+        (getServerSession as jest.Mock).mockResolvedValue(
+          externalMaintainerWithoutAccessSession,
+        );
+
+        const response = await getReportComments(testReportId);
+
+        expect(response.success).toBe(false);
+        expect(response.error).toBe(
+          "Unauthorized: Only technical officers and external maintainers with access can view comments",
         );
         expect(mockCommentService.getCommentsByReport).not.toHaveBeenCalled();
       });
@@ -593,7 +640,8 @@ describe("CommentController", () => {
         expect(response.data).toBeDefined();
         if (response.data && Array.isArray(response.data)) {
           expect(response.data).toHaveLength(1);
-          const comment = response.data[0];
+          const comment = response.data[0] as typeof mockCommentData;
+
           expect(comment).toHaveProperty("id");
           expect(comment).toHaveProperty("content");
           expect(comment).toHaveProperty("authorId");
