@@ -16,7 +16,7 @@ class CompanyCreationService {
   }
 
   public async createCompany(
-    companyData: Partial<Company>
+    companyData: Partial<Company>,
   ): Promise<CompanyRegistrationResponse> {
     if (!companyData.name) {
       return { success: false, error: "Company name is required" };

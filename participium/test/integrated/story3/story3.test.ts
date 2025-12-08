@@ -27,7 +27,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
     user: {
       id: "1",
       name: "Admin User",
-      role: "ADMIN",
+      role: ["ADMIN"],
     },
     expires: "2024-12-31T23:59:59.999Z",
   };
@@ -36,7 +36,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
     user: {
       id: "2",
       name: "Citizen User",
-      role: "CITIZEN",
+      role: ["CITIZEN"],
     },
     expires: "2024-12-31T23:59:59.999Z",
   };
@@ -83,7 +83,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
         lastName: "Rossi",
         email: null,
         username: "mariorossi",
-        role: "PUBLIC_RELATIONS_OFFICER",
+        role: ["PUBLIC_RELATIONS_OFFICER"],
         office: "DEPARTMENT_OF_COMMERCE"
       });
 
@@ -100,7 +100,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
           lastName: "User",
           username: "existinguser",
           passwordHash: "hashedpassword",
-          role: "PUBLIC_RELATIONS_OFFICER",
+          role: ["PUBLIC_RELATIONS_OFFICER"],
           office: "DEPARTMENT_OF_COMMERCE",
         },
       });

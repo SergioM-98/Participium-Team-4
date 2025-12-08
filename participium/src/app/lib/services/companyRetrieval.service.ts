@@ -15,11 +15,10 @@ class CompanyRetrievalService {
   }
 
   public async getCompaniesByAccess(
-    hasAccess: boolean
+    hasAccess: boolean,
   ): Promise<CompaniesRetrievalResponse> {
-    const companies = await this.companyRepository.getCompaniesByAccess(
-      hasAccess
-    );
+    const companies =
+      await this.companyRepository.getCompaniesByAccess(hasAccess);
 
     if (companies) {
       const mappedData = companies.map((company) => ({

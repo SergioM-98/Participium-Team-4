@@ -66,7 +66,7 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
         lastName: "Doe",
         email: "john@example.com",
         passwordHash: "hash",
-        role: "CITIZEN",
+        role: ["CITIZEN"],
       },
     });
 
@@ -77,14 +77,18 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
         email: "john@example.com",
         firstName: "John",
         lastName: "Doe",
-        role: "CITIZEN",
+        role: ["CITIZEN"],
       },
     });
   });
 
   // 1) Upload Photo
   it("should upload a profile photo successfully", async () => {
-    (ProfilePhotoController.createUploadPhoto as jest.MockedFunction<typeof ProfilePhotoController.createUploadPhoto>).mockResolvedValue({
+    (
+      ProfilePhotoController.createUploadPhoto as jest.MockedFunction<
+        typeof ProfilePhotoController.createUploadPhoto
+      >
+    ).mockResolvedValue({
       success: true,
       location: "file123",
       uploadOffset: 123,
@@ -95,10 +99,7 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
     form.append("tus-resumable", "1.0.0");
     form.append("upload-length", "3");
     form.append("upload-metadata", "filename Zm9vLmpwZw==");
-    form.append(
-      "file",
-      new File(["abc"], "foo.jpg", { type: "image/jpeg" })
-    );
+    form.append("file", new File(["abc"], "foo.jpg", { type: "image/jpeg" }));
 
     const res = await ProfilePhotoController.createUploadPhoto(form);
 
@@ -111,7 +112,11 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
 
   // 2) Delete Photo
   it("should delete a profile photo successfully", async () => {
-    (ProfilePhotoController.deletePhoto as jest.MockedFunction<typeof ProfilePhotoController.deletePhoto>).mockResolvedValue({
+    (
+      ProfilePhotoController.deletePhoto as jest.MockedFunction<
+        typeof ProfilePhotoController.deletePhoto
+      >
+    ).mockResolvedValue({
       success: true,
       message: "Photo deleted successfully",
     });
@@ -123,7 +128,11 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
 
   // 3) Update Notifications
   it("should update notification preferences", async () => {
-    (NotificationController.updateNotificationsPreferences as jest.MockedFunction<typeof NotificationController.updateNotificationsPreferences>).mockResolvedValue({
+    (
+      NotificationController.updateNotificationsPreferences as jest.MockedFunction<
+        typeof NotificationController.updateNotificationsPreferences
+      >
+    ).mockResolvedValue({
       success: true,
       data: {
         emailEnabled: true,
@@ -142,7 +151,11 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
 
   // 4) Telegram Error Case
   it("should fail enabling telegram notifications without telegram media", async () => {
-    (NotificationController.updateNotificationsPreferences as jest.MockedFunction<typeof NotificationController.updateNotificationsPreferences>).mockResolvedValue({
+    (
+      NotificationController.updateNotificationsPreferences as jest.MockedFunction<
+        typeof NotificationController.updateNotificationsPreferences
+      >
+    ).mockResolvedValue({
       success: false,
       error: "Cannot enable telegram notifications without telegram media",
     });
@@ -153,12 +166,18 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
     });
 
     expect((res as any).success).toBe(false);
-    expect((res as any).error).toBe("Cannot enable telegram notifications without telegram media");
+    expect((res as any).error).toBe(
+      "Cannot enable telegram notifications without telegram media",
+    );
   });
 
   // 5) Retrieve Preferences
   it("should retrieve notification preferences", async () => {
-    (NotificationController.getNotificationsPreferences as jest.MockedFunction<typeof NotificationController.getNotificationsPreferences>).mockResolvedValue({
+    (
+      NotificationController.getNotificationsPreferences as jest.MockedFunction<
+        typeof NotificationController.getNotificationsPreferences
+      >
+    ).mockResolvedValue({
       success: true,
       data: {
         emailEnabled: true,
@@ -174,19 +193,21 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
 
   // 6) getMe()
   it("should return user info from getMe()", async () => {
-    (UserController.getMe as jest.MockedFunction<typeof UserController.getMe>).mockResolvedValue({
+    (
+      UserController.getMe as jest.MockedFunction<typeof UserController.getMe>
+    ).mockResolvedValue({
       id: "citizen1",
       username: "citizen",
-      role: "CITIZEN",
+      role: ["CITIZEN"],
       firstName: "John",
       lastName: "Doe",
-      email: "john@example.com"
+      email: "john@example.com",
     });
 
     const res = await UserController.getMe();
     const user = (res as any).id ? res : (res as any).data;
     expect(user.id).toBe("citizen1");
     expect(user.username).toBe("citizen");
-    expect(user.role).toBe("CITIZEN");
+    expect(user.role).toEqual(["CITIZEN"]);
   });
 });

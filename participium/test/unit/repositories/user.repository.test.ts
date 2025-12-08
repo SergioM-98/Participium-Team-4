@@ -22,7 +22,7 @@ describe("UserRepository Story 1", () => {
     firstName: "Test",
     lastName: "User",
     email: "testuser@example.com",
-    role: "CITIZEN",
+    role: ["CITIZEN"],
     office: undefined,
     telegram: undefined,
   };
@@ -80,7 +80,7 @@ describe("UserRepository Story 2 - OFFICER Registration by ADMIN", () => {
     firstName: "Test",
     lastName: "Officer",
     email: undefined,
-    role: "TECHNICAL_OFFICER",
+    role: ["TECHNICAL_OFFICER"],
     office: "DEPARTMENT_OF_COMMERCE",
     telegram: undefined,
   };

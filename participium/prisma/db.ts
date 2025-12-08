@@ -1,11 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import * as dotenv from "dotenv";
-import * as path from "path";
+import * as path from "node:path";
 
 // Load .env from root folder
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
-const globalForPrisma = global as unknown as { prisma?: PrismaClient };
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 // During tests, use the DATABASE_URL from environment (set by test:setup)
 // During production/dev, use the default PrismaClient initialization

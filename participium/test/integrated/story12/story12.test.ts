@@ -34,7 +34,7 @@ describe("Story 12 - Integration Test: registerTelegramReport", () => {
         passwordHash: "hash",
         email: "john@doe.com",
         telegramChatId: "12345", // <---- MATCHES chatId
-        role: "CITIZEN",
+        role: ["CITIZEN"],
       },
     });
 
@@ -44,7 +44,7 @@ describe("Story 12 - Integration Test: registerTelegramReport", () => {
         firstName: "John",
         lastName: "Doe",
         username: "telegramUser",
-        role: "CITIZEN",
+        role: ["CITIZEN"],
         email: "john@doe.com",
       },
       expires: "2099-01-01T00:00:00.000Z",

@@ -29,7 +29,9 @@ export async function createCompany(formData: FormData) {
   return await companyService.createCompany(company);
 }
 
-export async function getCompaniesByAccess(hasAccess: boolean): Promise<CompaniesRetrievalResponse> {
+export async function getCompaniesByAccess(
+  hasAccess: boolean,
+): Promise<CompaniesRetrievalResponse> {
   const companyService = CompanyRetrievalService.getInstance();
   return await companyService.getCompaniesByAccess(hasAccess);
 }
@@ -38,16 +40,17 @@ export async function getAllCompanies(): Promise<CompaniesRetrievalResponse> {
   const companyService = CompanyRetrievalService.getInstance();
 
   const companiesWithAccess = await companyService.getCompaniesByAccess(true);
-  const companiesWithoutAccess = await companyService.getCompaniesByAccess(false);
+  const companiesWithoutAccess =
+    await companyService.getCompaniesByAccess(false);
 
   if (!companiesWithAccess.success || !companiesWithoutAccess.success) {
     return { success: false, error: "No companies found" };
   }
-  
+
   const combinedData = [
     ...(companiesWithAccess.data || []),
     ...(companiesWithoutAccess.data || []),
   ];
-  
+
   return { success: true, data: combinedData };
 }
