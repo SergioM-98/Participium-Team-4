@@ -1,5 +1,5 @@
-import { prisma } from "../../../../prisma/db";
-import { CommentWithAuthor } from "../dtos/comment.dto";
+import { prisma } from "@/prisma/db";
+import { CommentWithAuthor } from "@/dtos/comment.dto";
 
 export class CommentRepository {
   private static instance: CommentRepository;

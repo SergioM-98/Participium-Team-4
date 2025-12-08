@@ -4,7 +4,7 @@ import { RegistrationInput, RegistrationResponse, getAllOfficersResponse } from 
 import { NotificationsRepository } from "@/repositories/notifications.repository";
 import { UserRepository } from "@/repositories/user.repository";
 import { VerificationService } from "@/services/verification.service";
-import { ReportAssignmentService } from "./reportAssignment.service";
+import { ReportAssignmentService } from "@/services/reportAssignment.service";
 
 type DBClient = PrismaClient | Prisma.TransactionClient;
 
