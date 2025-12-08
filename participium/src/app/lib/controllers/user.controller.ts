@@ -51,11 +51,11 @@ export async function register(
     console.error("Validation errors:", validatedData.error);
     const errorMessages = validatedData.error.issues?.length
       ? validatedData.error.issues
-          .map(
-            (issue: any) =>
-              `${issue.path?.join(".") || "unknown"} - ${issue.message}`
-          )
-          .join("; ")
+        .map(
+          (issue: any) =>
+            `${issue.path?.join(".") || "unknown"} - ${issue.message}`
+        )
+        .join("; ")
       : "Invalid input data";
     return { success: false, error: errorMessages };
   }
@@ -94,7 +94,7 @@ export async function register(
       };
     }
     return result;
-  }catch (error) {
+  } catch (error) {
     console.error("Error during user registration:", error);
     return { success: false, error: "Failed to register user" };
   }
@@ -157,6 +157,48 @@ export async function updateNotificationsMedia(
   }
 }
 
+export async function getAllofficers(): Promise<getAllOfficersResponse[]> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id || !session.user?.role.includes("ADMIN")) {
+    console.error("Unauthorized access attempt to get all officers by user:", session?.user?.username);
+    return [];
+  }
+  try {
+    return await UserService.getInstance().getAllOfficers();
+  } catch (error) {
+    console.error("Error retrieving all officers:", error);
+    return [];
+  }
+}
+
+export async function deleteOfficer(officerId: string): Promise<boolean> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id || !session.user?.role.includes("ADMIN")) {
+    console.error("Unauthorized access attempt to delete officer by user:", session?.user?.username);
+    return false;
+  }
+  try {
+    return await UserService.getInstance().deleteOfficer(officerId);
+  } catch (error) {
+    console.error("Error deleting officer:", error);
+    return false;
+  }
+}
+
+export async function updateOfficerDepartment(officerId: string, departmentId: string[]): Promise<boolean> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id || !session.user?.role.includes("ADMIN")) {
+    console.error("Unauthorized access attempt to update officer department by user:", session?.user?.username);
+    return false;
+  }
+  try {
+    return await UserService.getInstance().updateOfficerDepartment(officerId, departmentId);
+  } catch (error) {
+    console.error("Error updating officer department:", error);
+    return false;
+  }
+}
+
 export async function getMe(): Promise<MeType | RegistrationResponse> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
@@ -167,40 +209,40 @@ export async function getMe(): Promise<MeType | RegistrationResponse> {
   let notifications: NotificationsResponse;
   let emailEnabled = false;
   let telegramEnabled = false;
-  if(session.user.role.includes("CITIZEN")){
+  if (session.user.role.includes("CITIZEN")) {
     try {
       notifications = await NotificationService.getInstance().getNotificationsPreferences(session.user.username);
     } catch (error) {
       console.error("Error retrieving notification preferences:", error);
       return { success: false, error: "Failed to retrieve notification preferences" };
     }
-    if(notifications.success){
+    if (notifications.success) {
       emailEnabled = notifications.data.emailEnabled;
       telegramEnabled = notifications.data.telegramEnabled ?? false;
-    }else{
+    } else {
       return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
-    } 
+    }
   }
   let user;
-  try{
+  try {
     user = await UserService.getInstance().getMe(session.user.id);
-  }catch(error){
+  } catch (error) {
     console.error(error instanceof Error ? error.message : "failed to get the personal informations from the database");
     return {
       success: false,
       error: "failed to get the personal informations from the database"
     }
   }
-  if(user===null){
+  if (user === null) {
     console.error("The user does not exist on the database");
     return {
       success: false,
       error: "User not found"
     }
   }
-  
+
   return {
-    me:{
+    me: {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email ?? undefined,
