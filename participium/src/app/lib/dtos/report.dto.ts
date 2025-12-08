@@ -37,6 +37,7 @@ export const retrieveReportsByOfficerResponseSchema = reportBaseSchema.extend({
   citizenId: z.string().or(z.number()).optional(),
   officerId: z.string().or(z.number()).nullable().optional(),
   createdAt: z.string().optional(),
+  companyId: z.string().nullable().optional(),
   citizen: z
     .object({
       id: z.string().or(z.number()),
@@ -125,6 +126,10 @@ export type AssignReportToOfficerResponse =
   | { success: true; data: string }
   | { success: false; error: string };
 
+export type AssignReportToMaintainerResponse =
+  | { success: true; data: string; access: boolean; email: string | null }
+  | { success: false; error: string };
+  
 export type UpdateReportStatusResponse =
   | { success: true; data: string }
   | { success: false; error: string };

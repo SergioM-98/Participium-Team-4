@@ -6,7 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import { TestUser } from '@/app/lib/dtos/user.dto';
 import { TestReport } from '@/app/lib/dtos/report.dto';
 
-// Import prisma from setup or create a new instance for testing
+
 let prisma: PrismaClient;
 
 jest.mock('next-auth/next', () => ({
@@ -41,7 +41,7 @@ describe('InternalNotesPanel - Integration Tests (Real Database)', () => {
         lastName: 'Doe',
         email: 'john@test.com',
         username: 'johndoe',
-        role: 'TECHNICAL_OFFICER',
+        role: ['TECHNICAL_OFFICER' as const],
         passwordHash: 'hashedpassword',
         office: 'DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES',
       },
@@ -54,7 +54,7 @@ describe('InternalNotesPanel - Integration Tests (Real Database)', () => {
         lastName: 'Smith',
         email: 'jane@test.com',
         username: 'janesmith',
-        role: 'CITIZEN',
+        role: ['CITIZEN' as const],
         passwordHash: 'hashedpassword',
       },
     });
@@ -103,16 +103,19 @@ describe('InternalNotesPanel - Integration Tests (Real Database)', () => {
       expect(noteContent).toBeVisible();
 
       // Add note phase
-      const textarea = screen.getByPlaceholderText(/Write a note/i);
+      const textarea = screen.getByPlaceholderText(/Write a note/i) as HTMLTextAreaElement;
       const submitButton = screen.getByRole('button', { name: /Add Note/i });
 
       await userEvent.type(textarea, 'User added note');
       await userEvent.click(submitButton);
 
-      // Verify new note appears in the database and UI
+      // Verify new note appears in the UI and database
       await waitFor(() => {
         expect(screen.getByText('User added note')).toBeInTheDocument();
       });
+
+      // Add a small delay to ensure database transaction is complete
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const comments = await prisma.comment.findMany({
         where: { reportId: testReport.id },
@@ -128,7 +131,7 @@ describe('InternalNotesPanel - Integration Tests (Real Database)', () => {
           lastName: 'Jones',
           email: 'bob@test.com',
           username: 'bobjones',
-          role: 'CITIZEN',
+          role: ['CITIZEN' as const],
           passwordHash: 'hashedpassword',
         },
       });
@@ -178,7 +181,7 @@ describe('InternalNotesPanel - Integration Tests (Real Database)', () => {
           lastName: 'Report',
           email: 'empty@test.com',
           username: 'emptyreport',
-          role: 'CITIZEN',
+          role: ['CITIZEN' as const],
           passwordHash: 'hashedpassword',
         },
       });
@@ -210,7 +213,7 @@ describe('InternalNotesPanel - Integration Tests (Real Database)', () => {
       });
 
       // Add first new note
-      const textarea = screen.getByPlaceholderText(/Write a note/i);
+      const textarea = screen.getByPlaceholderText(/Write a note/i) as HTMLTextAreaElement;
       const submitButton = screen.getByRole('button', { name: /Add Note/i });
 
       await userEvent.type(textarea, 'Second note');
@@ -220,6 +223,9 @@ describe('InternalNotesPanel - Integration Tests (Real Database)', () => {
         expect(screen.getByText('Second note')).toBeInTheDocument();
       });
 
+      // Add a small delay to ensure database transaction is complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Add second new note
       await userEvent.type(textarea, 'Third note');
       await userEvent.click(submitButton);
@@ -227,6 +233,9 @@ describe('InternalNotesPanel - Integration Tests (Real Database)', () => {
       await waitFor(() => {
         expect(screen.getByText('Third note')).toBeInTheDocument();
       });
+
+      // Add a small delay to ensure database transaction is complete
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Verify all notes are in the database
       const comments = await prisma.comment.findMany({

@@ -14,7 +14,7 @@ export default async function seedReports() {
 
   // Get or create an officer for assigned reports
   const officer = await prisma.user.findFirst({
-    where: { role: "TECHNICAL_OFFICER" },
+    where: { role: { has: "TECHNICAL_OFFICER" } },
   });
 
   if (!officer) {

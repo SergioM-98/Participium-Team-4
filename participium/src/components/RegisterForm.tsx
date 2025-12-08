@@ -44,7 +44,7 @@ export default function RegisterForm() {
     formData.append("username", username);
     formData.append("password", password);
     formData.append("confirmPassword", confirmPassword);
-    formData.append("role", "CITIZEN");
+    formData.append("role", JSON.stringify(["CITIZEN"]));
 
     // Use startTransition to call the server action
     // This marks the update as a transition and sets isPending to true
