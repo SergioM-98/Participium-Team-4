@@ -405,6 +405,33 @@ class ReportRepository {
       },
     });
   }
+
+  public async unassignOfficerFromReport(
+    reportId: bigint,
+  ): Promise<Report> {
+    return await prisma.report.update({
+      where: {
+        id: reportId,
+      },
+      data: {
+        officerId: null,
+        status: ReportStatus.PENDING_APPROVAL,
+      },
+    });
+  }
+
+  public async removeOfficerFromReport(
+    reportId: bigint,
+  ): Promise<Report> {
+    return await prisma.report.update({
+      where: {
+        id: reportId,
+      },
+      data: {
+        officerId: null,
+      },
+    });
+  }
 }
 
 export { ReportRepository };

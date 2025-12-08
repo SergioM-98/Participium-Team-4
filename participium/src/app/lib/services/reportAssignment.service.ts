@@ -91,6 +91,21 @@ class ReportAssignmentService {
     }
   }
 
+  public async unassignReportsOfDeletedOfficer(reports: Array<{ id: bigint; status: string }>): Promise<boolean> {
+    try {
+      for (const report of reports) {
+        if (report.status === "RESOLVED") {
+          await this.reportRepository.removeOfficerFromReport(report.id);
+        } else {
+          await this.reportRepository.unassignOfficerFromReport(report.id);
+        }
+      }
+      return true;
+    } catch (error) {
+      console.error("Failed to unassign reports:", error);
+      return false;
+    }
+  }
  
   public async assignReportToCompany(
     reportId: number,
