@@ -108,7 +108,7 @@ class UserService {
     }
     await ReportAssignmentService.getInstance().unassignReportsOfDeletedOfficer(officer.managedReports);
 
-    return this.userRepository.deleteOfficer(userId);
+    return await this.userRepository.deleteOfficer(userId);
   }
 
   public async getUserByTelegramId(

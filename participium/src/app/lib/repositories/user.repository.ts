@@ -211,6 +211,7 @@ class UserRepository {
     await prisma.user.delete({
       where: { id: userId },
     });
+    return true;
   }
 
   async getUserWithCompany(userId: string) {
