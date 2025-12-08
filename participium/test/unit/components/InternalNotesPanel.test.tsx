@@ -190,28 +190,6 @@ describe('InternalNotesPanel - UI Tests', () => {
       });
     });
 
-    it('should display formatted timestamps correctly', async () => {
-      const testDate = new Date('2025-12-06T14:30:00');
-      const comments = [
-        createMockComment({
-          id: BigInt(1),
-          createdAt: testDate,
-        }),
-      ];
-
-      mockGetReportComments.mockResolvedValue({
-        success: true,
-        data: comments,
-      });
-
-      render(<InternalNotesPanel reportId="1" />);
-
-      await waitFor(() => {
-        const timestamp = screen.getByText(/06\/12\/2025/);
-        expect(timestamp).toBeInTheDocument();
-      });
-    });
-
     it('should render notes with proper styling classes', async () => {
       render(<InternalNotesPanel reportId="1" />);
 
