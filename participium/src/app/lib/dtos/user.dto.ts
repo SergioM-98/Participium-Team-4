@@ -192,15 +192,6 @@ export const OfficerUserSchema = z.object({
   office: z.array(z.enum(Offices)).default([]),
 });
 
-export const OfficerUserSchema = z.object({
-  id: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
-  username: z.string(),
-  role: z.array(z.enum(Role)),
-  office: z.array(z.enum(Offices)).default([]),
-});
-
 export const LoginInputSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(8),
