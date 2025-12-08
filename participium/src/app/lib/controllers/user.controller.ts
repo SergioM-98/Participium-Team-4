@@ -35,8 +35,6 @@ export async function register(
 ): Promise<RegistrationResponse> {
   const session = await getServerSession(authOptions);
 
-  //throw new Error(formData.get("role")?.toString());
-
   const validatedData = RegistrationInputSchema.safeParse({
     id: crypto.randomUUID(),
     firstName: formData.get("firstName"),
@@ -64,7 +62,7 @@ export async function register(
   }
 
   if (session || (!session && !validatedData.data?.role.includes("CITIZEN"))) {
-    if (session?.user.role.includes("ADMIN")) {
+    if (!session?.user.role.includes("ADMIN")) {
       console.error("Unauthorized registration attempt by user:", session?.user.username);
       return { success: false, error: "Unauthorized registration" };
     }

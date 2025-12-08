@@ -325,14 +325,23 @@ export default function ReportDetailsCard({
             {/* CASE 1: canViewChat && isAssignedOfficer - show tabs */}
             {((canViewChat && isAssignedOfficer)|| isMaintainerMode) && (
               <div className="flex items-center gap-1 bg-muted/10 p-0 rounded-md">
-                <button
+                {!isMaintainerMode && (<button
                   onClick={() => setSeeOfficerChat(1)}
                   aria-pressed={seeOfficerChat === 1}
                   className={`flex items-center gap-2 px-1 py-1 rounded text-xs transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
                 >
                   <MessageSquare className="w-4 h-4" />
                   <span className="hidden xl:inline">Chat</span>
-                </button>
+                </button>)}
+
+                {isMaintainerMode && (<button
+                  onClick={() => setSeeOfficerChat(1)}
+                  aria-pressed={seeOfficerChat === 1}
+                  className={`flex items-center gap-2 px-1 py-1 rounded text-xs transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                >
+                  <Menu className="w-4 h-4" />
+                  <span className="hidden xl:inline">Menu</span>
+                </button>)}
 
                 <button
                   onClick={() => setSeeOfficerChat(2)}
