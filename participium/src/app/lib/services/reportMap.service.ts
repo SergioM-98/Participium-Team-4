@@ -15,21 +15,21 @@ class ReportMapService {
     return ReportMapService.instance;
   }
 
-  public async getReportsForMap(userId?: string, role?: string) {
+  public async getReportsForMap(userId?: string, role?: string[]) {
     let approved, pending, unapproved;
-    if (role === "CITIZEN" && userId) {
+    if (role?.includes("CITIZEN") && userId) {
       approved = await this.reportRepository.getApprovedReports(); // Se serve filtrare per citizenId, aggiungi citizenId al where
       pending = await this.reportRepository.getPendingApprovalReportsByCitizenId(userId);
       unapproved = await this.reportRepository.getUnapprovedReportsByCitizenId(userId);
     } else {
       approved = await this.reportRepository.getApprovedReports();
-      pending = await this.reportRepository.getPendingApprovalReports();
+      pending = await this.reportRepository.getPendingApprovalReports("PENDING_APPROVAL");
       unapproved = await this.reportRepository.getUnapprovedReports();
     }
     const data = [
       ...(approved.success && approved.data ? approved.data : []),
-      ...(pending.success && pending.data ? pending.data : []),
-      ...(unapproved.success && unapproved.data ? unapproved.data : []),
+      ...("success" in pending && pending.success && "data" in pending && pending.data ? pending.data : []),
+      ...("success" in unapproved && unapproved.success && "data" in unapproved && unapproved.data ? unapproved.data : []),
     ];
     return { success: true, data };
   }

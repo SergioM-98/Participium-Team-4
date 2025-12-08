@@ -43,6 +43,7 @@ interface ReportMarkerProps {
 }
 
 export const ReportMarkerIcon = ({ category, status }: ReportMarkerProps) => {
+  //throw new Error("Function not implemented. status: " + status);
   const borderColor = getStatusColor(status);
   
   return (

@@ -7,11 +7,11 @@ export default async function RegisterPage() {
   const session = await getServerSession(authOptions);
 
   if (session) {
-    if (session.user.role == "CITIZEN") {
+    if (session.user.role.includes("CITIZEN") === false) {
       redirect("/reports");
     } else if (
-      session.user.role == "TECHNICAL_OFFICER" ||
-      session.user.role == "PUBLIC_RELATIONS_OFFICER"
+      session.user.role.includes("TECHNICAL_OFFICER") === false ||
+      session.user.role.includes("PUBLIC_RELATIONS_OFFICER") === false
     ) {
       redirect("/officer/reports");
     } else {

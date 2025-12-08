@@ -28,11 +28,13 @@ model Report {
   latitude    Float
   citizenId   String
   officerId   String?
+  maintainerId String?
   rejectionReason String?
   companyId   String?
 
   citizen   User  @relation("createdBy", fields: [citizenId], references: [id])
   officer   User? @relation("managedBy", fields: [officerId], references: [id])
+  maintainer User? @relation("outsourced", fields: [maintainerId], references: [id])
   company   Company? @relation(fields: [companyId], references: [id])
   
   @@map("report")
@@ -107,7 +109,7 @@ model User {
   telegramRequestPending  Boolean @default(false)
   isVerified              Boolean?
   telegramRequestTTL      DateTime?
-  role                    Role    @default(CITIZEN)
+  role                    Role[]    @default([CITIZEN])
   office                  Offices?
   passwordHash            String   @db.VarChar(255)
   companyId               String?
@@ -117,6 +119,7 @@ model User {
   messages        Message[]
   comments        Comment[]
   notifications   Notification[]
+  outsourcedReports       Report[] @relation("outsourced")
   notificationPreferences NotificationPreferences?
   profilePhoto            ProfilePhoto?
   verificationTokens      VerificationToken[]

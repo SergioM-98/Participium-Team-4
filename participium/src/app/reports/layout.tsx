@@ -10,7 +10,7 @@ export default async function ReportsLayout({
 }>) {
   const session = await getServerSession(authOptions);
 
-  if (!session || (session.user?.role !== "CITIZEN" && session.user?.role !== "MUNICIPALITY_OFFICER")) {
+  if (!session || (session.user?.role.includes("CITIZEN") === false && session.user?.role.includes("MUNICIPALITY_OFFICER") === false)) {
     redirect("/forbidden");
   }
 

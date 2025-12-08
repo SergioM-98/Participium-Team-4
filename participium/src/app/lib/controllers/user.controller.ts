@@ -60,8 +60,8 @@ export async function register(
     return { success: false, error: errorMessages };
   }
 
-  if (session || (!session && validatedData.data?.role !== "CITIZEN")) {
-    if (session?.user.role !== "ADMIN") {
+  if (session || (!session && !validatedData.data?.role.includes("CITIZEN"))) {
+    if (session?.user.role.includes("ADMIN")) {
       console.error("Unauthorized registration attempt by user:", session?.user.username);
       return { success: false, error: "Unauthorized registration" };
     }
@@ -86,7 +86,7 @@ export async function register(
     const result = await UserService.getInstance().createUser(parsed.data);
 
     // For CITIZEN users, registration is complete but verification is pending
-    if (result.success && parsed.data.role === "CITIZEN") {
+    if (result.success && parsed.data.role.includes("CITIZEN")) {
       return {
         success: true,
         data: parsed.data.username,
@@ -117,7 +117,7 @@ export async function updateNotificationsMedia(
   notifications: NotificationsData
 ): Promise<RegistrationResponse> {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id || session.user?.role !== "CITIZEN") {
+  if (!session?.user?.id || !session.user?.role.includes("CITIZEN")) {
     console.error("Unauthorized access attempt to update notifications media by user:", session?.user?.username);
     return { success: false, error: "Unauthorized access" };
   }
@@ -167,7 +167,7 @@ export async function getMe(): Promise<MeType | RegistrationResponse> {
   let notifications: NotificationsResponse;
   let emailEnabled = false;
   let telegramEnabled = false;
-  if(session.user.role === "CITIZEN"){
+  if(session.user.role.includes("CITIZEN")){
     try {
       notifications = await NotificationService.getInstance().getNotificationsPreferences(session.user.username);
     } catch (error) {

@@ -5,22 +5,22 @@ export const CreateUploadRequestSchema = z.object({
     uploadLength: z.number().min(1).max(50 * 1024 * 1024), // 50MB max
     uploadMetadata: z.string().optional(),
     body: z.instanceof(ArrayBuffer),
-    photoId: z.string().uuid()
+    photoId: z.uuid()
 });
 
 export const UpdatePhotoRequestSchema = z.object({
-    photoId: z.string().uuid(),
+    photoId: z.uuid(),
     uploadOffset: z.number().min(0),
     contentLength: z.number().min(1),
     body: z.instanceof(ArrayBuffer)
 });
 
 export const GetPhotoStatusRequestSchema = z.object({
-    photoId: z.string().uuid()
+    photoId: z.uuid()
 });
 
 export const DeletePhotoRequestSchema = z.object({
-    photoId: z.string().uuid()
+    photoId: z.uuid()
 });
 
 // Response DTOs for services

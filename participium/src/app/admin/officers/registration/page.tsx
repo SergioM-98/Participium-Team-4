@@ -21,7 +21,7 @@ export default function OfficerRegistrationPage() {
       formData.append("firstName", payload.firstName);
       formData.append("lastName", payload.lastName);
       formData.append("username", payload.username);
-      formData.append("role", payload.role);
+      formData.append("role", JSON.stringify(payload.role));
       formData.append("password", payload.password);
       if (payload.office) {
         formData.append("office", payload.office);
