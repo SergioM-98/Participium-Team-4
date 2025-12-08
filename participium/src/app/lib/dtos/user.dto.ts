@@ -176,7 +176,7 @@ export const OfficerUserSchema = z.object({
   lastName: z.string(),
   username: z.string(),
   role: z.array(z.enum(Role)),
-  department: z.array(z.enum(Offices)).default([]),
+  office: z.array(z.enum(Offices)).default([]),
 });
 
 export const LoginInputSchema = z.object({

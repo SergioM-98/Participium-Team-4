@@ -6,6 +6,7 @@ import {
   LoginResponse,
   RegistrationInput,
   RegistrationResponse,
+  getAllOfficersResponse
 } from "@/dtos/user.dto";
 import { prisma } from "@/prisma/db";
 import bcrypt from "bcrypt";
@@ -226,10 +227,29 @@ class UserRepository {
     }
   }
 
+  async getAllOfficers(): Promise<getAllOfficersResponse> {
+    try {
+      const officers = await prisma.user.findMany({
+        where: {
+          role: {
+            has: "TECHNICAL_OFFICER",
+          },
+        },
+        include: {
+          company: true,
+        },
+      });
+      return { success: true, data: officers };
+    } catch (error) {
+      console.error("Failed to fetch officers from database", error);
+      return { success: false, error: "Failed to retrieve officers" };
+    }
+  }
+
   async deleteUserById(userId: string) {
     await prisma.user.delete({
       where: { id: userId },
-      include: {managedReports: true}
+      include: { managedReports: true }
     });
   }
 }
