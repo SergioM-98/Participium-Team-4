@@ -11,6 +11,18 @@ export function Footer() {
             <span className="font-bold text-xl text-gray-900 tracking-tight">Participium</span>
           </div>
 
+          <div className="text-center text-xs text-gray-500 border-t border-gray-100 pt-3">
+            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+              <span>&copy; {new Date().getFullYear()} Participium</span>
+              <span>•</span>
+              <span className="flex items-center gap-1">
+                Made with <Heart className="h-3 w-3 text-red-500 fill-red-500" /> in Turin
+              </span>
+              <span>•</span>
+              <span>Politecnico di Torino</span>
+            </div>
+          </div>
+
           <div className="flex items-center gap-4 md:flex-1 md:justify-end">
             <a
               href="https://github.com/SergioM-98/Participium-Team-4"
@@ -21,18 +33,6 @@ export function Footer() {
             >
               <Github className="h-6 w-6" />
             </a>
-          </div>
-        </div>
-
-        <div className="text-center text-xs text-gray-500 border-t border-gray-100 pt-3">
-          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-            <span>&copy; {new Date().getFullYear()} Participium</span>
-            <span>•</span>
-            <span className="flex items-center gap-1">
-              Made with <Heart className="h-3 w-3 text-red-500 fill-red-500" /> in Turin
-            </span>
-            <span>•</span>
-            <span>Politecnico di Torino</span>
           </div>
         </div>
       </div>

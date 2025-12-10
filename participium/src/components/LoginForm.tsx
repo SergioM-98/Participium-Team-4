@@ -78,15 +78,14 @@ export default function LoginForm({ serverError }: { serverError?: string }) {
     startTransition(async () => {
       try {
         const result = await signIn("credentials", {
-          redirect: false,
+          redirect: true,
+          callbackUrl: "/",
           identifier,
           password,
         });
 
         if (result?.error) {
           setError(getErrorMessage(result.error));
-        } else if (result?.ok) {
-          router.push("/");
         }
       } catch (err: any) {
         console.error(err);
