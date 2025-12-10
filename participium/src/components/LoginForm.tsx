@@ -77,12 +77,19 @@ export default function LoginForm({ serverError }: { serverError?: string }) {
 
     startTransition(async () => {
       try {
-        await signIn("credentials", {
-          redirect: true, // handle response server-side
-          callbackUrl: "/",
+        const result = await signIn("credentials", {
+          redirect: false,
           identifier,
           password,
         });
+
+        if (result?.error) {
+          setError(getErrorMessage(result.error));
+        } else if (result?.ok) {
+          // Wait for cookie to be set before redirecting
+          await new Promise(resolve => setTimeout(resolve, 200));
+          window.location.href = "/";
+        }
       } catch (err: any) {
         console.error(err);
         setError("Something went wrong. Please try again.");

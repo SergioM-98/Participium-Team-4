@@ -58,12 +58,6 @@ async function main() {
     log('📝 Generating Prisma client...');
     execSync('npx prisma generate', { stdio: 'inherit', shell: true });
 
-    log('👥 Seeding users...');
-    execSync('npx ts-node prisma/admin.ts && npx ts-node prisma/citizen.ts && npx ts-node prisma/technical-officer.ts && npx ts-node prisma/public-relations-officer.ts', { stdio: 'inherit', shell: true });
-
-    log('📋 Seeding sample reports...');
-    execSync('npx ts-node prisma/reports-seed.ts', { stdio: 'inherit', shell: true });
-
     log('✅ Database setup complete! Starting dev server...');
     execSync('npm run dev', { stdio: 'inherit', shell: true });
   } catch (err) {
