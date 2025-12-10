@@ -92,7 +92,14 @@ export default function OfficerReportMenu(props: Readonly<Props>) {
         await updateReportStatus(newStatus, props.reportId);
         props.setRefreshFlag((prev)=>!prev);
         props.setReport((prev: any) => (null));
-        props.showToast('success', `Updated status for report ${props.reportId} to ${newStatus}`);
+        
+        const reportName = props.reportTitle || `#${props.reportId}`;
+        const statusLabel = newStatus === "IN_PROGRESS" ? "In Progress" : 
+                           newStatus === "RESOLVED" ? "Resolved" : 
+                           newStatus === "SUSPENDED" ? "Suspended" : 
+                           newStatus === "ASSIGNED" ? "Assigned" : newStatus;
+        
+        props.showToast('success', `Updated status for report ${reportName} to ${statusLabel}`);
         console.log(`Updating status for report ${props.reportId} to ${newStatus}`);
     };
 
