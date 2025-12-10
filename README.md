@@ -27,12 +27,19 @@ cd Participium-Team-4
 
 2. **Set up environment variables**:
 	- Copy `.env.example` to `.env` in the root (or create `.env` manually) and fill in the required values (e.g. `BOT_TOKEN`, `DATABASE_URL`, etc.).
+	- The Docker Compose file will automatically load variables from `.env` in the current directory.
 
 3. **Start all services with Docker Compose**:
 
 ```bash
 docker compose pull
 docker compose up -d
+```
+
+To use a custom `.env` file (e.g., `.env.prod`):
+
+```bash
+docker compose --env-file .env.prod up -d
 ```
 
 4. Verify that the containers are running:
@@ -71,9 +78,11 @@ docker ps
 It is also possible to launch the project through Dockerhub, using the commands:
 
 ```bash
-docker run -d --name participium skeitt/participium-team-4:latest
-docker run -d --name participium_bot skeitt/participium-team-4-bot:latest
+docker run -d --name participium --env-file .env -p 3000:3000 skeitt/participium-team-4:latest
+docker run -d --name participium_bot --env-file .env skeitt/participium-team-4-bot:latest
 ```
+
+> Note: Make sure you have a `.env` file in the current directory with all required environment variables before running these commands.
 
 ## Available Services
 
