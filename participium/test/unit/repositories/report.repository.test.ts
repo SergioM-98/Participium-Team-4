@@ -415,4 +415,36 @@ describe("ReportRepository Story 4", () => {
     /* story 8 tests end here T.T */
     /******************************/
   });
+
+  describe("getReportsByMaintainerId - Story 25", () => {
+    it("should retrieve reports for a specific maintainer", async () => {
+      const mockReports = [
+        {
+          id: BigInt(1),
+          title: "Maintainer Report",
+          maintainerId: "m1",
+          status: "ASSIGNED",
+          photos: [],
+          citizen: { username: "user" }
+        }
+      ];
+      
+      mockedPrisma.report.findMany.mockResolvedValue(mockReports);
+      
+      const response = await reportRepository.getReportsByMaintainerId("m1");
+      
+      expect(mockedPrisma.report.findMany).toHaveBeenCalledWith({
+        where: { maintainerId: "m1" },
+        include: expect.anything()
+      });
+      expect(response).toEqual(mockReports);
+    });
+
+    it("should return empty array if no reports found", async () => {
+      mockedPrisma.report.findMany.mockResolvedValue([]);
+      const response = await reportRepository.getReportsByMaintainerId("m1");
+      expect(response).toEqual([]);
+    });
+  });
+});
 });
