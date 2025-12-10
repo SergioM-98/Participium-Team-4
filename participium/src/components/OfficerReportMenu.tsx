@@ -15,10 +15,13 @@ import { assignReportToCompany, updateReportStatus } from "@/app/lib/controllers
 interface CompanyOption {
   id: string;
   name: string;
+  hasAccess: boolean;
+  email: string;
 }
 
 type Props = {
   reportId: string;
+  reportTitle?: string;
   status: string;
   companyId: string | null;
   // Accept both direct boolean and functional updater (like setState)
@@ -67,10 +70,21 @@ export default function OfficerReportMenu(props: Readonly<Props>) {
     };
 
     const handleAssignCompany = async () => {
+        const company = companies.find(c => c.id === selectedCompany);
+        if (!company) return;
+
         await assignReportToCompany(Number.parseInt(props.reportId, 10), selectedCompany);
         props.setRefreshFlag((prev)=>!prev);
         props.setReport((prev: any) => (null));
-        props.showToast('success', `Assigned company ${selectedCompany} to report ${props.reportId}`);
+        
+        const reportName = props.reportTitle || `#${props.reportId}`;
+        let message = `Assigned company ${company.name} to report ${reportName}`;
+        
+        if (!company.hasAccess) {
+            message += `. Please contact them at ${company.email}`;
+        }
+        
+        props.showToast('success', message);
         console.log(`Assigning company ${selectedCompany} to report ${props.reportId}`);
     };
 

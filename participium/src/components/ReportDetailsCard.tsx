@@ -396,6 +396,7 @@ export default function ReportDetailsCard({
             {canViewChat && isAssignedOfficer && seeOfficerChat === 3 && (
               <OfficerReportMenu
                 reportId={report.id}
+                reportTitle={report.title}
                 status={report.status}
                 companyId={report.companyId || ""}
                 setRefreshFlag={setRefreshFlag!}
