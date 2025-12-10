@@ -20,7 +20,6 @@ import {
 import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
 import MaintainerActionPanel from "@/app/maintainer/my-reports/MaintainerActionPanel";
 import ChatPanel, { ChatMessage } from "./ChatPanel";
-import { getReportMessages, sendMessage } from "@/app/lib/controllers/message.controller";
 import dynamic from "next/dynamic";
 import OfficerReportMenu from "./OfficerReportMenu";
 import { is } from "zod/v4/locales";
@@ -128,9 +127,6 @@ export default function ReportDetailsCard({
     minute: "2-digit",
   });
 
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
-
   const [isSending, setIsSending] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
 
@@ -147,72 +143,6 @@ export default function ReportDetailsCard({
   const [seeOfficerChat, setSeeOfficerChat] = useState(1);
 
 
-  useEffect(() => {
-    const loadMessages = async () => {
-      try {
-        setIsLoadingMessages(true);
-        const reportIdBigInt = BigInt(report.id);
-        const response = await getReportMessages(reportIdBigInt);
-        
-        if (response && Array.isArray(response)) {
-          const transformedMessages: ChatMessage[] = response.map((msg: any) => ({
-            id: msg.id.toString(),
-            senderName: msg.author?.firstName && msg.author?.lastName 
-              ? `${msg.author.firstName} ${msg.author.lastName}`
-              : msg.author?.username || "Anonymous",
-            senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
-            senderRole: msg.author?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : msg.author ?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : "CITIZEN",
-            content: msg.content,
-            timestamp: msg.createdAt,
-          }));
-          setMessages(transformedMessages);
-        }
-      } catch (error) {
-        console.error("Failed to load messages:", error);
-      } finally {
-        setIsLoadingMessages(false);
-      }
-    };
-
-    loadMessages();
-
-    // Polling of messages every second
-    const interval = setInterval(loadMessages, 1000);
-
-    return () => clearInterval(interval);
-  }, [report.id]);
-
-  const handleSendMessage = async (text: string) => {
-    if (!session?.user?.id) {
-      console.error("User not authenticated");
-      return;
-    }
-
-    try {
-      setIsSending(true);
-      const authorId = session.user.id;
-      const reportIdBigInt = BigInt(report.id);
-
-      const response = await sendMessage(text, authorId, reportIdBigInt);
-
-      if (response.success) {
-        const newMsg: ChatMessage = {
-          id: response.data.id?.toString() || Date.now().toString(),
-          senderName: session.user.name || "You",
-          senderId: session.user.id,
-          senderRole: currentUserRole,
-          content: text,
-          timestamp: response.data.createdAt ? new Date(response.data.createdAt).toISOString() : new Date().toISOString(),
-        };
-        setMessages((prev) => [...prev, newMsg]);
-      }
-    } catch (error) {
-      console.error("Failed to send message:", error);
-    } finally {
-      setIsSending(false);
-    }
-  };
-  
   return (
     <div className="w-full h-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
@@ -382,8 +312,6 @@ export default function ReportDetailsCard({
                 reportId={report.id}
                 currentUserRole={currentUserRole}
                 currentUserId={session?.user?.id || ""}
-                messages={messages}
-                onSendMessage={handleSendMessage}
               />
             )}
 
@@ -411,8 +339,6 @@ export default function ReportDetailsCard({
                 reportId={report.id}
                 currentUserRole={currentUserRole}
                 currentUserId={session?.user?.id || ""}
-                messages={messages}
-                onSendMessage={handleSendMessage}
               />
             )}
 
