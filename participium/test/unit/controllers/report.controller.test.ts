@@ -4,6 +4,7 @@ import {
   rejectReport,
   getReportsByOfficerId,
   assignReportToCompany,
+  getReportsByMaintainerId,
 } from "../../../src/app/lib/controllers/report.controller";
 import {
   ReportRegistrationResponse,
@@ -878,30 +879,41 @@ describe("ReportController Story 4", () => {
       }
     });
   });
+});
 
-  describe("getReportsByMaintainerId - Story 25", () => {
-    const maintainerSession = {
-      user: {
-        id: "maintainer1",
-        role: ["EXTERNAL_MAINTAINER_WITH_ACCESS"],
-      },
-      expires: "2024-12-31T23:59:59.999Z",
-    };
+describe("ReportController Story 25 - Maintainer Reports", () => {
+  const maintainerSession = {
+    user: {
+      id: "maintainer1",
+      role: ["EXTERNAL_MAINTAINER_WITH_ACCESS"],
+    },
+    expires: "2024-12-31T23:59:59.999Z",
+  };
 
-    const officerSession = {
-      user: {
-        id: "officer1",
-        role: ["TECHNICAL_OFFICER"],
-      },
-      expires: "2024-12-31T23:59:59.999Z",
-    };
+  const officerSession = {
+    user: {
+      id: "officer1",
+      role: ["TECHNICAL_OFFICER"],
+    },
+    expires: "2024-12-31T23:59:59.999Z",
+  };
 
-    beforeEach(() => {
-      (ReportRetrievalService.getInstance as jest.Mock).mockReturnValue(
-        mockRetrievalService
-      );
-    });
+  const citizenSession = {
+    user: {
+      id: "2",
+      name: "Citizen User",
+      role: ["CITIZEN"],
+    },
+    expires: "2024-12-31T23:59:59.999Z",
+  };
 
+  beforeEach(() => {
+    (ReportRetrievalService.getInstance as jest.Mock).mockReturnValue(
+      mockRetrievalService
+    );
+  });
+
+  describe("getReportsByMaintainerId", () => {
     it("should retrieve reports successfully when user is EXTERNAL_MAINTAINER_WITH_ACCESS", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(maintainerSession);
       const mockReports = [
