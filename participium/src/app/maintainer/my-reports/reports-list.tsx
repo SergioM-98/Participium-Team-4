@@ -360,7 +360,7 @@ export default function ReportsList({ maintainerId }: Readonly<ReportsListProps>
           onClick={() => setSelectedReport(null)}
         >
           <div
-            className="relative w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] max-h-[85vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
+            className="relative w-full max-w-sm sm:max-w-md md:max-w-3xl lg:max-w-5xl xl:max-w-6xl h-[90vh] max-h-[90vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <ReportDetailsCard
