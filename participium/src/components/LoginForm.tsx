@@ -77,12 +77,27 @@ export default function LoginForm({ serverError }: { serverError?: string }) {
 
     startTransition(async () => {
       try {
-        await signIn("credentials", {
-          redirect: true, // handle response server-side
-          callbackUrl: "/",
+        const result = await signIn("credentials", {
+          redirect: false,
           username,
           password,
         });
+
+        if (result?.error) {
+          setError(getErrorMessage(result.error));
+        } else if (result?.ok) {
+          // Check if this is a first login after registration
+          const isFirstLogin = searchParams.get("registered") === "true";
+          
+          if (isFirstLogin) {
+            // For first login after registration, do a hard reload
+            window.location.href = "/";
+          } else {
+            // For normal logins, use Next.js navigation
+            router.push("/");
+            router.refresh();
+          }
+        }
       } catch (err: any) {
         console.error(err);
         setError("Something went wrong. Please try again.");
