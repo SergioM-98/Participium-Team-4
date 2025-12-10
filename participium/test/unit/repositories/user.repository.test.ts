@@ -11,6 +11,9 @@ jest.mock("@/db/db", () => ({
       delete: jest.fn(),
       update: jest.fn(),
     },
+    comment: {
+      updateMany: jest.fn(),
+    },
   },
 }));
 
@@ -227,6 +230,7 @@ describe("UserRepository Story 10 - Officer Management", () => {
 
   describe("deleteOfficer", () => {
     it("should delete officer successfully", async () => {
+      mockedPrisma.comment.updateMany.mockResolvedValue({ count: 0 });
       mockedPrisma.user.delete.mockResolvedValue({
         id: "officer-1",
         email: "officer@test.com",
@@ -237,6 +241,10 @@ describe("UserRepository Story 10 - Officer Management", () => {
       const result = await userRepository.deleteOfficer("officer-1");
 
       expect(result).toBe(true);
+      expect(mockedPrisma.comment.updateMany).toHaveBeenCalledWith({
+        where: { authorId: "officer-1" },
+        data: { authorId: null },
+      });
       expect(mockedPrisma.user.delete).toHaveBeenCalledWith({
         where: { id: "officer-1" },
       });
