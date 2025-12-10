@@ -172,7 +172,7 @@ export default function ReportDetailsCard({
               senderName:
                 msg.author?.firstName && msg.author?.lastName
                   ? `${msg.author.firstName} ${msg.author.lastName}`
-                  : msg.author?.username || "Unknown",
+                  : msg.author?.username || "Anonymous",
               senderId:
                 msg.author?.id?.toString() || msg.authorId?.toString() || "",
               senderRole: msg.author?.role || "CITIZEN",

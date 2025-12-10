@@ -123,10 +123,14 @@ export default function OfficeManagementPage() {
   };
 
   const handleCancelOfficer = async (officerId: string) => {
+    setLoading(true);
+    setError("");
+    setSuccess("");
     try {
       const response = await deleteOfficer(officerId);
       if (!response) {
         setError("Failed to delete officer");
+        return;
       }
 
       setSuccess("Officer deleted successfully!");
@@ -227,7 +231,7 @@ export default function OfficeManagementPage() {
                         </div>
                       ))}
                     </div>
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex flex-wrap gap-3 pt-4">
                       <Button
                         onClick={() => handleSaveOffices(officer.id)}
                         disabled={loading || tempOffices.length === 0}
