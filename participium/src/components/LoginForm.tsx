@@ -86,9 +86,7 @@ export default function LoginForm({ serverError }: { serverError?: string }) {
         if (result?.error) {
           setError(getErrorMessage(result.error));
         } else if (result?.ok) {
-          // Wait for cookie to be set before redirecting
-          await new Promise(resolve => setTimeout(resolve, 200));
-          window.location.href = "/";
+          router.push("/");
         }
       } catch (err: any) {
         console.error(err);
