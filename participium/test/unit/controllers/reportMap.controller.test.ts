@@ -71,7 +71,7 @@ describe("ReportMapController Story 7", () => {
       });
 
       (ReportMapService.getInstance as jest.Mock).mockReturnValue(
-        mockReportMapService,
+        mockReportMapService
       );
       mockReportMapService.getReportsForMap.mockResolvedValue({
         success: true,
@@ -98,7 +98,7 @@ describe("ReportMapController Story 7", () => {
             latitude: r.latitude,
             category: r.category,
             username: r.username,
-          })),
+          }))
         );
       }
     });
@@ -108,7 +108,7 @@ describe("ReportMapController Story 7", () => {
       });
 
       (ReportMapService.getInstance as jest.Mock).mockReturnValue(
-        mockReportMapService,
+        mockReportMapService
       );
       mockReportMapService.getReportsForMap.mockResolvedValue(null);
 
@@ -123,7 +123,7 @@ describe("ReportMapController Story 7", () => {
     });
     it("should retrieve one approved report - without photos - to the user", async () => {
       (ReportMapService.getInstance as jest.Mock).mockReturnValue(
-        mockReportMapService,
+        mockReportMapService
       );
       mockReportMapService.getReportById.mockResolvedValue({
         success: true,
@@ -155,7 +155,7 @@ describe("ReportMapController Story 7", () => {
     });
     it("should return error if report not found", async () => {
       (ReportMapService.getInstance as jest.Mock).mockReturnValue(
-        mockReportMapService,
+        mockReportMapService
       );
       mockReportMapService.getReportById.mockResolvedValue(null);
       const response = await getReportById({ id: "999" });
@@ -163,6 +163,56 @@ describe("ReportMapController Story 7", () => {
       expect(ReportMapService.getInstance).toHaveBeenCalled();
       expect(response.success).toBe(false);
       expect(response.error).toBe("Report not found");
+    });
+
+    it("should retrieve reports for maintainer correctly", async () => {
+      // Mock Session for a Maintainer
+      (getServerSession as jest.Mock).mockResolvedValue({
+        user: { id: "maintainer1", role: ["EXTERNAL_MAINTAINER_WITH_ACCESS"] },
+      });
+
+      (ReportMapService.getInstance as jest.Mock).mockReturnValue(
+        mockReportMapService
+      );
+
+      // Mock Service Response
+      const mockData = [
+        {
+          id: "100",
+          title: "Maintainer View Report",
+          longitude: 10,
+          latitude: 20,
+          category: "ROAD",
+          citizen: { username: "user1" },
+        },
+      ];
+
+      mockReportMapService.getReportsForMap.mockResolvedValue({
+        success: true,
+        data: mockData,
+      });
+
+      const response = await getReportsForMap();
+
+      expect(response.success).toBe(true);
+      // Verify service was called with Maintainer credentials
+      expect(mockReportMapService.getReportsForMap).toHaveBeenCalledWith(
+        "maintainer1",
+        ["EXTERNAL_MAINTAINER_WITH_ACCESS"]
+      );
+
+      if (response.success) {
+        expect(response.data).toEqual(
+          mockData.map((r) => ({
+            id: r.id,
+            title: r.title,
+            longitude: r.longitude,
+            latitude: r.latitude,
+            category: r.category,
+            username: r.citizen.username,
+          }))
+        );
+      }
     });
   });
 });

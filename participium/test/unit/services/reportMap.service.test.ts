@@ -58,7 +58,7 @@ describe("ReportMapService Story 7", () => {
   describe("reportMapService unit tests", () => {
     it("should retrieve all approved reports to the user", async () => {
       (ReportRepository.getInstance as jest.Mock).mockReturnValue(
-        mockReportMapRepository,
+        mockReportMapRepository
       );
       mockReportMapRepository.getApprovedReports.mockResolvedValue({
         success: true,
@@ -86,7 +86,7 @@ describe("ReportMapService Story 7", () => {
     });
     it("should retrieve no approved reports to the user", async () => {
       (ReportRepository.getInstance as jest.Mock).mockReturnValue(
-        mockReportMapRepository,
+        mockReportMapRepository
       );
       mockReportMapRepository.getApprovedReports.mockResolvedValue({
         success: true,
@@ -108,7 +108,7 @@ describe("ReportMapService Story 7", () => {
     });
     it("should retrieve one approved report - without photos - to the user", async () => {
       (ReportRepository.getInstance as jest.Mock).mockReturnValue(
-        mockReportMapRepository,
+        mockReportMapRepository
       );
       mockReportMapRepository.getReportById.mockResolvedValue({
         success: true,
@@ -127,7 +127,7 @@ describe("ReportMapService Story 7", () => {
     });
     it("should propagate error if report not found", async () => {
       (ReportRepository.getInstance as jest.Mock).mockReturnValue(
-        mockReportMapRepository,
+        mockReportMapRepository
       );
       mockReportMapRepository.getReportById.mockResolvedValue({
         success: false,
@@ -141,6 +141,53 @@ describe("ReportMapService Story 7", () => {
       expect(mockReportMapRepository.getReportById).toHaveBeenCalled();
       expect(response.success).toBe(false);
       expect(response.error).toBe("Report not found");
+    });
+
+    it("should retrieve reports for maintainer (non-citizen flow)", async () => {
+      (ReportRepository.getInstance as jest.Mock).mockReturnValue(
+        mockReportMapRepository
+      );
+
+      // Mock repo responses for the "else" block logic
+      mockReportMapRepository.getApprovedReports.mockResolvedValue({
+        success: true,
+        data: [{ id: "1", title: "Approved" }],
+      });
+      mockReportMapRepository.getPendingApprovalReports.mockResolvedValue({
+        success: true,
+        data: [{ id: "2", title: "Pending" }],
+      });
+      mockReportMapRepository.getUnapprovedReports.mockResolvedValue({
+        success: true,
+        data: [{ id: "3", title: "Unapproved" }],
+      });
+
+      const instance = ReportMapService.getInstance();
+
+      // Call with Maintainer role
+      const response = await instance.getReportsForMap("maintainer1", [
+        "EXTERNAL_MAINTAINER_WITH_ACCESS",
+      ]);
+
+      expect(response.success).toBe(true);
+      if (response.success) {
+        expect(response.data).toHaveLength(3);
+      }
+
+      // VERIFY: Should call the general methods (from the 'else' block)
+      expect(mockReportMapRepository.getApprovedReports).toHaveBeenCalled();
+      expect(
+        mockReportMapRepository.getPendingApprovalReports
+      ).toHaveBeenCalledWith("PENDING_APPROVAL");
+      expect(mockReportMapRepository.getUnapprovedReports).toHaveBeenCalled();
+
+      // VERIFY: Should NOT call citizen-specific methods
+      expect(
+        mockReportMapRepository.getPendingApprovalReportsByCitizenId
+      ).not.toHaveBeenCalled();
+      expect(
+        mockReportMapRepository.getUnapprovedReportsByCitizenId
+      ).not.toHaveBeenCalled();
     });
   });
 });

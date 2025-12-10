@@ -16,8 +16,10 @@ const mockService = {
   createReport: jest.fn(),
 };
 
-const mockRetrievalService = {
+onst mockRetrievalService = {
   retrieveReportsByOfficerId: jest.fn(),
+  retrievePendingApprovalReports: jest.fn(),
+  retrieveReportsByMaintainerId: jest.fn(),
 };
 
 const mockAssignmentService = {
@@ -872,6 +874,84 @@ describe("ReportController Story 4", () => {
       expect(response.success).toBe(true);
       if (response.success) {
         expect(response.email).toBeNull();
+      }
+    });
+  });
+
+  describe("getReportsByMaintainerId - Story 25", () => {
+    const maintainerSession = {
+      user: {
+        id: "maintainer1",
+        role: ["EXTERNAL_MAINTAINER_WITH_ACCESS"],
+      },
+      expires: "2024-12-31T23:59:59.999Z",
+    };
+    
+    const officerSession = {
+       user: {
+        id: "officer1",
+        role: ["TECHNICAL_OFFICER"],
+      },
+      expires: "2024-12-31T23:59:59.999Z",
+    };
+
+    beforeEach(() => {
+        (ReportRetrievalService.getInstance as jest.Mock).mockReturnValue(mockRetrievalService);
+    });
+
+    it("should retrieve reports successfully when user is EXTERNAL_MAINTAINER_WITH_ACCESS", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(maintainerSession);
+      const mockReports = [
+        { id: "1", title: "Maintainer Task 1", status: "assigned" }
+      ];
+      
+      mockRetrievalService.retrieveReportsByMaintainerId.mockResolvedValue({
+        success: true,
+        data: mockReports,
+      });
+
+      const response = await getReportsByMaintainerId();
+
+      expect(response.success).toBe(true);
+      expect(mockRetrievalService.retrieveReportsByMaintainerId).toHaveBeenCalledWith("maintainer1");
+      if (response.success) {
+        expect(response.data).toEqual(mockReports);
+      }
+    });
+
+    it("should retrieve reports successfully when user is TECHNICAL_OFFICER", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+      mockRetrievalService.retrieveReportsByMaintainerId.mockResolvedValue({
+        success: true,
+        data: [],
+      });
+
+      const response = await getReportsByMaintainerId();
+
+      expect(response.success).toBe(true);
+      expect(mockRetrievalService.retrieveReportsByMaintainerId).toHaveBeenCalledWith("officer1");
+    });
+
+    it("should return unauthorized error when user is CITIZEN", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
+
+      const response = await getReportsByMaintainerId();
+
+      expect(response.success).toBe(false);
+      expect(mockRetrievalService.retrieveReportsByMaintainerId).not.toHaveBeenCalled();
+      if (!response.success) {
+        expect(response.error).toBe("Unauthorized access");
+      }
+    });
+
+    it("should return unauthorized error when session is null", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
+
+      const response = await getReportsByMaintainerId();
+
+      expect(response.success).toBe(false);
+      if (!response.success) {
+        expect(response.error).toBe("Unauthorized access");
       }
     });
   });
