@@ -7,11 +7,11 @@ jest.mock("@/db/db", () => ({
     report: {
       create: jest.fn(),
       update: jest.fn(),
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
     },
     user: {
-      findMany: jest.fn(),
       findFirst: jest.fn(),
-      findUnique: jest.fn(),
     },
   },
 }));
@@ -50,7 +50,7 @@ describe("ReportRepository Story 4", () => {
         mockData.category,
         mockData.longitude,
         mockData.latitude,
-        mockData.userId,
+        mockData.userId
       );
       expect(response).toHaveProperty("success");
       expect(response).toHaveProperty("data");
@@ -72,7 +72,7 @@ describe("ReportRepository Story 4", () => {
         "",
         mockData.longitude,
         mockData.latitude,
-        mockData.userId,
+        mockData.userId
       );
       expect(response).toHaveProperty("success");
       expect(response).toHaveProperty("data");
@@ -91,7 +91,7 @@ describe("ReportRepository Story 4", () => {
         mockData.category,
         mockData.longitude,
         mockData.latitude,
-        mockData.userId,
+        mockData.userId
       );
       expect(response.success).toBe(false);
       expect(response).toHaveProperty("error");
@@ -110,7 +110,7 @@ describe("ReportRepository Story 4", () => {
       mockedPrisma.user.findFirst = jest.fn().mockResolvedValue(mockOfficer);
 
       const response = await reportRepository.getOfficerWithLeastReports(
-        "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+        "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"
       );
 
       expect(response).not.toBeNull();
@@ -122,7 +122,7 @@ describe("ReportRepository Story 4", () => {
       mockedPrisma.user.findFirst = jest.fn().mockResolvedValue(null);
 
       const response = await reportRepository.getOfficerWithLeastReports(
-        "DEPARTMENT_OF_COMMERCE",
+        "DEPARTMENT_OF_COMMERCE"
       );
 
       expect(response).toBeNull();
@@ -135,8 +135,8 @@ describe("ReportRepository Story 4", () => {
 
       await expect(
         reportRepository.getOfficerWithLeastReports(
-          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
-        ),
+          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"
+        )
       ).rejects.toThrow("Database error");
     });
   });
@@ -182,7 +182,7 @@ describe("ReportRepository Story 4", () => {
         .mockRejectedValue(new Error("Database error"));
 
       await expect(
-        reportRepository.assignReportToOfficer(1, "2"),
+        reportRepository.assignReportToOfficer(1, "2")
       ).rejects.toThrow("Database error");
     });
   });
@@ -209,7 +209,7 @@ describe("ReportRepository Story 4", () => {
 
       const response = await reportRepository.rejectReport(
         1,
-        "Insufficient information",
+        "Insufficient information"
       );
 
       expect(response).toBeDefined();
@@ -231,7 +231,7 @@ describe("ReportRepository Story 4", () => {
         .mockRejectedValue(new Error("Database error"));
 
       await expect(
-        reportRepository.rejectReport(1, "Test reason"),
+        reportRepository.rejectReport(1, "Test reason")
       ).rejects.toThrow("Database error");
     });
 
@@ -268,14 +268,14 @@ describe("ReportRepository Story 4", () => {
         expect(response.data).toHaveProperty("title", "Sample Title");
         expect(response.data).toHaveProperty(
           "description",
-          "Sample Description",
+          "Sample Description"
         );
         expect(response.data).toHaveProperty("longitude", 7.693);
         expect(response.data).toHaveProperty("latitude", 45.0682);
         expect(response.data).toHaveProperty("createdAt");
         expect(response.data).toHaveProperty(
           "category",
-          "ARCHITECTURAL_BARRIERS",
+          "ARCHITECTURAL_BARRIERS"
         );
         expect(response.data).toHaveProperty("status", "APPROVED");
         expect(response.data).toHaveProperty("citizen", {
@@ -425,17 +425,17 @@ describe("ReportRepository Story 4", () => {
           maintainerId: "m1",
           status: "ASSIGNED",
           photos: [],
-          citizen: { username: "user" }
-        }
+          citizen: { username: "user" },
+        },
       ];
-      
+
       mockedPrisma.report.findMany.mockResolvedValue(mockReports);
-      
+
       const response = await reportRepository.getReportsByMaintainerId("m1");
-      
+
       expect(mockedPrisma.report.findMany).toHaveBeenCalledWith({
         where: { maintainerId: "m1" },
-        include: expect.anything()
+        include: expect.anything(),
       });
       expect(response).toEqual(mockReports);
     });
@@ -446,5 +446,4 @@ describe("ReportRepository Story 4", () => {
       expect(response).toEqual([]);
     });
   });
-});
 });
