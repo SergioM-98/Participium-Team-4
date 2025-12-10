@@ -37,6 +37,7 @@ export const retrieveReportsByOfficerResponseSchema = reportBaseSchema.extend({
   citizenId: z.string().or(z.number()).optional(),
   officerId: z.string().or(z.number()).nullable().optional(),
   createdAt: z.string().optional(),
+  companyId: z.string().nullable().optional(),
   citizen: z
     .object({
       id: z.string().or(z.number()),
@@ -69,6 +70,20 @@ export const reportResponseSchema = z.object({
   }),
 });
 
+export const testReportSchema = z.object({
+  id: z.bigint(),
+  title: z.string(),
+  description: z.string(),
+  citizenId: z.string(),
+  longitude: z.number(),
+  latitude: z.number(),
+  status: z.string(),
+  createdAt: z.date(),
+  category: z.string().optional(),
+  officerId: z.string().nullable().optional(),
+  companyId: z.string().nullable().optional(),
+});
+
 export type Report = z.infer<typeof reportBaseSchema>;
 export type Category = z.infer<typeof categoryEnum>;
 
@@ -84,6 +99,8 @@ export type RetrieveReportByAssignee = z.infer<
 export type UnassignedReport = z.infer<
   typeof rertieveUnassignedReportResponseSchema
 >;
+
+export type TestReport = z.infer<typeof testReportSchema>;
 
 export type ReportsUnassignedResponse =
   | { success: true; data: UnassignedReport[] }
@@ -109,6 +126,10 @@ export type AssignReportToOfficerResponse =
   | { success: true; data: string }
   | { success: false; error: string };
 
+export type AssignReportToMaintainerResponse =
+  | { success: true; data: string; access: boolean; email: string | null }
+  | { success: false; error: string };
+  
 export type UpdateReportStatusResponse =
   | { success: true; data: string }
   | { success: false; error: string };

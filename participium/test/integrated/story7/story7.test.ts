@@ -1,11 +1,20 @@
 import { prisma } from "../../setup";
 import {
-  getApprovedReportsForMap,
+  getReportsForMap,
   getReportById,
 } from "../../../src/app/lib/controllers/reportMap.controller";
+import { getServerSession } from "next-auth/next";
 import bcrypt from "bcrypt";
 import path from "path";
 import fs from "fs/promises";
+
+jest.mock("next-auth/next", () => ({
+  getServerSession: jest.fn(),
+}));
+
+jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
+  authOptions: {},
+}));
 
 describe("Story 7 - Integration Test: View approved reports on interactive map", () => {
   let testCitizenId: string;
@@ -27,7 +36,7 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
         firstName: "Test",
         lastName: "Citizen",
         passwordHash: hashedPassword,
-        role: "CITIZEN",
+        role: ["CITIZEN"],
       },
     });
     testCitizenId = citizen.id;
@@ -39,8 +48,8 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
         firstName: "Test",
         lastName: "Officer",
         passwordHash: hashedPassword,
-        role: "TECHNICAL_OFFICER",
-        office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+        role: ["TECHNICAL_OFFICER"],
+        office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
       },
     });
     testOfficerId = officer.id;
@@ -109,7 +118,7 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
       // Create a minimal 1x1 PNG if it doesn't exist
       const minimalPng = Buffer.from(
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-        "base64"
+        "base64",
       );
       await fs.writeFile(testImagePath, minimalPng);
     }
@@ -150,7 +159,7 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
 
   describe("Approved Reports Map Display Flow", () => {
     it("should return only approved (ASSIGNED) reports for the map", async () => {
-      const result = await getApprovedReportsForMap();
+      const result = await getReportsForMap();
 
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
@@ -158,7 +167,7 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
 
       // Find our test approved report
       const approvedReport = result.data?.find(
-        (r: any) => r.id === approvedReportId.toString()
+        (r: any) => r.id === approvedReportId.toString(),
       );
 
       expect(approvedReport).toBeDefined();
@@ -172,13 +181,13 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
 
       // Verify pending report is NOT in the results
       const pendingReport = result.data?.find(
-        (r: any) => r.id === pendingReportId.toString()
+        (r: any) => r.id === pendingReportId.toString(),
       );
       expect(pendingReport).toBeUndefined();
     });
 
     it("should return reports with required fields for map visualization", async () => {
-      const result = await getApprovedReportsForMap();
+      const result = await getReportsForMap();
 
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
@@ -228,7 +237,7 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
         expect(result.data.id).toBe(approvedReportId.toString());
         expect(result.data.title).toBe("Approved Report for Map");
         expect(result.data.description).toBe(
-          "This is an approved report that should appear on the map"
+          "This is an approved report that should appear on the map",
         );
         expect(result.data.category).toBe("ROADS_AND_URBAN_FURNISHINGS");
         expect(result.data.status).toBe("ASSIGNED");
@@ -342,7 +351,7 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
         },
       });
 
-      const result = await getApprovedReportsForMap();
+      const result = await getReportsForMap();
 
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
@@ -350,7 +359,7 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
       // Find both reports
       const clusterReports = result.data?.filter(
         (r: any) =>
-          r.id === report1.id.toString() || r.id === report2.id.toString()
+          r.id === report1.id.toString() || r.id === report2.id.toString(),
       );
 
       expect(clusterReports?.length).toBe(2);
@@ -361,7 +370,7 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
     });
 
     it("should return reports with different categories", async () => {
-      const result = await getApprovedReportsForMap();
+      const result = await getReportsForMap();
 
       expect(result.success).toBe(true);
 

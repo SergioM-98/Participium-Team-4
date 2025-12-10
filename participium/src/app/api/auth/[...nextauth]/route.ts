@@ -9,14 +9,27 @@ export const authOptions: AuthOptions = {
     Credentials({
       name: "Credentials",
       credentials: {
-        username: { label: "Username", type: "text" },
+        identifier: { label: "Username or Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials): Promise<User | null> {
         if (!credentials) return null;
-        const user = await prisma.user.findUnique({
-          where: { username: credentials.username },
-        });
+
+        // find type of the input (email or username )
+        const identifier = credentials.identifier;
+        const isEmail = identifier.includes("@");
+
+        let user;
+        if (isEmail) {
+          user = await prisma.user.findUnique({
+            where: { email: identifier },
+          });
+        } else {
+          user = await prisma.user.findUnique({
+            where: { username: identifier },
+          });
+        }
+
         if (!user) return null;
 
         const isValid = await bcrypt.compare(
@@ -25,7 +38,7 @@ export const authOptions: AuthOptions = {
         );
         if (!isValid) return null;
 
-        if(!user.isVerified && user.role == "CITIZEN"){
+        if(!user.isVerified && user.role.includes("CITIZEN")){
           // NextAuth will redirect with error query
           throw new Error("The user is not verified");
         }

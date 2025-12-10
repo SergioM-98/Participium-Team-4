@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 
@@ -10,6 +10,7 @@ import { Label } from "./ui/label";
 import { Card, CardContent } from "./ui/card";
 
 import { verifyRegistration } from "@/app/lib/controllers/verification.controller";
+import { resendVerificationCode } from "@/app/lib/controllers/verification.controller";
 
 export default function VerificationForm() {
   const router = useRouter();
@@ -24,6 +25,19 @@ export default function VerificationForm() {
     Partial<Record<string, string>>
   >({});
   const [success, setSuccess] = useState<string | undefined>("");
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [isResending, setIsResending] = useState(false);
+
+  // Timer for resend countdown
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+
+    const interval = setInterval(() => {
+      setResendCountdown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [resendCountdown]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -56,6 +70,36 @@ export default function VerificationForm() {
       } catch (err: any) {
         console.error(err);
         setError("Something went wrong. Please try again.");
+      }
+    });
+  };
+
+  const handleResendCode = () => {
+    setIsResending(true);
+    setError(undefined);
+    setSuccess(undefined);
+
+    startTransition(async () => {
+      try {
+        const response = await resendVerificationCode(email.trim());
+
+        if (response.success) {
+          setSuccess("Verification code sent! Check your email.");
+          setResendCountdown(60); // 60 seconds
+          setTimeout(() => setSuccess(""), 3000);
+        } else {
+          // Check if the error is about rate limiting
+          if (response.error?.includes("wait") || response.error?.includes("seconds")) {
+            setError(response.error);
+          } else {
+            setError(response.error);
+          }
+        }
+      } catch (err: any) {
+        console.error(err);
+        setError("Failed to resend verification code. Please try again.");
+      } finally {
+        setIsResending(false);
       }
     });
   };
@@ -129,8 +173,25 @@ export default function VerificationForm() {
 
                   <p className="text-xs text-muted-foreground mt-2">
                     The code will expire in 30 minutes. If you don&apos;t
-                    receive it, check your spam folder or register again.
+                    receive it, check your spam folder.
                   </p>
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-8 px-3 text-xs flex-1"
+                      onClick={handleResendCode}
+                      disabled={
+                        resendCountdown > 0 || isPending || isResending
+                      }
+                    >
+                      {resendCountdown > 0
+                        ? `Resend in ${resendCountdown}s`
+                        : "Resend Code"}
+                    </Button>
+                    
+                  </div>
                 </div>
               </div>
 

@@ -20,15 +20,14 @@ class ReportRetrievalService {
   }
 
   private normalizeStatus(status: string): string {
-    return status.toLowerCase().replaceAll('_', "_");
+    return status.toLowerCase().replaceAll("_", "_");
   }
 
   public async retrieveReportsByOfficerId(
-    officerId: string
+    officerId: string,
   ): Promise<ReportsByOfficerResponse> {
-    const reports = await this.reportRepository.getReportsByOfficerId(
-      officerId
-    );
+    const reports =
+      await this.reportRepository.getReportsByOfficerId(officerId);
 
     const transformedReports = reports.map((r: any) => ({
       id: r.id.toString(),
@@ -36,7 +35,7 @@ class ReportRetrievalService {
       description: r.description,
       photos: r.photos
         .map(
-          (p: { filename?: string | null } | null | undefined) => p?.filename
+          (p: { filename?: string | null } | null | undefined) => p?.filename,
         )
         .filter((f: unknown): f is string => typeof f === "string"),
       category: r.category,
@@ -47,6 +46,7 @@ class ReportRetrievalService {
       officerId: r.officerId?.toString(),
       citizen: r.citizen,
       createdAt: r.createdAt,
+      companyId: r.companyId?.toString(),
       status: this.normalizeStatus(r.status),
     }));
 
@@ -56,13 +56,44 @@ class ReportRetrievalService {
     };
   }
 
+  public async retrieveReportsByMaintainerId(
+    maintainerId: string,
+  ): Promise<ReportsByOfficerResponse> {
+    const reports =
+      await this.reportRepository.getReportsByMaintainerId(maintainerId);
+
+    const transformedReports = reports.map((r: any) => ({
+      id: r.id.toString(),
+      title: r.title,
+      description: r.description,
+      photos: r.photos
+        .map(
+          (p: { filename?: string | null } | null | undefined) => p?.filename,
+        )
+        .filter((f: unknown): f is string => typeof f === "string"),
+      category: r.category,
+      longitude: Number(r.longitude),
+      latitude: Number(r.latitude),
+      userId: r.citizenId.toString(),
+      citizenId: r.citizenId.toString(),
+      officerId: r.officerId?.toString(),
+      citizen: r.citizen,
+      createdAt: r.createdAt,
+      companyId: r.companyId?.toString(),
+      status: this.normalizeStatus(r.status),
+    }));
+
+    return {
+      success: true,
+      data: transformedReports,
+    };
+  }
 
   public async retrievePendingApprovalReports(
-    status: string
+    status: string,
   ): Promise<ReportsUnassignedResponse> {
-    const reports = await this.reportRepository.getPendingApprovalReports(
-      status
-    );
+    const reports =
+      await this.reportRepository.getPendingApprovalReports(status);
 
     const transformedReports = reports.map((r: any) => ({
       id: r.id.toString(),
@@ -72,21 +103,21 @@ class ReportRetrievalService {
       category: r.category,
       longitude: Number(r.longitude),
       latitude: Number(r.latitude),
+      companyId: r.companyId,
       citizen: r.citizen
         ? {
-          id: r.citizen.id.toString(),
-          firstName: r.citizen.firstName,
-          lastName: r.citizen.lastName,
-          email: r.citizen.email,
-          username: r.citizen.username,
-        }
+            id: r.citizen.id.toString(),
+            firstName: r.citizen.firstName,
+            lastName: r.citizen.lastName,
+            email: r.citizen.email,
+            username: r.citizen.username,
+          }
         : null,
     }));
     return {
       success: true,
       data: transformedReports,
     };
-
   }
 }
 

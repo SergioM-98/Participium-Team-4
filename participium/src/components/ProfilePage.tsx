@@ -74,8 +74,8 @@ type UserProfileData = {
   email: string;
   telegram: boolean;
   pendingRequest: boolean;
-  role: string;
-  office?: string;
+  role: string[];
+  office?: string[];
   companyId?: string;
   companyName?: string;
   image: string | null;
@@ -113,6 +113,8 @@ export default function ProfilePage() {
     telegramEnabled: false,
   });
 
+  const [removeTelegram, setRemoveTelegram] = useState(false);
+
   const [telegramStatus, setTelegramStatus] = useState<
     "idle" | "opening" | "opened"
   >("idle");
@@ -142,7 +144,7 @@ export default function ProfilePage() {
         };
         let imageUrl: string | null = null;
 
-        if ("role" in userData && userData.role === "CITIZEN") {
+        if ("role" in userData && userData.role.includes("CITIZEN")) {
           try {
             const url = await getProfilePhotoUrl();
             imageUrl = url === undefined ? null : url;
@@ -166,7 +168,7 @@ export default function ProfilePage() {
             telegram: !!userData.telegram,
             pendingRequest: !!userData.pendingRequest,
             role: userData.role || session.user.role,
-            office: userData.office || undefined,
+            office: userData.office || [],
             companyId: userData.companyId || undefined,
             companyName: (userData as any).companyName || undefined,
             image: imageUrl,
@@ -378,13 +380,11 @@ export default function ProfilePage() {
   };
 
   const handleSave = () => {
-    if (user?.role !== "CITIZEN" || !validate()) return;
+    if (!user?.role.includes("CITIZEN") || !validate()) return;
     setError(null);
 
     startTransition(async () => {
       try {
-        const removeTelegram = false;
-
         const notificationsData: NotificationsData = {
           emailEnabled: formData.emailEnabled,
           telegramEnabled: formData.telegramEnabled,
@@ -398,19 +398,27 @@ export default function ProfilePage() {
 
         if (result.success) {
           setIsEditing(false);
+          setRemoveTelegram(false);
           setUser((prev) =>
             prev
               ? {
                   ...prev,
                   email: formData.email,
-                  telegram: formData.telegram,
+                  telegram: removeTelegram ? false : Boolean(formData.telegram),
                   notifications: {
                     emailEnabled: formData.emailEnabled,
-                    telegramEnabled: formData.telegramEnabled,
+                    telegramEnabled: removeTelegram ? false : formData.telegramEnabled,
                   },
                 }
               : null
           );
+          if (removeTelegram) {
+            setFormData({
+              ...formData,
+              telegram: false,
+              telegramEnabled: false,
+            });
+          }
           router.refresh();
         } else {
           const errorMessage =
@@ -434,6 +442,7 @@ export default function ProfilePage() {
       emailEnabled: user.notifications.emailEnabled,
       telegramEnabled: user.notifications.telegramEnabled ?? false,
     });
+    setRemoveTelegram(false);
     setValidationError(null);
     setError(null);
     setIsEditing(false);
@@ -460,10 +469,10 @@ export default function ProfilePage() {
     );
   }
 
-  const isCitizen = user.role === "CITIZEN";
+  const isCitizen = user.role.includes("CITIZEN");
   const isExternalMaintainer =
-    user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
-    user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS";
+    user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+    user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS");
   const canEdit = isCitizen;
   const isTelegramConnected = !!user.telegram;
 
@@ -526,13 +535,13 @@ export default function ProfilePage() {
           <div className="space-y-1">
             <CardTitle className="text-2xl font-bold">My Profile</CardTitle>
             <CardDescription>
-              {user.role === "TECHNICAL_OFFICER" ||
-              user.role === "PUBLIC_RELATIONS_OFFICER"
+              {user.role.includes("TECHNICAL_OFFICER") ||
+              user.role.includes("PUBLIC_RELATIONS_OFFICER")
                 ? "View your officer details and office assignment."
-                : user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
-                  user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+                : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+                  user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
                 ? "View your external maintainer details and company assignment."
-                : user.role === "ADMIN"
+                : user.role.includes("ADMIN")
                 ? "System administrator profile."
                 : "Manage your contact information and notification preferences."}
             </CardDescription>
@@ -642,35 +651,35 @@ export default function ProfilePage() {
                 <span
                   className={cn(
                     "px-2.5 py-0.5 rounded-full text-xs font-semibold border flex items-center gap-1 w-fit",
-                    user.role === "TECHNICAL_OFFICER" ||
-                      user.role === "PUBLIC_RELATIONS_OFFICER" ||
-                      user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
-                      user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+                    user.role.includes("TECHNICAL_OFFICER") ||
+                      user.role.includes("PUBLIC_RELATIONS_OFFICER") ||
+                      user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+                      user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
                       ? "bg-blue-50 text-blue-700 border-blue-200"
-                      : user.role === "ADMIN"
+                      : user.role.includes("ADMIN")
                       ? "bg-purple-50 text-purple-700 border-purple-200"
                       : "bg-secondary text-secondary-foreground"
                   )}
                 >
-                  {user.role === "TECHNICAL_OFFICER" ||
-                  user.role === "PUBLIC_RELATIONS_OFFICER" ? (
+                  {user.role.includes("TECHNICAL_OFFICER") ||
+                  user.role.includes("PUBLIC_RELATIONS_OFFICER") ? (
                     <ShieldAlert className="h-3 w-3" />
-                  ) : user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
-                    user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS" ? (
+                  ) : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+                    user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS") ? (
                     <ShieldAlert className="h-3 w-3" />
-                  ) : user.role === "ADMIN" ? (
+                  ) : user.role.includes("ADMIN") ? (
                     <ShieldCheck className="h-3 w-3" />
                   ) : (
                     <UserCheck className="h-3 w-3" />
                   )}
-                  {user.role === "TECHNICAL_OFFICER" ||
-                  user.role === "PUBLIC_RELATIONS_OFFICER"
+                  {user.role.includes("TECHNICAL_OFFICER") ||
+                  user.role.includes("PUBLIC_RELATIONS_OFFICER")
                     ? "Officer"
-                    : user.role === "EXTERNAL_MAINTAINER_WITH_ACCESS"
+                    : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")
                     ? "External Maintainer (with access)"
-                    : user.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+                    : user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
                     ? "External Maintainer (without access)"
-                    : user.role === "ADMIN"
+                    : user.role.includes("ADMIN")
                     ? "Administrator"
                     : "Citizen"}
                 </span>
@@ -730,11 +739,40 @@ export default function ProfilePage() {
             {isCitizen && (
               <div className="space-y-2 md:col-span-2">
                 {isTelegramConnected ? (
-                  <div className="flex items-center h-9 gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    <span className="text-green-600 font-medium text-sm">
-                      Telegram Connected
-                    </span>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <span className="text-green-600 font-medium text-sm">
+                        Telegram Connected
+                      </span>
+                    </div>
+                    {isEditing && (
+                      <div className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-red-200 bg-red-50/50 p-4">
+                        <Checkbox
+                          id="removeTelegram"
+                          checked={removeTelegram}
+                          onCheckedChange={(checked) => {
+                            setRemoveTelegram(checked as boolean);
+                            setFormData({
+                              ...formData,
+                              telegramEnabled: checked ? false : user?.notifications.telegramEnabled ?? false,
+                            });
+                          }}
+                          disabled={isPending}
+                        />
+                        <div className="space-y-1 leading-none">
+                          <Label
+                            htmlFor="removeTelegram"
+                            className="cursor-pointer font-medium text-red-700"
+                          >
+                            Disconnect Telegram Account
+                          </Label>
+                          <p className="text-xs text-red-600/80 pt-1">
+                            Check this box to remove your Telegram connection. You can uncheck it before saving to undo.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div>
@@ -775,16 +813,20 @@ export default function ProfilePage() {
             )}
 
             {/* Office */}
-            {(user.role === "TECHNICAL_OFFICER" ||
-              user.role === "PUBLIC_RELATIONS_OFFICER" ||
-              user.role === "ADMIN") &&
-              user.office && (
+            {(user.role.includes("TECHNICAL_OFFICER") ||
+              user.role.includes("PUBLIC_RELATIONS_OFFICER") ||
+              user.role.includes("ADMIN")) &&
+              user.office && user.office.length > 0 && (
                 <div className="space-y-2 md:col-span-2">
                   <Label className="flex items-center gap-2 text-muted-foreground">
                     <Building2 className="h-4 w-4" /> Department / Office
                   </Label>
-                  <div className="flex items-center h-12 w-full rounded-md border border-input bg-muted/30 px-3 text-sm font-medium text-foreground shadow-sm">
-                    {user.office.replaceAll('_', " ")}
+                  <div className="flex flex-wrap items-center min-h-12 w-full rounded-md border border-input bg-muted/30 px-3 py-2 text-sm font-medium text-foreground shadow-sm gap-2">
+                    {user.office.map((office, index) => (
+                      <span key={index} className="bg-primary/10 px-2 py-1 rounded">
+                        {office.replaceAll('_', " ")}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}

@@ -1,11 +1,16 @@
 import { prisma } from "../../setup";
-import { getReportsByAssigneeId } from "../../../src/app/lib/controllers/report.controller";
+import { getReportsByOfficerId } from "../../../src/app/lib/controllers/report.controller";
+import { getServerSession } from "next-auth/next";
 import bcrypt from "bcrypt";
 import path from "path";
 import fs from "fs/promises";
 
 jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
+}));
+
+jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
+  authOptions: {},
 }));
 
 jest.mock("next-auth", () => ({
@@ -47,7 +52,7 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
         firstName: "Test",
         lastName: "Citizen",
         passwordHash: hashedPassword,
-        role: "CITIZEN",
+        role: ["CITIZEN"],
       },
     });
     testCitizenId = citizen.id;
@@ -59,8 +64,8 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
         firstName: "Test",
         lastName: "Officer",
         passwordHash: hashedPassword,
-        role: "TECHNICAL_OFFICER",
-        office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+        role: ["TECHNICAL_OFFICER"],
+        office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
       },
     });
     testOfficerId = officer.id;
@@ -72,8 +77,8 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
         firstName: "Test2",
         lastName: "Officer2",
         passwordHash: hashedPassword,
-        role: "TECHNICAL_OFFICER",
-        office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+        role: ["TECHNICAL_OFFICER"],
+        office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
       },
     });
     testOfficerId2 = officer2.id;
@@ -176,7 +181,7 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
       // Create a minimal 1x1 PNG if it doesn't exist
       const minimalPng = Buffer.from(
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-        "base64"
+        "base64",
       );
       await fs.writeFile(testImagePath, minimalPng);
     }
@@ -194,14 +199,14 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
         user: {
           id: testOfficerId,
           name: "Test Officer",
-          role: "TECHNICAL_OFFICER",
+          role: ["TECHNICAL_OFFICER"],
         },
         expires: "2024-12-31T23:59:59.999Z",
       });
     });
 
     it("should return only approved (ASSIGNED) reports to the officer", async () => {
-      const result = await getReportsByAssigneeId();
+      const result = await getReportsByOfficerId();
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -222,14 +227,14 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
     });
 
     it("should not return pending reports to the officer", async () => {
-      const result = await getReportsByAssigneeId();
+      const result = await getReportsByOfficerId();
 
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data).toBeDefined();
         expect(Array.isArray(result.data)).toBe(true);
         expect(result.data?.every((r) => r.status !== "PENDING_APPROVAL")).toBe(
-          true
+          true,
         );
       }
     });
@@ -238,11 +243,11 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
       (getServerSession as jest.Mock).mockResolvedValue({
         user: {
           id: "non-existing-officer-id",
-          role: "TECHNICAL_OFFICER",
+          role: ["TECHNICAL_OFFICER"],
         },
         expires: "2024-12-31T23:59:59.999Z",
       });
-      const result = await getReportsByAssigneeId();
+      const result = await getReportsByOfficerId();
 
       expect(result.success).toBe(true);
       if (result.success) {

@@ -110,13 +110,13 @@ async function checkUserRole(): Promise<{
   data?: string;
 }> {
   const session = await getServerSession(authOptions);
-  if (!session || session.user?.role !== "CITIZEN") {
+  if (!session?.user?.role.includes("CITIZEN")) {
     return {
       success: false,
     };
   }
   return {
     success: true,
-    data: session.user.username,
+    data: session.user.id,
   };
 }

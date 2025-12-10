@@ -6,6 +6,8 @@ import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback } from "./ui/avatar";
+import { useSession } from "next-auth/react";
+import { getReportMessages, sendMessage } from "@/app/lib/controllers/message.controller";
 
 export interface ChatMessage {
   id: string;
@@ -20,19 +22,58 @@ interface ChatPanelProps {
   reportId: string;
   currentUserRole: "CITIZEN" | 'TECHNICAL_OFFICER' | 'PUBLIC_RELATIONS_OFFICER' | 'EXTERNAL_MAINTAINER_WITH_ACCESS';
   currentUserId: string;
-  messages: ChatMessage[];
-  onSendMessage: (text: string) => void;
 }
 
 export default function ChatPanel({
+  reportId,
+  currentUserRole,
   currentUserId,
-  messages,
-  onSendMessage,
 }: Readonly<ChatPanelProps>) {
+  const { data: session } = useSession();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
+  const [isSending, setIsSending] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef(0);
 
+  // Load messages and polling
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        setIsLoadingMessages(true);
+        const reportIdBigInt = BigInt(reportId);
+        const response = await getReportMessages(reportIdBigInt);
+        
+        if (response && Array.isArray(response)) {
+          const transformedMessages: ChatMessage[] = response.map((msg: any) => ({
+            id: msg.id.toString(),
+            senderName: msg.author?.firstName && msg.author?.lastName 
+              ? `${msg.author.firstName} ${msg.author.lastName}`
+              : msg.author?.username || "Anonymous",
+            senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
+            senderRole: msg.author?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : msg.author?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : "CITIZEN",
+            content: msg.content,
+            timestamp: msg.createdAt,
+          }));
+          setMessages(transformedMessages);
+        }
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+      } finally {
+        setIsLoadingMessages(false);
+      }
+    };
+
+    loadMessages();
+
+    // Polling of messages every second
+    const interval = setInterval(loadMessages, 1000);
+
+    return () => clearInterval(interval);
+  }, [reportId]);
+
+  // Auto-scroll on new messages
   useEffect(() => {
     // Scrolla solo se ci sono nuovi messaggi (numero di messaggi aumentato)
     if (messages.length > prevMessageCountRef.current) {
@@ -43,9 +84,42 @@ export default function ChatPanel({
     prevMessageCountRef.current = messages.length;
   }, [messages.length]);
 
+  const handleSendMessage = async (text: string) => {
+    if (!session?.user?.id) {
+      console.error("User not authenticated");
+      return;
+    }
+
+    try {
+      setIsSending(true);
+      const authorId = session.user.id;
+      const reportIdBigInt = BigInt(reportId);
+
+      const response = await sendMessage(text, authorId, reportIdBigInt);
+
+      if (response.success) {
+        const newMsg: ChatMessage = {
+          id: response.data.id?.toString() || Date.now().toString(),
+          senderName: session.user.name || "You",
+          senderId: session.user.id,
+          senderRole: currentUserRole,
+          content: text,
+          timestamp: response.data.createdAt
+            ? new Date(response.data.createdAt).toISOString()
+            : new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, newMsg]);
+      }
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const handleSend = () => {
     if (!newMessage.trim()) return;
-    onSendMessage(newMessage);
+    handleSendMessage(newMessage);
     setNewMessage("");
   };
 

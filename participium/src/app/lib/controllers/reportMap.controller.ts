@@ -3,33 +3,36 @@ import { ReportMapService } from "@/services/reportMap.service";
 import { z } from "zod";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { th } from "zod/v4/locales";
 
 const idSchema = z.string();
 
-export async function getApprovedReportsForMap() {
-  const service = ReportMapService.getInstance();
-  let repoResult;
-  try {
-    repoResult = await service.getReportsForMap();
-  } catch (error) {
-    console.error("Error getting reports for map:", error);
-    return { success: false, error: "Failed to get reports" };
-  }
+export async function getReportsForMap() {
+  const { getServerSession } = await import("next-auth/next");
+  const { authOptions } = await import("@/auth");
+    const service = ReportMapService.getInstance();
+    const session = await getServerSession(authOptions);
 
-  if (!repoResult || repoResult.success === false || !repoResult.data || repoResult.data.length === 0) {
-    return { success: false, error: repoResult?.error || "No reports found" };
-  }
+    const userId = session?.user?.id;
+    const role = session?.user?.role;
+    const repoResult = await service.getReportsForMap(userId, role);
 
-  const data = repoResult.data.map((r: any) => ({
-    id: r.id.toString(),
-    title: r.title,
-    longitude: r.longitude,
-    latitude: r.latitude,
-    category: r.category,
-    username: r.citizen?.username
-  }));
+    if (!repoResult || repoResult.success === false || !repoResult.data) {
+      return { success: false, error: "No reports found" };
+    }
 
-  return { success: true, data };
+    const data = repoResult.data.map((r: any) => ({
+      id: r.id.toString(),
+      title: r.title,
+      longitude: r.longitude,
+      latitude: r.latitude,
+      category: r.category,
+      username: r.citizen?.username,
+      citizenId: r.citizenId,
+      status: r.status,
+    }));
+
+    return { success: true, data };
 }
 
 export async function getReportById(params: { id: string }) {
@@ -89,6 +92,7 @@ export async function getReportById(params: { id: string }) {
     username: repoResult.data.citizen?.username,
     citizenId: repoResult.data.citizenId,
     officerId: repoResult.data.officerId,
+    companyId: repoResult.data.companyId,
     photos: processedPhotos.filter((url) => url !== null)
   };
 

@@ -88,13 +88,19 @@ class TelegramBotRepository {
     if(!user){
       throw new Error("User not found");
     }
-    if(user.role !== "CITIZEN"){
+    if(user.role.includes("CITIZEN") === false){
       throw new Error("Only citizens can register telegram accounts");
     }
     if(user.telegramRequestPending){
-      if(user.telegramRequestTTL && user.telegramRequestTTL > (new Date())){
-        throw new Error("There is already a pending telegram registration request. Please complete it before starting a new one.");
-      }
+      // reset old pending requests
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          telegramToken: null,
+          telegramRequestPending: false,
+          telegramRequestTTL: null,
+        },
+      });
     }
     const updatedUser = await prisma.user.update({
       where: { id: userId },

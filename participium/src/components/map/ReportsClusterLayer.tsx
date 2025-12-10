@@ -50,7 +50,7 @@ export default function ReportsClusterLayer({
                 <Marker
                     key={report.id}
                     position={[report.latitude, report.longitude]}
-                    icon={createReportIcon(report.category)}
+                    icon={createReportIcon(report.category, report.status)}
                     eventHandlers={{
                         click: (e) => {
                             L.DomEvent.stopPropagation(e.originalEvent);

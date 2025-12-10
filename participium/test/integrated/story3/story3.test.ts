@@ -27,7 +27,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
     user: {
       id: "1",
       name: "Admin User",
-      role: "ADMIN",
+      role: ["ADMIN"],
     },
     expires: "2024-12-31T23:59:59.999Z",
   };
@@ -36,7 +36,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
     user: {
       id: "2",
       name: "Citizen User",
-      role: "CITIZEN",
+      role: ["CITIZEN"],
     },
     expires: "2024-12-31T23:59:59.999Z",
   };
@@ -62,7 +62,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("username", "mariorossi");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "PUBLIC_RELATIONS_OFFICER");
+      formData.append("role", JSON.stringify(["PUBLIC_RELATIONS_OFFICER"]));
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
@@ -83,8 +83,8 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
         lastName: "Rossi",
         email: null,
         username: "mariorossi",
-        role: "PUBLIC_RELATIONS_OFFICER",
-        office: "DEPARTMENT_OF_COMMERCE"
+        role: ["PUBLIC_RELATIONS_OFFICER"],
+        office: ["DEPARTMENT_OF_COMMERCE"]
       });
 
       expect(savedUser!.passwordHash).not.toBe("SecurePass123!");
@@ -100,8 +100,8 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
           lastName: "User",
           username: "existinguser",
           passwordHash: "hashedpassword",
-          role: "PUBLIC_RELATIONS_OFFICER",
-          office: "DEPARTMENT_OF_COMMERCE",
+          role: ["PUBLIC_RELATIONS_OFFICER"],
+          office: ["DEPARTMENT_OF_COMMERCE"],
         },
       });
 
@@ -112,7 +112,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("username", "existinguser");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "PUBLIC_RELATIONS_OFFICER");
+      formData.append("role", JSON.stringify(["PUBLIC_RELATIONS_OFFICER"]));
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
@@ -138,7 +138,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("email", "");
       formData.append("username", "ab");
       formData.append("password", "123");
-      formData.append("role", "PUBLIC_RELATIONS_OFFICER");
+      formData.append("role", JSON.stringify(["PUBLIC_RELATIONS_OFFICER"]));
       formData.append("office", "INVALID_OFFICE");
       formData.append("telegram", "");
 
@@ -147,7 +147,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toContain("First name is required");
-        expect(response.error).toContain("office - Invalid option");
+        expect(response.error).toContain("office.0 - Invalid option");
       }
 
       const usersCount = await prisma.user.count();
@@ -163,8 +163,8 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("email", "");
       formData.append("username", "testuser");
       formData.append("password", "SecurePass123!");
-      formData.append("confirmPassword", "SecurePass123!"); // Added
-      formData.append("role", "PUBLIC_RELATIONS_OFFICER");
+      formData.append("confirmPassword", "SecurePass123!");
+      formData.append("role", JSON.stringify(["PUBLIC_RELATIONS_OFFICER"]));
       formData.append("office", "");
       formData.append("telegram", "");
 
@@ -173,7 +173,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       expect(response.success).toBe(false);
       if (!response.success) {
         expect(response.error).toContain(
-          "office - Only OFFICER can have an office"
+          "office - Only OFFICER can have offices"
         );
       }
 
@@ -191,7 +191,7 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
       formData.append("username", "testuser");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "PUBLIC_RELATIONS_OFFICER");
+      formData.append("role", JSON.stringify(["PUBLIC_RELATIONS_OFFICER"]));
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 

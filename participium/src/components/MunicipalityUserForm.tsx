@@ -18,7 +18,7 @@ export type MunicipalityUserFormData = {
   username: string;
   firstName: string;
   lastName: string;
-  role: string;
+  role: string[];
   office: string;
   password: string;
   confirmPassword: string;
@@ -46,7 +46,7 @@ export default function MunicipalityUserForm({
     username: "",
     firstName: "",
     lastName: "",
-    role: "",
+    role: [""],
     office: "",
     password: "",
     confirmPassword: "",
@@ -64,8 +64,8 @@ export default function MunicipalityUserForm({
       setData((prev) => ({
         ...prev,
         ...initialData,
-        role: initialData.role ?? "",
-        office: initialData.office ?? "",
+        role: initialData.role ?? [""],
+        office: Array.isArray(initialData.office) ? initialData.office[0] ?? "" : initialData.office ?? "",
         companyId: initialData.companyId,
       }));
       setErrors({});
@@ -76,13 +76,15 @@ export default function MunicipalityUserForm({
     const retrieveCompanies = async () => {
       setLoadingCompanies(true);
       try {
+        let hasAccess: boolean;
         // Determina se recuperare aziende con o senza accesso in base al ruolo
-        let hasAccess = false;
-        if (data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS") {
+        if (data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")) {
           hasAccess = true;
-        } else if (data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS") {
+        } 
+        else if (data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")) {
           hasAccess = false;
-        } else {
+        }
+        else {
           // Se il ruolo non è un EXTERNAL_MAINTAINER, non caricare aziende
           setCompanies([]);
           setLoadingCompanies(false);
@@ -138,14 +140,14 @@ export default function MunicipalityUserForm({
       next.confirmPassword =
         "Passwords do not match. Please verify both passwords are identical.";
     }
-    if (!data.role || data.role.trim() === "")
+    if (!data.role)
       next.role = "Role selection is required.";
 
     // Office is required only for non-ADMIN roles except EXTERNAL_MAINTAINER
     if (
-      data.role !== "ADMIN" &&
-      data.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS" &&
-      data.role !== "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+      !data.role.includes("ADMIN") &&
+      !data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") &&
+      !data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
     ) {
       if (!data.office || data.office.trim() === "")
         next.office = "Office selection is required.";
@@ -153,8 +155,8 @@ export default function MunicipalityUserForm({
 
     // Company is required only for EXTERNAL_MAINTAINER roles
     if (
-      data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
-      data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+      data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+      data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
     ) {
       if (!data.companyId || data.companyId.trim() === "")
         next.companyId = "Company selection is required.";
@@ -169,7 +171,7 @@ export default function MunicipalityUserForm({
       username: "",
       firstName: "",
       lastName: "",
-      role: "",
+      role: [""],
       office: "",
       password: "",
       confirmPassword: "",
@@ -187,24 +189,25 @@ export default function MunicipalityUserForm({
         username: data.username.trim().toLowerCase(),
         firstName: data.firstName.trim(),
         lastName: data.lastName.trim(),
-        role: data.role?.trim() ?? "",
+        role: data.role?.map(r => r.trim()) ?? [""],
         password: data.password,
         confirmPassword: data.confirmPassword,
       };
 
       // Only include office if not ADMIN and not EXTERNAL_MAINTAINER
       if (
-        data.role !== "ADMIN" &&
-        data.role !== "EXTERNAL_MAINTAINER_WITH_ACCESS" &&
-        data.role !== "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+        !data.role.includes("ADMIN") &&
+        !data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") &&
+        !data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
       ) {
-        submitData.office = data.office?.trim() ?? "";
+        const officeValue = data.office?.trim();
+        submitData.office = officeValue ? [officeValue] : [];
       }
 
       // Include companyId for EXTERNAL_MAINTAINER roles
       if (
-        data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
-        data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"
+        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+        data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
       ) {
         submitData.companyId = data.companyId?.trim() ?? "";
       }
@@ -340,11 +343,11 @@ export default function MunicipalityUserForm({
                   <Label htmlFor="role">Role</Label>
                   <Select
                     required
-                    value={data.role}
+                    value={data.role[0]}
                     onValueChange={(value) => {
                       setData((prev) => ({
                         ...prev,
-                        role: value,
+                        role: [value],
                         office:
                           value === "PUBLIC_RELATIONS_OFFICER" ||
                           value === "ADMIN"
@@ -395,15 +398,15 @@ export default function MunicipalityUserForm({
 
                 <div className="space-y-2">
                   <Label htmlFor="office">Office</Label>
-                  {data.role === "ADMIN" ? (
+                  {data.role.includes("ADMIN") ? (
                     <Input
                       id="office"
                       value="N/A"
                       disabled
                       className="bg-muted"
                     />
-                  ) : data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
-                    data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS" ? (
+                  ) : data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+                    data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS") ? (
                     <Input
                       id="office"
                       value="N/A"
@@ -414,7 +417,7 @@ export default function MunicipalityUserForm({
                     <Select
                       required
                       value={data.office}
-                      disabled={!data.role || data.role === ""}
+                      disabled={!data.role || data.role.length === 0}
                       onValueChange={(value) => {
                         setData((prev) => ({ ...prev, office: value }));
                         setErrors((prev) => ({ ...prev, office: undefined }));
@@ -484,8 +487,8 @@ export default function MunicipalityUserForm({
                   )}
                 </div>
 
-                {(data.role === "EXTERNAL_MAINTAINER_WITH_ACCESS" ||
-                  data.role === "EXTERNAL_MAINTAINER_WITHOUT_ACCESS") && (
+                {(data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
+                  data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")) && (
                   <div className="space-y-2">
                     <Label htmlFor="companyId">Company</Label>
                     <Select

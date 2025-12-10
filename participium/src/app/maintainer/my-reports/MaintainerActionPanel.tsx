@@ -32,7 +32,7 @@ export default function MaintainerActionPanel({
   reportId,
   currentStatus,
   onActionComplete,
-}: MaintainerActionPanelProps) {
+}: Readonly<MaintainerActionPanelProps>) {
   const [isLoading, setIsLoading] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState<{
     type: "success" | "error";

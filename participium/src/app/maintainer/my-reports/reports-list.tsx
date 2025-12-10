@@ -20,15 +20,15 @@ import {
 import {
   MapPin,
   Search,
-  Filter,
   FileText,
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { getReportsByAssigneeId } from "@/controllers/report.controller";
+import { getReportsByMaintainerId, getReportsByOfficerId } from "@/controllers/report.controller";
 import type { RetrieveReportByAssignee } from "@/dtos/report.dto";
 import { getPhoto } from "@/controllers/photo.controller";
 import ReportDetailsCard from "@/components/ReportDetailsCard";
+import { Category } from "@prisma/client";
 
 type Report = RetrieveReportByAssignee;
 
@@ -74,7 +74,7 @@ const statusColors: Record<string, string> = {
   RESOLVED: "bg-green-100 text-green-800",
 };
 
-export default function ReportsList({ maintainerId }: ReportsListProps) {
+export default function ReportsList({ maintainerId }: Readonly<ReportsListProps>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
@@ -90,16 +90,19 @@ export default function ReportsList({ maintainerId }: ReportsListProps) {
         setIsLoading(true);
         setError(null);
 
-        const response = await getReportsByAssigneeId();
+        const response = await getReportsByMaintainerId();
 
         if (!response.success) {
           setError(response.error || "Failed to load reports");
           return;
         }
 
+        console.log(response);
+
         setReports(response.data);
       } catch (err) {
         setError("An unexpected error occurred");
+        console.error("Failed to fetch reports:", err);
       } finally {
         setIsLoading(false);
       }
@@ -357,7 +360,7 @@ export default function ReportsList({ maintainerId }: ReportsListProps) {
           onClick={() => setSelectedReport(null)}
         >
           <div
-            className="relative w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] max-h-[85vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
+            className="relative w-full max-w-sm sm:max-w-md md:max-w-3xl lg:max-w-5xl xl:max-w-6xl h-[90vh] max-h-[90vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <ReportDetailsCard
@@ -366,7 +369,7 @@ export default function ReportsList({ maintainerId }: ReportsListProps) {
                 title: selectedReport.title,
                 description: selectedReport.description,
                 category: selectedReport.category,
-                status: selectedReport.status || "ASSIGNED",
+                status: (selectedReport.status?.toLowerCase() as "pending_approval"|"assigned"|"in_progress"|"suspended"|"rejected"|"resolved") || "assigned",
                 latitude: selectedReport.latitude,
                 longitude: selectedReport.longitude,
                 reporterName: selectedReport.citizen?.username || "Anonymous",
@@ -376,6 +379,7 @@ export default function ReportsList({ maintainerId }: ReportsListProps) {
                   .filter(Boolean),
                 citizenId: selectedReport.citizenId,
                 officerId: selectedReport.officerId || undefined,
+                companyId: selectedReport.companyId || null,
               }}
               onClose={() => setSelectedReport(null)}
               showChat={true}

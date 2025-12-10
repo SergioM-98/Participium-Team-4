@@ -95,6 +95,7 @@ export interface Report {
   citizenId?: string | number;
   officerId?: string | number | null;
   createdAt?: string;
+  companyId: string | null;
 }
 
 // Status Colors Helper
@@ -195,7 +196,7 @@ const columns: ColumnDef<Report>[] = [
     header: "Status",
     enableSorting: true,
     cell: ({ row }) => {
-      const status = row.getValue("status") as ReportStatus;
+      const status: ReportStatus = row.getValue("status");
       const className = `text-xs px-2 py-1 ${getStatusClasses(status)}`;
 
       return <Badge className={className}>{status.replace("_", " ")}</Badge>;
@@ -329,6 +330,7 @@ export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
         photos: Array.isArray(r.photos) ? r.photos : [],
         latitude: r.latitude,
         longitude: r.longitude,
+        companyId: r.companyId,
       }));
 
       setReports(transformedReports);
@@ -632,7 +634,7 @@ export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
                 title: selectedReport.title,
                 description: selectedReport.description,
                 category: selectedReport.category,
-                status: selectedReport.status,
+                status: (selectedReport.status?.toLowerCase() as "pending_approval"|"assigned"|"in_progress"|"suspended"|"rejected"|"resolved") || "assigned",
                 latitude: selectedReport.latitude,
                 longitude: selectedReport.longitude,
                 reporterName: selectedReport.citizen?.username || "Anonymous",
@@ -642,6 +644,7 @@ export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
                   .filter(Boolean),
                 citizenId: selectedReport.citizenId,
                 officerId: selectedReport.officerId || undefined,
+                companyId: selectedReport.companyId || null,
               }}
               onClose={handleDialogClose}
               isOfficerMode={true}

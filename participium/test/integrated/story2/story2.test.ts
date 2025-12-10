@@ -31,7 +31,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     user: {
       id: "1",
       name: "Admin User",
-      role: "ADMIN",
+      role: ["ADMIN"],
     },
     expires: "2024-12-31T23:59:59.999Z",
   };
@@ -40,7 +40,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     user: {
       id: "2",
       name: "Officer User",
-      role: "TECHNICAL_OFFICER",
+      role: ["TECHNICAL_OFFICER"],
     },
     expires: "2024-12-31T23:59:59.999Z",
   };
@@ -49,7 +49,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
     user: {
       id: "3",
       name: "Citizen User",
-      role: "CITIZEN",
+      role: ["CITIZEN"],
     },
     expires: "2024-12-31T23:59:59.999Z",
   };
@@ -74,7 +74,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("username", "mariorossi");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "TECHNICAL_OFFICER");
+      formData.append("role", JSON.stringify(["TECHNICAL_OFFICER"]));
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
@@ -95,8 +95,8 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
         lastName: "Rossi",
         email: null,
         username: "mariorossi",
-        role: "TECHNICAL_OFFICER",
-        office: "DEPARTMENT_OF_COMMERCE"
+        role: ["TECHNICAL_OFFICER"],
+        office: ["DEPARTMENT_OF_COMMERCE"],
       });
 
       expect(savedUser!.passwordHash).not.toBe("SecurePass123!");
@@ -121,7 +121,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
         formData.append("username", `officer${office.toLowerCase()}`);
         formData.append("password", "SecurePass123!");
         formData.append("confirmPassword", "SecurePass123!");
-        formData.append("role", "TECHNICAL_OFFICER");
+        formData.append("role", JSON.stringify(["TECHNICAL_OFFICER"]));
         formData.append("office", office);
         formData.append("telegram", "");
 
@@ -134,7 +134,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
         });
 
         expect(savedUser).not.toBeNull();
-        expect(savedUser!.office).toBe(office);
+        expect(savedUser!.office).toEqual([office]);
       }
     });
 
@@ -147,8 +147,8 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
           lastName: "Officer",
           username: "existingofficer",
           passwordHash: "hashedpassword",
-          role: "TECHNICAL_OFFICER",
-          office: "DEPARTMENT_OF_COMMERCE",
+          role: ["TECHNICAL_OFFICER"],
+          office: ["DEPARTMENT_OF_COMMERCE"],
         },
       });
 
@@ -159,7 +159,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("username", "existingofficer");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "TECHNICAL_OFFICER");
+      formData.append("role", JSON.stringify(["TECHNICAL_OFFICER"]));
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
@@ -185,7 +185,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("email", "");
       formData.append("username", "ab");
       formData.append("password", "123");
-      formData.append("role", "TECHNICAL_OFFICER");
+      formData.append("role", JSON.stringify(["TECHNICAL_OFFICER"]));
       formData.append("office", "INVALID_OFFICE");
       formData.append("telegram", "");
 
@@ -211,7 +211,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "TECHNICAL_OFFICER");
+      formData.append("role", JSON.stringify(["TECHNICAL_OFFICER"]));
       formData.append("office", "");
       formData.append("telegram", "");
 
@@ -219,7 +219,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
 
       expect(response.success).toBe(false);
       if (!response.success) {
-        expect(response.error).toContain("office - Only OFFICER can have an office");
+        expect(response.error).toContain("office - Only OFFICER can have offices");
       }
 
       const usersCount = await prisma.user.count();
@@ -236,7 +236,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "TECHNICAL_OFFICER");
+      formData.append("role", JSON.stringify(["TECHNICAL_OFFICER"]));
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
@@ -261,7 +261,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "TECHNICAL_OFFICER");
+      formData.append("role", JSON.stringify(["TECHNICAL_OFFICER"]));
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
@@ -286,7 +286,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "TECHNICAL_OFFICER");
+      formData.append("role", JSON.stringify(["TECHNICAL_OFFICER"]));
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
@@ -311,7 +311,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "TECHNICAL_OFFICER");
+      formData.append("role", JSON.stringify(["TECHNICAL_OFFICER"]));
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "");
 
@@ -336,7 +336,7 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
       formData.append("username", "testofficer");
       formData.append("password", "SecurePass123!");
       formData.append("confirmPassword", "SecurePass123!");
-      formData.append("role", "TECHNICAL_OFFICER");
+      formData.append("role", JSON.stringify(["TECHNICAL_OFFICER"]));
       formData.append("office", "DEPARTMENT_OF_COMMERCE");
       formData.append("telegram", "@testofficer");
 

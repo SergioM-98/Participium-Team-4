@@ -6,6 +6,10 @@ import { UserService } from "../../../src/app/lib/services/user.service";
 
 const mockUserRepository = {
   createUser: jest.fn(),
+  getAllOfficers: jest.fn(),
+  deleteOfficer: jest.fn(),
+  updateOfficerOffices: jest.fn(),
+  getOfficer: jest.fn(),
 };
 
 jest.mock('@/app/lib/repositories/user.repository', () => {
@@ -36,6 +40,16 @@ jest.mock('@/app/lib/services/verification.service', () => {
   };
 });
 
+jest.mock('@/app/lib/services/reportAssignment.service', () => {
+  return {
+    ReportAssignmentService: {
+      getInstance: jest.fn().mockReturnValue({
+        unassignReportsOfDeletedOfficer: jest.fn().mockResolvedValue(true),
+      }),
+    },
+  };
+});
+
 jest.mock("@/db/db", () => ({
   prisma: {
     $transaction: jest.fn().mockImplementation(async (cb) => cb({})),
@@ -57,7 +71,7 @@ describe("User service - register function Story 1", () => {
       username: "testuser",
       password: "Test@1234",
       confirmPassword: "Test@1234",
-      role: "CITIZEN",
+      role: ["CITIZEN"],
       office: undefined,
       telegram: undefined,
     };
@@ -92,7 +106,7 @@ describe("User service - Role setup Story 3", () => {
       username: "testuser",
       password: "Test@1234",
       confirmPassword: "Test@1234",
-      role: "PUBLIC_RELATIONS_OFFICER",
+      role: ["PUBLIC_RELATIONS_OFFICER"],
       office: "DEPARTMENT_OF_COMMERCE",
       telegram: undefined,
     };
@@ -128,7 +142,7 @@ describe("User service - OFFICER registration by ADMIN Story 2", () => {
       username: "testofficer",
       password: "Test@1234",
       confirmPassword: "Test@1234",
-      role: "PUBLIC_RELATIONS_OFFICER",
+      role: ["PUBLIC_RELATIONS_OFFICER"],
       office: "DEPARTMENT_OF_COMMERCE",
       telegram: undefined,
     };
@@ -160,5 +174,170 @@ describe("User service - OFFICER registration by ADMIN Story 2", () => {
     if (!response.success) {
       expect(response.error).toBe("Database error");
     }
+  });
+});
+
+describe("UserService Story 10 - Officer Management", () => {
+  let userService: UserService;
+
+  beforeEach(() => {
+    (UserRepository.getInstance as jest.Mock).mockReturnValue(mockUserRepository);
+    userService = UserService.getInstance();
+    jest.clearAllMocks();
+  });
+
+  describe("getAllOfficers", () => {
+    it("should successfully retrieve all officers", async () => {
+      const mockOfficers = [
+        {
+          id: "officer-1",
+          username: "officer1",
+          firstName: "John",
+          lastName: "Doe",
+          role: ["TECHNICAL_OFFICER"],
+          office: ["DEPARTMENT_OF_COMMERCE"],
+        },
+      ];
+
+      mockUserRepository.getAllOfficers.mockResolvedValue({
+        success: true,
+        data: mockOfficers,
+      });
+
+      const response = await userService.getAllOfficers();
+
+      expect(response.success).toBe(true);
+      if (response.success) {
+        expect(response.data).toEqual(mockOfficers);
+      }
+      expect(mockUserRepository.getAllOfficers).toHaveBeenCalledTimes(1);
+    });
+
+    it("should handle repository errors", async () => {
+      mockUserRepository.getAllOfficers.mockResolvedValue({
+        success: false,
+        error: "Database error",
+      });
+
+      const response = await userService.getAllOfficers();
+
+      expect(response.success).toBe(false);
+      if (!response.success) {
+        expect(response.error).toBe("Database error");
+      }
+    });
+  });
+
+  describe("deleteOfficer", () => {
+    const officerId = "officer-123";
+    const mockOfficer = {
+      id: officerId,
+      username: "officer1",
+      role: ["TECHNICAL_OFFICER"],
+      managedReports: [],
+    };
+
+    it("should successfully delete an officer", async () => {
+      mockUserRepository.getOfficer.mockResolvedValue(mockOfficer);
+      mockUserRepository.deleteOfficer.mockResolvedValue(true);
+
+      const result = await userService.deleteOfficer(officerId);
+
+      expect(result).toBe(true);
+      expect(mockUserRepository.getOfficer).toHaveBeenCalledWith(officerId);
+      expect(mockUserRepository.deleteOfficer).toHaveBeenCalledWith(officerId);
+    });
+
+    it("should throw error when officer not found", async () => {
+      mockUserRepository.getOfficer.mockResolvedValue(null);
+
+      await expect(userService.deleteOfficer(officerId)).rejects.toThrow(
+        `Officer with ID ${officerId} not found`
+      );
+
+      expect(mockUserRepository.deleteOfficer).not.toHaveBeenCalled();
+    });
+
+    it("should throw error when user is not a TECHNICAL_OFFICER", async () => {
+      const nonOfficer = { ...mockOfficer, role: ["CITIZEN"] };
+      mockUserRepository.getOfficer.mockResolvedValue(nonOfficer);
+
+      await expect(userService.deleteOfficer(officerId)).rejects.toThrow(
+        `Officer with ID ${officerId} not found`
+      );
+
+      expect(mockUserRepository.deleteOfficer).not.toHaveBeenCalled();
+    });
+
+    it("should return false when unassign reports fails", async () => {
+      const { ReportAssignmentService } = require('@/app/lib/services/reportAssignment.service');
+      const mockReportService = ReportAssignmentService.getInstance();
+      
+      mockUserRepository.getOfficer.mockResolvedValue(mockOfficer);
+      mockReportService.unassignReportsOfDeletedOfficer.mockResolvedValue(false);
+
+      const result = await userService.deleteOfficer(officerId);
+
+      expect(result).toBe(false);
+      expect(mockUserRepository.deleteOfficer).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("updateOfficerOffices", () => {
+    const officerId = "officer-123";
+    const offices = ["DEPARTMENT_OF_COMMERCE"];
+    const mockOfficer = {
+      id: officerId,
+      username: "officer1",
+      role: ["TECHNICAL_OFFICER"],
+    };
+
+    it("should successfully update officer offices", async () => {
+      mockUserRepository.getOfficer.mockResolvedValue(mockOfficer);
+      mockUserRepository.updateOfficerOffices.mockResolvedValue(true);
+
+      const result = await userService.updateOfficerOffices(officerId, offices);
+
+      expect(result).toBe(true);
+      expect(mockUserRepository.getOfficer).toHaveBeenCalledWith(officerId);
+      expect(mockUserRepository.updateOfficerOffices).toHaveBeenCalledWith(
+        officerId,
+        offices
+      );
+    });
+
+    it("should throw error when officer not found", async () => {
+      mockUserRepository.getOfficer.mockResolvedValue(null);
+
+      await expect(
+        userService.updateOfficerOffices(officerId, offices)
+      ).rejects.toThrow(`Officer with ID ${officerId} not found`);
+
+      expect(mockUserRepository.updateOfficerOffices).not.toHaveBeenCalled();
+    });
+
+    it("should throw error when user is not a TECHNICAL_OFFICER", async () => {
+      const nonOfficer = { ...mockOfficer, role: ["CITIZEN"] };
+      mockUserRepository.getOfficer.mockResolvedValue(nonOfficer);
+
+      await expect(
+        userService.updateOfficerOffices(officerId, offices)
+      ).rejects.toThrow(`Officer with ID ${officerId} not found`);
+
+      expect(mockUserRepository.updateOfficerOffices).not.toHaveBeenCalled();
+    });
+
+    it("should handle empty offices array", async () => {
+      mockUserRepository.getOfficer.mockResolvedValue(mockOfficer);
+      mockUserRepository.updateOfficerOffices.mockResolvedValue(true);
+
+      const result = await userService.updateOfficerOffices(officerId, []);
+
+      expect(result).toBe(true);
+      expect(mockUserRepository.updateOfficerOffices).toHaveBeenCalledWith(
+        officerId,
+        []
+      );
+    });
   });
 });

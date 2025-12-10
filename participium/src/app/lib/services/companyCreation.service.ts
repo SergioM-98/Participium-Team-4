@@ -4,7 +4,7 @@ import { CompanyRegistrationResponse } from "@/dtos/company.dto";
 
 class CompanyCreationService {
   private static instance: CompanyCreationService;
-  private companyRepository: CompanyRepository;
+  private readonly companyRepository: CompanyRepository;
   private constructor() {
     this.companyRepository = CompanyRepository.getInstance();
   }
@@ -16,31 +16,27 @@ class CompanyCreationService {
   }
 
   public async createCompany(
-    companyData: Partial<Company>
+    companyData: Partial<Company>,
   ): Promise<CompanyRegistrationResponse> {
-    try {
-      if (!companyData.name) {
-        return { success: false, error: "Company name is required" };
-      }
+    if (!companyData.name) {
+      return { success: false, error: "Company name is required" };
+    }
 
-      if (!companyData.email) {
-        return { success: false, error: "Company email is required" };
-      }
+    if (!companyData.email) {
+      return { success: false, error: "Company email is required" };
+    }
 
-      const response = await this.companyRepository.createCompany({
-        name: companyData.name,
-        email: companyData.email,
-        phone: companyData.phone || undefined,
-        hasAccess: companyData.hasAccess || false,
-      });
+    const response = await this.companyRepository.createCompany({
+      name: companyData.name,
+      email: companyData.email,
+      phone: companyData.phone || undefined,
+      hasAccess: companyData.hasAccess || false,
+    });
 
-      if (response) {
-        return { success: true, data: "Company created successfully" };
-      } else {
-        return { success: false, error: "Company creation failed" };
-      }
-    } catch (error) {
-      return { success: false, error: "Failed to create company" };
+    if (response) {
+      return { success: true, data: "Company created successfully" };
+    } else {
+      return { success: false, error: "Company creation failed" };
     }
   }
 }

@@ -6,19 +6,18 @@ import {
   RegistrationInput,
   RegistrationInputSchema,
   RegistrationResponse,
+  getAllOfficersResponse
 } from "@/dtos/user.dto";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
 import { UserService } from "@/services/user.service";
-import { updateNotificationsPreferences } from "./notification.controller";
+import { updateNotificationsPreferences } from "@/controllers/notification.controller";
 import {
   NotificationsData,
   NotificationsResponse,
 } from "@/dtos/notificationPreferences.dto";
 import { NotificationService } from "@/services/notification.service";
 import { prisma } from "@/prisma/db";
-
-
 
 export async function checkDuplicates(userData: RegistrationInput) {
   try {
@@ -30,7 +29,7 @@ export async function checkDuplicates(userData: RegistrationInput) {
 }
 
 export async function register(
-  formData: FormData
+  formData: FormData,
 ): Promise<RegistrationResponse> {
   const session = await getServerSession(authOptions);
 
@@ -42,8 +41,8 @@ export async function register(
     username: formData.get("username"),
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
-    role: formData.get("role"),
-    office: formData.get("office")?.toString().trim() || undefined,
+    role: formData.get("role") ? JSON.parse(formData.get("role") as string) : [],
+    office: formData.get("office") ? [formData.get("office")!.toString()] : [],
     companyId: formData.get("companyId")?.toString().trim() || undefined,
   });
 
@@ -51,17 +50,17 @@ export async function register(
     console.error("Validation errors:", validatedData.error);
     const errorMessages = validatedData.error.issues?.length
       ? validatedData.error.issues
-          .map(
-            (issue: any) =>
-              `${issue.path?.join(".") || "unknown"} - ${issue.message}`
-          )
-          .join("; ")
+        .map(
+          (issue: any) =>
+            `${issue.path?.join(".") || "unknown"} - ${issue.message}`
+        )
+        .join("; ")
       : "Invalid input data";
     return { success: false, error: errorMessages };
   }
 
-  if (session || (!session && validatedData.data?.role !== "CITIZEN")) {
-    if (session?.user.role !== "ADMIN") {
+  if (session || (!session && !validatedData.data?.role.includes("CITIZEN"))) {
+    if (!session?.user.role.includes("ADMIN")) {
       console.error("Unauthorized registration attempt by user:", session?.user.username);
       return { success: false, error: "Unauthorized registration" };
     }
@@ -86,7 +85,7 @@ export async function register(
     const result = await UserService.getInstance().createUser(parsed.data);
 
     // For CITIZEN users, registration is complete but verification is pending
-    if (result.success && parsed.data.role === "CITIZEN") {
+    if (result.success && parsed.data.role.includes("CITIZEN")) {
       return {
         success: true,
         data: parsed.data.username,
@@ -94,14 +93,14 @@ export async function register(
       };
     }
     return result;
-  }catch (error) {
+  } catch (error) {
     console.error("Error during user registration:", error);
     return { success: false, error: "Failed to register user" };
   }
 }
 
 export async function retrieveUser(
-  userData: LoginInput
+  userData: LoginInput,
 ): Promise<LoginResponse> {
   try {
     return await UserService.getInstance().retrieveUser(userData);
@@ -114,11 +113,14 @@ export async function retrieveUser(
 export async function updateNotificationsMedia(
   email: string | null,
   removeTelegram: boolean,
-  notifications: NotificationsData
+  notifications: NotificationsData,
 ): Promise<RegistrationResponse> {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id || session.user?.role !== "CITIZEN") {
-    console.error("Unauthorized access attempt to update notifications media by user:", session?.user?.username);
+  if (!session?.user?.id || !session.user?.role.includes("CITIZEN")) {
+    console.error(
+      "Unauthorized access attempt to update notifications media by user:",
+      session?.user?.username,
+    );
     return { success: false, error: "Unauthorized access" };
   }
 
@@ -137,23 +139,69 @@ export async function updateNotificationsMedia(
           session.user.id,
           email,
           removeTelegram,
-          tx
+          tx,
         );
 
       const notificationsResponse = await updateNotificationsPreferences(
         notifications,
-        tx
+        tx,
       );
       if (notificationsResponse.success) {
         return updateMediaResponse;
       } else {
-        console.error(notificationsResponse.error ?? "Failed to update notification preferences for user:", session?.user?.username);
+        console.error(
+          notificationsResponse.error ??
+            "Failed to update notification preferences for user:",
+          session?.user?.username,
+        );
         throw new Error("Failed to update notification preferences");
       }
     });
   } catch (error) {
     console.error("Error updating notifications media or preferences:", error);
     return { success: false, error: "Failed to update notifications" };
+  }
+}
+
+export async function getAllofficers(): Promise<getAllOfficersResponse> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id || !session.user?.role.includes("ADMIN")) {
+    console.error("Unauthorized access attempt to get all officers by user:", session?.user?.username);
+    return { success: false, error: "Unauthorized access" };
+  }
+  try {
+    return await UserService.getInstance().getAllOfficers();
+  } catch (error) {
+    console.error("Error retrieving all officers:", error);
+    return { success: false, error: "Failed to retrieve all officers" };
+  }
+}
+
+export async function deleteOfficer(officerId: string): Promise<boolean> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id || !session.user?.role.includes("ADMIN")) {
+    console.error("Unauthorized access attempt to delete officer by user:", session?.user?.username);
+    return false;
+  }
+  try {
+    return await UserService.getInstance().deleteOfficer(officerId);
+  } catch (error) {
+    console.error("Error deleting officer:", error);
+    return false;
+  }
+}
+
+export async function updateOfficerOffices(officerId: string, offices: string[]): Promise<boolean> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id || !session.user?.role.includes("ADMIN")) {
+    console.error("Unauthorized access attempt to update officer offices by user:", session?.user?.username);
+    return false;
+  }
+  try {
+    return await UserService.getInstance().updateOfficerOffices(officerId, offices);
+  } catch (error) {
+    console.error("Error updating officer offices:", error);
+    return false;
   }
 }
 
@@ -167,51 +215,66 @@ export async function getMe(): Promise<MeType | RegistrationResponse> {
   let notifications: NotificationsResponse;
   let emailEnabled = false;
   let telegramEnabled = false;
-  if(session.user.role === "CITIZEN"){
+  if (session.user.role.includes("CITIZEN")) {
     try {
-      notifications = await NotificationService.getInstance().getNotificationsPreferences(session.user.username);
+      notifications =
+        await NotificationService.getInstance().getNotificationsPreferences(
+          session.user.username,
+        );
     } catch (error) {
       console.error("Error retrieving notification preferences:", error);
-      return { success: false, error: "Failed to retrieve notification preferences" };
+      return {
+        success: false,
+        error: "Failed to retrieve notification preferences",
+      };
     }
-    if(notifications.success){
+    if (notifications.success) {
       emailEnabled = notifications.data.emailEnabled;
       telegramEnabled = notifications.data.telegramEnabled ?? false;
-    }else{
-      return { success: false, error: notifications.error ?? "Failed to retrieve notification preferences" };
-    } 
-  }
-  let user;
-  try{
-    user = await UserService.getInstance().getMe(session.user.id);
-  }catch(error){
-    console.error(error instanceof Error ? error.message : "failed to get the personal informations from the database");
-    return {
-      success: false,
-      error: "failed to get the personal informations from the database"
+    } else {
+      return {
+        success: false,
+        error:
+          notifications.error ?? "Failed to retrieve notification preferences",
+      };
     }
   }
-  if(user===null){
+  let user;
+  try {
+    user = await UserService.getInstance().getMe(session.user.id);
+  } catch (error) {
+    console.error(
+      error instanceof Error
+        ? error.message
+        : "failed to get the personal informations from the database",
+    );
+    return {
+      success: false,
+      error: "failed to get the personal informations from the database",
+    };
+  }
+  if (user === null) {
     console.error("The user does not exist on the database");
     return {
       success: false,
-      error: "User not found"
-    }
+      error: "User not found",
+    };
   }
-  
+
   return {
-    me:{
+    me: {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email ?? undefined,
       username: user.username,
       role: user.role as MeType["me"]["role"],
-      office: (user.office as MeType["me"]["office"]) ?? undefined,
+      office: user.office as MeType["me"]["office"],
       telegram: !!user.telegramChatId,
-      companyId: user.companyId ?? undefined
+      pendingRequest: !!user.telegramRequestPending,
+      companyId: user.companyId ?? undefined,
     },
     emailNotifications: emailEnabled,
     telegramNotifications: telegramEnabled,
-    companyName: user?.company?.name ?? undefined
+    companyName: user?.company?.name ?? undefined,
   };
 }

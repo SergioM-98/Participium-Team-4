@@ -4,6 +4,28 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { ReportMarkerIcon, ClusterMarkerIcon } from './MapIcons';
 
 
+// Map report status to border colors
+export function getStatusColor(status: string): string {
+    status = status.toUpperCase().trim();
+    switch (status) {
+        case 'PENDING_APPROVAL':
+            return '#64748b'; // slate grey - pending approval
+        case 'ASSIGNED':
+            return '#0891b2'; // cyan - assigned
+        case 'IN_PROGRESS':
+            return '#f59e0b'; // amber - in progress
+        case 'SUSPENDED':
+            return '#a855f7'; // violet - suspended
+        case 'REJECTED':
+            return '#dc2626'; // dark red - rejected
+        case 'RESOLVED':
+            return '#10b981'; // emmerald green - resolved
+        default:
+            return '#6366f1'; // indigo - unknown status
+    }
+}
+
+
 // extract from a GeoJSON object the polygons to be visualized on the map
 export function extractVisualizationPolygons(geoJson: any): [number, number][][] {
     const allPolygons: [number, number][][] = [];
@@ -65,18 +87,19 @@ export function isPointInPolygon(point: LatLng, polygon: [number, number][]): bo
 // Cache to avoid regenerating HTML for the same icon multiple times
 const iconCache: Record<string, L.DivIcon> = {};
 
-export const createReportIcon = (category: string) => {
-    if (!iconCache[category]) {
-        const reportIconHtml = renderToStaticMarkup(<ReportMarkerIcon category={category} />);
+export const createReportIcon = (category: string, status: string) => {
+    const cacheKey = `${category}-${status}`;
+    if (!iconCache[cacheKey]) {
+        const reportIconHtml = renderToStaticMarkup(<ReportMarkerIcon category={category} status={status} />);
         
-        iconCache[category] = L.divIcon({
+        iconCache[cacheKey] = L.divIcon({
             className: 'report-marker-icon', 
             html: reportIconHtml,
             iconSize: new Point(40, 40), 
             iconAnchor: new Point(20, 20),
         });
     }
-    return iconCache[category];
+    return iconCache[cacheKey];
 };
 
 export const createClusterCustomIcon = (cluster: any) => {

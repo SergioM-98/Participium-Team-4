@@ -20,14 +20,14 @@ export default async function createTechnicalOfficer() {
 
   await prisma.user.create({
     data: {
-      id: id as string,
+      id: id,
       username: "mcurie",
       passwordHash: hashedPassword,
       firstName: "Marie",
       lastName: "Curie",
       email: "mcurie@team4.it",
-      role: "TECHNICAL_OFFICER" as const,
-      office: "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+      role: ["TECHNICAL_OFFICER" as const],
+      office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
     },
   });
 

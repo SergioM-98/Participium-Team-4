@@ -50,7 +50,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         passwordHash: "password",
         firstName: "user",
         lastName: "user",
-        role: "CITIZEN",
+        role: ["CITIZEN"],
       },
     });
 
@@ -61,7 +61,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
         passwordHash: "password",
         firstName: "user",
         lastName: "user",
-        role: "CITIZEN",
+        role: ["CITIZEN"],
       },
     });
   });
@@ -75,7 +75,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
           lastName: "mock",
           email: "mock@mock.it",
           username: "mock",
-          role: "CITIZEN",
+          role: ["CITIZEN"],
         },
         expires: "2099-01-01T00:00:00.000Z",
       });
@@ -122,7 +122,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
           lastName: "mock",
           email: "mock@mock.it",
           username: "mock",
-          role: "CITIZEN",
+          role: ["CITIZEN"],
         },
         expires: "2099-01-01T00:00:00.000Z",
       });
@@ -168,7 +168,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
           lastName: "mock",
           email: "mock@mock.it",
           username: "mock",
-          role: "CITIZEN",
+          role: ["CITIZEN"],
         },
         expires: "2099-01-01T00:00:00.000Z",
       });
@@ -195,7 +195,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
           lastName: "mock",
           email: "mock@mock.it",
           username: "mock",
-          role: "CITIZEN",
+          role: ["CITIZEN"],
         },
         expires: "2099-01-01T00:00:00.000Z",
       });
@@ -240,7 +240,7 @@ describe("Story 4 - Integration Test: Report Registration", () => {
           lastName: "mock",
           email: "mock@mock.it",
           username: "mock",
-          role: "PUBLIC_RELATIONS_OFFICER",
+          role: ["PUBLIC_RELATIONS_OFFICER"],
         },
         expires: "2099-01-01T00:00:00.000Z",
       });

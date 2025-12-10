@@ -1,9 +1,10 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "@/prisma/db";
-import { RegistrationInput, RegistrationResponse } from "@/dtos/user.dto";
+import { RegistrationInput, RegistrationResponse, getAllOfficersResponse } from "@/dtos/user.dto";
 import { NotificationsRepository } from "@/repositories/notifications.repository";
 import { UserRepository } from "@/repositories/user.repository";
 import { VerificationService } from "@/services/verification.service";
+import { ReportAssignmentService } from "@/services/reportAssignment.service";
 
 type DBClient = PrismaClient | Prisma.TransactionClient;
 
@@ -36,7 +37,7 @@ class UserService {
       const result = await this.userRepository.createUser(userData, tx);
       if (!result.success) return result;
 
-      if (userData.role === "CITIZEN") {
+      if (userData.role.includes("CITIZEN")) {
         // Set up notification preferences
         const res =
           await this.notificationsRepository.updateNotificationsPreferences(
@@ -94,6 +95,35 @@ class UserService {
       removeTelegram,
       db
     );
+  }
+
+  public async getAllOfficers(): Promise<getAllOfficersResponse> {
+    return this.userRepository.getAllOfficers();
+  }
+
+  public async deleteOfficer(userId: string): Promise<boolean> {
+    const officer = await this.userRepository.getOfficer(userId);
+    if (!officer || !officer.role.includes("TECHNICAL_OFFICER")) {
+      throw new Error(`Officer with ID ${userId} not found`);
+    }
+    const managedReports = officer.managedReports || [];
+    const unassigned = await ReportAssignmentService.getInstance().unassignReportsOfDeletedOfficer(managedReports);
+    
+    if (!unassigned) {
+      return false;
+    }
+
+    return await this.userRepository.deleteOfficer(userId);
+  }
+
+  public async updateOfficerOffices(
+    userId: string,
+    offices: string[],): Promise<boolean> {
+    const officer = await this.userRepository.getOfficer(userId);
+    if (!officer || !officer.role.includes("TECHNICAL_OFFICER")) {
+      throw new Error(`Officer with ID ${userId} not found`);
+    }
+    return await this.userRepository.updateOfficerOffices(userId, offices);
   }
 
   public async getUserByTelegramId(

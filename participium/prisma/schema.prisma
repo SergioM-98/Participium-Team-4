@@ -20,6 +20,7 @@ model Report {
   status      ReportStatus @default(PENDING_APPROVAL)
   photos      Photo[]
   messages    Message[]
+  comments    Comment[]
   notifications Notification[]
   category    Category     @default(OTHER)
   createdAt   DateTime     @default(now())
@@ -27,11 +28,13 @@ model Report {
   latitude    Float
   citizenId   String
   officerId   String?
+  maintainerId String?
   rejectionReason String?
   companyId   String?
 
   citizen   User  @relation("createdBy", fields: [citizenId], references: [id])
   officer   User? @relation("managedBy", fields: [officerId], references: [id])
+  maintainer User? @relation("outsourced", fields: [maintainerId], references: [id])
   company   Company? @relation(fields: [companyId], references: [id])
   
   @@map("report")
@@ -106,15 +109,17 @@ model User {
   telegramRequestPending  Boolean @default(false)
   isVerified              Boolean?
   telegramRequestTTL      DateTime?
-  role                    Role    @default(CITIZEN)
-  office                  Offices?
+  role                    Role[]    @default([CITIZEN])
+  office                  Offices[] @default([])
   passwordHash            String   @db.VarChar(255)
   companyId               String?
 
-  createdReports          Report[] @relation("createdBy")
-  managedReports          Report[] @relation("managedBy")
-  messages                Message[]
-  notifications           Notification[]
+  createdReports  Report[] @relation("createdBy")
+  managedReports  Report[] @relation("managedBy")
+  messages        Message[]
+  comments        Comment[]
+  notifications   Notification[]
+  outsourcedReports       Report[] @relation("outsourced")
   notificationPreferences NotificationPreferences?
   profilePhoto            ProfilePhoto?
   verificationTokens      VerificationToken[]
@@ -198,4 +203,15 @@ model Message {
   report    Report   @relation(fields: [reportId], references: [id])
   reportId  BigInt
   @@map("message")
+}
+
+model Comment {
+  id        BigInt   @id @default(autoincrement())
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  author    User?    @relation(fields: [authorId], references: [id])
+  authorId  String?
+  report    Report   @relation(fields: [reportId], references: [id])
+  reportId  BigInt
+  @@map("comment")
 }

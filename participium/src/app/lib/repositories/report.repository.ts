@@ -2,10 +2,10 @@ import { prisma } from "@/prisma/db";
 import { Category, Report, Offices, ReportStatus, Role } from "@prisma/client";
 import {
   ReportRegistrationResponse,
-  UpdateReportStatusResponse,
 } from "@/dtos/report.dto";
 
 class ReportRepository {
+
   private static instance: ReportRepository;
 
   private constructor() {}
@@ -31,6 +31,7 @@ class ReportRepository {
         status: true,
         citizenId: true,
         officerId: true,
+        companyId: true,
         citizen: {
           select: {
             username: true,
@@ -57,36 +58,143 @@ class ReportRepository {
     category: string,
     longitude: number,
     latitude: number,
-    userId: string
+    userId: string,
   ): Promise<ReportRegistrationResponse> {
-    category = category.toUpperCase();
-    const report = await prisma.report.create({
-      data: {
-        title: title,
-        description: description,
-        photos: {
-          connect: photos.map((photoId) => ({
-            id: photoId,
-          })),
+    try {
+      category = category.toUpperCase();
+      const report = await prisma.report.create({
+        data: {
+          title: title,
+          description: description,
+          photos: {
+            connect: photos.map((photoId) => ({
+              id: photoId,
+            })),
+          },
+          category: Object.values(Category).includes(category as Category)
+            ? (category as Category)
+            : Category.OTHER,
+          longitude: longitude,
+          latitude: latitude,
+          citizenId: userId,
         },
-        category: Object.values(Category).includes(category as Category)
-          ? (category as Category)
-          : Category.OTHER,
-        longitude: longitude,
-        latitude: latitude,
-        citizenId: userId,
-      },
-    });
-    return {
-      success: true,
-      data: `Report with id: ${report.id} succesfuly created`,
-    };
+      });
+      return {
+        success: true,
+        data: `Report with id: ${report.id} succesfuly created`,
+      };
+    } catch (error) {
+      console.error("[createReport] Error creating report:", error);
+      return {
+        success: false,
+        error: "Failed to add the report to the database",
+      };
+    }
   }
+  
+
+    public async getUnapprovedReports() {
+      const where: any = { status: "REJECTED" };
+      const reports = await prisma.report.findMany({
+        where,
+        select: {
+          id: true,
+          title: true,
+          longitude: true,
+          latitude: true,
+          category: true,
+          citizenId: true,
+          status: true,
+          citizen: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
+        },
+      });
+      if (!reports || reports.length === 0) {
+        return { success: false, error: "No unapproved reports found" };
+      }
+      return { success: true, data: reports };
+    }
+
+    public async getUnapprovedReportsByCitizenId(citizenId: string) {
+      const where: any = { status: "REJECTED", citizenId };
+      const reports = await prisma.report.findMany({
+        where,
+        select: {
+          id: true,
+          title: true,
+          longitude: true,
+            latitude: true,
+            category: true,
+            citizenId: true,
+            status: true,
+            citizen: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+          },
+        });
+        if (!reports || reports.length === 0) {
+          return { success: false, error: "No unapproved reports found for this citizen" };
+        }
+        return { success: true, data: reports };
+      }
+  
 
   public async getReportsByOfficerId(officerId: string) {
     return await prisma.report.findMany({
       where: {
         officerId: officerId,
+      },
+      include: {
+        photos: {
+          select: { url: true, filename: true },
+        },
+        citizen: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+    });
+  }
+
+
+    public async getPendingApprovalReportsByCitizenId(citizenId: string) {
+      const where: any = { status: "PENDING_APPROVAL", citizenId };
+      const reports = await prisma.report.findMany({
+        where,
+        select: {
+          id: true,
+          title: true,
+          longitude: true,
+          latitude: true,
+          category: true,
+          citizenId: true,
+          status: true,
+          citizen: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
+        },
+      });
+      if (!reports || reports.length === 0) {
+        return { success: false, error: "No pending approval reports found for this citizen" };
+      }
+      return { success: true, data: reports };
+    }
+  public async getReportsByMaintainerId(maintainerId: string) {
+    return await prisma.report.findMany({
+      where: {
+        maintainerId: maintainerId,
       },
       include: {
         photos: {
@@ -133,8 +241,12 @@ class ReportRepository {
 
     return await prisma.user.findFirst({
       where: {
-        role: "TECHNICAL_OFFICER" as Role,
-        office,
+        role: {
+          has: "TECHNICAL_OFFICER" as Role
+        },
+        office: {
+          has: office
+        },
       },
       orderBy: {
         managedReports: {
@@ -146,7 +258,7 @@ class ReportRepository {
 
   public async assignReportToOfficer(
     reportId: number,
-    officerId: string
+    officerId: string,
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
@@ -159,9 +271,23 @@ class ReportRepository {
     });
   }
 
+  public async assignReportToMaintainer(
+    reportId: number,
+    maintainerId: string,
+  ): Promise<Report> {
+    return await prisma.report.update({
+      where: {
+        id: BigInt(reportId),
+      },
+      data: {
+        maintainerId: maintainerId,
+      },
+    });
+  }
+
   public async rejectReport(
     reportId: number,
-    rejectionReason: string
+    rejectionReason: string,
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
@@ -194,17 +320,23 @@ class ReportRepository {
   }
 
   public async getApprovedReports() {
-    const where: any = { status: "ASSIGNED" };
     const reports = await prisma.report.findMany({
-      where,
+      where: {
+        status: {
+          in: ["ASSIGNED", "IN_PROGRESS", "SUSPENDED"],
+        }
+      },
       select: {
         id: true,
         title: true,
         longitude: true,
         latitude: true,
         category: true,
+        citizenId: true,
+        status: true,
         citizen: {
           select: {
+            id: true,
             username: true,
           },
         },
@@ -218,7 +350,7 @@ class ReportRepository {
 
   public async updateReportStatus(
     reportId: string,
-    status: string
+    status: string,
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
@@ -235,7 +367,7 @@ class ReportRepository {
       where: {
         companyId: companyId,
         role: {
-          in: ["EXTERNAL_MAINTAINER_WITH_ACCESS", "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"] as Role[],
+          hasSome: ["EXTERNAL_MAINTAINER_WITH_ACCESS", "EXTERNAL_MAINTAINER_WITHOUT_ACCESS"] as Role[],
         },
       },
       orderBy: {
@@ -245,10 +377,17 @@ class ReportRepository {
       },
     });
   }
+  public async getCompanyById(companyId: string) {
+    return await prisma.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
+  }
 
   public async assignReportToCompany(
     reportId: number,
-    companyId: string
+    companyId: string,
   ): Promise<Report> {
     return await prisma.report.update({
       where: {
@@ -263,6 +402,33 @@ class ReportRepository {
       },
       include: {
         company: true,
+      },
+    });
+  }
+
+  public async unassignOfficerFromReport(
+    reportId: bigint,
+  ): Promise<Report> {
+    return await prisma.report.update({
+      where: {
+        id: reportId,
+      },
+      data: {
+        officerId: null,
+        status: ReportStatus.PENDING_APPROVAL,
+      },
+    });
+  }
+
+  public async removeOfficerFromReport(
+    reportId: bigint,
+  ): Promise<Report> {
+    return await prisma.report.update({
+      where: {
+        id: reportId,
+      },
+      data: {
+        officerId: null,
       },
     });
   }
