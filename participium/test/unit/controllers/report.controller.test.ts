@@ -18,7 +18,6 @@ const mockService = {
 
 const mockRetrievalService = {
   retrieveReportsByOfficerId: jest.fn(),
-  retrievePendingApprovalReports: jest.fn(),
   retrieveReportsByMaintainerId: jest.fn(),
 };
 
