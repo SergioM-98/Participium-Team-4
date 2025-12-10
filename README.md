@@ -47,14 +47,14 @@ docker ps
 
 ## User Credentials
 
-| Username | Password             | Role                               |
-| -------- | -------------------- | ---------------------------------- |
-| admin    | adminTeam4           | ADMIN                              |
-| mcurie   | tOfficerTeam4        | TECHNICAL_OFFICER                  |
-| arossi   | PrOfficerTeam4       | PUBLIC_RELATIONS_OFFICER           |
-| everdi   | extMaintWithTeam4    | EXTERNAL_MAINTAINER_WITH_ACCESS    |
-| gbianchi | extMaintWithoutTeam4 | EXTERNAL_MAINTAINER_WITHOUT_ACCESS |
-| mneri    | citizenTeam4         | CITIZEN                            |
+| Username | Email              | Password             | Role                               |
+| -------- | ------------------ | -------------------- | ---------------------------------- |
+| admin    | -                  | adminTeam4           | ADMIN                              |
+| mcurie   | mcurie@team4.it    | tOfficerTeam4        | TECHNICAL_OFFICER                  |
+| arossi   | arossi@team4.it    | PrOfficerTeam4       | PUBLIC_RELATIONS_OFFICER           |
+| everdi   | everdi@team4.it    | extMaintWithTeam4    | EXTERNAL_MAINTAINER_WITH_ACCESS    |
+| gbianchi | gbianchi@team4.it  | extMaintWithoutTeam4 | EXTERNAL_MAINTAINER_WITHOUT_ACCESS |
+| mneri    | mneri@team4.it     | citizenTeam4         | CITIZEN                            |
 
 ### Notes
 

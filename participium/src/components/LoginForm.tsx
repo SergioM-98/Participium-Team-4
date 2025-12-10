@@ -18,7 +18,7 @@ export default function LoginForm({ serverError }: { serverError?: string }) {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const [username, setusername] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -70,7 +70,7 @@ export default function LoginForm({ serverError }: { serverError?: string }) {
 
     // Client-side validation
     const next: typeof validationError = {};
-    if (!username.trim()) next.username = "Username is required.";
+    if (!identifier.trim()) next.identifier = "Username or email is required.";
     if (!password) next.password = "Password is required.";
     setValidationError(next);
     if (Object.keys(next).length > 0) return;
@@ -79,7 +79,7 @@ export default function LoginForm({ serverError }: { serverError?: string }) {
       try {
         const result = await signIn("credentials", {
           redirect: false,
-          username,
+          identifier,
           password,
         });
 
@@ -128,33 +128,33 @@ export default function LoginForm({ serverError }: { serverError?: string }) {
               <div className="px-6 pb-4 mt-2">
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="username">Username</Label>
+                    <Label htmlFor="identifier">Username or Email</Label>
                     <Input
-                      id="username"
-                      name="username"
+                      id="identifier"
+                      name="identifier"
                       type="text"
-                      placeholder="admin"
-                      value={username}
+                      placeholder="admin or admin@example.com"
+                      value={identifier}
                       onChange={(e) => {
-                        setusername(e.target.value);
+                        setIdentifier(e.target.value);
                         if (error) setError("");
-                        if (validationError.username)
+                        if (validationError.identifier)
                           setValidationError((prev) => ({
                             ...prev,
-                            username: undefined,
+                            identifier: undefined,
                           }));
                       }}
                       required
                       disabled={isPending}
-                      aria-invalid={!!validationError.username}
-                      aria-describedby="username-error"
+                      aria-invalid={!!validationError.identifier}
+                      aria-describedby="identifier-error"
                     />
-                    {validationError.username && (
+                    {validationError.identifier && (
                       <p
-                        id="username-error"
+                        id="identifier-error"
                         className="text-xs text-red-500 mt-1"
                       >
-                        {validationError.username}
+                        {validationError.identifier}
                       </p>
                     )}
                   </div>
