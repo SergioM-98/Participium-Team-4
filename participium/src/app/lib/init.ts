@@ -5,6 +5,7 @@ import createExternalMaintainerWithoutAccess from "@/prisma/external-maintainer-
 import createCitizen from "@/prisma/citizen";
 import createTechnicalOfficer from "@/prisma/technical-officer";
 import createPublicRelationsOfficer from "@/prisma/public-relations-officer";
+import seedReports from "@/prisma/reports-seed";
 
 let isInitialized = false;
 
@@ -30,6 +31,7 @@ export async function init() {
     await createCitizen();
     await createTechnicalOfficer();
     await createPublicRelationsOfficer();
+    await seedReports();
 
     console.log("Application initialization completed!");
   } catch (error) {

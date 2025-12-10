@@ -75,7 +75,7 @@ type UserProfileData = {
   telegram: boolean;
   pendingRequest: boolean;
   role: string[];
-  office?: string;
+  office?: string[];
   companyId?: string;
   companyName?: string;
   image: string | null;
