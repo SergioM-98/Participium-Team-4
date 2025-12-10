@@ -18,6 +18,7 @@ const mockService = {
 
 const mockRetrievalService = {
   retrieveReportsByOfficerId: jest.fn(),
+  retrieveReportsByMaintainerId: jest.fn(),
 };
 
 const mockAssignmentService = {
@@ -131,7 +132,7 @@ describe("ReportController Story 4", () => {
     describe("createReport", () => {
       it("should call service's createReport method and return success true", async () => {
         (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
-          mockService,
+          mockService
         );
         mockService.createReport.mockResolvedValue({
           success: true,
@@ -145,7 +146,7 @@ describe("ReportController Story 4", () => {
           "WATER_SUPPLY",
           0,
           0,
-          false,
+          false
         );
         if (!response.success) {
           expect(response.error).toBe("");
@@ -160,7 +161,7 @@ describe("ReportController Story 4", () => {
 
       it("should call service's createReport method and return success false", async () => {
         (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
-          mockService,
+          mockService
         );
         mockService.createReport.mockResolvedValue({
           success: false,
@@ -174,7 +175,7 @@ describe("ReportController Story 4", () => {
           "WATER_SUPPLY",
           0,
           0,
-          false,
+          false
         );
 
         expect(response.success).toBe(false);
@@ -192,7 +193,7 @@ describe("ReportController Story 4", () => {
       it("should register a new report successfully", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
         (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
-          mockService,
+          mockService
         );
         mockService.createReport.mockResolvedValue({
           success: true,
@@ -205,7 +206,7 @@ describe("ReportController Story 4", () => {
           "WATER_SUPPLY",
           10,
           10,
-          true,
+          true
         );
         console.log("Response from register action:", response);
         if (!response.success) {
@@ -221,7 +222,7 @@ describe("ReportController Story 4", () => {
       it("should not register a new report with invalid fields", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
         (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
-          mockService,
+          mockService
         );
         mockService.createReport.mockResolvedValue({
           success: true,
@@ -234,7 +235,7 @@ describe("ReportController Story 4", () => {
           "WATER_SUPPLY",
           10,
           10,
-          true,
+          true
         );
         console.log("Response from register action:", response);
         expect(response.success).toBe(false);
@@ -247,7 +248,7 @@ describe("ReportController Story 4", () => {
       it("should not register a new report without a session", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(null);
         (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
-          mockService,
+          mockService
         );
         mockService.createReport.mockResolvedValue({
           success: true,
@@ -260,7 +261,7 @@ describe("ReportController Story 4", () => {
           "WATER_SUPPLY",
           10,
           10,
-          true,
+          true
         );
         console.log("Response from register action:", response);
         expect(response.success).toBe(false);
@@ -273,7 +274,7 @@ describe("ReportController Story 4", () => {
       it("should not register a new report from an officer", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(officerSession);
         (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
-          mockService,
+          mockService
         );
         mockService.createReport.mockResolvedValue({
           success: true,
@@ -286,7 +287,7 @@ describe("ReportController Story 4", () => {
           "WATER_SUPPLY",
           10,
           10,
-          true,
+          true
         );
         console.log("Response from register action:", response);
         expect(response.success).toBe(false);
@@ -299,7 +300,7 @@ describe("ReportController Story 4", () => {
       it("should not register a new report if the controller fails", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
         (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
-          mockService,
+          mockService
         );
         mockService.createReport.mockResolvedValue({
           success: false,
@@ -312,14 +313,14 @@ describe("ReportController Story 4", () => {
           "WATER_SUPPLY",
           10,
           10,
-          true,
+          true
         );
         console.log("Response from register action:", response);
         expect(mockService.createReport).toHaveBeenCalled();
         expect(response.success).toBe(false);
         if (!response.success) {
           expect(response.error).toBe(
-            "Failed to add the report to the database",
+            "Failed to add the report to the database"
           );
         }
       });
@@ -328,7 +329,7 @@ describe("ReportController Story 4", () => {
     describe("approveReport - Story 6", () => {
       beforeEach(() => {
         (ReportAssignmentService.getInstance as jest.Mock).mockReturnValue(
-          mockAssignmentService,
+          mockAssignmentService
         );
       });
 
@@ -341,15 +342,15 @@ describe("ReportController Story 4", () => {
 
         const response = await approveReport(
           1,
-          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"
         );
 
         expect(response.success).toBe(true);
         expect(
-          mockAssignmentService.assignReportToOfficer,
+          mockAssignmentService.assignReportToOfficer
         ).toHaveBeenCalledWith(
           1,
-          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"
         );
         if (response.success) {
           expect(response.data).toBe("Report assigned to officer ID: 5");
@@ -374,12 +375,12 @@ describe("ReportController Story 4", () => {
 
         const response = await approveReport(
           1,
-          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"
         );
 
         expect(response.success).toBe(false);
         expect(
-          mockAssignmentService.assignReportToOfficer,
+          mockAssignmentService.assignReportToOfficer
         ).not.toHaveBeenCalled();
         if (!response.success) {
           expect(response.error).toBe("Unauthorized access");
@@ -391,12 +392,12 @@ describe("ReportController Story 4", () => {
 
         const response = await approveReport(
           1,
-          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"
         );
 
         expect(response.success).toBe(false);
         expect(
-          mockAssignmentService.assignReportToOfficer,
+          mockAssignmentService.assignReportToOfficer
         ).not.toHaveBeenCalled();
         if (!response.success) {
           expect(response.error).toBe("Unauthorized access");
@@ -415,7 +416,7 @@ describe("ReportController Story 4", () => {
         expect(response.success).toBe(false);
         if (!response.success) {
           expect(response.error).toBe(
-            "No officers available in the specified department",
+            "No officers available in the specified department"
           );
         }
       });
@@ -424,7 +425,7 @@ describe("ReportController Story 4", () => {
     describe("rejectReport - Story 6", () => {
       beforeEach(() => {
         (ReportAssignmentService.getInstance as jest.Mock).mockReturnValue(
-          mockAssignmentService,
+          mockAssignmentService
         );
       });
 
@@ -440,7 +441,7 @@ describe("ReportController Story 4", () => {
         expect(response.success).toBe(true);
         expect(mockAssignmentService.rejectReport).toHaveBeenCalledWith(
           1,
-          "Insufficient information",
+          "Insufficient information"
         );
         if (response.success) {
           expect(response.data).toContain("Report rejected with reason");
@@ -503,7 +504,7 @@ describe("ReportController Story 4", () => {
     it("should not register a new report with invalid fields", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
       (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
-        mockService,
+        mockService
       );
       mockService.createReport.mockResolvedValue({
         success: true,
@@ -516,7 +517,7 @@ describe("ReportController Story 4", () => {
         "WATER_SUPPLY",
         10,
         10,
-        true,
+        true
       );
       console.log("Response from register action:", response);
       expect(response.success).toBe(false);
@@ -529,7 +530,7 @@ describe("ReportController Story 4", () => {
     it("should not register a new report without a session", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(null);
       (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
-        mockService,
+        mockService
       );
       mockService.createReport.mockResolvedValue({
         success: true,
@@ -542,7 +543,7 @@ describe("ReportController Story 4", () => {
         "WATER_SUPPLY",
         10,
         10,
-        true,
+        true
       );
       console.log("Response from register action:", response);
       expect(response.success).toBe(false);
@@ -555,7 +556,7 @@ describe("ReportController Story 4", () => {
     it("should not register a new report from an officer", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(officerSession);
       (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
-        mockService,
+        mockService
       );
       mockService.createReport.mockResolvedValue({
         success: true,
@@ -568,7 +569,7 @@ describe("ReportController Story 4", () => {
         "WATER_SUPPLY",
         10,
         10,
-        true,
+        true
       );
       console.log("Response from register action:", response);
       expect(response.success).toBe(false);
@@ -581,7 +582,7 @@ describe("ReportController Story 4", () => {
     it("should not register a new report if the controller fails", async () => {
       (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
       (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
-        mockService,
+        mockService
       );
       mockService.createReport.mockResolvedValue({
         success: false,
@@ -594,7 +595,7 @@ describe("ReportController Story 4", () => {
         "WATER_SUPPLY",
         10,
         10,
-        true,
+        true
       );
       console.log("Response from register action:", response);
       expect(response.success).toBe(false);
@@ -616,7 +617,7 @@ describe("ReportController Story 4", () => {
 
     beforeEach(() => {
       (ReportRetrievalService.getInstance as jest.Mock).mockReturnValue(
-        mockRetrievalService,
+        mockRetrievalService
       );
     });
 
@@ -685,7 +686,7 @@ describe("ReportController Story 4", () => {
 
       expect(response.success).toBe(true);
       expect(
-        mockRetrievalService.retrieveReportsByOfficerId,
+        mockRetrievalService.retrieveReportsByOfficerId
       ).toHaveBeenCalledWith("5");
       if (response.success) {
         expect(response.data.length).toBe(2);
@@ -699,7 +700,7 @@ describe("ReportController Story 4", () => {
 
       expect(response.success).toBe(false);
       expect(
-        mockRetrievalService.retrieveReportsByOfficerId,
+        mockRetrievalService.retrieveReportsByOfficerId
       ).not.toHaveBeenCalled();
       if (!response.success) {
         expect(response.error).toBe("Unauthorized access");
@@ -713,7 +714,7 @@ describe("ReportController Story 4", () => {
 
       expect(response.success).toBe(false);
       expect(
-        mockRetrievalService.retrieveReportsByOfficerId,
+        mockRetrievalService.retrieveReportsByOfficerId
       ).not.toHaveBeenCalled();
       if (!response.success) {
         expect(response.error).toBe("Unauthorized access");
@@ -751,7 +752,7 @@ describe("ReportController Story 4", () => {
 
     beforeEach(() => {
       (ReportAssignmentService.getInstance as jest.Mock).mockReturnValue(
-        mockAssignmentService,
+        mockAssignmentService
       );
     });
 
@@ -767,9 +768,10 @@ describe("ReportController Story 4", () => {
       const response = await assignReportToCompany(1, "company_enel");
 
       expect(response.success).toBe(true);
-      expect(
-        mockAssignmentService.assignReportToCompany,
-      ).toHaveBeenCalledWith(1, "company_enel");
+      expect(mockAssignmentService.assignReportToCompany).toHaveBeenCalledWith(
+        1,
+        "company_enel"
+      );
       if (response.success) {
         expect(response.data).toContain("Report assigned to company Enel X");
       }
@@ -782,7 +784,7 @@ describe("ReportController Story 4", () => {
 
       expect(response.success).toBe(false);
       expect(
-        mockAssignmentService.assignReportToCompany,
+        mockAssignmentService.assignReportToCompany
       ).not.toHaveBeenCalled();
       if (!response.success) {
         expect(response.error).toBe("Unauthorized access");
@@ -816,7 +818,7 @@ describe("ReportController Story 4", () => {
 
       expect(response.success).toBe(false);
       expect(
-        mockAssignmentService.assignReportToCompany,
+        mockAssignmentService.assignReportToCompany
       ).not.toHaveBeenCalled();
       if (!response.success) {
         expect(response.error).toBe("Unauthorized access");
@@ -832,9 +834,10 @@ describe("ReportController Story 4", () => {
       const response = await assignReportToCompany(1, "invalid_company");
 
       expect(response.success).toBe(false);
-      expect(
-        mockAssignmentService.assignReportToCompany,
-      ).toHaveBeenCalledWith(1, "invalid_company");
+      expect(mockAssignmentService.assignReportToCompany).toHaveBeenCalledWith(
+        1,
+        "invalid_company"
+      );
       if (!response.success) {
         expect(response.error).toBe("Failed to assign report to company");
       }
@@ -872,6 +875,92 @@ describe("ReportController Story 4", () => {
       expect(response.success).toBe(true);
       if (response.success) {
         expect(response.email).toBeNull();
+      }
+    });
+  });
+
+  describe("getReportsByMaintainerId - Story 25", () => {
+    const maintainerSession = {
+      user: {
+        id: "maintainer1",
+        role: ["EXTERNAL_MAINTAINER_WITH_ACCESS"],
+      },
+      expires: "2024-12-31T23:59:59.999Z",
+    };
+
+    const officerSession = {
+      user: {
+        id: "officer1",
+        role: ["TECHNICAL_OFFICER"],
+      },
+      expires: "2024-12-31T23:59:59.999Z",
+    };
+
+    beforeEach(() => {
+      (ReportRetrievalService.getInstance as jest.Mock).mockReturnValue(
+        mockRetrievalService
+      );
+    });
+
+    it("should retrieve reports successfully when user is EXTERNAL_MAINTAINER_WITH_ACCESS", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(maintainerSession);
+      const mockReports = [
+        { id: "1", title: "Maintainer Task 1", status: "assigned" },
+      ];
+
+      mockRetrievalService.retrieveReportsByMaintainerId.mockResolvedValue({
+        success: true,
+        data: mockReports,
+      });
+
+      const response = await getReportsByMaintainerId();
+
+      expect(response.success).toBe(true);
+      expect(
+        mockRetrievalService.retrieveReportsByMaintainerId
+      ).toHaveBeenCalledWith("maintainer1");
+      if (response.success) {
+        expect(response.data).toEqual(mockReports);
+      }
+    });
+
+    it("should retrieve reports successfully when user is TECHNICAL_OFFICER", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+      mockRetrievalService.retrieveReportsByMaintainerId.mockResolvedValue({
+        success: true,
+        data: [],
+      });
+
+      const response = await getReportsByMaintainerId();
+
+      expect(response.success).toBe(true);
+      expect(
+        mockRetrievalService.retrieveReportsByMaintainerId
+      ).toHaveBeenCalledWith("officer1");
+    });
+
+    it("should return unauthorized error when user is CITIZEN", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
+
+      const response = await getReportsByMaintainerId();
+
+      expect(response.success).toBe(false);
+      expect(
+        mockRetrievalService.retrieveReportsByMaintainerId
+      ).not.toHaveBeenCalled();
+      if (!response.success) {
+        expect(response.error).toBe("Unauthorized access");
+      }
+    });
+
+    it("should return unauthorized error when session is null", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue(null);
+
+      const response = await getReportsByMaintainerId();
+
+      expect(response.success).toBe(false);
+      if (!response.success) {
+        expect(response.error).toBe("Unauthorized access");
       }
     });
   });
