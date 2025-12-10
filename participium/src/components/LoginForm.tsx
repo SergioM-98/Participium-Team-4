@@ -86,17 +86,9 @@ export default function LoginForm({ serverError }: { serverError?: string }) {
         if (result?.error) {
           setError(getErrorMessage(result.error));
         } else if (result?.ok) {
-          // Check if this is a first login after registration
-          const isFirstLogin = searchParams.get("registered") === "true";
-          
-          if (isFirstLogin) {
-            // For first login after registration, do a hard reload
-            window.location.href = "/";
-          } else {
-            // For normal logins, use Next.js navigation
-            router.push("/");
-            router.refresh();
-          }
+          // Wait for cookie to be set before redirecting
+          await new Promise(resolve => setTimeout(resolve, 200));
+          window.location.href = "/";
         }
       } catch (err: any) {
         console.error(err);
