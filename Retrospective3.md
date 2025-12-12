@@ -128,3 +128,4 @@ Test Coverage: Ensuring modules meet the 80% coverage quality gate.
 
 - One thing you are proud of as a Team!!
   
+  We are really prood on the deliveries, that now are a bit less rushed and stressful for the team compared to the first two sprints
