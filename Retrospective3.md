@@ -94,7 +94,7 @@ Security: Addressing vulnerabilities and hotspots (100% resolution).
 
 Reliability: Fixing bugs and patterns leading to runtime errors.
 
-Maintainability: Reducing "God classes" and high complexity (Targeting a 50% reduction in code smells).
+Maintainability: Reducing "God classes" and high complexity.
 
 Test Coverage: Ensuring modules meet the 80% coverage quality gate.
 
