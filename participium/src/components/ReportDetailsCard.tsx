@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, Dispatch, SetStateAction } from "react";
+import { useState, useEffect, useRef, Dispatch, SetStateAction } from "react";
+import { io, Socket } from "socket.io-client";
 import { useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -147,56 +148,77 @@ export default function ReportDetailsCard({
   const [seeOfficerChat, setSeeOfficerChat] = useState(1);
 
 
-  useEffect(() => {
-    const loadMessages = async () => {
-      try {
-        setIsLoadingMessages(true);
-        const reportIdBigInt = BigInt(report.id);
-        const response = await getReportMessages(reportIdBigInt);
-        
-        if (response && Array.isArray(response)) {
-          const transformedMessages: ChatMessage[] = response.map((msg: any) => ({
-            id: msg.id.toString(),
-            senderName: msg.author?.firstName && msg.author?.lastName 
-              ? `${msg.author.firstName} ${msg.author.lastName}`
-              : msg.author?.username || "Unknown",
-            senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
-            senderRole: msg.author?.role === "TECHNICAL_OFFICER" ? "TECHNICAL_OFFICER" : msg.author ?.role === "PUBLIC_RELATIONS_OFFICER" ? "PUBLIC_RELATIONS_OFFICER" : "CITIZEN",
-            content: msg.content,
-            timestamp: msg.createdAt,
-          }));
-          setMessages(transformedMessages);
-        }
-      } catch (error) {
-        console.error("Failed to load messages:", error);
-      } finally {
-        setIsLoadingMessages(false);
+  const socketRef = useRef<Socket | null>(null);
+
+  const transformMessages = (messages: any[]): ChatMessage[] => {
+    return messages.map((msg: any) => {
+      let senderRole: ChatMessage["senderRole"] = "CITIZEN";
+      if (msg.author?.role === "TECHNICAL_OFFICER") senderRole = "TECHNICAL_OFFICER";
+      else if (msg.author?.role === "PUBLIC_RELATIONS_OFFICER") senderRole = "PUBLIC_RELATIONS_OFFICER";
+      else if (msg.author?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS") senderRole = "EXTERNAL_MAINTAINER_WITH_ACCESS";
+      
+      return {
+        id: msg.id?.toString() || Date.now().toString(),
+        senderName: msg.author?.firstName && msg.author?.lastName
+          ? `${msg.author.firstName} ${msg.author.lastName}`
+          : msg.author?.username || "Unknown",
+        senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
+        senderRole,
+        content: msg.content,
+        timestamp: msg.createdAt,
+      };
+    });
+  };
+
+  const fetchMessagesFromServer = async (isMounted: boolean) => {
+    try {
+      setIsLoadingMessages(true);
+      const res = await fetch(`/api/messages?reportId=${report.id}`);
+      if (!res.ok) throw new Error("Failed to fetch messages");
+      const data = await res.json();
+      if (isMounted && Array.isArray(data)) {
+        setMessages(transformMessages(data));
       }
+    } catch (error) {
+      if (isMounted) console.error("Failed to load messages:", error);
+    } finally {
+      if (isMounted) setIsLoadingMessages(false);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    fetchMessagesFromServer(isMounted);
+
+    const socket = io(`ws://localhost:${process.env.NEXT_PUBLIC_WS_PORT || 4000}`);
+    socketRef.current = socket;
+    socket.emit("join", report.id.toString());
+
+    socket.on("chat-message", () => {
+      fetchMessagesFromServer(isMounted);
+    });
+
+    return () => {
+      isMounted = false;
+      socket.disconnect();
     };
-
-    loadMessages();
-
-    // Polling of messages every second
-    const interval = setInterval(loadMessages, 1000);
-
-    return () => clearInterval(interval);
   }, [report.id]);
 
   const handleSendMessage = async (text: string) => {
-    if (!session?.user?.id) {
-      console.error("User not authenticated");
+    if (!session?.user?.id || !socketRef.current) {
+      console.error("User not authenticated o socket non pronto");
       return;
     }
-
+    setIsSending(true);
     try {
       setIsSending(true);
       const authorId = session.user.id;
       const reportIdBigInt = BigInt(report.id);
-
       const response = await sendMessage(text, authorId, reportIdBigInt);
-
+      let newMsg: ChatMessage;
       if (response.success) {
-        const newMsg: ChatMessage = {
+        newMsg = {
           id: response.data.id?.toString() || Date.now().toString(),
           senderName: session.user.name || "You",
           senderId: session.user.id,
@@ -204,10 +226,21 @@ export default function ReportDetailsCard({
           content: text,
           timestamp: response.data.createdAt ? new Date(response.data.createdAt).toISOString() : new Date().toISOString(),
         };
-        setMessages((prev) => [...prev, newMsg]);
+      } else {
+        newMsg = {
+          id: Date.now().toString(),
+          senderName: session.user.name || "You",
+          senderId: session.user.id,
+          senderRole: currentUserRole,
+          content: text,
+          timestamp: new Date().toISOString(),
+        };
+        console.error("Error saving message:", response.error);
       }
+      socketRef.current.emit("chat-message", { roomId: report.id.toString(), message: newMsg });
+      setMessages((prev) => [...prev, newMsg]);
     } catch (error) {
-      console.error("Failed to send message:", error);
+      console.error("Error sending message:", error);
     } finally {
       setIsSending(false);
     }

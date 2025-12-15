@@ -28,6 +28,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY src/app/lib/websocket ./src/app/lib/websocket
 
-EXPOSE 3000
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma generate && npm start"]
+EXPOSE 3000 4000
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma generate && concurrently \"npm start\" \"npm run chat_server\""]
