@@ -328,7 +328,7 @@ export default function FileUpload01({ location: locationProp }: Readonly<FileUp
                       <SelectItem value="ROADS_SIGNS_AND_TRAFFIC_LIGHTS">Roads, signs and traffic lights</SelectItem>
                       <SelectItem value="ROADS_AND_URBAN_FURNISHINGS">Roads and urban furnishings</SelectItem>
                       <SelectItem value="PUBLIC_GREEN_AREAS_AND_BACKGROUNDS">Public green areas and backgrounds</SelectItem>
-                      <SelectItem value="OTHER">Other</SelectItem>
+
                     </SelectGroup>
                   </SelectContent>
                 </Select>

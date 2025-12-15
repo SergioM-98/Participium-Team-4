@@ -228,7 +228,7 @@ export default function OfficerActionPanel({
               <SelectItem value="PUBLIC_GREEN_AREAS_AND_BACKGROUNDS">
                 Green Areas
               </SelectItem>
-              <SelectItem value="OTHER">Other</SelectItem>
+
             </SelectContent>
           </Select>
         </div>
@@ -280,7 +280,7 @@ export default function OfficerActionPanel({
               <SelectItem value="DEPARTMENT_OF_LOCAL_POLICE">
                 Local Police
               </SelectItem>
-              <SelectItem value="OTHER">Other</SelectItem>
+
             </SelectContent>
           </Select>
         </div>

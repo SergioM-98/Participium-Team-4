@@ -25,7 +25,7 @@ const CATEGORY_CONFIG: Array<{
     value: "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS",
     label: "Green Areas",
   },
-  { value: "OTHER", label: "Other" },
+
 ];
 
 import { InlineKeyboard } from "grammy";
