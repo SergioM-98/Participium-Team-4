@@ -105,6 +105,13 @@ function Navbar1({
               </span>
             </Link>
 
+            <Link 
+              href="/map" 
+              className={`flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/10 transition-colors ${isHomepage ? "text-white" : "text-black"}`}
+            >
+              <span className="text-sm font-medium">Public Map</span>
+            </Link>
+
             <div className="flex items-center min-w-0">
               <NavigationMenu>
                 <NavigationMenuList>
@@ -195,6 +202,14 @@ function Navbar1({
                   </SheetHeader>
 
                   <div className="flex flex-col gap-6 p-4">
+                    {/* Public Map Link for Mobile */}
+                    <Link 
+                      href="/map" 
+                      className="flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
+                    >
+                      <span className="text-sm font-medium text-black">Public Map</span>
+                    </Link>
+
                     <Accordion
                       type="single"
                       collapsible

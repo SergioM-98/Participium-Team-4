@@ -1,12 +1,12 @@
 import { Wifi, Zap } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 
 interface HeroButton {
-  text: string;
-  url: string;
-  icon?: React.ReactNode;
-  variant?: string;
+  title: string;
+  variant?: "default" | "secondary" | "outline" | "ghost" | "link" | "destructive";
+  href: string;
 }
 
 interface Hero115Props {
@@ -22,6 +22,7 @@ const Hero115 = ({
   icon = <Wifi className="size-6" />, 
   heading = "Blocks built with Shadcn & Tailwind",
   description = "Finely crafted components built with React, Tailwind and Shadcn UI. Developers can copy and paste these blocks directly into their project.",
+  buttons = [],
   imageSrc,
   imageAlt,
 }: Hero115Props) => {
@@ -38,7 +39,6 @@ const Hero115 = ({
         <source src="/turin.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
-      {/* Blur e overlay on video */}
       <div className="absolute inset-0 z-0" />
       <div className="absolute inset-0 bg-black/60 z-0" />
       <div className="relative z-10 flex flex-col items-center justify-center h-full w-full gap-6 py-10">
@@ -51,6 +51,17 @@ const Hero115 = ({
         <p className="text-muted-foreground max-w-3xl text-center md:text-lg">
           {description}
         </p>
+        {buttons.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
+            {buttons.map((button, index) => (
+              <Link key={index} href={button.href}>
+                <Button variant={button.variant || "default"} size="lg">
+                  {button.title}
+                </Button>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
