@@ -100,7 +100,7 @@ describe("Story 12 - Integration Test: registerTelegramReport", () => {
       description: "Test test",
       latitude: "1",
       longitude: "1",
-      category: "OTHER",
+      category: "PUBLIC_LIGHTING",
       isAnonymous: false,
     };
 

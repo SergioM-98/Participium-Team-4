@@ -59,7 +59,7 @@ const categoryLabels: Record<string, string> = {
   ROADS_SIGNS_AND_TRAFFIC_LIGHTS: "Roads, Signs & Traffic Lights",
   ROADS_AND_URBAN_FURNISHINGS: "Roads & Urban Furnishings",
   PUBLIC_GREEN_AREAS_AND_BACKGROUNDS: "Public Green Areas",
-  OTHER: "Other",
+
 };
 
 export const STATUS = {

@@ -471,7 +471,7 @@ export default function MunicipalityUserForm({
                           <SelectItem value="DEPARTMENT_OF_LOCAL_POLICE">
                             Department of Local Police
                           </SelectItem>
-                          <SelectItem value="OTHER">Other</SelectItem>
+
                         </SelectGroup>
                       </SelectContent>
                     </Select>
