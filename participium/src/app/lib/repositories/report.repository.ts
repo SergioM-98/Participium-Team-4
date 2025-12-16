@@ -2,6 +2,7 @@ import { prisma } from "@/prisma/db";
 import { Category, Report, Offices, ReportStatus, Role } from "@prisma/client";
 import {
   ReportRegistrationResponse,
+  ReportRegistrationRequest,
 } from "@/dtos/report.dto";
 
 class ReportRepository {
@@ -53,31 +54,26 @@ class ReportRepository {
   }
 
   public async createReport(
-    title: string,
-    description: string,
-    photos: string[],
-    category: string,
-    longitude: number,
-    latitude: number,
-    userId: string,
+    data: ReportRegistrationRequest
   ): Promise<ReportRegistrationResponse> {
     try {
-      category = category.toUpperCase();
+      const category = data.category.toUpperCase();
       const report = await prisma.report.create({
         data: {
-          title: title,
-          description: description,
+          title: data.title,
+          description: data.description,
           photos: {
-            connect: photos.map((photoId) => ({
+            connect: data.photos.map((photoId) => ({
               id: photoId,
             })),
           },
           category: Object.values(Category).includes(category as Category)
             ? (category as Category)
             : undefined,
-          longitude: longitude,
-          latitude: latitude,
-          citizenId: userId,
+          longitude: data.longitude,
+          latitude: data.latitude,
+          citizenId: data.userId,
+          anonymous: data.anonymous,
         },
       });
       return {

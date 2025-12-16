@@ -3,7 +3,7 @@ import { authOptions } from "@/auth";
 import {
   AssignReportToOfficerResponse,
   ReportRegistrationResponse,
-  reportRequestSchema,
+  reportRegistrationRequestSchema,
   ReportsByOfficerResponse,
   ReportsUnassignedResponse,
   UpdateReportStatusResponse,
@@ -22,14 +22,14 @@ export async function createReport(
   category: string,
   longitude: number,
   latitude: number,
-  isAnonymous: boolean,
+  anonymous: boolean,
 ): Promise<ReportRegistrationResponse> {
   const session = await getServerSession(authOptions);
   if (!session || (session && !session.user.role.includes("CITIZEN"))) {
     console.error("Unauthorized report attempt");
     return { success: false, error: "Unauthorized report" };
   }
-  const reportData = reportRequestSchema.safeParse({
+  const reportData = reportRegistrationRequestSchema.safeParse({
     title,
     description,
     photos,
@@ -37,7 +37,7 @@ export async function createReport(
     longitude,
     latitude,
     userId: session.user.id,
-    isAnonymous,
+    anonymous,
   });
   if (!reportData.success) {
     console.error("Invalid report data:", reportData.error);

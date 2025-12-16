@@ -48,6 +48,11 @@ export const reportRequestSchema = reportBaseSchema.extend({
   isAnonymous: z.boolean(),
 });
 
+export const reportRegistrationRequestSchema = reportBaseSchema.extend({
+  userId: z.string(),
+  anonymous: z.boolean(),
+});
+
 export const retrieveReportResponseSchema = reportBaseSchema.extend({
   id: z.string(),
 });
@@ -110,6 +115,7 @@ export type Report = z.infer<typeof reportBaseSchema>;
 export type Category = z.infer<typeof categoryEnum>;
 
 export type ReportRequest = z.infer<typeof reportRequestSchema>;
+export type ReportRegistrationRequest = z.infer<typeof reportRegistrationRequestSchema>;
 export type ReportResponse = z.infer<typeof reportResponseSchema>;
 
 export type RetrieveReport = z.infer<typeof retrieveReportResponseSchema>;
