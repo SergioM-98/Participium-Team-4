@@ -76,11 +76,15 @@ export default function MunicipalityUserForm({
     const retrieveCompanies = async () => {
       setLoadingCompanies(true);
       try {
+        let hasAccess: boolean;
         // Determina se recuperare aziende con o senza accesso in base al ruolo
-        let hasAccess = false;
         if (data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")) {
           hasAccess = true;
-        } else {
+        } 
+        else if (data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")) {
+          hasAccess = false;
+        }
+        else {
           // Se il ruolo non è un EXTERNAL_MAINTAINER, non caricare aziende
           setCompanies([]);
           setLoadingCompanies(false);
