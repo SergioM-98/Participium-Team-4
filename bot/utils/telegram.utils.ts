@@ -106,4 +106,5 @@ export const TELEGRAM_API = {
   REGISTER: "/api/telegram/registration",
   SEND_REPORT: "/api/telegram/reports",
   MY_REPORTS: "/api/telegram/reports",
+  REPORT_DETAIL: "/api/telegram/reports",
 };

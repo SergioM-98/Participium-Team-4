@@ -105,6 +105,24 @@ export async function getReportsByCitizenTelegramChatId(
   );
 }
 
+export async function getReportByIdForTelegramUser(
+  reportId: string,
+  telegramChatId: string,
+): Promise<ReportsByCitizenResponse> {
+  const authCheck = await isUserAuthenticatedByTelegram(Number(telegramChatId));
+
+  if (!authCheck.success) {
+    console.error("Unauthorized access attempt to get report details");
+    return { success: false, error: "Unauthorized access" };
+  }
+
+  const reportRetrievalService = ReportRetrievalService.getInstance();
+  return reportRetrievalService.retrieveReportByIdForCitizenTelegram(
+    reportId,
+    telegramChatId,
+  );
+}
+
 export async function getPendingApprovalReports(
   status: string,
 ): Promise<ReportsUnassignedResponse> {

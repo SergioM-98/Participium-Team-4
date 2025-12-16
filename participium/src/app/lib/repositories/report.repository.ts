@@ -445,6 +445,35 @@ class ReportRepository {
       },
     });
   }
+
+  public async getReportByIdForCitizenTelegram(
+    reportId: string,
+    telegramChatId: string,
+  ): Promise<any> {
+    return await prisma.report.findFirst({
+      where: {
+        id: BigInt(reportId),
+        citizen: {
+          telegramChatId: telegramChatId,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        longitude: true,
+        latitude: true,
+        category: true,
+        status: true,
+        photos: {
+          select: {
+            filename: true,
+            url: true,
+          },
+        },
+      },
+    });
+  }
 }
 
 export { ReportRepository };

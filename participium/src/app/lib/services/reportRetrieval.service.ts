@@ -24,6 +24,21 @@ class ReportRetrievalService {
     return status.toLowerCase().replaceAll("_", "_");
   }
 
+  private buildAbsolutePhotoUrl(
+    photoPath: string | null | undefined,
+  ): string | null {
+    if (!photoPath) return null;
+
+    // If it's already an absolute URL, return as is
+    if (photoPath.startsWith("http://") || photoPath.startsWith("https://")) {
+      return photoPath;
+    }
+
+    // Otherwise, prepend the backend URL
+    const backendUrl = process.env.BACKEND_URL || "http://localhost:3000";
+    return `${backendUrl}${photoPath}`;
+  }
+
   public async retrieveReportsByOfficerId(
     officerId: string,
   ): Promise<ReportsByOfficerResponse> {
@@ -109,8 +124,15 @@ class ReportRetrievalService {
         photos: Array.isArray(r.photos)
           ? r.photos
               .map(
-                (p: { filename?: string | null } | null | undefined) =>
-                  p?.filename,
+                (
+                  p:
+                    | { url?: string | null; filename?: string | null }
+                    | null
+                    | undefined,
+                ) => {
+                  const photoPath = p?.url || p?.filename;
+                  return this.buildAbsolutePhotoUrl(photoPath);
+                },
               )
               .filter((f: unknown): f is string => typeof f === "string")
           : [],
@@ -126,6 +148,62 @@ class ReportRetrievalService {
         error,
       );
       return { success: false, error: "Failed to retrieve reports" };
+    }
+  }
+
+  public async retrieveReportByIdForCitizenTelegram(
+    reportId: string,
+    telegramChatId: string,
+  ): Promise<ReportsByCitizenResponse> {
+    try {
+      const report =
+        await this.reportRepository.getReportByIdForCitizenTelegram(
+          reportId,
+          telegramChatId,
+        );
+
+      if (!report) {
+        return {
+          success: false,
+          error: "Report not found or you don't have access to it",
+        };
+      }
+
+      const transformedReport = {
+        id: report.id.toString(),
+        title: report.title,
+        description: report.description,
+        category: report.category,
+        longitude: Number(report.longitude),
+        latitude: Number(report.latitude),
+        status: this.normalizeStatus(report.status),
+        photos: Array.isArray(report.photos)
+          ? report.photos
+              .map(
+                (
+                  p:
+                    | { url?: string | null; filename?: string | null }
+                    | null
+                    | undefined,
+                ) => {
+                  const photoPath = p?.url || p?.filename;
+                  return this.buildAbsolutePhotoUrl(photoPath);
+                },
+              )
+              .filter((f: unknown): f is string => typeof f === "string")
+          : [],
+      };
+
+      return {
+        success: true,
+        data: [transformedReport],
+      };
+    } catch (error) {
+      console.error(
+        "Error retrieving report by id for citizen telegram:",
+        error,
+      );
+      return { success: false, error: "Failed to retrieve report" };
     }
   }
 

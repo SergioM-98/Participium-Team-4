@@ -14,6 +14,7 @@ import {
   handleMyReports,
   handlePaginationCallback,
 } from "./handlers/myReports";
+import { handleReportCommand } from "./handlers/report";
 import {
   logBot,
   shutdown,
@@ -81,6 +82,17 @@ try {
       console.log("Error in /myreports command:", error);
       await ctx.reply(
         "An error occurred while retrieving your reports. Please try again.",
+      );
+    }
+  });
+
+  bot.command("report", async (ctx) => {
+    try {
+      await handleReportCommand(ctx);
+    } catch (error) {
+      console.log("Error in /report command:", error);
+      await ctx.reply(
+        "An error occurred while retrieving the report. Please try again.",
       );
     }
   });
