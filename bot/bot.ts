@@ -10,6 +10,8 @@ import { helpMenu } from "./menus/helpMenu";
 import { handleStart } from "./handlers/start";
 import { newReport } from "./handlers/newReport";
 import { handleHelp } from "./handlers/help";
+import { handleContact } from "./handlers/contact";
+import { handleFaq } from "./handlers/faq";
 import {
   handleMyReports,
   handlePaginationCallback,
@@ -94,6 +96,28 @@ try {
       console.log("Error in /report command:", error);
       await ctx.reply(
         "An error occurred while retrieving the report. Please try again.",
+      );
+    }
+  });
+
+  bot.command("contact", async (ctx) => {
+    try {
+      await handleContact(ctx);
+    } catch (error) {
+      console.log("Error in /contact command:", error);
+      await ctx.reply(
+        "An error occurred while retrieving contact information. Please try again.",
+      );
+    }
+  });
+
+  bot.command("faq", async (ctx) => {
+    try {
+      await handleFaq(ctx);
+    } catch (error) {
+      console.log("Error in /faq command:", error);
+      await ctx.reply(
+        "An error occurred while retrieving FAQ. Please try again.",
       );
     }
   });
