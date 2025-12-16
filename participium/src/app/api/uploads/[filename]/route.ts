@@ -1,6 +1,6 @@
 "use server";
-import { readFile } from "fs/promises";
-import path from "path";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
 export async function GET(
   req: Request,
@@ -9,7 +9,7 @@ export async function GET(
   try {
     const { filename } = await params;
 
-    // Validate filename to prevent path traversal
+    // Prevent path traversal
     if (filename.includes("..") || filename.includes("/")) {
       return new Response("Forbidden", { status: 403 });
     }
@@ -18,7 +18,6 @@ export async function GET(
       process.env.UPLOADS_DIR || path.join(process.cwd(), "uploads");
     const filePath = path.join(uploadsDir, filename);
 
-    // Verify the file is within the uploads directory
     if (!filePath.startsWith(uploadsDir)) {
       return new Response("Forbidden", { status: 403 });
     }

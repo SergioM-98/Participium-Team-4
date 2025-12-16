@@ -144,3 +144,7 @@ export type AssignReportToMaintainerResponse =
 export type UpdateReportStatusResponse =
   | { success: true; data: string }
   | { success: false; error: string };
+
+export type ReportDetailResponse =
+  | { success: true; data: CitizenReport[] }
+  | { success: false; error: string };

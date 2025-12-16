@@ -66,11 +66,9 @@ export async function handleMyReports(ctx: Context) {
           return;
         }
 
-        // Show summary
         const summary = formatReportsSummary(reports);
         await ctx.reply(summary, { parse_mode: "HTML" });
 
-        // Show first page
         const totalPages = Math.ceil(reports.length / REPORTS_PER_PAGE);
         await showReportsPage(ctx, reports, 1, totalPages);
       } else {

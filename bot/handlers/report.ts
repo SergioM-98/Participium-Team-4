@@ -1,169 +1,118 @@
-import { Context, InputFile } from "grammy";
+import { Context } from "grammy";
 import {
   callTelegramApi,
   formatAuthErrorMessage,
   TELEGRAM_API,
 } from "../utils/telegram.utils";
-import { getStatusEmoji, toTitleCase } from "../utils/reportUtils";
+import {
+  formatReportDetail,
+  sendReportPhotos,
+  buildErrorMessage,
+} from "../utils/reportUtils";
 import { AuthenticationCheckResponse } from "../dtos/telegram.dto";
-import { CitizenReport } from "../dtos/report.dto";
+import { ReportDetailResponse } from "../dtos/report.dto";
 
-interface ReportDetailResponse {
-  success: boolean;
-  data?: CitizenReport[];
-  error?: string;
-}
-
-function formatReportDetail(report: CitizenReport): string {
-  const emoji = getStatusEmoji(report.status);
-  const statusLabel = toTitleCase(report.status || "pending");
-
-  let details = `<b>📋 Report Details</b>\n\n`;
-  details += `<b>Title:</b> ${escapeHtml(report.title)}\n`;
-  details += `<b>ID:</b> <code>${report.id}</code>\n`;
-  details += `<b>Status:</b> ${emoji} ${statusLabel}\n\n`;
-
-  details += `<b>Description:</b>\n${escapeHtml(report.description)}\n\n`;
-
-  if (report.category) {
-    details += `<b>Category:</b> ${escapeHtml(report.category)}\n`;
-  }
-
-  if (report.longitude && report.latitude) {
-    details += `<b>Location:</b> <code>${report.latitude.toFixed(6)}, ${report.longitude.toFixed(6)}</code>\n`;
-  }
-
-  if (report.photos && report.photos.length > 0) {
-    details += `\n<b>Photos:</b> ${report.photos.length} image(s) attached`;
-  }
-
-  return details;
-}
-
-function escapeHtml(text: string | undefined): string {
-  if (!text) return "";
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-async function downloadAndSendPhoto(
+async function validateInput(
   ctx: Context,
-  photoUrl: string,
-  reportId: string,
+  text: string,
+): Promise<string | null> {
+  const parts = text.split(" ");
+
+  if (parts.length < 2) {
+    await ctx.reply(
+      "❌ Usage: /report [report_id]\n\nPlease provide a report ID to view its details.",
+    );
+    return null;
+  }
+
+  const reportId = parts[1].trim();
+  if (!reportId) {
+    await ctx.reply(
+      "❌ Please provide a valid report ID.\n\nExample: /report abc123xyz",
+    );
+    return null;
+  }
+
+  return reportId;
+}
+
+async function checkAuthentication(
+  ctx: Context,
+  chatId: number,
 ): Promise<boolean> {
-  try {
-    console.log(`[Report] Downloading photo from: ${photoUrl}`);
-    const response = await fetch(photoUrl);
+  const isAuthenticated = await callTelegramApi<AuthenticationCheckResponse>(
+    TELEGRAM_API.IS_AUTHENTICATED,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chatId }),
+    },
+  );
 
-    if (!response.ok) {
-      console.log(
-        `[Report] Failed to download photo: ${response.status} ${response.statusText}`,
-      );
-      return false;
-    }
+  if (!isAuthenticated.success || !isAuthenticated.data) {
+    await ctx.reply(
+      formatAuthErrorMessage(
+        "You need to authenticate first. Go to Participium's website to link your account.",
+      ),
+    );
+  }
 
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    console.log(`[Report] Photo downloaded, size: ${buffer.length} bytes`);
+  return isAuthenticated.success && !!isAuthenticated.data;
+}
 
-    const inputFile = new InputFile(buffer);
-    await ctx.replyWithPhoto(inputFile, {
-      caption: `Photo from report ${reportId}`,
-    });
+async function handleSuccessResponse(
+  ctx: Context,
+  response: ReportDetailResponse,
+  reportId: string,
+): Promise<void> {
+  if (response.success && response.data && response.data.length > 0) {
+    const report = response.data[0];
+    const details = formatReportDetail(report);
+    await ctx.reply(details, { parse_mode: "HTML" });
+    await sendReportPhotos(ctx, report.id, report.photos || []);
+  } else if (response.success) {
+    await ctx.reply(
+      `❌ Report not found.\n\nThe report ID "<code>${reportId}</code>" doesn't exist or you don't have access to it.`,
+      { parse_mode: "HTML" },
+    );
+  }
+}
 
-    console.log(`[Report] Photo sent successfully`);
-    return true;
-  } catch (error) {
-    console.log(`[Report] Error downloading/sending photo:`, error);
-    return false;
+async function handleErrorResponse(
+  ctx: Context,
+  response: ReportDetailResponse,
+  reportId: string,
+): Promise<void> {
+  if (!response.success && response.error) {
+    const userMessage = buildErrorMessage(response.error, reportId);
+    await ctx.reply(userMessage, { parse_mode: "HTML" });
   }
 }
 
 export async function handleReportCommand(ctx: Context) {
   try {
     const text = ctx.message?.text || "";
-    const parts = text.split(" ");
+    const reportId = await validateInput(ctx, text);
 
-    if (parts.length < 2) {
-      await ctx.reply(
-        "❌ Usage: /report &lt;ID&gt;\n\nExample: /report abc123xyz",
-      );
-      return;
-    }
-
-    const reportId = parts[1].trim();
-
-    if (!reportId) {
-      await ctx.reply(
-        "❌ Please provide a valid report ID.\n\nExample: /report abc123xyz",
-      );
-      return;
-    }
+    if (!reportId) return;
 
     const chatId = ctx.chatId!;
+    const isAuthenticated = await checkAuthentication(ctx, chatId);
 
-    // Check authentication
-    const isAuthenticated = await callTelegramApi<AuthenticationCheckResponse>(
-      TELEGRAM_API.IS_AUTHENTICATED,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chatId }),
-      },
-    );
+    if (!isAuthenticated) return;
 
-    if (!isAuthenticated.success || !isAuthenticated.data) {
-      await ctx.reply(
-        formatAuthErrorMessage(
-          "You need to authenticate first. Use /start to link your account.",
-        ),
-      );
-      return;
-    }
-
-    // Fetch report details
     const reportEndpoint =
-      (process.env.TELEGRAM_API_REPORT_DETAIL || TELEGRAM_API.REPORT_DETAIL) +
-      `/${reportId}?chatId=${chatId}`;
+      TELEGRAM_API.REPORT_DETAIL + `/${reportId}?chatId=${chatId}`;
 
     const response = await callTelegramApi<ReportDetailResponse>(
       reportEndpoint,
-      {
-        method: "GET",
-      },
+      { method: "GET" },
     );
 
-    if (response.success && response.data && response.data.length > 0) {
-      const report = response.data[0];
-      const details = formatReportDetail(report);
-      await ctx.reply(details, { parse_mode: "HTML" });
-
-      // Send photos if available
-      if (report.photos && report.photos.length > 0) {
-        console.log(`[Report] Found ${report.photos.length} photos to send`);
-        let photosSent = 0;
-
-        for (const photoUrl of report.photos) {
-          const sent = await downloadAndSendPhoto(ctx, photoUrl, report.id);
-          if (sent) photosSent++;
-        }
-
-        if (photosSent < report.photos.length) {
-          await ctx.reply(
-            `⚠️ Could only load ${photosSent}/${report.photos.length} photos.`,
-          );
-        }
-      }
+    if (response.success) {
+      await handleSuccessResponse(ctx, response, reportId);
     } else {
-      await ctx.reply(
-        formatAuthErrorMessage(
-          response.error || "Report not found or you don't have access to it.",
-        ),
-      );
+      await handleErrorResponse(ctx, response, reportId);
     }
   } catch (error) {
     console.log("Error in /report command:", error);

@@ -21,6 +21,7 @@ import {
   startBot,
   callTelegramApi,
   formatAuthErrorMessage,
+  TELEGRAM_API,
 } from "./utils/telegram.utils";
 import { AuthenticationCheckResponse } from "./dtos/telegram.dto";
 import { ReportsByCitizenResponse } from "./dtos/report.dto";
@@ -110,11 +111,7 @@ try {
         const page = Number.parseInt(pageMatch[1], 10);
         const chatId = ctx.chatId!;
 
-        // Check authentication
-        const authEndpoint =
-          process.env.TELEGRAM_API_IS_AUTHENTICATED ||
-          "/api/telegram/isAuthenticated";
-
+        const authEndpoint = TELEGRAM_API.IS_AUTHENTICATED;
         const isAuthenticated =
           await callTelegramApi<AuthenticationCheckResponse>(authEndpoint, {
             method: "POST",
@@ -130,10 +127,7 @@ try {
         }
 
         // Fetch reports
-        const reportsEndpoint =
-          (process.env.TELEGRAM_API_MY_REPORTS || "/api/telegram/reports") +
-          `?chatId=${chatId}`;
-
+        const reportsEndpoint = TELEGRAM_API.MY_REPORTS + `?chatId=${chatId}`;
         const response = await callTelegramApi<ReportsByCitizenResponse>(
           reportsEndpoint,
           { method: "GET" },
