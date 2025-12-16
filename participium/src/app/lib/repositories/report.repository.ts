@@ -32,6 +32,7 @@ class ReportRepository {
         citizenId: true,
         officerId: true,
         companyId: true,
+        anonymous: true,
         citizen: {
           select: {
             username: true,
@@ -105,6 +106,7 @@ class ReportRepository {
           category: true,
           citizenId: true,
           status: true,
+          officerId: true,
           citizen: {
             select: {
               id: true,
@@ -131,6 +133,8 @@ class ReportRepository {
             category: true,
             citizenId: true,
             status: true,
+            anonymous: true,
+            officerId: true,
             citizen: {
               select: {
                 id: true,
@@ -178,6 +182,8 @@ class ReportRepository {
           category: true,
           citizenId: true,
           status: true,
+          anonymous: true,
+          officerId: true,
           citizen: {
             select: {
               id: true,
@@ -334,6 +340,8 @@ class ReportRepository {
         category: true,
         citizenId: true,
         status: true,
+        anonymous: true,
+        officerId: true,
         citizen: {
           select: {
             id: true,

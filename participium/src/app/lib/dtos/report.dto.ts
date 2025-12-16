@@ -8,8 +8,7 @@ export const categoryEnum = z.enum([
   "WASTE",
   "ROADS_SIGNS_AND_TRAFFIC_LIGHTS",
   "ROADS_AND_URBAN_FURNISHINGS",
-  "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS",
-
+  "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS"
 ]);
 
 export const reportBaseSchema = z.object({
@@ -19,6 +18,29 @@ export const reportBaseSchema = z.object({
   category: categoryEnum,
   longitude: z.number(),
   latitude: z.number(),
+});
+
+export const reportForMapSchema = reportBaseSchema.extend({
+  id: z.string(),
+  citizenUsername: z.string().optional(),
+  citizenId: z.string().nullable().optional(),
+  status: z.string().optional(),
+  anonymous: z.boolean().optional(),
+});
+
+export const reportByIdSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  longitude: z.number(),
+  latitude: z.number(),
+  createdAt: z.string(),
+  category: categoryEnum,
+  status: z.string(),
+  username: z.string().optional().nullable(),
+  citizenId: z.string().optional().nullable(),
+  anonymous: z.boolean(),
+  photos: z.array(z.string()),
 });
 
 export const reportRequestSchema = reportBaseSchema.extend({
@@ -92,6 +114,10 @@ export type ReportResponse = z.infer<typeof reportResponseSchema>;
 
 export type RetrieveReport = z.infer<typeof retrieveReportResponseSchema>;
 
+export type ReportForMap = z.infer<typeof reportForMapSchema>;
+
+export type ReportById = z.infer<typeof reportByIdSchema>;
+
 export type RetrieveReportByAssignee = z.infer<
   typeof retrieveReportsByOfficerResponseSchema
 >;
@@ -132,4 +158,12 @@ export type AssignReportToMaintainerResponse =
   
 export type UpdateReportStatusResponse =
   | { success: true; data: string }
+  | { success: false; error: string };
+
+export type ReportForMapResponse = 
+  | { success: true; data: ReportForMap[] }
+  | { success: false; error: string };
+
+export type ReportByIdResponse = 
+  | { success: true; data: ReportById }
   | { success: false; error: string };
