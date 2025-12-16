@@ -8,12 +8,14 @@ import {
   ReportsUnassignedResponse,
   UpdateReportStatusResponse,
   AssignReportToMaintainerResponse,
+  ReportsByCitizenResponse,
 } from "@/dtos/report.dto";
 import { ReportCreationService } from "@/services/reportCreation.service";
 import { getServerSession } from "next-auth/next";
 import { ReportRetrievalService } from "@/services/reportRetrieval.service";
 import { ReportAssignmentService } from "@/services/reportAssignment.service";
 import { ReportUpdateService } from "@/services/reportUpdate.service";
+import { isUserAuthenticatedByTelegram } from "./telegramBot.controller";
 
 export async function createReport(
   title: string,
@@ -85,6 +87,22 @@ export async function getReportsByMaintainerId(): Promise<ReportsByOfficerRespon
 
   const reportRetrievalService = ReportRetrievalService.getInstance();
   return reportRetrievalService.retrieveReportsByMaintainerId(session.user.id);
+}
+
+export async function getReportsByCitizenTelegramChatId(
+  telegramChatId: string,
+): Promise<ReportsByCitizenResponse> {
+  const authCheck = await isUserAuthenticatedByTelegram(Number(telegramChatId));
+
+  if (!authCheck.success) {
+    console.error("Unauthorized access attempt to get citizen reports");
+    return { success: false, error: "Unauthorized access" };
+  }
+
+  const reportRetrievalService = ReportRetrievalService.getInstance();
+  return reportRetrievalService.retrieveReportsByCitizenTelegramChatId(
+    telegramChatId,
+  );
 }
 
 export async function getPendingApprovalReports(

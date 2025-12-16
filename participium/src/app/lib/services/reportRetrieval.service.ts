@@ -1,6 +1,7 @@
 import {
   ReportsUnassignedResponse,
   ReportsByOfficerResponse,
+  ReportsByCitizenResponse,
 } from "@/dtos/report.dto";
 import { ReportRepository } from "@/repositories/report.repository";
 
@@ -87,6 +88,45 @@ class ReportRetrievalService {
       success: true,
       data: transformedReports,
     };
+  }
+
+  public async retrieveReportsByCitizenTelegramChatId(
+    telegramChatId: string,
+  ): Promise<ReportsByCitizenResponse> {
+    try {
+      const reports =
+        await this.reportRepository.retrieveReportsByCitizenTelegramChatId(
+          telegramChatId,
+        );
+      const transformedReports = reports.map((r: any) => ({
+        id: r.id.toString(),
+        title: r.title,
+        description: r.description,
+        category: r.category,
+        longitude: Number(r.longitude),
+        latitude: Number(r.latitude),
+        status: this.normalizeStatus(r.status),
+        photos: Array.isArray(r.photos)
+          ? r.photos
+              .map(
+                (p: { filename?: string | null } | null | undefined) =>
+                  p?.filename,
+              )
+              .filter((f: unknown): f is string => typeof f === "string")
+          : [],
+      }));
+
+      return {
+        success: true,
+        data: transformedReports,
+      };
+    } catch (error) {
+      console.error(
+        "Error retrieving reports by citizen telegram chat id:",
+        error,
+      );
+      return { success: false, error: "Failed to retrieve reports" };
+    }
   }
 
   public async retrievePendingApprovalReports(
