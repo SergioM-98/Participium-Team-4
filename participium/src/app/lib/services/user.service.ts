@@ -106,7 +106,8 @@ class UserService {
     if (!officer || !officer.role.includes("TECHNICAL_OFFICER")) {
       throw new Error(`Officer with ID ${userId} not found`);
     }
-    const unassigned = await ReportAssignmentService.getInstance().unassignReportsOfDeletedOfficer(officer.managedReports);
+    const managedReports = officer.managedReports || [];
+    const unassigned = await ReportAssignmentService.getInstance().unassignReportsOfDeletedOfficer(managedReports);
     
     if (!unassigned) {
       return false;

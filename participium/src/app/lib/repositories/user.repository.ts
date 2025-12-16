@@ -209,6 +209,13 @@ class UserRepository {
   }
 
   async deleteOfficer(userId: string) {
+    // First, anonimize all comments authored by this officer
+    await prisma.comment.updateMany({
+      where: { authorId: userId },
+      data: { authorId: null },
+    });
+    
+    // Then delete the user
     await prisma.user.delete({
       where: { id: userId },
     });

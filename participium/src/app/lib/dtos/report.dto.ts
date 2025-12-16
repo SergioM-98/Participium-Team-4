@@ -9,7 +9,7 @@ export const categoryEnum = z.enum([
   "ROADS_SIGNS_AND_TRAFFIC_LIGHTS",
   "ROADS_AND_URBAN_FURNISHINGS",
   "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS",
-  "OTHER",
+
 ]);
 
 export const reportBaseSchema = z.object({

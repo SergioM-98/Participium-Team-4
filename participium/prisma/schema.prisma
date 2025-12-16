@@ -22,7 +22,7 @@ model Report {
   messages    Message[]
   comments    Comment[]
   notifications Notification[]
-  category    Category     @default(OTHER)
+  category    Category
   createdAt   DateTime     @default(now())
   longitude   Float
   latitude    Float
@@ -61,7 +61,7 @@ enum Category {
   ROADS_SIGNS_AND_TRAFFIC_LIGHTS
   ROADS_AND_URBAN_FURNISHINGS
   PUBLIC_GREEN_AREAS_AND_BACKGROUNDS
-  OTHER
+
 }
 
 enum ReportStatus {
@@ -95,7 +95,7 @@ enum Offices {
   DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING
   DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY
   DEPARTMENT_OF_LOCAL_POLICE
-  OTHER
+
 }
 
 model User {
@@ -209,8 +209,8 @@ model Comment {
   id        BigInt   @id @default(autoincrement())
   content   String   @db.Text
   createdAt DateTime @default(now())
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  String
+  author    User?    @relation(fields: [authorId], references: [id])
+  authorId  String?
   report    Report   @relation(fields: [reportId], references: [id])
   reportId  BigInt
   @@map("comment")

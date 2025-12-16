@@ -45,7 +45,7 @@ const categoryLabels: Record<string, string> = {
   ROADS_SIGNS_AND_TRAFFIC_LIGHTS: "Roads, Signs & Traffic Lights",
   ROADS_AND_URBAN_FURNISHINGS: "Roads & Urban Furnishings",
   PUBLIC_GREEN_AREAS_AND_BACKGROUNDS: "Public Green Areas",
-  OTHER: "Other",
+
 };
 
 const categoryColors: Record<string, string> = {
@@ -57,7 +57,7 @@ const categoryColors: Record<string, string> = {
   ROADS_SIGNS_AND_TRAFFIC_LIGHTS: "bg-red-100 text-red-800",
   ROADS_AND_URBAN_FURNISHINGS: "bg-indigo-100 text-indigo-800",
   PUBLIC_GREEN_AREAS_AND_BACKGROUNDS: "bg-emerald-100 text-emerald-800",
-  OTHER: "bg-gray-100 text-gray-800",
+
 };
 
 const statusLabels: Record<string, string> = {
@@ -360,7 +360,7 @@ export default function ReportsList({ maintainerId }: Readonly<ReportsListProps>
           onClick={() => setSelectedReport(null)}
         >
           <div
-            className="relative w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] max-h-[85vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
+            className="relative w-full max-w-sm sm:max-w-md md:max-w-3xl lg:max-w-5xl xl:max-w-6xl h-[90vh] max-h-[90vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <ReportDetailsCard

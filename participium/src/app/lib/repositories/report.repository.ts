@@ -70,7 +70,7 @@ class ReportRepository {
           },
           category: Object.values(Category).includes(category as Category)
             ? (category as Category)
-            : Category.OTHER,
+            : undefined,
           longitude: longitude,
           latitude: latitude,
           citizenId: userId,

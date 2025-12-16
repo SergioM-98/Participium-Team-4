@@ -38,7 +38,7 @@ const categoryLabels: Record<string, string> = {
   ROADS_SIGNS_AND_TRAFFIC_LIGHTS: "Roads, Signs & Traffic Lights",
   ROADS_AND_URBAN_FURNISHINGS: "Roads & Urban Furnishings",
   PUBLIC_GREEN_AREAS_AND_BACKGROUNDS: "Public Green Areas",
-  OTHER: "Other",
+
 };
 
 const categoryColors: Record<string, string> = {
@@ -50,7 +50,7 @@ const categoryColors: Record<string, string> = {
   ROADS_SIGNS_AND_TRAFFIC_LIGHTS: "bg-red-100 text-red-800",
   ROADS_AND_URBAN_FURNISHINGS: "bg-orange-100 text-orange-800",
   PUBLIC_GREEN_AREAS_AND_BACKGROUNDS: "bg-emerald-100 text-emerald-800",
-  OTHER: "bg-gray-100 text-gray-800",
+
 };
 
 export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {

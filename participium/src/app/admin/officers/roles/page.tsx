@@ -31,7 +31,7 @@ const AVAILABLE_OFFICES = [
   { value: "DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING", label: "Department of Urban Planning and Private Building" },
   { value: "DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY", label: "Department of Environment Major Projects Infras and Mobility" },
   { value: "DEPARTMENT_OF_LOCAL_POLICE", label: "Department of Local Police" },
-  { value: "OTHER", label: "Other" }
+
 ];
 
 export default function OfficeManagementPage() {
@@ -123,10 +123,14 @@ export default function OfficeManagementPage() {
   };
 
   const handleCancelOfficer = async (officerId: string) => {
+    setLoading(true);
+    setError("");
+    setSuccess("");
     try {
       const response = await deleteOfficer(officerId);
       if (!response) {
         setError("Failed to delete officer");
+        return;
       }
 
       setSuccess("Officer deleted successfully!");
@@ -227,7 +231,7 @@ export default function OfficeManagementPage() {
                         </div>
                       ))}
                     </div>
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex flex-wrap gap-3 pt-4">
                       <Button
                         onClick={() => handleSaveOffices(officer.id)}
                         disabled={loading || tempOffices.length === 0}

@@ -145,7 +145,7 @@ function Navbar1({
         </nav>
 
         {/* Mobile Menu */}
-        <div className={`block lg:hidden ${isHomepage ? "bg-transparent backdrop-blur-md" : "bg-white border-b"} sticky top-0`}>
+        <div className={`block lg:hidden ${isHomepage ? "bg-transparent backdrop-blur-md" : "bg-white"} sticky top-0`}>
           <div className="flex items-center justify-between">
             {/* --- LOGO (MOBILE TOP BAR) --- */}
             <Link href={logoUrl} className="flex items-center gap-2">
@@ -173,7 +173,7 @@ function Navbar1({
                     size="icon"
                     className="bg-transparent hover:bg-transparent focus:bg-transparent border-0 shadow-none"
                   >
-                    <Menu className="size-4 text-white" />
+                    <Menu className={`size-4 ${isHomepage ? "text-white" : "text-black"}`} />
                   </Button>
                 </SheetTrigger>
 

@@ -30,7 +30,7 @@ const getIconByCategory = (category: string) => {
             return <UtilityPole className="w-5 h-5 text-black" />;
         case 'PUBLIC_GREEN_AREAS_AND_BACKGROUNDS':
             return <Trees className="w-5 h-5 text-black" />;
-        case 'OTHER':
+
         default:
             return <AlertTriangle className="w-5 h-5 text-black" />;
     }
