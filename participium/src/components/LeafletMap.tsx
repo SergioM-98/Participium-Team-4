@@ -48,10 +48,12 @@ interface ReportsLayerProps {
 
 export default function LeafletMap({ 
     onLocationSelect, 
-    reportsLayer 
+    reportsLayer,
+    allowMapClick = true
 }: Readonly<{ 
     onLocationSelect?: (location: { lat: number; lng: number } | null) => void,
-    reportsLayer?: ReportsLayerProps 
+    reportsLayer?: ReportsLayerProps,
+    allowMapClick?: boolean
 }>) {
   const [markers, setMarkers] = useState<LatLngExpression[]>([]);
 
@@ -97,6 +99,7 @@ export default function LeafletMap({
                 onMapClick={addOrResetMarker}
                 cityPolygons={cityPolygons}
                 markerIcon={customMarkerIcon}
+                disabled={!allowMapClick}
             />
         )}
       </MapBase>

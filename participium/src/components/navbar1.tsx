@@ -81,6 +81,7 @@ function Navbar1({
   const { menu: filteredMenu, logoUrl, role, username } = useNavbarMenu();
 
   const isHomepage = variant === "homepage";
+  const isLoggedIn = !!role;
   const navbarClasses = isHomepage
     ? "py-4 absolute top-0 left-0 w-full z-20 backdrop-blur-md bg-transparent"
     : "py-4 w-full z-20 bg-white border-b sticky top-0";
@@ -108,6 +109,7 @@ function Navbar1({
             <Link 
               href="/map" 
               className={`flex items-center gap-2 px-3 py-2 rounded-md hover:bg-white/10 transition-colors ${isHomepage ? "text-white" : "text-black"}`}
+              style={{ display: isLoggedIn ? "none" : "flex" }}
             >
               <span className="text-sm font-medium">Public Map</span>
             </Link>
@@ -203,12 +205,14 @@ function Navbar1({
 
                   <div className="flex flex-col gap-6 p-4">
                     {/* Public Map Link for Mobile */}
-                    <Link 
-                      href="/map" 
-                      className="flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
-                    >
-                      <span className="text-sm font-medium text-black">Public Map</span>
-                    </Link>
+                    {!isLoggedIn && (
+                      <Link 
+                        href="/map" 
+                        className="flex items-center gap-2 px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
+                      >
+                        <span className="text-sm font-medium text-black">Public Map</span>
+                      </Link>
+                    )}
 
                     <Accordion
                       type="single"
