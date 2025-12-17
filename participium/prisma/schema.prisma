@@ -209,8 +209,8 @@ model Comment {
   id        BigInt   @id @default(autoincrement())
   content   String   @db.Text
   createdAt DateTime @default(now())
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  String
+  author    User?    @relation(fields: [authorId], references: [id])
+  authorId  String?
   report    Report   @relation(fields: [reportId], references: [id])
   reportId  BigInt
   @@map("comment")

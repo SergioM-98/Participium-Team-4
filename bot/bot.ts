@@ -5,12 +5,28 @@ import {
   createConversation,
 } from "@grammyjs/conversations";
 import * as dotenv from "dotenv";
-import { resolve } from "path";
-import { dirname, join } from "path";
+import { join } from "node:path";
 import { helpMenu } from "./menus/helpMenu";
 import { handleStart } from "./handlers/start";
 import { newReport } from "./handlers/newReport";
 import { handleHelp } from "./handlers/help";
+import { handleContact } from "./handlers/contact";
+import { handleFaq } from "./handlers/faq";
+import {
+  handleMyReports,
+  handlePaginationCallback,
+} from "./handlers/myReports";
+import { handleReportCommand } from "./handlers/report";
+import {
+  logBot,
+  shutdown,
+  startBot,
+  callTelegramApi,
+  formatAuthErrorMessage,
+  TELEGRAM_API,
+} from "./utils/telegram.utils";
+import { AuthenticationCheckResponse } from "./dtos/telegram.dto";
+import { ReportsByCitizenResponse } from "./dtos/report.dto";
 
 const rootEnvPath = join(__dirname, "..", ".env");
 dotenv.config({ path: rootEnvPath });
@@ -22,83 +38,158 @@ if (!token) {
 
 const bot = new Bot<ConversationFlavor<Context>>(token);
 
-function logBot(message: string, data?: unknown): void {
-  const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${message}`, data || "");
-}
+try {
+  logBot("Bot initialized successfully");
 
-bot.catch((error) => {
-  logBot("Unhandled error in bot", {
-    message: error instanceof Error ? error.message : String(error),
-    stack: error instanceof Error ? error.stack : undefined,
+  bot.use(conversations());
+  bot.use(createConversation(newReport));
+  bot.use(helpMenu);
+
+  bot.command("start", async (ctx) => {
+    try {
+      await handleStart(ctx);
+    } catch (error) {
+      console.log("Error in /start command:", error);
+      await ctx.reply(
+        "An error occurred while processing your request. Please try again.",
+      );
+    }
   });
-});
 
-bot.use(conversations());
-bot.use(createConversation(newReport));
-bot.use(helpMenu);
+  bot.command("newreport", async (ctx) => {
+    try {
+      await ctx.conversation.enter("newReport");
+    } catch (error) {
+      console.log("Error in /newreport command:", error);
+      await ctx.reply(
+        "An error occurred while starting the report. Please try again.",
+      );
+    }
+  });
 
-bot.command("start", async (ctx) => {
-  try {
-    await handleStart(ctx);
-  } catch (error) {
-    await ctx.reply(
-      "An error occurred while processing your request. Please try again."
-    );
-  }
-});
+  bot.command("help", async (ctx) => {
+    try {
+      await handleHelp(ctx);
+    } catch (error) {
+      console.log("Error in /help command:", error);
+      await ctx.reply(
+        "An error occurred while retrieving help. Please try again.",
+      );
+    }
+  });
 
-bot.command("newreport", async (ctx) => {
-  try {
-    await ctx.conversation.enter("newReport");
-  } catch (error) {
-    await ctx.reply(
-      "An error occurred while starting the report. Please try again."
-    );
-  }
-});
+  bot.command("myreports", async (ctx) => {
+    try {
+      await handleMyReports(ctx);
+    } catch (error) {
+      console.log("Error in /myreports command:", error);
+      await ctx.reply(
+        "An error occurred while retrieving your reports. Please try again.",
+      );
+    }
+  });
 
-bot.command("help", async (ctx) => {
-  try {
-    await handleHelp(ctx);
-  } catch (error) {
-    await ctx.reply(
-      "An error occurred while retrieving help. Please try again."
-    );
-  }
-});
+  bot.command("report", async (ctx) => {
+    try {
+      await handleReportCommand(ctx);
+    } catch (error) {
+      console.log("Error in /report command:", error);
+      await ctx.reply(
+        "An error occurred while retrieving the report. Please try again.",
+      );
+    }
+  });
 
-bot.on("message", async (ctx) => {
-  if (!ctx.message.text?.startsWith("/")) {
-    await ctx.reply(
-      "I didn't understand that command. Use /help to see available commands."
-    );
-  }
-});
+  bot.command("contact", async (ctx) => {
+    try {
+      await handleContact(ctx);
+    } catch (error) {
+      console.log("Error in /contact command:", error);
+      await ctx.reply(
+        "An error occurred while retrieving contact information. Please try again.",
+      );
+    }
+  });
 
-async function shutdown(signal: string): Promise<void> {
-  logBot(`Received ${signal} signal, shutting down gracefully...`);
-  try {
-    await bot.stop();
-    logBot("Bot stopped successfully");
-    process.exit(0);
-  } catch (error) {
-    process.exit(1);
-  }
+  bot.command("faq", async (ctx) => {
+    try {
+      await handleFaq(ctx);
+    } catch (error) {
+      console.log("Error in /faq command:", error);
+      await ctx.reply(
+        "An error occurred while retrieving FAQ. Please try again.",
+      );
+    }
+  });
+
+  bot.on("callback_query:data", async (ctx) => {
+    const data = ctx.callbackQuery?.data;
+
+    if (data?.startsWith("myreports_page_")) {
+      try {
+        const pageMatch = new RegExp(/myreports_page_(\d+)/).exec(data);
+        if (!pageMatch) {
+          return;
+        }
+
+        const page = Number.parseInt(pageMatch[1], 10);
+        const chatId = ctx.chatId!;
+
+        const authEndpoint = TELEGRAM_API.IS_AUTHENTICATED;
+        const isAuthenticated =
+          await callTelegramApi<AuthenticationCheckResponse>(authEndpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ chatId }),
+          });
+
+        if (!isAuthenticated.success || !isAuthenticated.data) {
+          await ctx.reply(
+            formatAuthErrorMessage("You need to authenticate first."),
+          );
+          return;
+        }
+
+        // Fetch reports
+        const reportsEndpoint = TELEGRAM_API.MY_REPORTS + `?chatId=${chatId}`;
+        const response = await callTelegramApi<ReportsByCitizenResponse>(
+          reportsEndpoint,
+          { method: "GET" },
+        );
+
+        if (response.success) {
+          await handlePaginationCallback(ctx, response.data, page);
+        } else {
+          await ctx.reply(formatAuthErrorMessage(response.error));
+        }
+      } catch (error) {
+        console.log("Error in pagination callback:", error);
+        await ctx.answerCallbackQuery({
+          text: "An error occurred",
+          show_alert: true,
+        });
+      }
+    } else if (data === "myreports_page_noop") {
+      await ctx.answerCallbackQuery({
+        text: "You are already on this page",
+        show_alert: false,
+      });
+    }
+  });
+
+  bot.on("message", async (ctx) => {
+    if (!ctx.message.text?.startsWith("/")) {
+      await ctx.reply(
+        "I didn't understand that command. Use /help to see available commands.",
+      );
+    }
+  });
+
+  process.on("SIGINT", () => shutdown(bot, "SIGINT"));
+  process.on("SIGTERM", () => shutdown(bot, "SIGTERM"));
+
+  startBot(bot);
+} catch (error) {
+  logBot("Failed to initialize bot", error);
+  process.exit(1);
 }
-
-process.on("SIGINT", () => shutdown("SIGINT"));
-process.on("SIGTERM", () => shutdown("SIGTERM"));
-
-async function startBot(): Promise<void> {
-  try {
-    logBot("Starting Telegram bot...");
-    await bot.start();
-    logBot("Bot started successfully");
-  } catch (error) {
-    logBot("Failed to start bot", error);
-    process.exit(1);
-  }
-}
-
-startBot();
