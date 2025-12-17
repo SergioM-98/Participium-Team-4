@@ -59,6 +59,11 @@ class ReportRepository {
   ): Promise<ReportRegistrationResponse> {
     try {
       category = category.toUpperCase();
+
+      if(!Object.values(Category).includes(category as Category)) {
+        throw new Error("Invalid category");
+      }
+      
       const report = await prisma.report.create({
         data: {
           title: title,
@@ -68,9 +73,7 @@ class ReportRepository {
               id: photoId,
             })),
           },
-          category: Object.values(Category).includes(category as Category)
-            ? (category as Category)
-            : undefined,
+          category: category as Category,
           longitude: longitude,
           latitude: latitude,
           citizenId: userId,
