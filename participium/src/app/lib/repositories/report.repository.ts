@@ -1,6 +1,9 @@
 import { prisma } from "@/prisma/db";
 import { Category, Report, Offices, ReportStatus, Role } from "@prisma/client";
-import { ReportRegistrationResponse } from "@/dtos/report.dto";
+import {
+  ReportRegistrationResponse,
+  ReportRegistrationRequest,
+} from "@/dtos/report.dto";
 
 class ReportRepository {
   private static instance: ReportRepository;
@@ -29,6 +32,7 @@ class ReportRepository {
         citizenId: true,
         officerId: true,
         companyId: true,
+        anonymous: true,
         citizen: {
           select: {
             username: true,
@@ -49,16 +53,10 @@ class ReportRepository {
   }
 
   public async createReport(
-    title: string,
-    description: string,
-    photos: string[],
-    category: string,
-    longitude: number,
-    latitude: number,
-    userId: string,
+    data: ReportRegistrationRequest
   ): Promise<ReportRegistrationResponse> {
     try {
-      category = category.toUpperCase();
+      const category = data.category.toUpperCase();
 
       if(!Object.values(Category).includes(category as Category)) {
         throw new Error("Invalid category");
@@ -66,17 +64,18 @@ class ReportRepository {
       
       const report = await prisma.report.create({
         data: {
-          title: title,
-          description: description,
+          title: data.title,
+          description: data.description,
           photos: {
-            connect: photos.map((photoId) => ({
+            connect: data.photos.map((photoId) => ({
               id: photoId,
             })),
           },
           category: category as Category,
-          longitude: longitude,
-          latitude: latitude,
-          citizenId: userId,
+          longitude: data.longitude,
+          latitude: data.latitude,
+          citizenId: data.userId,
+          anonymous: data.anonymous,
         },
       });
       return {
@@ -130,6 +129,7 @@ class ReportRepository {
         category: true,
         citizenId: true,
         status: true,
+        anonymous: true,
         citizen: {
           select: {
             id: true,
@@ -178,6 +178,7 @@ class ReportRepository {
         category: true,
         citizenId: true,
         status: true,
+        anonymous: true,
         citizen: {
           select: {
             id: true,
@@ -338,6 +339,8 @@ class ReportRepository {
         category: true,
         citizenId: true,
         status: true,
+        anonymous: true,
+        officerId: true,
         citizen: {
           select: {
             id: true,

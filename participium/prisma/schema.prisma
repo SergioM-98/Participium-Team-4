@@ -31,6 +31,7 @@ model Report {
   maintainerId String?
   rejectionReason String?
   companyId   String?
+  anonymous   Boolean     @default(false)
 
   citizen   User  @relation("createdBy", fields: [citizenId], references: [id])
   officer   User? @relation("managedBy", fields: [officerId], references: [id])
