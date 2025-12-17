@@ -57,6 +57,11 @@ export const retrieveReportResponseSchema = reportBaseSchema.extend({
   id: z.string(),
 });
 
+export const retrieveReportByCitizenResponseSchema =
+  retrieveReportResponseSchema.extend({
+    status: z.string().optional(),
+  });
+
 export const retrieveReportsByOfficerResponseSchema = reportBaseSchema.extend({
   id: z.string(),
   userId: z.string(),
@@ -113,7 +118,9 @@ export const testReportSchema = z.object({
 
 export type Report = z.infer<typeof reportBaseSchema>;
 export type Category = z.infer<typeof categoryEnum>;
-
+export type CitizenReport = z.infer<
+  typeof retrieveReportByCitizenResponseSchema
+>;
 export type ReportRequest = z.infer<typeof reportRequestSchema>;
 export type ReportRegistrationRequest = z.infer<typeof reportRegistrationRequestSchema>;
 export type ReportResponse = z.infer<typeof reportResponseSchema>;
@@ -142,6 +149,10 @@ export type ReportsByOfficerResponse =
   | { success: true; data: RetrieveReportByAssignee[] }
   | { success: false; error: string };
 
+export type ReportsByCitizenResponse =
+  | { success: true; data: CitizenReport[] }
+  | { success: false; error: string };
+
 export type ReportRegistrationResponse =
   | { success: true; data: string }
   | { success: false; error: string };
@@ -161,7 +172,7 @@ export type AssignReportToOfficerResponse =
 export type AssignReportToMaintainerResponse =
   | { success: true; data: string; access: boolean; email: string | null }
   | { success: false; error: string };
-  
+
 export type UpdateReportStatusResponse =
   | { success: true; data: string }
   | { success: false; error: string };
