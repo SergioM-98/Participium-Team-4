@@ -50,8 +50,7 @@ const BaseUserSchema = z
   .refine(
     (data) => {
       const isExternalMaintainer =
-        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-        data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS");
+        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS");
 
       if (isExternalMaintainer) {
         return !!data.companyId;
@@ -68,8 +67,7 @@ const BaseUserSchema = z
     (data) => {
       if (
         data.role.includes("CITIZEN") ||
-        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-        data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
+        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")
       ) {
         return data.role.length === 1;
       }
@@ -150,8 +148,7 @@ export const RetrievedUserDataSchema = z
   .refine(
     (data) => {
       const isExternalMaintainer =
-        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-        data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS");
+        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS");
 
       if (isExternalMaintainer) {
         return !!data.companyId;
@@ -168,8 +165,7 @@ export const RetrievedUserDataSchema = z
     (data) => {
       if (
         data.role.includes("CITIZEN") ||
-        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-        data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
+        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")
       ) {
         return data.role.length === 1;
       }
