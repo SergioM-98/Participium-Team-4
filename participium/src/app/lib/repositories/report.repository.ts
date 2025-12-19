@@ -376,7 +376,6 @@ class ReportRepository {
         role: {
           hasSome: [
             "EXTERNAL_MAINTAINER_WITH_ACCESS",
-            "EXTERNAL_MAINTAINER_WITHOUT_ACCESS",
           ] as Role[],
         },
       },

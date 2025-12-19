@@ -277,48 +277,6 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
 
       expect(report?.status).toBe("ASSIGNED");
     });
-
-    it("should prevent EXTERNAL_MAINTAINER_WITHOUT_ACCESS from updating report status", async () => {
-      const hashedPassword = await bcrypt.hash("testpassword", 12);
-      const maintainerNoAccess = await prisma.user.create({
-        data: {
-          username: "maintainer_no_access",
-          firstName: "No",
-          lastName: "Access",
-          email: "noaccess@test.com",
-          passwordHash: hashedPassword,
-          role: ["EXTERNAL_MAINTAINER_WITHOUT_ACCESS"],
-          companyId: testCompanyId,
-        },
-      });
-
-      const noAccessSession = {
-        user: {
-          id: maintainerNoAccess.id,
-          name: "No Access",
-          role: ["EXTERNAL_MAINTAINER_WITHOUT_ACCESS"],
-        },
-        expires: "2099-12-31T23:59:59.999Z",
-      };
-
-      (getServerSession as jest.Mock).mockResolvedValue(noAccessSession);
-
-      const response = await updateReportStatus(
-        "IN_PROGRESS",
-        testReportId.toString()
-      );
-
-      expect(response.success).toBe(false);
-      if (!response.success) {
-        expect(response.error).toBe("Unauthorized access");
-      }
-
-      const report = await prisma.report.findUnique({
-        where: { id: testReportId },
-      });
-
-      expect(report?.status).toBe("ASSIGNED");
-    });
   });
 
   describe("Invalid Status Transitions", () => {

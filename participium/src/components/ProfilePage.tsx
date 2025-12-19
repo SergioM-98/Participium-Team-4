@@ -474,8 +474,7 @@ export default function ProfilePage() {
 
   const isCitizen = user.role.includes("CITIZEN");
   const isExternalMaintainer =
-    user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-    user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS");
+    user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS");
   const canEdit = isCitizen;
   const isTelegramConnected = !!user.telegram;
 
@@ -541,8 +540,7 @@ export default function ProfilePage() {
               {user.role.includes("TECHNICAL_OFFICER") ||
               user.role.includes("PUBLIC_RELATIONS_OFFICER")
                 ? "View your officer details and office assignment."
-                : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-                  user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
+                : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")
                 ? "View your external maintainer details and company assignment."
                 : user.role.includes("ADMIN")
                 ? "System administrator profile."
@@ -656,8 +654,7 @@ export default function ProfilePage() {
                     "px-2.5 py-0.5 rounded-full text-xs font-semibold border flex items-center gap-1 w-fit",
                     user.role.includes("TECHNICAL_OFFICER") ||
                       user.role.includes("PUBLIC_RELATIONS_OFFICER") ||
-                      user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-                      user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
+                      user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")
                       ? "bg-blue-50 text-blue-700 border-blue-200"
                       : user.role.includes("ADMIN")
                       ? "bg-purple-50 text-purple-700 border-purple-200"
@@ -667,8 +664,7 @@ export default function ProfilePage() {
                   {user.role.includes("TECHNICAL_OFFICER") ||
                   user.role.includes("PUBLIC_RELATIONS_OFFICER") ? (
                     <ShieldAlert className="h-3 w-3" />
-                  ) : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-                    user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS") ? (
+                  ) : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ? (
                     <ShieldAlert className="h-3 w-3" />
                   ) : user.role.includes("ADMIN") ? (
                     <ShieldCheck className="h-3 w-3" />
@@ -679,9 +675,7 @@ export default function ProfilePage() {
                   user.role.includes("PUBLIC_RELATIONS_OFFICER")
                     ? "Officer"
                     : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")
-                    ? "External Maintainer (with access)"
-                    : user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
-                    ? "External Maintainer (without access)"
+                    ? "External Maintainer"
                     : user.role.includes("ADMIN")
                     ? "Administrator"
                     : "Citizen"}
