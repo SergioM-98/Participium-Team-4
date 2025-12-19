@@ -28,6 +28,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ProfileButton } from "./ProfileButton";
+// Import the new component
 import { NotificationBell } from "@/components/NotificationBell";
 
 interface MenuItem {
@@ -92,6 +93,7 @@ function Navbar1({
           <div className="flex items-center gap-6 flex-1 min-w-0">
             {/* --- LOGO (DESKTOP) --- */}
             <Link href={logoUrl} className="flex items-center gap-2 shrink-0">
+              {/* 1. The Image */}
               <img
                 src={
                   isHomepage
@@ -101,6 +103,7 @@ function Navbar1({
                 alt={logo.alt}
                 className="h-8 w-auto object-contain"
               />
+              {/* 2. The Text */}
               <span
                 className={`text-lg font-semibold tracking-tighter ${
                   isHomepage ? "text-white" : "text-black"
@@ -113,20 +116,6 @@ function Navbar1({
             <div className="flex items-center min-w-0">
               <NavigationMenu>
                 <NavigationMenuList>
-                  <NavigationMenuItem>
-                    <Button
-                      asChild
-                      variant="ghost"
-                      size="sm"
-                      className={`${
-                        isHomepage ? "text-white" : "text-black"
-                      } !hover:bg-transparent !hover:text-inherit gap-2`}
-                    >
-                      <Link href="/map">City Map</Link>
-                    </Button>
-                  </NavigationMenuItem>
-                  {/* ------------------------------------------ */}
-
                   {filteredMenu.map((item) => renderMenuItem(item, isHomepage))}
                 </NavigationMenuList>
               </NavigationMenu>
@@ -216,6 +205,7 @@ function Navbar1({
 
             {/* Right side group: Notification + Menu Trigger */}
             <div className="flex items-center gap-3">
+              {/* --- NOTIFICATION BELL (MOBILE) - Only for CITIZEN --- */}
               {role?.includes("CITIZEN") && (
                 <NotificationBell
                   className={isHomepage ? "text-white" : undefined}
@@ -240,6 +230,7 @@ function Navbar1({
                 <SheetContent className="overflow-y-auto z-[9999]">
                   <SheetHeader>
                     <SheetTitle>
+                      {/* --- LOGO (INSIDE MOBILE MENU) --- */}
                       <Link href={logoUrl} className="flex items-center gap-2">
                         <img
                           src="/logo/participium.svg"
@@ -259,13 +250,6 @@ function Navbar1({
                       collapsible
                       className="flex w-full flex-col gap-4"
                     >
-                      <Link
-                        href="/map"
-                        className="text-md font-semibold flex items-center gap-2 py-2 border-b border-gray-100"
-                      >
-                        City Map
-                      </Link>
-
                       {filteredMenu.map((item) =>
                         renderMobileMenuItem(item, isHomepage)
                       )}
