@@ -1,5 +1,8 @@
+import { ConversationFlavor } from "@grammyjs/conversations";
+import { Bot, Context } from "grammy";
+
 export function extractAuthTokenFromStartCommand(
-  messageText: string
+  messageText: string,
 ): string | null {
   const parts = messageText.trim().split(" ");
   return parts.length > 1 ? parts[1] : null;
@@ -7,14 +10,13 @@ export function extractAuthTokenFromStartCommand(
 
 export async function fetchJson<T>(
   url: string,
-  options?: RequestInit
+  options?: RequestInit,
 ): Promise<T> {
   const response = await fetch(url, options);
 
   if (!response.ok) {
-    const text = await response.text();
     throw new Error(
-      `API request failed with status ${response.status}: ${response.statusText}`
+      `API request failed with status ${response.status}: ${response.statusText}`,
     );
   }
 
@@ -23,7 +25,7 @@ export async function fetchJson<T>(
 
 export async function callTelegramApi<T>(
   endpoint: string,
-  options?: RequestInit
+  options?: RequestInit,
 ): Promise<T> {
   const backendUrl = process.env.BACKEND_URL;
 
@@ -66,8 +68,43 @@ export function formatAuthInstructionsMessage(): string {
   );
 }
 
+export function logBot(message: string, data?: unknown): void {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${message}`, data || "");
+}
+
+export async function startBot(
+  bot: Bot<ConversationFlavor<Context>>,
+): Promise<void> {
+  try {
+    logBot("Starting Telegram bot...");
+    await bot.start();
+    logBot("Bot started successfully");
+  } catch (error) {
+    logBot("Failed to start bot", error);
+    process.exit(1);
+  }
+}
+
+export async function shutdown(
+  bot: Bot<ConversationFlavor<Context>>,
+  signal: string,
+): Promise<void> {
+  logBot(`Received ${signal} signal, shutting down gracefully...`);
+  try {
+    await bot.stop();
+    logBot("Bot stopped successfully");
+    process.exit(0);
+  } catch (error) {
+    console.log("Error during bot shutdown:", error);
+    process.exit(1);
+  }
+}
+
 export const TELEGRAM_API = {
   IS_AUTHENTICATED: "/api/telegram/isAuthenticated",
   REGISTER: "/api/telegram/registration",
   SEND_REPORT: "/api/telegram/reports",
+  MY_REPORTS: "/api/telegram/reports",
+  REPORT_DETAIL: "/api/telegram/reports",
 };

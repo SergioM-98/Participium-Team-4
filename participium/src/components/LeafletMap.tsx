@@ -11,7 +11,9 @@ import MapPolygons from "./map/MapPolygons";
 import MapMarkers from "./map/MapMarkers";
 import { extractVisualizationPolygons } from "./map/utils";
 import ReportsClusterLayer from "./map/ReportsClusterLayer";
-import { Report, Bounds } from "@/app/lib/dtos/map.dto"; 
+import { Report, Bounds } from "@/app/lib/dtos/map.dto";
+import MapController from "./map/MapController";
+import AddressSearch from "./map/AddressSearch";
 
 import torinoGeoJSON from "@/data/torino-boundary.json";
 
@@ -23,7 +25,7 @@ const faLocationDotSVG = `
 </svg>`;
 
 const customMarkerIcon = L.divIcon({
-  className: '',
+  className: "",
   html: faLocationDotSVG,
   iconSize: [36, 36],
   iconAnchor: [18, 36],
@@ -35,15 +37,15 @@ const worldCoordinates: [number, number][] = [
   [90, 180],
   [-90, 180],
   [-90, -180],
-  [90, -180]
+  [90, -180],
 ];
 
 const cityPolygons = extractVisualizationPolygons(torinoGeoJSON);
 
-interface ReportsLayerProps { 
-    reports: Report[]; 
-    onReportClick: (report: Report) => void;
-    onClusterClick: (bounds: Bounds) => void;
+interface ReportsLayerProps {
+  reports: Report[];
+  onReportClick: (report: Report) => void;
+  onClusterClick: (bounds: Bounds) => void;
 }
 
 export default function LeafletMap({ 
@@ -57,6 +59,11 @@ export default function LeafletMap({
 }>) {
   const [markers, setMarkers] = useState<LatLngExpression[]>([]);
 
+  const [mapView, setMapView] = useState<{
+    center: LatLngExpression;
+    zoom: number;
+  } | null>(null);
+
   const addOrResetMarker = (pos: LatLngExpression) => {
     setMarkers([pos]);
     if (onLocationSelect) {
@@ -65,33 +72,42 @@ export default function LeafletMap({
     }
   };
 
+  const handleAddressFound = (lat: number, lng: number) => {
+    // Set the map view to the found address with a closer zoom
+    setMapView({ center: [lat, lng], zoom: 17 });
+  };
+
   const selected = markers[0];
-  const inverseMaskHoles = cityPolygons.length > 0 ? [worldCoordinates, ...cityPolygons] : [];
+  const inverseMaskHoles =
+    cityPolygons.length > 0 ? [worldCoordinates, ...cityPolygons] : [];
 
   return (
     <div className="relative rounded-xl overflow-hidden shadow-lg border border-gray-500 w-full h-full">
       <MapBase>
+        <MapController
+          targetLocation={mapView?.center || null}
+          zoomLevel={mapView?.zoom}
+        />
+
         {inverseMaskHoles.length > 0 && (
           <Polygon
             positions={inverseMaskHoles as any}
             pathOptions={{
-              color: 'transparent',
+              color: "transparent",
               fillColor: COLOR,
-              fillOpacity: 0.1
+              fillOpacity: 0.1,
             }}
           />
         )}
         <MapPolygons cityPolygons={cityPolygons} borderColor={COLOR} />
-        
 
         {reportsLayer && (
-            <ReportsClusterLayer 
-                reports={reportsLayer.reports}
-                onReportClick={reportsLayer.onReportClick}
-                onClusterClick={reportsLayer.onClusterClick}
-            />
+          <ReportsClusterLayer
+            reports={reportsLayer.reports}
+            onReportClick={reportsLayer.onReportClick}
+            onClusterClick={reportsLayer.onClusterClick}
+          />
         )}
-
 
         {onLocationSelect && (
             <MapMarkers
@@ -103,9 +119,12 @@ export default function LeafletMap({
             />
         )}
       </MapBase>
-      
-      <div className="absolute top-3 right-3 z-[1000]">
-        <LocationDisplay selected={selected} />
+      {/* Merged Search Bar + Location Display */}
+      <div className="absolute top-4 right-4 z-[1000]">
+        <AddressSearch
+          onLocationFound={handleAddressFound}
+          selectedPosition={selected}
+        />
       </div>
     </div>
   );

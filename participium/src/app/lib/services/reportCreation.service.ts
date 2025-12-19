@@ -1,4 +1,4 @@
-import { ReportRequest, ReportRegistrationResponse } from "@/dtos/report.dto";
+import { ReportRegistrationRequest, ReportRegistrationResponse } from "@/dtos/report.dto";
 import { ReportRepository } from "@/repositories/report.repository";
 
 class ReportCreationService {
@@ -14,21 +14,9 @@ class ReportCreationService {
     return ReportCreationService.instance;
   }
   public async createReport(
-    data: ReportRequest
+    data: ReportRegistrationRequest
   ): Promise<ReportRegistrationResponse> {
-    /* to be changed
-    if (data.isAnonymous) {
-      data.userId = "2";
-    }*/
-    return await this.reportRepository.createReport(
-      data.title,
-      data.description,
-      data.photos,
-      data.category,
-      data.longitude,
-      data.latitude,
-      data.userId
-    );
+    return await this.reportRepository.createReport(data);
   }
 }
 
