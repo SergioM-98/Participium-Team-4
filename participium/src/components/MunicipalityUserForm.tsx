@@ -81,9 +81,6 @@ export default function MunicipalityUserForm({
         if (data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")) {
           hasAccess = true;
         } 
-        else if (data.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")) {
-          hasAccess = false;
-        }
         else {
           // Se il ruolo non è un EXTERNAL_MAINTAINER, non caricare aziende
           setCompanies([]);

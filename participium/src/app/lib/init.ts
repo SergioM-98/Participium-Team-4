@@ -1,6 +1,5 @@
 import createExternalMaintainerWithAccess from "@/prisma/external-maintainer-with-access";
 import createAdmin from "@/prisma/admin";
-import createExternalMaintainerWithoutAccess from "@/prisma/external-maintainer-without-access";
 import createCitizen from "@/prisma/citizen";
 import createTechnicalOfficer from "@/prisma/technical-officer";
 import createPublicRelationsOfficer from "@/prisma/public-relations-officer";
@@ -25,7 +24,6 @@ export async function init() {
 
     await createAdmin();
     await createExternalMaintainerWithAccess();
-    await createExternalMaintainerWithoutAccess();
     await createCitizen();
     await createTechnicalOfficer();
     await createPublicRelationsOfficer();
