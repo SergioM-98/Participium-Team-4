@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { useState, useCallback, useEffect as useEffectHook } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { Navbar1 } from "@/components/navbar1";
 import ClusterReportsSheet from "@/components/ClusterReportsSheet";
 import ReportDetailsCard from "@/components/ReportDetailsCard";
-import { getApprovedReportsForPublic, getReportById } from "../lib/controllers/reportMap.controller";
+import {
+  getApprovedReportsForPublic,
+  getReportById,
+} from "../lib/controllers/reportMap.controller";
 import { Report, Bounds } from "../lib/dtos/map.dto";
 
 const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
@@ -34,7 +36,7 @@ export default function MapPage() {
     }
   }, [status, session, router]);
 
-  // Don't render anything while checking authentication
+  // Loading state for auth check
   if (status === "loading" || status === "authenticated") {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-white">
@@ -46,7 +48,8 @@ export default function MapPage() {
     );
   }
 
-  useEffectHook(() => {
+  // Fetch Reports
+  useEffect(() => {
     const fetchReports = async () => {
       setIsLoadingReports(true);
       try {
@@ -58,7 +61,6 @@ export default function MapPage() {
               status: r.status ?? "assigned",
             }))
           );
-          console.log("Loaded approved reports:", result.data);
         } else {
           console.error("Error fetching reports:", result.error);
         }
@@ -71,7 +73,8 @@ export default function MapPage() {
     fetchReports();
   }, []);
 
-  useEffectHook(() => {
+  // Fetch Details
+  useEffect(() => {
     if (selectedReportId) {
       setIsLoadingDetails(true);
       setFullReportData(null);
@@ -149,69 +152,89 @@ export default function MapPage() {
   };
 
   return (
-    <>
+    // FIX 1: Parent container is fixed to screen height with no scroll
+    <div className="flex flex-col h-screen w-full overflow-hidden">
+      {/* Navbar sits at the top naturally */}
       <Navbar1 />
-      <main className="flex flex-col w-full min-h-screen md:h-screen relative md:overflow-hidden">
-        <div className="flex flex-col items-center px-4 pt-6 pb-4">
-          <h1 className="text-3xl font-bold mb-2 text-center">Public Reports Map</h1>
-          <p className="text-center max-w-3xl text-sm md:text-base">View approved reports in your area. Click on markers to see details.</p>
+
+      {/* FIX 2: Main takes remaining space (flex-1) and handles its own layout */}
+      <main className="flex-1 flex flex-col relative overflow-hidden bg-gray-50">
+        {/* Header Section */}
+        <div className="flex flex-col items-center px-4 py-4 shrink-0 z-10 bg-gray-50">
+          <h1 className="text-2xl font-bold mb-1 text-center">
+            Public Reports Map
+          </h1>
+          <p className="text-center max-w-3xl text-sm text-gray-500">
+            View approved reports in your area. Click markers for details.
+          </p>
         </div>
-        
-        <div className="flex flex-1 w-full min-h-0 justify-center px-4 md:px-6 lg:px-8 pb-4">
-          <div className="w-full h-full relative max-w-[1920px]">
-          {isLoadingReports ? (
-            <div className="flex h-full w-full items-center justify-center bg-white">
-              <div className="text-center space-y-3 sm:space-y-4">
-                <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-primary mx-auto" />
-                <p className="text-sm sm:text-base text-gray-600 font-medium">Loading map...</p>
+
+        {/* Map Container - Fills remaining vertical space */}
+        <div className="flex-1 w-full px-4 md:px-6 lg:px-8 pb-4 min-h-0">
+          <div className="w-full h-full relative rounded-xl overflow-hidden shadow-sm border border-gray-200">
+            {isLoadingReports ? (
+              <div className="flex h-full w-full items-center justify-center bg-white">
+                <div className="text-center space-y-3 sm:space-y-4">
+                  <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 animate-spin text-primary mx-auto" />
+                  <p className="text-sm sm:text-base text-gray-600 font-medium">
+                    Loading map...
+                  </p>
+                </div>
               </div>
-            </div>
-          ) : (
-            <LeafletMap onLocationSelect={() => {}} reportsLayer={reportsLayerProps} />
-          )}
+            ) : (
+              <LeafletMap
+                onLocationSelect={() => {}}
+                reportsLayer={reportsLayerProps}
+              />
+            )}
+          </div>
         </div>
-      </div>
 
-      <ClusterReportsSheet
-        reports={clusteredReports}
-        isOpen={isClusterSheetOpen}
-        onOpenChange={setIsClusterSheetOpen}
-        onReportClick={handleReportClick}
-        isLoading={false}
-      />
+        {/* --- Overlays --- */}
+        <ClusterReportsSheet
+          reports={clusteredReports}
+          isOpen={isClusterSheetOpen}
+          onOpenChange={setIsClusterSheetOpen}
+          onReportClick={handleReportClick}
+          isLoading={false}
+        />
 
-      {selectedReportId && (
-        <div 
+        {selectedReportId && (
+          <div
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300"
             onClick={handleCloseDetails}
-        >
-            <div 
-
-                className="relative w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] max-h-[85vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
-                onClick={(e) => e.stopPropagation()} 
+          >
+            <div
+              className="relative w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] max-h-[85vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
+              onClick={(e) => e.stopPropagation()}
             >
-                {isLoadingDetails && (
-                     <div className="flex h-64 w-full items-center justify-center bg-background rounded-xl border border-border">
-                        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                     </div>
-                )}
-                {!isLoadingDetails && fullReportData && (
-                    <ReportDetailsCard 
-                        report={fullReportData} 
-                        onClose={handleCloseDetails} 
-                        showChat={false}
-                    />
-                )}
-                {!isLoadingDetails && !fullReportData && (
-                     <div className="flex h-64 items-center justify-center p-6 flex-col gap-4 bg-background rounded-xl border border-border">
-                        <p className="text-muted-foreground">Unable to load details.</p>
-                        <button onClick={handleCloseDetails} className="text-sm underline">Close</button>
-                     </div>
-                )}
+              {isLoadingDetails && (
+                <div className="flex h-full w-full items-center justify-center bg-white border border-gray-200">
+                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                </div>
+              )}
+              {!isLoadingDetails && fullReportData && (
+                <ReportDetailsCard
+                  report={fullReportData}
+                  onClose={handleCloseDetails}
+                  showChat={false}
+                />
+              )}
+              {!isLoadingDetails && !fullReportData && (
+                <div className="flex h-full items-center justify-center p-6 flex-col gap-4 bg-white border border-gray-200">
+                  <p className="text-gray-500">Unable to load details.</p>
+                  <button
+                    onClick={handleCloseDetails}
+                    className="text-sm underline"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
             </div>
-        </div>
-      )}
+          </div>
+        )}
       </main>
-    </>
+    </div>
   );
 }
