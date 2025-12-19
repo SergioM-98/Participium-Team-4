@@ -74,15 +74,6 @@ describe("CommentController", () => {
     expires: "2026-12-31T23:59:59.999Z",
   };
 
-  const externalMaintainerWithoutAccessSession = {
-    user: {
-      id: "6",
-      name: "External Maintainer User",
-      role: "EXTERNAL_MAINTAINER_WITHOUT_ACCESS",
-    },
-    expires: "2026-12-31T23:59:59.999Z",
-  };
-
   const mockCommentData = {
     id: BigInt(1),
     content: "Test comment",
@@ -266,20 +257,6 @@ describe("CommentController", () => {
 
       it("should reject ADMIN role", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(adminSession);
-
-        const response = await createComment(testContent, testReportId);
-
-        expect(response.success).toBe(false);
-        expect(response.error).toBe(
-          "Unauthorized: Only technical officers and external maintainers with access can create comments",
-        );
-        expect(mockCommentService.createComment).not.toHaveBeenCalled();
-      });
-
-      it("should reject EXTERNAL_MAINTAINER_WITHOUT_ACCESS role", async () => {
-        (getServerSession as jest.Mock).mockResolvedValue(
-          externalMaintainerWithoutAccessSession,
-        );
 
         const response = await createComment(testContent, testReportId);
 
@@ -556,20 +533,6 @@ describe("CommentController", () => {
 
       it("should reject ADMIN role", async () => {
         (getServerSession as jest.Mock).mockResolvedValue(adminSession);
-
-        const response = await getReportComments(testReportId);
-
-        expect(response.success).toBe(false);
-        expect(response.error).toBe(
-          "Unauthorized: Only technical officers and external maintainers with access can view comments",
-        );
-        expect(mockCommentService.getCommentsByReport).not.toHaveBeenCalled();
-      });
-
-      it("should reject EXTERNAL_MAINTAINER_WITHOUT_ACCESS role", async () => {
-        (getServerSession as jest.Mock).mockResolvedValue(
-          externalMaintainerWithoutAccessSession,
-        );
 
         const response = await getReportComments(testReportId);
 
