@@ -48,12 +48,14 @@ interface ReportsLayerProps {
   onClusterClick: (bounds: Bounds) => void;
 }
 
-export default function LeafletMap({
-  onLocationSelect,
-  reportsLayer,
-}: Readonly<{
-  onLocationSelect?: (location: { lat: number; lng: number } | null) => void;
-  reportsLayer?: ReportsLayerProps;
+export default function LeafletMap({ 
+    onLocationSelect, 
+    reportsLayer,
+    allowMapClick = true
+}: Readonly<{ 
+    onLocationSelect?: (location: { lat: number; lng: number } | null) => void,
+    reportsLayer?: ReportsLayerProps,
+    allowMapClick?: boolean
 }>) {
   const [markers, setMarkers] = useState<LatLngExpression[]>([]);
 
@@ -108,12 +110,13 @@ export default function LeafletMap({
         )}
 
         {onLocationSelect && (
-          <MapMarkers
-            markers={markers}
-            onMapClick={addOrResetMarker}
-            cityPolygons={cityPolygons}
-            markerIcon={customMarkerIcon}
-          />
+            <MapMarkers
+                markers={markers}
+                onMapClick={addOrResetMarker}
+                cityPolygons={cityPolygons}
+                markerIcon={customMarkerIcon}
+                disabled={!allowMapClick}
+            />
         )}
       </MapBase>
       {/* Merged Search Bar + Location Display */}

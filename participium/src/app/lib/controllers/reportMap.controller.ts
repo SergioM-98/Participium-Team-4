@@ -42,7 +42,29 @@ export async function getReportsForMap(): Promise<ReportForMapResponse> {
     return { success: true, data };
 }
 
-export async function getReportById(params: { id: string }): Promise<ReportByIdResponse> {
+export async function getApprovedReportsForPublic() {
+  const service = ReportMapService.getInstance();
+  const repoResult = await service.getPublicApprovedReports();
+
+  if (!repoResult || repoResult.success === false || !repoResult.data) {
+    return { success: false, error: "No reports found" };
+  }
+
+  const data = repoResult.data.map((r: any) => ({
+    id: r.id.toString(),
+    title: r.title,
+    longitude: r.longitude,
+    latitude: r.latitude,
+    category: r.category,
+    username: r.citizen?.username,
+    citizenId: r.citizenId,
+    status: r.status,
+  }));
+
+  return { success: true, data };
+}
+
+export async function getReportById(params: { id: string }) {
   const parse = idSchema.safeParse(params.id);
   if (!parse.success) {
     console.error("Invalid report id:", params.id);

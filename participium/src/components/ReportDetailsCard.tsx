@@ -114,7 +114,7 @@ export default function ReportDetailsCard({
   // show chat only if the user is the report creator or the assigned officer
   const isReportCreator = session?.user?.id && report.citizenId && String(session.user.id) === String(report.citizenId);
   const isAssignedOfficer = session?.user?.id && report.officerId && String(session.user.id) === String(report.officerId);
-  const canViewChat = showChat && (isReportCreator || isAssignedOfficer);
+  const canViewChat = showChat && (isReportCreator || isAssignedOfficer || isOfficerMode || isMaintainerMode);
   
   const evidencePhotos = report.photoUrls || report.photos || [];
   const validDate = report.createdAt || new Date().toISOString();
@@ -170,7 +170,7 @@ export default function ReportDetailsCard({
       </div>
 
       {/* Row with 3 columns: map | menu | chat/officer */}
-      <div className="flex flex-col md:flex-row items-stretch gap-4 p-4 md:p-6 overflow-hidden flex-1 min-h-0">
+      <div className={`flex flex-col ${canViewChat || isOfficerMode || isMaintainerMode ? 'md:flex-row' : 'md:flex-row'} items-stretch gap-4 p-4 md:p-6 overflow-hidden flex-1 min-h-0`}>
         {/* MAP - left (hidden on mobile; available as overlay via button) */}
         {(isOfficerMode || isAssignedOfficer || isMaintainerMode) && (<div className="hidden md:flex md:flex-1 min-h-0 rounded-lg overflow-hidden border border-border bg-muted/5">
           <div className="w-full h-full">
@@ -191,11 +191,11 @@ export default function ReportDetailsCard({
         </div>)}
  
          {/* MENU - center (fills the available space, internal scroll) */}
-         <div className="flex-1 min-h-0 rounded-lg border border-border bg-muted/10 p-4 overflow-auto">
-           <div className="space-y-5">
-             <div className="p-3 bg-muted/30 rounded-lg border border-border/50">
-               <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                 <Tag className="w-4 h-4" /> Category
+         <div className={`${canViewChat || isOfficerMode || isMaintainerMode ? 'flex-1' : 'flex-1'} min-h-0 rounded-lg border border-border bg-muted/10 p-3 overflow-auto`}>
+           <div className="space-y-4">
+             <div className="p-1 bg-muted/30 rounded-lg border border-border/50">
+               <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
+                 <Tag className="w-3 h-3" /> Category
                </div>
                <div className="font-medium text-base text-foreground">
                  {formatCategory(report.category)}
@@ -248,7 +248,8 @@ export default function ReportDetailsCard({
            </div>
          </div>
  
-        {/* CHAT / OFFICER - right (fills the available space) */}
+        {/* CHAT / OFFICER - right (fills the available space) - Only show if user can interact */}
+        {canViewChat && (
         <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex flex-col relative">
           {/* Header / Toggle (in-flow, non overlaid) */}
           <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/5 flex-shrink-0">
@@ -369,6 +370,7 @@ export default function ReportDetailsCard({
 
           </div>
         </div>
+        )}
       </div>
       
       {/* Mobile map overlay (on top of modal) */}
