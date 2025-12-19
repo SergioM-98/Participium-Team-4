@@ -28,7 +28,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ProfileButton } from "./ProfileButton";
-// Import the new component
 import { NotificationBell } from "@/components/NotificationBell";
 
 interface MenuItem {
@@ -93,14 +92,20 @@ function Navbar1({
           <div className="flex items-center gap-6 flex-1 min-w-0">
             {/* --- LOGO (DESKTOP) --- */}
             <Link href={logoUrl} className="flex items-center gap-2 shrink-0">
-              {/* 1. The Image */}
               <img
-                src={isHomepage ? "/logo/participium_white.svg" : "/logo/participium.svg"}
+                src={
+                  isHomepage
+                    ? "/logo/participium_white.svg"
+                    : "/logo/participium.svg"
+                }
                 alt={logo.alt}
                 className="h-8 w-auto object-contain"
               />
-              {/* 2. The Text */}
-              <span className={`text-lg font-semibold tracking-tighter ${isHomepage ? "text-white" : "text-black"}`}>
+              <span
+                className={`text-lg font-semibold tracking-tighter ${
+                  isHomepage ? "text-white" : "text-black"
+                }`}
+              >
                 {logo.title}
               </span>
             </Link>
@@ -108,6 +113,20 @@ function Navbar1({
             <div className="flex items-center min-w-0">
               <NavigationMenu>
                 <NavigationMenuList>
+                  <NavigationMenuItem>
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="sm"
+                      className={`${
+                        isHomepage ? "text-white" : "text-black"
+                      } !hover:bg-transparent !hover:text-inherit gap-2`}
+                    >
+                      <Link href="/map">City Map</Link>
+                    </Button>
+                  </NavigationMenuItem>
+                  {/* ------------------------------------------ */}
+
                   {filteredMenu.map((item) => renderMenuItem(item, isHomepage))}
                 </NavigationMenuList>
               </NavigationMenu>
@@ -118,26 +137,50 @@ function Navbar1({
           <div className="flex gap-2 items-center">
             {!role ? (
               <>
-                <Button asChild variant="ghost" size="sm" className={`${isHomepage ? "text-white" : "text-black"} !hover:bg-transparent !hover:text-inherit`}>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className={`${
+                    isHomepage ? "text-white" : "text-black"
+                  } !hover:bg-transparent !hover:text-inherit`}
+                >
                   <a href={auth.login.url}>{auth.login.title}</a>
                 </Button>
-                <Button asChild variant="ghost" size="sm" className={`${isHomepage ? "text-white" : "text-black"} !hover:bg-transparent !hover:text-inherit`}>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className={`${
+                    isHomepage ? "text-white" : "text-black"
+                  } !hover:bg-transparent !hover:text-inherit`}
+                >
                   <a href={auth.signup.url}>{auth.signup.title}</a>
                 </Button>
               </>
             ) : (
               <>
                 {role.includes("CITIZEN") && (
-                  <NotificationBell className={isHomepage ? "text-white" : "text-black"} />
+                  <NotificationBell
+                    className={isHomepage ? "text-white" : "text-black"}
+                  />
                 )}
 
-                <LogoutButton variant="ghost" size="sm" className={`${isHomepage ? "text-white" : "text-black"} !hover:bg-transparent !hover:text-inherit`} />
+                <LogoutButton
+                  variant="ghost"
+                  size="sm"
+                  className={`${
+                    isHomepage ? "text-white" : "text-black"
+                  } !hover:bg-transparent !hover:text-inherit`}
+                />
                 <ProfileButton
                   variant="ghost"
                   size="sm"
                   showName={true}
                   username={username}
-                  className={`${isHomepage ? "text-white" : "text-black"} !hover:bg-transparent !hover:text-inherit`}
+                  className={`${
+                    isHomepage ? "text-white" : "text-black"
+                  } !hover:bg-transparent !hover:text-inherit`}
                 />
               </>
             )}
@@ -145,25 +188,38 @@ function Navbar1({
         </nav>
 
         {/* Mobile Menu */}
-        <div className={`block lg:hidden ${isHomepage ? "bg-transparent backdrop-blur-md" : "bg-white"} sticky top-0`}>
+        <div
+          className={`block lg:hidden ${
+            isHomepage ? "bg-transparent backdrop-blur-md" : "bg-white"
+          } sticky top-0`}
+        >
           <div className="flex items-center justify-between">
             {/* --- LOGO (MOBILE TOP BAR) --- */}
             <Link href={logoUrl} className="flex items-center gap-2">
               <img
-                src={isHomepage ? "/logo/participium_white.svg" : "/logo/participium.svg"}
+                src={
+                  isHomepage
+                    ? "/logo/participium_white.svg"
+                    : "/logo/participium.svg"
+                }
                 className="h-8 w-auto object-contain opacity-80"
                 alt={logo.alt}
               />
-              <span className={`text-lg font-semibold tracking-tighter ${isHomepage ? "text-white" : "text-black"}`}>
+              <span
+                className={`text-lg font-semibold tracking-tighter ${
+                  isHomepage ? "text-white" : "text-black"
+                }`}
+              >
                 {logo.title}
               </span>
             </Link>
 
             {/* Right side group: Notification + Menu Trigger */}
             <div className="flex items-center gap-3">
-              {/* --- NOTIFICATION BELL (MOBILE) - Only for CITIZEN --- */}
               {role?.includes("CITIZEN") && (
-                <NotificationBell className={isHomepage ? "text-white" : undefined} />
+                <NotificationBell
+                  className={isHomepage ? "text-white" : undefined}
+                />
               )}
 
               <Sheet>
@@ -173,14 +229,17 @@ function Navbar1({
                     size="icon"
                     className="bg-transparent hover:bg-transparent focus:bg-transparent border-0 shadow-none"
                   >
-                    <Menu className={`size-4 ${isHomepage ? "text-white" : "text-black"}`} />
+                    <Menu
+                      className={`size-4 ${
+                        isHomepage ? "text-white" : "text-black"
+                      }`}
+                    />
                   </Button>
                 </SheetTrigger>
 
                 <SheetContent className="overflow-y-auto z-[9999]">
                   <SheetHeader>
                     <SheetTitle>
-                      {/* --- LOGO (INSIDE MOBILE MENU) --- */}
                       <Link href={logoUrl} className="flex items-center gap-2">
                         <img
                           src="/logo/participium.svg"
@@ -200,17 +259,34 @@ function Navbar1({
                       collapsible
                       className="flex w-full flex-col gap-4"
                     >
-                      {filteredMenu.map((item) => renderMobileMenuItem(item, isHomepage))}
+                      <Link
+                        href="/map"
+                        className="text-md font-semibold flex items-center gap-2 py-2 border-b border-gray-100"
+                      >
+                        City Map
+                      </Link>
+
+                      {filteredMenu.map((item) =>
+                        renderMobileMenuItem(item, isHomepage)
+                      )}
                     </Accordion>
 
                     {/* Mobile buttons */}
                     <div className="flex flex-col gap-3">
                       {!role ? (
                         <>
-                          <Button asChild variant="secondary" className="text-black">
+                          <Button
+                            asChild
+                            variant="secondary"
+                            className="text-black"
+                          >
                             <a href={auth.login.url}>{auth.login.title}</a>
                           </Button>
-                          <Button asChild variant="secondary" className="text-black">
+                          <Button
+                            asChild
+                            variant="secondary"
+                            className="text-black"
+                          >
                             <a href={auth.signup.url}>{auth.signup.title}</a>
                           </Button>
                         </>
@@ -264,7 +340,9 @@ const renderMenuItem = (item: MenuItem, isHomepage: boolean) => {
         asChild
         variant="ghost"
         size="sm"
-        className={`${isHomepage ? "text-white" : "text-black"} !hover:bg-transparent !hover:text-inherit`}
+        className={`${
+          isHomepage ? "text-white" : "text-black"
+        } !hover:bg-transparent !hover:text-inherit`}
       >
         <Link href={item.url}>{item.title}</Link>
       </Button>
