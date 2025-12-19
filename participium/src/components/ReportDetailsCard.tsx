@@ -21,7 +21,6 @@ import {
 import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
 import MaintainerActionPanel from "@/app/maintainer/my-reports/MaintainerActionPanel";
 import ChatPanel, { ChatMessage } from "./ChatPanel";
-import { getReportMessages, sendMessage } from "@/app/lib/controllers/message.controller";
 import dynamic from "next/dynamic";
 import OfficerReportMenu from "./OfficerReportMenu";
 import { is } from "zod/v4/locales";
@@ -116,7 +115,7 @@ export default function ReportDetailsCard({
   // show chat only if the user is the report creator or the assigned officer
   const isReportCreator = session?.user?.id && report.citizenId && String(session.user.id) === String(report.citizenId);
   const isAssignedOfficer = session?.user?.id && report.officerId && String(session.user.id) === String(report.officerId);
-  const canViewChat = showChat && (isReportCreator || isAssignedOfficer);
+  const canViewChat = showChat && (isReportCreator || isAssignedOfficer || isOfficerMode || isMaintainerMode);
   
   const evidencePhotos = report.photoUrls || report.photos || [];
   const validDate = report.createdAt || new Date().toISOString();
@@ -128,9 +127,6 @@ export default function ReportDetailsCard({
     hour: "2-digit",
     minute: "2-digit",
   });
-
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
 
   const [isSending, setIsSending] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
@@ -249,16 +245,16 @@ export default function ReportDetailsCard({
   return (
     <div className="w-full h-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
-      <div className="flex items-start justify-between px-3 py-2 md:px-6 md:py-5 border-b bg-background flex-shrink-0">
-        <div className="space-y-1">
+      <div className="flex items-start justify-between px-4 py-3 md:px-6 md:py-5 border-b bg-background flex-shrink-0">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2 md:gap-3">
-            <h2 className="text-base md:text-xl font-bold tracking-tight text-foreground line-clamp-1">{report.title}</h2>
+            <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground line-clamp-1">{report.title}</h2>
             {getStatusBadge(report.status)}
           </div>
-          <div className="flex items-center text-xs md:text-sm text-muted-foreground gap-2 md:gap-4">
-            <span className="w-1 h-1 rounded-full bg-gray-300" />
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 md:w-3.5 h-3 md:h-3.5" />
+          <div className="flex items-center text-sm md:text-base text-muted-foreground gap-2 md:gap-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-4 md:w-4 h-4 md:h-4" />
               {formattedDate}
             </span>
           </div>
@@ -273,7 +269,7 @@ export default function ReportDetailsCard({
       </div>
 
       {/* Row with 3 columns: map | menu | chat/officer */}
-      <div className="flex flex-col md:flex-row items-stretch gap-4 p-4 md:p-6 overflow-hidden flex-1 min-h-0">
+      <div className={`flex flex-col ${canViewChat || isOfficerMode || isMaintainerMode ? 'md:flex-row' : 'md:flex-row'} items-stretch gap-4 p-4 md:p-6 overflow-hidden flex-1 min-h-0`}>
         {/* MAP - left (hidden on mobile; available as overlay via button) */}
         {(isOfficerMode || isAssignedOfficer || isMaintainerMode) && (<div className="hidden md:flex md:flex-1 min-h-0 rounded-lg overflow-hidden border border-border bg-muted/5">
           <div className="w-full h-full">
@@ -294,42 +290,42 @@ export default function ReportDetailsCard({
         </div>)}
  
          {/* MENU - center (fills the available space, internal scroll) */}
-         <div className="flex-1 min-h-0 rounded-lg border border-border bg-muted/10 p-3 overflow-auto">
+         <div className={`${canViewChat || isOfficerMode || isMaintainerMode ? 'flex-1' : 'flex-1'} min-h-0 rounded-lg border border-border bg-muted/10 p-3 overflow-auto`}>
            <div className="space-y-4">
              <div className="p-1 bg-muted/30 rounded-lg border border-border/50">
                <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
                  <Tag className="w-3 h-3" /> Category
                </div>
-               <div className="font-medium text-sm text-foreground">
+               <div className="font-medium text-base text-foreground">
                  {formatCategory(report.category)}
                </div>
              </div>
  
-             <div className="p-1 bg-muted/30 rounded-lg border border-border/50">
-               <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
-                 <User className="w-3 h-3" /> Reported By
+             <div className="p-3 bg-muted/30 rounded-lg border border-border/50">
+               <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                 <User className="w-4 h-4" /> Reported By
                </div>
-               <div className="font-medium text-sm text-foreground">
+               <div className="font-medium text-base text-foreground">
                  {report.reporterName || "Anonymous"}
                </div>
              </div>
  
-             <div className="space-y-2">
-               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                 <AlertCircle className="w-4 h-4 text-primary" /> Problem Description
+             <div className="space-y-3">
+               <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                 <AlertCircle className="w-5 h-5 text-primary" /> Problem Description
                </h3>
-               <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+               <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
                  {report.description}
                </p>
              </div>
  
              <div>
-               <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                 Evidence Photos <Badge variant="outline" className="ml-2 text-muted-foreground font-normal">{evidencePhotos.length}</Badge>
+               <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                 Evidence Photos <Badge variant="outline" className="ml-2 text-muted-foreground font-normal text-xs">{evidencePhotos.length}</Badge>
                </h4>
  
                {evidencePhotos.length > 0 ? (
-                 <div className="grid grid-cols-2 gap-2">
+                 <div className="grid grid-cols-2 gap-3">
                    {evidencePhotos.slice(0,4).map((url, index) => (
                      <div key={index} className="relative aspect-video rounded-md overflow-hidden border bg-muted">
                        <img
@@ -343,7 +339,7 @@ export default function ReportDetailsCard({
                    ))}
                  </div>
                ) : (
-                 <div className="h-16 border-2 border-dashed border-muted rounded-lg flex items-center justify-center text-muted-foreground bg-muted/10 text-xs">
+                 <div className="h-20 border-2 border-dashed border-muted rounded-lg flex items-center justify-center text-muted-foreground bg-muted/10 text-sm">
                    No photos attached
                  </div>
                )}
@@ -351,46 +347,47 @@ export default function ReportDetailsCard({
            </div>
          </div>
  
-        {/* CHAT / OFFICER - right (fills the available space) */}
+        {/* CHAT / OFFICER - right (fills the available space) - Only show if user can interact */}
+        {canViewChat && (
         <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex flex-col relative">
           {/* Header / Toggle (in-flow, non overlaid) */}
-          <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/5 flex-shrink-0">
+          <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/5 flex-shrink-0">
             {/* CASE 1: canViewChat && isAssignedOfficer - show tabs */}
             {((canViewChat && isAssignedOfficer)|| isMaintainerMode) && (
-              <div className="flex items-center gap-1 bg-muted/10 p-0 rounded-md">
+              <div className="flex items-center gap-1.5 bg-muted/10 p-1 rounded-md">
                 {!isMaintainerMode && (<button
                   onClick={() => setSeeOfficerChat(1)}
                   aria-pressed={seeOfficerChat === 1}
-                  className={`flex items-center gap-2 px-1 py-1 rounded text-xs transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                  className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
                 >
-                  <MessageSquare className="w-4 h-4" />
+                  <MessageSquare className="w-5 h-5" />
                   <span className="hidden xl:inline">Chat</span>
                 </button>)}
 
                 {isMaintainerMode && (<button
                   onClick={() => setSeeOfficerChat(1)}
                   aria-pressed={seeOfficerChat === 1}
-                  className={`flex items-center gap-2 px-1 py-1 rounded text-xs transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                  className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
                 >
-                  <Menu className="w-4 h-4" />
+                  <Menu className="w-5 h-5" />
                   <span className="hidden xl:inline">Menu</span>
                 </button>)}
 
                 <button
                   onClick={() => setSeeOfficerChat(2)}
                   aria-pressed={seeOfficerChat === 2}
-                  className={`flex items-center gap-2 px-1 py-1 rounded text-xs transition-colors ${seeOfficerChat === 2 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                  className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 2 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
                 >
-                  <StickyNote className="w-4 h-4" />
+                  <StickyNote className="w-5 h-5" />
                   <span className="hidden xl:inline">Internal Notes</span>
                 </button>
 
                 {!isMaintainerMode && (<button
                   onClick={() => setSeeOfficerChat(3)}
                   aria-pressed={seeOfficerChat === 3}
-                  className={`flex items-center gap-2 px-1 py-1 rounded text-xs transition-colors ${seeOfficerChat === 3 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                  className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 3 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
                 >
-                  <Menu className="w-4 h-4" />
+                  <Menu className="w-5 h-5" />
                   <span className="hidden xl:inline">Menu</span>
                 </button>)}
               </div>
@@ -408,15 +405,13 @@ export default function ReportDetailsCard({
           </div>
 
           {/* Content area */}
-          <div className="flex-1 min-h-0 overflow-auto p-3">
+          <div className="flex-1 min-h-0 overflow-auto p-4">
             {/* CASE 1: canViewChat && isAssignedOfficer && seeOfficerChat === 1 (Chat) */}
             {canViewChat && isAssignedOfficer && seeOfficerChat === 1 && (
               <ChatPanel
                 reportId={report.id}
                 currentUserRole={currentUserRole}
                 currentUserId={session?.user?.id || ""}
-                messages={messages}
-                onSendMessage={handleSendMessage}
               />
             )}
 
@@ -429,6 +424,7 @@ export default function ReportDetailsCard({
             {canViewChat && isAssignedOfficer && seeOfficerChat === 3 && (
               <OfficerReportMenu
                 reportId={report.id}
+                reportTitle={report.title}
                 status={report.status}
                 companyId={report.companyId || ""}
                 setRefreshFlag={setRefreshFlag!}
@@ -443,8 +439,6 @@ export default function ReportDetailsCard({
                 reportId={report.id}
                 currentUserRole={currentUserRole}
                 currentUserId={session?.user?.id || ""}
-                messages={messages}
-                onSendMessage={handleSendMessage}
               />
             )}
 
@@ -475,6 +469,7 @@ export default function ReportDetailsCard({
 
           </div>
         </div>
+        )}
       </div>
       
       {/* Mobile map overlay (on top of modal) */}

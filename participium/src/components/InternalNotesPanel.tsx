@@ -24,7 +24,7 @@ export default function InternalNotesPanel({
         setInternalNotes(
           res.data.map((c) => ({
             id: c.id.toString(),
-            authorName: c.author.firstName + " " + c.author.lastName,
+            authorName: c.author ? c.author.firstName + " " + c.author.lastName : "Anonymous",
             content: c.content,
             createdAt: c.createdAt.toString(),
           }))
@@ -45,7 +45,7 @@ export default function InternalNotesPanel({
         const c = res.data;
         const note: InternalNote = {
           id: c.id.toString(),
-          authorName: c.author.firstName + " " + c.author.lastName,
+          authorName: c.author ? c.author.firstName + " " + c.author.lastName : "Anonymous",
           content: c.content,
           createdAt: c.createdAt,
         };
