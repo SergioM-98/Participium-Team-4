@@ -328,7 +328,7 @@ export default function FileUpload01({ location: locationProp }: Readonly<FileUp
                       <SelectItem value="ROADS_SIGNS_AND_TRAFFIC_LIGHTS">Roads, signs and traffic lights</SelectItem>
                       <SelectItem value="ROADS_AND_URBAN_FURNISHINGS">Roads and urban furnishings</SelectItem>
                       <SelectItem value="PUBLIC_GREEN_AREAS_AND_BACKGROUNDS">Public green areas and backgrounds</SelectItem>
-                      <SelectItem value="OTHER">Other</SelectItem>
+
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -470,23 +470,39 @@ export default function FileUpload01({ location: locationProp }: Readonly<FileUp
               );
             })}
           </div>
-          {/* <div className="px-6 pb-4">
-            <div className="flex items-center space-x-2">
+
+          <div className="px-6 pb-4 mt-2">
+            <div className="flex items-start space-x-3 p-4 bg-muted/30 rounded-lg border border-border">
               <input
                 type="checkbox"
                 id="anonymous"
                 checked={isAnonymous}
                 onChange={(e) => setIsAnonymous(e.target.checked)}
-                className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                className="h-4 w-4 mt-0.5 text-primary focus:ring-primary border-gray-300 rounded cursor-pointer"
               />
-              <Label htmlFor="anonymous" className="text-sm text-foreground cursor-pointer">
-                Submit report anonymously
-              </Label>
+              <div className="flex-1">
+                <Label htmlFor="anonymous" className="text-sm font-medium text-foreground cursor-pointer flex items-center gap-2">
+                  Submit report anonymously
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-[250px]">
+                        <p className="text-xs">
+                          When enabled, your name will not be shown in the public list of reports. 
+                          Only you and municipal officers can see your identity.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Your personal information will not be shared publicly with this report
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-1 ml-6">
-              Your personal information will not be shared with this report
-            </p>
-          </div> */}
+          </div>
 
           <div className="px-6 py-3 border-t border-border bg-muted rounded-b-lg flex justify-between items-center">
             <TooltipProvider delayDuration={0}>

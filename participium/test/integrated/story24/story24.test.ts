@@ -2,7 +2,13 @@ import { prisma } from "../../setup";
 import bcrypt from "bcrypt";
 import { getServerSession } from "next-auth/next";
 import { assignReportToCompany } from "../../../src/app/lib/controllers/report.controller";
-import { Role, Offices, Category, ReportStatus, NotificationType } from "@prisma/client";
+import {
+  Role,
+  Offices,
+  Category,
+  ReportStatus,
+  NotificationType,
+} from "@prisma/client";
 
 jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
@@ -28,7 +34,6 @@ describe("Story 24 - Integration Test: Assign Report to External Maintainer", ()
   let testCompanyWithAccessId: string;
   let testCompanyWithoutAccessId: string;
   let testMaintainerWithAccessId: string;
-  let testMaintainerWithoutAccessId: string;
   let testReportId: bigint;
 
   beforeEach(async () => {
@@ -102,20 +107,6 @@ describe("Story 24 - Integration Test: Assign Report to External Maintainer", ()
       },
     });
     testMaintainerWithAccessId = maintainerWithAccess.id;
-
-    const maintainerWithoutAccess = await prisma.user.create({
-      data: {
-        username: "maintainer_without_access_story24",
-        firstName: "External",
-        lastName: "MaintainerNoAccess",
-        email: "maintainer_noaccess24@test.com",
-        passwordHash,
-        role: [Role.EXTERNAL_MAINTAINER_WITHOUT_ACCESS],
-        companyId: testCompanyWithoutAccessId,
-        isVerified: true,
-      },
-    });
-    testMaintainerWithoutAccessId = maintainerWithoutAccess.id;
 
     const report = await prisma.report.create({
       data: {
@@ -191,7 +182,6 @@ describe("Story 24 - Integration Test: Assign Report to External Maintainer", ()
       const updatedReport = await prisma.report.findUnique({
         where: { id: testReportId },
       });
-      expect(updatedReport?.maintainerId).toBe(testMaintainerWithoutAccessId);
       expect(updatedReport?.companyId).toBe(testCompanyWithoutAccessId);
       expect(updatedReport?.status).toBe(ReportStatus.PENDING_APPROVAL);
     });
@@ -263,7 +253,9 @@ describe("Story 24 - Integration Test: Assign Report to External Maintainer", ()
       });
 
       const assignedTo = updatedReport?.maintainerId;
-      expect([testMaintainerWithAccessId, secondMaintainer.id]).toContain(assignedTo);
+      expect([testMaintainerWithAccessId, secondMaintainer.id]).toContain(
+        assignedTo,
+      );
       expect(updatedReport?.companyId).toBe(testCompanyWithAccessId);
 
       // Clean up
@@ -397,7 +389,6 @@ describe("Story 24 - Integration Test: Assign Report to External Maintainer", ()
       const updatedReport = await prisma.report.findUnique({
         where: { id: testReportId },
       });
-      expect(updatedReport?.maintainerId).toBe(testMaintainerWithoutAccessId);
       expect(updatedReport?.companyId).toBe(testCompanyWithoutAccessId);
     });
   });

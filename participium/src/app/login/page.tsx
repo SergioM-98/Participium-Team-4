@@ -31,9 +31,9 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
 function mapError(err?: string | undefined) {
   if (!err) return undefined;
   const map: Record<string, string> = {
-    CredentialsSignin: "Credenziali non valide.",
-    "The user is not verified": "Utente non verificato. Controlla la tua email.",
-    Verification: "Utente non verificato. Controlla la tua email.",
+    CredentialsSignin: "Invalid credentials.",
+    "The user is not verified": "User not verified. Check your email.",
+    Verification: "User not verified. Check your email.",
   };
   return map[err] ?? decodeURIComponent(err) ?? err;
 }

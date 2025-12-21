@@ -9,7 +9,7 @@ export const categoryEnum = z.enum([
   "ROADS_SIGNS_AND_TRAFFIC_LIGHTS",
   "ROADS_AND_URBAN_FURNISHINGS",
   "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS",
-  "OTHER",
+
 ]);
 
 export const reportBaseSchema = z.object({
@@ -29,6 +29,11 @@ export const reportRequestSchema = reportBaseSchema.extend({
 export const retrieveReportResponseSchema = reportBaseSchema.extend({
   id: z.string(),
 });
+
+export const retrieveReportByCitizenResponseSchema =
+  retrieveReportResponseSchema.extend({
+    status: z.string().optional(),
+  });
 
 export const retrieveReportsByOfficerResponseSchema = reportBaseSchema.extend({
   id: z.string(),
@@ -65,14 +70,30 @@ export const reportResponseSchema = z.object({
   title: z.string().min(5).max(100),
   description: z.string(),
   category: z.string(),
-  createdAt: z.string().refine((val) => !isNaN(Date.parse(val)), {
+  createdAt: z.string().refine((val) => !Number.isNaN(Date.parse(val)), {
     message: "Invalid date format",
   }),
 });
 
+export const testReportSchema = z.object({
+  id: z.bigint(),
+  title: z.string(),
+  description: z.string(),
+  citizenId: z.string(),
+  longitude: z.number(),
+  latitude: z.number(),
+  status: z.string(),
+  createdAt: z.date(),
+  category: z.string().optional(),
+  officerId: z.string().nullable().optional(),
+  companyId: z.string().nullable().optional(),
+});
+
 export type Report = z.infer<typeof reportBaseSchema>;
 export type Category = z.infer<typeof categoryEnum>;
-
+export type CitizenReport = z.infer<
+  typeof retrieveReportByCitizenResponseSchema
+>;
 export type ReportRequest = z.infer<typeof reportRequestSchema>;
 export type ReportResponse = z.infer<typeof reportResponseSchema>;
 
@@ -86,12 +107,18 @@ export type UnassignedReport = z.infer<
   typeof rertieveUnassignedReportResponseSchema
 >;
 
+export type TestReport = z.infer<typeof testReportSchema>;
+
 export type ReportsUnassignedResponse =
   | { success: true; data: UnassignedReport[] }
   | { success: false; error: string };
 
 export type ReportsByOfficerResponse =
   | { success: true; data: RetrieveReportByAssignee[] }
+  | { success: false; error: string };
+
+export type ReportsByCitizenResponse =
+  | { success: true; data: CitizenReport[] }
   | { success: false; error: string };
 
 export type ReportRegistrationResponse =
@@ -108,4 +135,16 @@ export type ReportListResponse =
 
 export type AssignReportToOfficerResponse =
   | { success: true; data: string }
+  | { success: false; error: string };
+
+export type AssignReportToMaintainerResponse =
+  | { success: true; data: string; access: boolean; email: string | null }
+  | { success: false; error: string };
+
+export type UpdateReportStatusResponse =
+  | { success: true; data: string }
+  | { success: false; error: string };
+
+export type ReportDetailResponse =
+  | { success: true; data: CitizenReport[] }
   | { success: false; error: string };

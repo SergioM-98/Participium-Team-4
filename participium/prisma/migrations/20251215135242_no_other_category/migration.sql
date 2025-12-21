@@ -1,0 +1,30 @@
+/*
+  Warnings:
+
+  - The values [OTHER] on the enum `Category` will be removed. If these variants are still used in the database, this will fail.
+  - The values [OTHER] on the enum `Offices` will be removed. If these variants are still used in the database, this will fail.
+
+*/
+-- AlterEnum
+BEGIN;
+CREATE TYPE "Category_new" AS ENUM ('WATER_SUPPLY', 'ARCHITECTURAL_BARRIERS', 'SEWER_SYSTEM', 'PUBLIC_LIGHTING', 'WASTE', 'ROADS_SIGNS_AND_TRAFFIC_LIGHTS', 'ROADS_AND_URBAN_FURNISHINGS', 'PUBLIC_GREEN_AREAS_AND_BACKGROUNDS');
+ALTER TABLE "public"."report" ALTER COLUMN "category" DROP DEFAULT;
+ALTER TABLE "report" ALTER COLUMN "category" TYPE "Category_new" USING ("category"::text::"Category_new");
+ALTER TYPE "Category" RENAME TO "Category_old";
+ALTER TYPE "Category_new" RENAME TO "Category";
+DROP TYPE "public"."Category_old";
+COMMIT;
+
+-- AlterEnum
+BEGIN;
+CREATE TYPE "Offices_new" AS ENUM ('DEPARTMENT_OF_COMMERCE', 'DEPARTMENT_OF_EDUCATIONAL_SERVICES', 'DEPARTMENT_OF_DECENTRALIZATION_AND_CIVIC_SERVICES', 'DEPARTMENT_OF_SOCIAL_HEALTH_AND_HOUSING_SERVICES', 'DEPARTMENT_OF_INTERNAL_SERVICES', 'DEPARTMENT_OF_CULTURE_SPORT_MAJOR_EVENTS_AND_TOURISM_PROMOTION', 'DEPARTMENT_OF_FINANCIAL_RESOURCES', 'DEPARTMENT_OF_GENERAL_SERVICES_PROCUREMENT_AND_SUPPLIES', 'DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES', 'DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING', 'DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY', 'DEPARTMENT_OF_LOCAL_POLICE');
+ALTER TABLE "public"."user" ALTER COLUMN "office" DROP DEFAULT;
+ALTER TABLE "user" ALTER COLUMN "office" TYPE "Offices_new"[] USING ("office"::text::"Offices_new"[]);
+ALTER TYPE "Offices" RENAME TO "Offices_old";
+ALTER TYPE "Offices_new" RENAME TO "Offices";
+DROP TYPE "public"."Offices_old";
+ALTER TABLE "user" ALTER COLUMN "office" SET DEFAULT ARRAY[]::"Offices"[];
+COMMIT;
+
+-- AlterTable
+ALTER TABLE "report" ALTER COLUMN "category" DROP DEFAULT;

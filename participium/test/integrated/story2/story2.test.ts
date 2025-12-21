@@ -110,7 +110,6 @@ describe("Story 2 - Integration Test: Officer Registration by Admin", () => {
         "DEPARTMENT_OF_LOCAL_POLICE",
         "DEPARTMENT_OF_EDUCATIONAL_SERVICES",
         "DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY",
-        "OTHER",
       ];
 
       for (const office of offices) {
