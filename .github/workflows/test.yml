@@ -52,10 +52,21 @@ jobs:
       env:
         DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
 
+    - name: Install bot dependencies
+      run: npm i
+      working-directory: bot
+
     - name: Run all tests with coverage
       working-directory: participium
       run: npm run test:ci:all
       env:
         DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
+        NODE_ENV: test
+        CI: true
+
+    - name: Run bot tests
+      working-directory: bot
+      run: npm run test
+      env:
         NODE_ENV: test
         CI: true
