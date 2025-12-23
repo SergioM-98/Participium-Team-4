@@ -140,8 +140,8 @@ class ReportAssignmentService {
       );
     } else {
       // If no access, just get the report without assigning a specific maintainer
-      report = (await this.reportRepository.getReportById(reportId)) as any;
-      if (!report.success) {
+      report = await this.reportRepository.getReportById(reportId);
+      if (!report.success || !report.data) {
         throw new Error(`Report with ID ${reportId} not found`);
       }
       report = report.data;
