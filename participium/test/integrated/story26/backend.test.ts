@@ -1,10 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 import {
   createComment,
   getReportComments,
 } from "@/app/lib/controllers/comment.controller";
 import { getServerSession } from "next-auth/next";
-import { TestUser } from "@/app/lib/dtos/user.dto";
 import { TestReport } from "@/app/lib/dtos/report.dto";
 
 jest.mock("next-auth/next", () => ({
@@ -19,11 +18,11 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 describe("Comment Backend Integration Tests (Story 26)", () => {
   let prisma: PrismaClient;
-  let testTechnicalOfficer: TestUser;
-  let testExternalMaintainer: TestUser;
-  let testCitizen: TestUser;
+  let testTechnicalOfficer: User;
+  let testExternalMaintainer: User;
+  let testCitizen: User;
   let testReport: TestReport;
-  let anotherTechnicalOfficer: TestUser;
+  let anotherTechnicalOfficer: User;
   let secondReport: TestReport;
 
   beforeAll(async () => {
@@ -47,7 +46,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
       },
     });
-    testTechnicalOfficer = createdOfficer as TestUser;
+    testTechnicalOfficer = createdOfficer;
 
     const createdExternalMaintainer = await prisma.user.create({
       data: {
@@ -60,7 +59,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         office: ["DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"],
       },
     });
-    testExternalMaintainer = createdExternalMaintainer as TestUser;
+    testExternalMaintainer = createdExternalMaintainer;
 
     const createdSecondOfficer = await prisma.user.create({
       data: {
@@ -70,10 +69,12 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         username: "janesmith",
         role: ["TECHNICAL_OFFICER" as const],
         passwordHash: "hashedpassword",
-        office: ["DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY"],
+        office: [
+          "DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY",
+        ],
       },
     });
-    anotherTechnicalOfficer = createdSecondOfficer as TestUser;
+    anotherTechnicalOfficer = createdSecondOfficer;
 
     const createdCitizen = await prisma.user.create({
       data: {
@@ -86,7 +87,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         isVerified: true,
       },
     });
-    testCitizen = createdCitizen as TestUser;
+    testCitizen = createdCitizen;
 
     const createdReport = await prisma.report.create({
       data: {
@@ -96,6 +97,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         longitude: 15.087269,
         latitude: 37.502669,
         status: "ASSIGNED",
+        category: "WATER_SUPPLY",
       },
     });
     testReport = createdReport;
@@ -108,6 +110,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         longitude: 15.087269,
         latitude: 37.502669,
         status: "ASSIGNED",
+        category: "WATER_SUPPLY",
       },
     });
     secondReport = createdSecondReport;
@@ -140,7 +143,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
 
         expect(dbComment).toBeDefined();
         expect(dbComment?.content).toBe("Full stack integration test");
-        expect(dbComment?.author.username).toBe("johndoe");
+        expect(dbComment?.author?.username).toBe("johndoe");
         expect(dbComment?.report.id).toBe(testReport.id);
       }
     });
@@ -150,7 +153,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
         user: {
           id: testExternalMaintainer.id,
           email: testExternalMaintainer.email,
-          role: "EXTERNAL_MAINTAINER_WITH_ACCESS",
+          role: ["EXTERNAL_MAINTAINER_WITH_ACCESS"],
         },
       });
 
@@ -171,7 +174,7 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
 
         expect(dbComment).toBeDefined();
         expect(dbComment?.content).toBe("Full stack integration test");
-        expect(dbComment?.author.username).toBe("externalmaintainer");
+        expect(dbComment?.author?.username).toBe("externalmaintainer");
         expect(dbComment?.report.id).toBe(testReport.id);
       }
     });

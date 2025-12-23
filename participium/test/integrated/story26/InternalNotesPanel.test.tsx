@@ -67,7 +67,7 @@ describe('InternalNotesPanel - Integration Tests (Real Database)', () => {
         longitude: 15.087269,
         latitude: 37.502669,
         status: 'ASSIGNED',
-        category: 'OTHER',
+        category: 'WATER_SUPPLY',
       },
     });
     testReport = createdReport as TestReport;
@@ -145,6 +145,7 @@ describe('InternalNotesPanel - Integration Tests (Real Database)', () => {
           longitude: 15.087269,
           latitude: 37.502669,
           status: 'ASSIGNED',
+          category: 'WATER_SUPPLY',
         },
       });
 
@@ -195,6 +196,7 @@ describe('InternalNotesPanel - Integration Tests (Real Database)', () => {
           longitude: 15.087269,
           latitude: 37.502669,
           status: 'ASSIGNED',
+          category: 'WATER_SUPPLY',
         },
       });
 

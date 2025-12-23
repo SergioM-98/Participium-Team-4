@@ -158,7 +158,14 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
   });
 
   describe("Approved Reports Map Display Flow", () => {
-    it("should return only approved (ASSIGNED) reports for the map", async () => {
+    it("should return only approved (ASSIGNED) and pending (PENDING_APPROVAL) reports for the map", async () => {
+      (getServerSession as jest.Mock).mockResolvedValue({
+        user: {
+          id: testCitizenId,
+          role: ["CITIZEN"],
+        },
+      });
+
       const result = await getReportsForMap();
 
       expect(result.success).toBe(true);
@@ -176,14 +183,18 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
         expect(approvedReport.latitude).toBe(45.0703);
         expect(approvedReport.longitude).toBe(7.6869);
         expect(approvedReport.category).toBe("ROADS_AND_URBAN_FURNISHINGS");
-        expect(approvedReport.username).toBe("testcitizen_story7");
+        expect(approvedReport.citizenUsername).toBe("testcitizen_story7");
       }
 
-      // Verify pending report is NOT in the results
+      // Verify pending report IS in the results because it was created by the citizen
       const pendingReport = result.data?.find(
         (r: any) => r.id === pendingReportId.toString(),
       );
       expect(pendingReport).toBeDefined();
+      if (pendingReport) {
+        expect(pendingReport.title).toBe("Pending Report Not On Map");
+        expect(pendingReport.status).toBe("PENDING_APPROVAL");
+      }
     });
 
     it("should return reports with required fields for map visualization", async () => {

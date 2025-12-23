@@ -7,7 +7,7 @@ const BaseUserSchema = z
     lastName: z.string().min(1, "Last name is required"),
     email: z.email("Invalid email").optional(),
     username: z.string().min(3, "Username must be at least 3 characters"),
-    role: z.array(z.enum(Role)).min(1, "At least one role is required"),    
+    role: z.array(z.enum(Role)).min(1, "At least one role is required"),
     office: z.array(z.enum(Offices)).default([]),
     telegram: z.string().optional(),
     companyId: z.string().optional(),
@@ -49,8 +49,9 @@ const BaseUserSchema = z
   )
   .refine(
     (data) => {
-      const isExternalMaintainer =
-        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS");
+      const isExternalMaintainer = data.role.includes(
+        "EXTERNAL_MAINTAINER_WITH_ACCESS",
+      );
 
       if (isExternalMaintainer) {
         return !!data.companyId;
@@ -147,8 +148,9 @@ export const RetrievedUserDataSchema = z
   )
   .refine(
     (data) => {
-      const isExternalMaintainer =
-        data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS");
+      const isExternalMaintainer = data.role.includes(
+        "EXTERNAL_MAINTAINER_WITH_ACCESS",
+      );
 
       if (isExternalMaintainer) {
         return !!data.companyId;
@@ -207,7 +209,7 @@ export const TestUserSchema = z.object({
   lastName: z.string(),
   email: z.string().nullable(),
   username: z.string(),
-  role: z.enum(Role),
+  role: z.array(z.enum(Role)).min(1, "At least one role is required"),
   passwordHash: z.string(),
   office: z.enum(Offices).nullable().optional(),
   telegramChatId: z.string().nullable().optional(),
@@ -233,16 +235,18 @@ export type LoginResponse =
   | { success: true; data: RetrievedUserData }
   | { success: false; error: string };
 export type MeType = {
-    me: z.infer<typeof RetrievedUserDataSchema>;
-    emailNotifications: boolean;
-    telegramNotifications: boolean;
-    companyName?: string
+  me: z.infer<typeof RetrievedUserDataSchema>;
+  emailNotifications: boolean;
+  telegramNotifications: boolean;
+  companyName?: string;
 };
 
-export type getAllOfficersResponse = {
-  success: true;
-  data: z.infer<typeof OfficerUserSchema>[];
-} | {
-  success: false;
-  error: string;
-};
+export type getAllOfficersResponse =
+  | {
+      success: true;
+      data: z.infer<typeof OfficerUserSchema>[];
+    }
+  | {
+      success: false;
+      error: string;
+    };
