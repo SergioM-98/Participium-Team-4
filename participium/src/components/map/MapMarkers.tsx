@@ -1,6 +1,5 @@
 import { Marker, useMapEvents } from "react-leaflet";
-import { LatLngExpression } from "leaflet";
-import L from "leaflet";
+import L, { LatLngExpression } from "leaflet";
 import { isPointInPolygon } from "./utils";
 
 export default function MapMarkers({
@@ -21,18 +20,17 @@ export default function MapMarkers({
             if (disabled) return;
             // add markers only inside the city polygons
             if (
-                cityPolygons.some((polygon) => isPointInPolygon(e.latlng, polygon))
+                cityPolygons.some((polygon) => isPointInPolygon(e.latlng, polygon)) ||
+                cityPolygons.length === 0
             ) {
-                onMapClick(e.latlng);
-            } else if (cityPolygons.length === 0) {
                 onMapClick(e.latlng);
             }
         },
     });
     return (
         <>
-            {markers.map((pos, idx) => (
-                <Marker key={idx} position={pos} icon={markerIcon} />
+            {markers.map((pos, index) => (
+                <Marker key={index} position={pos} icon={markerIcon} />
             ))}
         </>
     );

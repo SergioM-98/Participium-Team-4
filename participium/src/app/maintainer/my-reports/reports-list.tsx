@@ -352,6 +352,7 @@ export default function ReportsList({ maintainerId }: Readonly<ReportsListProps>
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300"
           onClick={() => setSelectedReport(null)}
+          role="dialog" aria-modal="true" aria-label="Report Details"
         >
           <div
             className="relative w-full max-w-sm sm:max-w-md md:max-w-3xl lg:max-w-5xl xl:max-w-6xl h-[90vh] max-h-[90vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"

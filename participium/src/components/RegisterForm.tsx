@@ -50,9 +50,7 @@ export default function RegisterForm() {
     // This marks the update as a transition and sets isPending to true
     startTransition(async () => {
       const response = await register(formData);
-      if (!response.success) {
-        setError(response.error);
-      } else {
+      if (response.success) {
         // For CITIZEN users, redirect to verification page
         if (response.pendingVerification) {
           router.push(`/verify?email=${encodeURIComponent(email)}`);
@@ -60,6 +58,8 @@ export default function RegisterForm() {
           // For other roles, redirect to login
           router.push("/login?registered=true");
         }
+      } else {
+        setError(response.error);
       }
     });
   };

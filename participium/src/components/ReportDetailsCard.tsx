@@ -15,7 +15,6 @@ import {
   MessageSquare,
   Menu,
   StickyNote,
-  ShieldAlert
 } from "lucide-react";
 
 import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
@@ -23,7 +22,6 @@ import MaintainerActionPanel from "@/app/maintainer/my-reports/MaintainerActionP
 import ChatPanel, { ChatMessage } from "./ChatPanel";
 import dynamic from "next/dynamic";
 import OfficerReportMenu from "./OfficerReportMenu";
-import { is } from "zod/v4/locales";
 import InternalNotesPanel from "./InternalNotesPanel";
 
 const LeafletMapFixed = dynamic(() => import("./LeafletMapFixed"), {
