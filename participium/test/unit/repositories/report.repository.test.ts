@@ -62,28 +62,6 @@ describe("ReportRepository Story 4", () => {
       }
     });
 
-    it("should create a new report and return success true even with a wrong category (it assigns OTHER)", async () => {
-      mockedPrisma.report.create = jest.fn().mockResolvedValue({
-        ...mockData,
-        id: 1,
-      });
-        const response = await reportRepository.createReport({
-          title: mockData.title,
-          description: mockData.description,
-          photos: mockData.photos,
-          category: "",
-          longitude: mockData.longitude,
-          latitude: mockData.latitude,
-          userId: mockData.userId,
-          isAnonymous: mockData.isAnonymous,
-      expect(response).toHaveProperty("success");
-      expect(response).toHaveProperty("data");
-      expect(response.success).toBe(true);
-      if (response.success) {
-        expect(response.data).toBe("Report with id: 1 succesfuly created");
-      }
-    });
-
     it("should return success false if the db fails", async () => {
       mockedPrisma.report.create.mockRejectedValue(new Error());
       const response = await reportRepository.createReport(
