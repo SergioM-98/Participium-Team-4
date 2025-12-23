@@ -24,11 +24,10 @@ import {
   Loader2,
   AlertCircle,
 } from "lucide-react";
-import { getReportsByMaintainerId, getReportsByOfficerId } from "@/controllers/report.controller";
+import { getReportsByMaintainerId } from "@/controllers/report.controller";
 import type { RetrieveReportByAssignee } from "@/dtos/report.dto";
 import { getPhoto } from "@/controllers/photo.controller";
 import ReportDetailsCard from "@/components/ReportDetailsCard";
-import { Category } from "@prisma/client";
 
 type Report = RetrieveReportByAssignee;
 
@@ -113,31 +112,26 @@ export default function ReportsList({ maintainerId }: Readonly<ReportsListProps>
 
   useEffect(() => {
     async function fetchPhotos() {
-      try {
-        if (reports && reports.length > 0) {
-          const cache: Record<string, string> = {};
+      if (!reports?.length) return;
 
-          for (const report of reports) {
-            for (const photoFileName of report.photos) {
-              if (cache[photoFileName]) continue;
+      const cache: Record<string, string> = {};
+      const uniquePhotos = [...new Set(reports.flatMap(r => r.photos))];
 
-              const photoResponse = await getPhoto(photoFileName);
-              if (photoResponse.success && photoResponse.data) {
-                cache[photoFileName] = photoResponse.data;
-              }
-            }
+      for (const photoFileName of uniquePhotos) {
+        try {
+          const photoResponse = await getPhoto(photoFileName);
+          if (photoResponse.success && photoResponse.data) {
+            cache[photoFileName] = photoResponse.data;
           }
-
-          setPhotoCache(cache);
+        } catch (err) {
+          console.error(`Failed to fetch photo ${photoFileName}:`, err);
         }
-      } catch (err) {
-        console.error("Failed to fetch photos:", err);
       }
+
+      setPhotoCache(cache);
     }
 
-    if (reports.length > 0) {
-      fetchPhotos();
-    }
+    fetchPhotos();
   }, [reports]);
 
   const filteredReports = reports.filter((report) => {
@@ -317,13 +311,13 @@ export default function ReportsList({ maintainerId }: Readonly<ReportsListProps>
                   <div className="flex gap-2 overflow-x-auto">
                     {report.photos.map((photoFileName, index) => (
                       <div
-                        key={index}
+                        key={photoFileName}
                         className="w-20 h-20 bg-muted rounded-md shrink-0 flex items-center justify-center border overflow-hidden"
                       >
                         {photoCache[photoFileName] ? (
                           <img
                             src={photoCache[photoFileName]}
-                            alt={`Report photo ${index + 1}`}
+                            alt={`Report ${index + 1}`}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -387,7 +381,7 @@ export default function ReportsList({ maintainerId }: Readonly<ReportsListProps>
               onMaintainerActionComplete={() => {
                 setSelectedReport(null);
                 // Refresh the reports list
-                window.location.reload();
+                globalThis.location.reload();
               }}
             />
           </div>
