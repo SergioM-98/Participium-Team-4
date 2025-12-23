@@ -1,6 +1,7 @@
 import { RegistrationInput } from "../../../src/app/lib/dtos/user.dto";
 import { ReportRepository } from "../../../src/app/lib/repositories/report.repository";
 import { ReportRequest } from "../../../src/app/lib/dtos/report.dto";
+import { is } from "zod/v4/locales";
 
 jest.mock("@/db/db", () => ({
   prisma: {
@@ -43,15 +44,16 @@ describe("ReportRepository Story 4", () => {
         ...mockData,
         id: 1,
       });
-      const response = await reportRepository.createReport(
-        mockData.title,
-        mockData.description,
-        mockData.photos,
-        mockData.category,
-        mockData.longitude,
-        mockData.latitude,
-        mockData.userId
-      );
+      const response = await reportRepository.createReport({
+        title: mockData.title,
+        description: mockData.description,
+        photos: mockData.photos,
+        category: mockData.category,
+        longitude: mockData.longitude,
+        latitude: mockData.latitude,
+        userId: mockData.userId,
+        isAnonymous: mockData.isAnonymous,
+      });
       expect(response).toHaveProperty("success");
       expect(response).toHaveProperty("data");
       expect(response.success).toBe(true);
@@ -65,15 +67,15 @@ describe("ReportRepository Story 4", () => {
         ...mockData,
         id: 1,
       });
-      const response = await reportRepository.createReport(
-        mockData.title,
-        mockData.description,
-        mockData.photos,
-        "",
-        mockData.longitude,
-        mockData.latitude,
-        mockData.userId
-      );
+        const response = await reportRepository.createReport({
+          title: mockData.title,
+          description: mockData.description,
+          photos: mockData.photos,
+          category: "",
+          longitude: mockData.longitude,
+          latitude: mockData.latitude,
+          userId: mockData.userId,
+          isAnonymous: mockData.isAnonymous,
       expect(response).toHaveProperty("success");
       expect(response).toHaveProperty("data");
       expect(response.success).toBe(true);
@@ -91,7 +93,7 @@ describe("ReportRepository Story 4", () => {
         mockData.category,
         mockData.longitude,
         mockData.latitude,
-        mockData.userId
+        mockData.userId,
       );
       expect(response.success).toBe(false);
       expect(response).toHaveProperty("error");
@@ -110,7 +112,7 @@ describe("ReportRepository Story 4", () => {
       mockedPrisma.user.findFirst = jest.fn().mockResolvedValue(mockOfficer);
 
       const response = await reportRepository.getOfficerWithLeastReports(
-        "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"
+        "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
       );
 
       expect(response).not.toBeNull();
@@ -122,7 +124,7 @@ describe("ReportRepository Story 4", () => {
       mockedPrisma.user.findFirst = jest.fn().mockResolvedValue(null);
 
       const response = await reportRepository.getOfficerWithLeastReports(
-        "DEPARTMENT_OF_COMMERCE"
+        "DEPARTMENT_OF_COMMERCE",
       );
 
       expect(response).toBeNull();
@@ -135,8 +137,8 @@ describe("ReportRepository Story 4", () => {
 
       await expect(
         reportRepository.getOfficerWithLeastReports(
-          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"
-        )
+          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+        ),
       ).rejects.toThrow("Database error");
     });
   });
@@ -182,7 +184,7 @@ describe("ReportRepository Story 4", () => {
         .mockRejectedValue(new Error("Database error"));
 
       await expect(
-        reportRepository.assignReportToOfficer(1, "2")
+        reportRepository.assignReportToOfficer(1, "2"),
       ).rejects.toThrow("Database error");
     });
   });
@@ -209,7 +211,7 @@ describe("ReportRepository Story 4", () => {
 
       const response = await reportRepository.rejectReport(
         1,
-        "Insufficient information"
+        "Insufficient information",
       );
 
       expect(response).toBeDefined();
@@ -231,7 +233,7 @@ describe("ReportRepository Story 4", () => {
         .mockRejectedValue(new Error("Database error"));
 
       await expect(
-        reportRepository.rejectReport(1, "Test reason")
+        reportRepository.rejectReport(1, "Test reason"),
       ).rejects.toThrow("Database error");
     });
 
@@ -268,14 +270,14 @@ describe("ReportRepository Story 4", () => {
         expect(response.data).toHaveProperty("title", "Sample Title");
         expect(response.data).toHaveProperty(
           "description",
-          "Sample Description"
+          "Sample Description",
         );
         expect(response.data).toHaveProperty("longitude", 7.693);
         expect(response.data).toHaveProperty("latitude", 45.0682);
         expect(response.data).toHaveProperty("createdAt");
         expect(response.data).toHaveProperty(
           "category",
-          "ARCHITECTURAL_BARRIERS"
+          "ARCHITECTURAL_BARRIERS",
         );
         expect(response.data).toHaveProperty("status", "APPROVED");
         expect(response.data).toHaveProperty("citizen", {

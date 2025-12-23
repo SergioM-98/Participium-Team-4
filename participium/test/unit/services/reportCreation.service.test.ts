@@ -16,7 +16,9 @@ describe("ReportCreationService - Story 12", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(ReportRepository, "getInstance").mockReturnValue(mockRepo as ReportRepository);
+    jest
+      .spyOn(ReportRepository, "getInstance")
+      .mockReturnValue(mockRepo as ReportRepository);
   });
 
   it("should create a report for citizen", async () => {
@@ -59,7 +61,7 @@ describe("ReportCreationService - Story 12", () => {
       "OTHER",
       10,
       20,
-      ""
+      "",
     );
   });
 });

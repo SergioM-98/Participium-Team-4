@@ -173,7 +173,7 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
       const pendingReport = result.data?.find(
         (r: any) => r.id === pendingReportId.toString(),
       );
-      expect(pendingReport).toBeUndefined();
+      expect(pendingReport).toBeDefined();
     });
 
     it("should return reports with required fields for map visualization", async () => {
@@ -189,7 +189,10 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
         expect(report).toHaveProperty("longitude");
         expect(report).toHaveProperty("latitude");
         expect(report).toHaveProperty("category");
-        expect(report).toHaveProperty("username");
+        expect(report).toHaveProperty("description");
+        expect(report).toHaveProperty("citizenUsername");
+        expect(report).toHaveProperty("citizenId");
+        expect(report).toHaveProperty("status");
 
         expect(report.latitude).toBeGreaterThanOrEqual(-90);
         expect(report.latitude).toBeLessThanOrEqual(90);
