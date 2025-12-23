@@ -1,6 +1,9 @@
 {
   "scripts": {
-    "bot": "npx ts-node -P tsconfig.bot.json ./bot.ts"
+    "bot": "npx ts-node -P tsconfig.bot.json ./bot.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@grammyjs/conversations": "github:grammyjs/conversations",
@@ -14,6 +17,9 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@types/node": "^24.10.1"
+    "@types/jest": "^29.5.11",
+    "@types/node": "^24.10.1",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1"
   }
 }

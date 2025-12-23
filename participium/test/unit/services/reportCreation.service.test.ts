@@ -16,7 +16,9 @@ describe("ReportCreationService - Story 12", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(ReportRepository, "getInstance").mockReturnValue(mockRepo as ReportRepository);
+    jest
+      .spyOn(ReportRepository, "getInstance")
+      .mockReturnValue(mockRepo as ReportRepository);
   });
 
   it("should create a report for citizen", async () => {
@@ -52,14 +54,15 @@ describe("ReportCreationService - Story 12", () => {
     };
     const result = await service.createReport(req);
     expect(result.success).toBe(true);
-    expect(mockRepo.createReport).toHaveBeenCalledWith(
-      "anon",
-      "desc",
-      [],
-      "OTHER",
-      10,
-      20,
-      ""
-    );
+    expect(mockRepo.createReport).toHaveBeenCalledWith({
+      category: "OTHER",
+      description: "desc",
+      isAnonymous: true,
+      latitude: 20,
+      longitude: 10,
+      photos: [],
+      title: "anon",
+      userId: "",
+    });
   });
 });

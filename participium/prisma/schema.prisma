@@ -22,7 +22,7 @@ model Report {
   messages    Message[]
   comments    Comment[]
   notifications Notification[]
-  category    Category     @default(OTHER)
+  category    Category
   createdAt   DateTime     @default(now())
   longitude   Float
   latitude    Float
@@ -31,6 +31,7 @@ model Report {
   maintainerId String?
   rejectionReason String?
   companyId   String?
+  anonymous   Boolean     @default(false)
 
   citizen   User  @relation("createdBy", fields: [citizenId], references: [id])
   officer   User? @relation("managedBy", fields: [officerId], references: [id])
@@ -61,7 +62,7 @@ enum Category {
   ROADS_SIGNS_AND_TRAFFIC_LIGHTS
   ROADS_AND_URBAN_FURNISHINGS
   PUBLIC_GREEN_AREAS_AND_BACKGROUNDS
-  OTHER
+
 }
 
 enum ReportStatus {
@@ -78,7 +79,6 @@ enum Role {
   TECHNICAL_OFFICER
   PUBLIC_RELATIONS_OFFICER
   EXTERNAL_MAINTAINER_WITH_ACCESS
-  EXTERNAL_MAINTAINER_WITHOUT_ACCESS
   CITIZEN
 }
 
@@ -95,7 +95,7 @@ enum Offices {
   DEPARTMENT_OF_URBAN_PLANNING_AND_PRIVATE_BUILDING
   DEPARTMENT_OF_ENVIRONMENT_MAJOR_PROJECTS_INFRAS_AND_MOBILITY
   DEPARTMENT_OF_LOCAL_POLICE
-  OTHER
+
 }
 
 model User {

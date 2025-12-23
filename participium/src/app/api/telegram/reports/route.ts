@@ -1,3 +1,5 @@
+"use server";
+import { getReportsByCitizenTelegramChatId } from "@/app/lib/controllers/report.controller";
 import {
   registerTelegramReport,
   isUserAuthenticatedByTelegram,
@@ -26,7 +28,7 @@ export async function POST(req: Request) {
       console.log("[Reports API] Missing chatId");
       return Response.json(
         { success: false, error: "Chat ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -36,7 +38,7 @@ export async function POST(req: Request) {
     if (!authCheck.success) {
       return Response.json(
         { success: false, error: "Unauthorized: User not authenticated" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -46,7 +48,7 @@ export async function POST(req: Request) {
       console.log("[Reports API] Validation failed:", parsed.error);
       return Response.json(
         { success: false, error: parsed.error },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -56,7 +58,7 @@ export async function POST(req: Request) {
       console.log("[Reports API] Invalid photo count");
       return Response.json(
         { success: false, error: "1 to 3 photos required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -67,18 +69,42 @@ export async function POST(req: Request) {
     if (!response.success) {
       return Response.json(
         { success: false, error: response.error },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     return Response.json(
       { success: true, data: response.data },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
+    console.log("An error occurred in Reports API:", error);
     return Response.json(
       { success: false, error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
+    );
+  }
+}
+
+export async function GET(req: Request): Promise<Response> {
+  try {
+    const url = new URL(req.url);
+    const chatId = url.searchParams.get("chatId");
+
+    if (!chatId) {
+      return Response.json(
+        { success: false, error: "chatId query parameter is required" },
+        { status: 400 },
+      );
+    }
+    const reports = await getReportsByCitizenTelegramChatId(chatId);
+
+    return Response.json(reports, { status: 200 });
+  } catch (error) {
+    console.log("An error occurred in Reports API GET:", error);
+    return Response.json(
+      { success: false, error: "Internal Server Error" },
+      { status: 500 },
     );
   }
 }

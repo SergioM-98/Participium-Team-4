@@ -11,6 +11,7 @@ const mockRepository = {
   getCompanyEmployeeWithLeastReports: jest.fn(),
   assignReportToMaintainer: jest.fn(),
   assignReportToCompany: jest.fn(),
+  getReportById: jest.fn(),
 };
 
 const mockNotificationService = {
@@ -253,6 +254,13 @@ describe('ReportAssignment Service - Story 6', () => {
 
             mockRepository.getCompanyById.mockResolvedValue(mockCompany);
             mockRepository.getCompanyEmployeeWithLeastReports.mockResolvedValue(mockEmployee);
+            mockRepository.getReportById.mockResolvedValue({
+                success: true,
+                data: {
+                    id: BigInt(1),
+                    citizenId: BigInt(10),
+                },
+            });
             mockRepository.assignReportToMaintainer.mockResolvedValue({
                 id: BigInt(1),
                 maintainerId: "employee1",

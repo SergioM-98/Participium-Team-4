@@ -2,7 +2,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Loader2 } from "lucide-react"; 
 
 import FileUpload01 from "@/components/file-upload-01";
@@ -43,7 +43,12 @@ export default function Reports({ userId }: Readonly<ReportsProps>) {
       return report.citizenId === userId});
   }, [mapReports, showMyReportsOnly, userId]);
 
-  
+  // Keep a stable ref to filteredReports to avoid recreating callbacks
+  const filteredReportsRef = useRef(filteredReports);
+  useEffect(() => {
+    filteredReportsRef.current = filteredReports;
+  }, [filteredReports]);
+
   useEffect(() => {
     const fetchReports = async () => {
       try {
@@ -100,10 +105,8 @@ export default function Reports({ userId }: Readonly<ReportsProps>) {
 
   const handleReportClick = useCallback((report: Report) => {
     setSelectedReportId(report.id);
-    if (isClusterSheetOpen) {
-        setIsClusterSheetOpen(false);
-    }
-  }, [isClusterSheetOpen]);
+    setIsClusterSheetOpen(false);
+  }, []);
 
   const handleClusterClick = useCallback(async (bounds: Bounds) => {
     setIsClusterSheetOpen(true);
@@ -112,7 +115,7 @@ export default function Reports({ userId }: Readonly<ReportsProps>) {
     setSelectedReportId(null);
 
     try {
-        const filtered = filteredReports.filter((r) => 
+        const filtered = filteredReportsRef.current.filter((r) => 
             r.latitude <= bounds.north &&
             r.latitude >= bounds.south &&
             r.longitude <= bounds.east &&
@@ -124,7 +127,7 @@ export default function Reports({ userId }: Readonly<ReportsProps>) {
     } finally {
         setIsLoadingReports(false);
     }
-  }, [filteredReports]);
+  }, []);
 
   const handleCloseDetails = () => {
       setSelectedReportId(null);

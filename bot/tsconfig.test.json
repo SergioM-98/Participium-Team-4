@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["jest", "node"],
+    "jsx": "react"
+  },
+  "include": ["test/**/*.ts", "handlers/**/*.ts", "utils/**/*.ts", "keyboards/**/*.ts"]
+}

@@ -1,6 +1,5 @@
 import { Conversation } from "@grammyjs/conversations";
 import { Context } from "grammy";
-import { PhotoSize } from "grammy/types";
 import { Category } from "../dtos/report.dto";
 import { createCategoryKeyboard } from "../keyboards/categoryKeyboard";
 import { locationKeyboard } from "../keyboards/locationKeyboard";
@@ -123,8 +122,8 @@ async function downloadAndProcessPhoto(
 async function collectPhotos(
   conversation: Conversation<Context>,
   ctx: Context
-): Promise<PhotoSize[][] | null> {
-  const photos: PhotoSize[][] = [];
+): Promise<any[][] | null> {
+  const photos: any[][] = [];
   const IMAGE_MIMETYPES = [
     "image/jpeg",
     "image/png",
@@ -180,7 +179,7 @@ async function collectPhotos(
             height: 0,
           },
         ];
-        photos.push(photoArray as PhotoSize[]);
+        photos.push(photoArray as any[]);
 
         await ctx.reply(MESSAGES.PHOTO_RECEIVED(photos.length, MAX_PHOTOS));
 

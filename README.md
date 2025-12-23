@@ -15,7 +15,6 @@ The project is ready to be run via **Docker Compose** and can be deployed by thi
 - Docker ≥ 20.x
 - Docker Compose ≥ 2.x
 
-
 ## Quick Start
 
 1. **Clone the repository**:
@@ -26,8 +25,8 @@ cd Participium-Team-4
 ```
 
 2. **Set up environment variables**:
-	- Copy `.env.example` to `.env` in the root (or create `.env` manually) and fill in the required values (e.g. `BOT_TOKEN`, `DATABASE_URL`, etc.).
-	- The Docker Compose file will automatically load variables from `.env` in the current directory.
+   - Copy `.env.example` to `.env` in the root (or create `.env` manually) and fill in the required values (e.g. `BOT_TOKEN`, `DATABASE_URL`, etc.).
+   - The Docker Compose file will automatically load variables from `.env` in the current directory.
 
 3. **Start all services with Docker Compose**:
 
@@ -49,19 +48,18 @@ docker ps
 ```
 
 5. **Access the application**:
-	- Backend: [http://localhost:3000](http://localhost:3000)
-	- The Telegram bot will respond to messages if the token is valid.
+   - Backend: [http://localhost:3000](http://localhost:3000)
+   - The Telegram bot will respond to messages if the token is valid.
 
 ## User Credentials
 
-| Username | Email              | Password             | Role                               |
-| -------- | ------------------ | -------------------- | ---------------------------------- |
-| admin    | -                  | adminTeam4           | ADMIN                              |
-| mcurie   | mcurie@team4.it    | tOfficerTeam4        | TECHNICAL_OFFICER                  |
-| arossi   | arossi@team4.it    | PrOfficerTeam4       | PUBLIC_RELATIONS_OFFICER           |
-| everdi   | everdi@team4.it    | extMaintWithTeam4    | EXTERNAL_MAINTAINER_WITH_ACCESS    |
-| gbianchi | gbianchi@team4.it  | extMaintWithoutTeam4 | EXTERNAL_MAINTAINER_WITHOUT_ACCESS |
-| mneri    | mneri@team4.it     | citizenTeam4         | CITIZEN                            |
+| Username | Email           | Password          | Role                            |
+| -------- | --------------- | ----------------- | ------------------------------- |
+| admin    | -               | adminTeam4        | ADMIN                           |
+| mcurie   | mcurie@team4.it | tOfficerTeam4     | TECHNICAL_OFFICER               |
+| arossi   | arossi@team4.it | PrOfficerTeam4    | PUBLIC_RELATIONS_OFFICER        |
+| everdi   | everdi@team4.it | extMaintWithTeam4 | EXTERNAL_MAINTAINER_WITH_ACCESS |
+| mneri    | mneri@team4.it  | citizenTeam4      | CITIZEN                         |
 
 ### Notes
 
@@ -71,7 +69,6 @@ docker ps
 - **External Maintainer With Access**: Has access to Participium
 - **External Maintainer Without Access**: Has no access to Participium
 - **Citizen**: Can create reports
-
 
 ## Dockerhub
 
@@ -98,7 +95,6 @@ docker run -d --name participium_bot --env-file .env skeitt/participium-team-4-b
 - Data is persisted via Docker volumes (pgdata and pgdata_test)
 - The backend uses DATABASE_URL to connect to the database
 - End users do not need to build, just run docker compose pull && docker compose up
-
 
 ## For Maintainers
 

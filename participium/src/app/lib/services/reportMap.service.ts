@@ -35,6 +35,10 @@ class ReportMapService {
   }
 
 
+  public async getPublicApprovedReports() {
+    return this.reportRepository.getApprovedReports();
+  }
+
   public async getReportById(id: string | number) {
     return this.reportRepository.getReportById(id);
   }

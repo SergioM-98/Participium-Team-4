@@ -1,5 +1,8 @@
 import { ReportRepository } from "@/repositories/report.repository";
-import { AssignReportToMaintainerResponse, AssignReportToOfficerResponse } from "@/dtos/report.dto";
+import {
+  AssignReportToMaintainerResponse,
+  AssignReportToOfficerResponse,
+} from "@/dtos/report.dto";
 import { NotificationService } from "@/services/notification.service";
 
 class ReportAssignmentService {
@@ -21,64 +24,64 @@ class ReportAssignmentService {
 
   public async assignReportToOfficer(
     reportId: number,
-    department: string
+    department: string,
   ): Promise<AssignReportToOfficerResponse> {
-    
-      const officer = await this.reportRepository.getOfficerWithLeastReports(
-        department
-      );
+    const officer =
+      await this.reportRepository.getOfficerWithLeastReports(department);
 
-      if (!officer) {
-        throw new Error(`No available officers in department: ${department}`);
-      }
+    if (!officer) {
+      throw new Error(`No available officers in department: ${department}`);
+    }
 
-      const report = await this.reportRepository.assignReportToOfficer(
-        reportId,
-        officer.id
-      );
+    const report = await this.reportRepository.assignReportToOfficer(
+      reportId,
+      officer.id,
+    );
 
-      // Notify the citizen that their report has been assigned
-      try {
-        await this.notificationService.notifyStatusChange(
-          report.citizenId,
-          BigInt(reportId),
-          "ASSIGNED"
-        );
-      } catch (error) {
-        //don't fail the assignment if notification fails
-        console.error("Failed to send notification:", error);
-      }
-
-      return {
-        success: true,
-        data: `Report assigned to officer ID ${officer.id}`,
-      };
-    } 
-  
-
-  public async rejectReport(
-    reportId: number,
-    rejectionReason: string
-  ): Promise<AssignReportToOfficerResponse> {
-    let success = false;
+    // Notify the citizen that their report has been assigned
     try {
-      const report = await this.reportRepository.rejectReport(reportId, rejectionReason);
-      if(report){
-        //only set success if the report was found and rejected
-        success = true;
-      };
-      // Notify the citizen that their report has been rejected
-      
       await this.notificationService.notifyStatusChange(
         report.citizenId,
         BigInt(reportId),
-        "REJECTED"
+        "ASSIGNED",
+      );
+    } catch (error) {
+      //don't fail the assignment if notification fails
+      console.error("Failed to send notification:", error);
+    }
+
+    return {
+      success: true,
+      data: `Report assigned to officer ID ${officer.id}`,
+    };
+  }
+
+  public async rejectReport(
+    reportId: number,
+    rejectionReason: string,
+  ): Promise<AssignReportToOfficerResponse> {
+    let success = false;
+    try {
+      const report = await this.reportRepository.rejectReport(
+        reportId,
+        rejectionReason,
+      );
+      if (report) {
+        //only set success if the report was found and rejected
+        success = true;
+      }
+      // Notify the citizen that their report has been rejected
+
+      await this.notificationService.notifyStatusChange(
+        report.citizenId,
+        BigInt(reportId),
+        "REJECTED",
       );
     } catch (error) {
       console.error("Failed to send notification:", error);
     }
 
-    if(success){
+    if (success) {
       return {
         success: true,
         data: `Report rejected with reason: ${rejectionReason}`,
@@ -91,7 +94,9 @@ class ReportAssignmentService {
     }
   }
 
-  public async unassignReportsOfDeletedOfficer(reports: Array<{ id: bigint; status: string }>): Promise<boolean> {
+  public async unassignReportsOfDeletedOfficer(
+    reports: Array<{ id: bigint; status: string }>,
+  ): Promise<boolean> {
     try {
       for (const report of reports) {
         if (report.status === "RESOLVED") {
@@ -106,28 +111,43 @@ class ReportAssignmentService {
       return false;
     }
   }
- 
+
   public async assignReportToCompany(
     reportId: number,
-    companyId: string
+    companyId: string,
   ): Promise<AssignReportToMaintainerResponse> {
     const company = await this.reportRepository.getCompanyById(companyId);
-    if(!company){
+    if (!company) {
       throw new Error(`Company with ID ${companyId} not found`);
     }
     const access = company.hasAccess ?? false;
-    const employee = await this.reportRepository.getCompanyEmployeeWithLeastReports(
-      companyId
-    );
+    let employee = null;
+    let report = null;
 
-    if (!employee) {
-      throw new Error(`No available employees in company ID: ${companyId}`);
+    if (access) {
+      employee =
+        await this.reportRepository.getCompanyEmployeeWithLeastReports(
+          companyId,
+        );
+
+      if (!employee) {
+        throw new Error(`No available employees in company ID: ${companyId}`);
+      }
+
+      report = await this.reportRepository.assignReportToMaintainer(
+        reportId,
+        employee.id,
+      );
+    } else {
+      // If no access, just get the report without assigning a specific maintainer
+      report = await this.reportRepository.getReportById(reportId);
+      if (!report.success || !report.data) {
+        throw new Error(`Report with ID ${reportId} not found`);
+      }
+      report = report.data;
     }
-    const report = await this.reportRepository.assignReportToMaintainer(
-      reportId,
-      employee.id
-    );
-    // Also store the company ID in the report
+
+    // Store the company ID in the report
     await this.reportRepository.assignReportToCompany(reportId, companyId);
 
     // Notify the citizen that their report has been assigned
@@ -135,19 +155,18 @@ class ReportAssignmentService {
       await this.notificationService.notifyStatusChange(
         report.citizenId,
         BigInt(reportId),
-        "ASSIGNED"
+        "ASSIGNED",
       );
     } catch (error) {
       console.error("Failed to send notification:", error);
     }
     return {
       success: true,
-      data: `Report assigned to company ${company.name} and employee ID ${employee.id}`,
+      data: `Report assigned to company ${company.name}${employee ? ` and employee ID ${employee.id}` : ""}`,
       access: access,
-      email: employee.email || null,
+      email: employee?.email || null,
     };
   }
 }
-
 
 export { ReportAssignmentService };

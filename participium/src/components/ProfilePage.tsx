@@ -8,7 +8,6 @@ import {
   useCallback,
   useEffect,
 } from "react";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Cropper from "react-easy-crop";
 import { getCroppedImg } from "@/lib/utils/canvasUtils";
@@ -86,7 +85,6 @@ type UserProfileData = {
 };
 
 export default function ProfilePage() {
-  const router = useRouter();
   const { data: session, status } = useSession();
 
   const [user, setUser] = useState<UserProfileData | null>(null);
@@ -119,11 +117,15 @@ export default function ProfilePage() {
     "idle" | "opening" | "opened"
   >("idle");
 
+  const fetchInProgressRef = useRef(false);
+
   useEffect(() => {
     const fetchData = async () => {
       if (status === "loading") return;
       if (!session?.user?.username) return;
+      if (fetchInProgressRef.current) return;
 
+      fetchInProgressRef.current = true;
       setIsLoadingData(true);
       try {
         const userDataResponse = await getMe();
@@ -209,11 +211,12 @@ export default function ProfilePage() {
         setError("Failed to load profile data.");
       } finally {
         setIsLoadingData(false);
+        fetchInProgressRef.current = false;
       }
     };
 
     fetchData();
-  }, [session, status]);
+  }, [session?.user?.username, status]);
 
   useEffect(() => {
     const handleFocus = async () => {
@@ -228,7 +231,6 @@ export default function ProfilePage() {
               prev ? { ...prev, telegram: !!userDataResponse.me.telegram } : null
             );
             setTelegramStatus("idle");
-            router.refresh();
           }
         } catch (e) {
           console.error("Error fetching profile on focus", e);
@@ -241,7 +243,7 @@ export default function ProfilePage() {
     return () => {
       window.removeEventListener("focus", handleFocus);
     };
-  }, [telegramStatus, user?.telegram, router]);
+  }, [telegramStatus, user?.telegram]);
 
   const avatarStyle = useMemo(() => {
     if (!user?.username) return {};
@@ -329,7 +331,9 @@ export default function ProfilePage() {
         try {
           const result = await createUploadPhoto(data);
           if (result?.success) {
-            globalThis.location.reload();
+            // Update state instead of hard reload to avoid infinite loops
+            const url = await getProfilePhotoUrl();
+            setUser((prev) => prev ? { ...prev, image: url || null } : null);
           } else {
             setError(
               typeof result?.error === "string" ? result.error : "Upload failed"
@@ -419,7 +423,6 @@ export default function ProfilePage() {
               telegramEnabled: false,
             });
           }
-          router.refresh();
         } else {
           const errorMessage =
             typeof result.error === "string"
@@ -471,8 +474,7 @@ export default function ProfilePage() {
 
   const isCitizen = user.role.includes("CITIZEN");
   const isExternalMaintainer =
-    user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-    user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS");
+    user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS");
   const canEdit = isCitizen;
   const isTelegramConnected = !!user.telegram;
 
@@ -538,8 +540,7 @@ export default function ProfilePage() {
               {user.role.includes("TECHNICAL_OFFICER") ||
               user.role.includes("PUBLIC_RELATIONS_OFFICER")
                 ? "View your officer details and office assignment."
-                : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-                  user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
+                : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")
                 ? "View your external maintainer details and company assignment."
                 : user.role.includes("ADMIN")
                 ? "System administrator profile."
@@ -653,8 +654,7 @@ export default function ProfilePage() {
                     "px-2.5 py-0.5 rounded-full text-xs font-semibold border flex items-center gap-1 w-fit",
                     user.role.includes("TECHNICAL_OFFICER") ||
                       user.role.includes("PUBLIC_RELATIONS_OFFICER") ||
-                      user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-                      user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
+                      user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")
                       ? "bg-blue-50 text-blue-700 border-blue-200"
                       : user.role.includes("ADMIN")
                       ? "bg-purple-50 text-purple-700 border-purple-200"
@@ -664,8 +664,7 @@ export default function ProfilePage() {
                   {user.role.includes("TECHNICAL_OFFICER") ||
                   user.role.includes("PUBLIC_RELATIONS_OFFICER") ? (
                     <ShieldAlert className="h-3 w-3" />
-                  ) : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-                    user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS") ? (
+                  ) : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ? (
                     <ShieldAlert className="h-3 w-3" />
                   ) : user.role.includes("ADMIN") ? (
                     <ShieldCheck className="h-3 w-3" />
@@ -676,9 +675,7 @@ export default function ProfilePage() {
                   user.role.includes("PUBLIC_RELATIONS_OFFICER")
                     ? "Officer"
                     : user.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")
-                    ? "External Maintainer (with access)"
-                    : user.role.includes("EXTERNAL_MAINTAINER_WITHOUT_ACCESS")
-                    ? "External Maintainer (without access)"
+                    ? "External Maintainer"
                     : user.role.includes("ADMIN")
                     ? "Administrator"
                     : "Citizen"}
