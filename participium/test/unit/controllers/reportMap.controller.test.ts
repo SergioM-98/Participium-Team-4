@@ -93,11 +93,16 @@ describe("ReportMapController Story 7", () => {
         expect(response.data).toEqual(
           mockReportArray.map((r) => ({
             id: r.id.toString(),
+            anonymous: false,
+            citizenId: undefined,
+            citizenUsername: r.username,
+            description: "",
+            photos: [],
+            status: undefined,
             title: r.title,
             longitude: r.longitude,
             latitude: r.latitude,
             category: r.category,
-            username: r.username,
           })),
         );
       }
@@ -147,7 +152,9 @@ describe("ReportMapController Story 7", () => {
           latitude: 45.0682,
           createdAt: mockSingleReport.createdAt.toISOString(),
           category: "ARCHITECTURAL_BARRIERS",
+          "anonymous": false,
           status: "APPROVED",
+          "citizenId": undefined,
           photos: [],
           username: "SampleUser",
         });
