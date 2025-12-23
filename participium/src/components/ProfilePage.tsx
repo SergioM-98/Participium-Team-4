@@ -271,7 +271,7 @@ export default function ProfilePage() {
       setValidationError("Email is required.");
       return false;
     }
-    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    const emailRegex = /^[^@\s]+@[^@\s.]+\.[^@\s]+$/;
     if (!emailRegex.test(formData.email)) {
       setValidationError("Please enter a valid email address.");
       return false;
