@@ -18,7 +18,7 @@ import {
 
 import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
 import MaintainerActionPanel from "@/app/maintainer/my-reports/MaintainerActionPanel";
-import ChatPanel from "./ChatPanel";
+import ChatPanel, { SenderRole } from "./ChatPanel";
 import dynamic from "next/dynamic";
 import OfficerReportMenu from "./OfficerReportMenu";
 import InternalNotesPanel from "./InternalNotesPanel";
@@ -128,14 +128,16 @@ export default function ReportDetailsCard({
   const [isMapOpen, setIsMapOpen] = useState(false);
 
   // 1. Determine Role cleanly based on DTO
-  const currentUserRole =
-    isReportCreator
-      ? "CITIZEN"
-      : isAssignedOfficer
-        ? "TECHNICAL_OFFICER"
-        : isMaintainerMode
-          ? "EXTERNAL_MAINTAINER_WITH_ACCESS"
-          : "PUBLIC_RELATIONS_OFFICER";
+  let currentUserRole;
+  if(isReportCreator){
+    currentUserRole = "CITIZEN";
+  }else if(isAssignedOfficer){
+    currentUserRole = "TECHNICAL_OFFICER";
+  }else if(isMaintainerMode){
+    currentUserRole = "EXTERNAL_MAINTAINER_WITH_ACCESS";
+  }else{
+    currentUserRole = "PUBLIC_RELATIONS_OFFICER";
+  }
 
   const [seeOfficerChat, setSeeOfficerChat] = useState(1);
   
@@ -178,7 +180,7 @@ export default function ReportDetailsCard({
                 title: report.title,
                 category: report.category,
                 status: report.status,
-                citizenId: report.citizenId !== undefined ? String(report.citizenId) : undefined
+                citizenId: report.citizenId == undefined ? undefined : String(report.citizenId)
               }}
               showCloseButton={false}
               className="w-full h-full"
@@ -227,7 +229,7 @@ export default function ReportDetailsCard({
                      <div key={url} className="relative aspect-video rounded-md overflow-hidden border bg-muted">
                        <img
                          src={url}
-                         alt="Evidence photo"
+                         alt={`Evidence ${url}`}
                          loading="lazy"
                          className="w-full h-full object-cover"
                          onError={(e) => { e.currentTarget.style.opacity = "0"; }}
@@ -307,7 +309,7 @@ export default function ReportDetailsCard({
             {canViewChat && isAssignedOfficer && seeOfficerChat === 1 && (
               <ChatPanel
                 reportId={report.id}
-                currentUserRole={currentUserRole}
+                currentUserRole={currentUserRole as SenderRole}
                 currentUserId={session?.user?.id || ""}
               />
             )}
@@ -334,7 +336,7 @@ export default function ReportDetailsCard({
             {canViewChat && !isAssignedOfficer && !isMaintainerMode && (
               <ChatPanel
                 reportId={report.id}
-                currentUserRole={currentUserRole}
+                currentUserRole={currentUserRole as SenderRole}
                 currentUserId={session?.user?.id || ""}
               />
             )}
@@ -382,7 +384,7 @@ export default function ReportDetailsCard({
                   title: report.title,
                   category: report.category,
                   status: report.status,
-                  citizenId: report.citizenId !== undefined ? String(report.citizenId) : undefined
+                  citizenId: report.citizenId == undefined ? undefined : String(report.citizenId)
                 }}
                 showCloseButton={true}
                 onClose={() => setIsMapOpen(false)}

@@ -58,8 +58,8 @@ export default function Reports({ userId }: Readonly<ReportsProps>) {
               ...r,
               status: r.status ?? "assigned"
             }))); 
+          console.log("Loaded map reports:", result.data);
         }
-        console.log("Loaded map reports:", result.data);
       } catch (error) {
         console.error("Failed to load map reports:", error);
       }

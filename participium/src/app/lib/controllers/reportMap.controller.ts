@@ -3,7 +3,7 @@ import { ReportMapService } from "@/services/reportMap.service";
 import { z } from "zod";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { ReportForMapResponse, ReportByIdResponse } from "@/dtos/report.dto";
+import { ReportForMapResponse } from "@/dtos/report.dto";
 
 const idSchema = z.string();
 
@@ -128,7 +128,9 @@ export async function getReportById(params: { id: string }) {
     username: isAnonymous ? null : repoResult.data.citizen?.username,
     citizenId: isAnonymous ? null : repoResult.data.citizenId,
     anonymous: repoResult.data.anonymous || false,
-    photos: processedPhotos.filter((url) => url !== null)
+    photos: processedPhotos.filter((url) => url !== null),
+    officerId: repoResult.data.officerId,
+    companyId: repoResult.data.companyId,
   };
 
   return { success: true, data };

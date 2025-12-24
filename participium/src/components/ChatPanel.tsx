@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useSession } from "next-auth/react";
 import { sendMessage } from "@/app/lib/controllers/message.controller";
 
-type SenderRole = "CITIZEN" | 'TECHNICAL_OFFICER' | 'PUBLIC_RELATIONS_OFFICER' | 'EXTERNAL_MAINTAINER_WITH_ACCESS';
+export type SenderRole = "CITIZEN" | 'TECHNICAL_OFFICER' | 'PUBLIC_RELATIONS_OFFICER' | 'EXTERNAL_MAINTAINER_WITH_ACCESS';
 
 export interface ChatMessage {
   id: string;
