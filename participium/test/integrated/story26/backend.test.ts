@@ -32,6 +32,9 @@ describe("Comment Backend Integration Tests (Story 26)", () => {
 
   beforeEach(async () => {
     await prisma.comment.deleteMany({});
+    await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
+    await prisma.notification.deleteMany({});
     await prisma.report.deleteMany({});
     await prisma.user.deleteMany({});
 
