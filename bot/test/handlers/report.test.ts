@@ -6,16 +6,17 @@ jest.mock("../../utils/telegram.utils");
 
 describe("Story 13 - Bot Integration: View Single Report Status", () => {
   let mockCtx: Partial<Context>;
-  const mockCallTelegramApi = telegramUtils.callTelegramApi as jest.MockedFunction<
-    typeof telegramUtils.callTelegramApi
-  >;
+  const mockCallTelegramApi =
+    telegramUtils.callTelegramApi as jest.MockedFunction<
+      typeof telegramUtils.callTelegramApi
+    >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockCtx = {
       chatId: 12345,
-      message: { text: "/report 1001" } as any,
-      reply: jest.fn(),
+      message: { text: "/report 1001" } as Context["message"],
+      reply: jest.fn() as Context["reply"],
     };
   });
 
@@ -27,13 +28,13 @@ describe("Story 13 - Bot Integration: View Single Report Status", () => {
 
     mockCtx = {
       chatId: 12345,
-      message: { text: "/report" } as any,
-      reply: jest.fn(),
+      message: { text: "/report" } as Context["message"],
+      reply: jest.fn() as Context["reply"],
     };
     await handleReportCommand(mockCtx as Context);
 
     expect(mockCtx.reply).toHaveBeenCalledWith(
-      expect.stringContaining("Usage: /report")
+      expect.stringContaining("Usage: /report"),
     );
   });
 
@@ -61,7 +62,7 @@ describe("Story 13 - Bot Integration: View Single Report Status", () => {
     expect(mockCallTelegramApi).toHaveBeenNthCalledWith(
       1,
       expect.stringContaining("isAuthenticated"),
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 
