@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { io, Socket } from "socket.io-client";
 import { Send, User, ShieldAlert } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useSession } from "next-auth/react";
-import { getReportMessages, sendMessage } from "@/app/lib/controllers/message.controller";
+import { sendMessage } from "@/app/lib/controllers/message.controller";
 
-type SenderRole = "CITIZEN" | 'TECHNICAL_OFFICER' | 'PUBLIC_RELATIONS_OFFICER' | 'EXTERNAL_MAINTAINER_WITH_ACCESS';
+export type SenderRole = "CITIZEN" | 'TECHNICAL_OFFICER' | 'PUBLIC_RELATIONS_OFFICER' | 'EXTERNAL_MAINTAINER_WITH_ACCESS';
 
 export interface ChatMessage {
   id: string;
@@ -26,6 +27,34 @@ interface ChatPanelProps {
   currentUserId: string;
 }
 
+// Extract transformation logic
+const transformMessages = (messages: any[]): ChatMessage[] => {
+  return messages.map((msg: any) => {
+    let senderRole: SenderRole = "CITIZEN";
+    if (msg.author?.role === "TECHNICAL_OFFICER") senderRole = "TECHNICAL_OFFICER";
+    else if (msg.author?.role === "PUBLIC_RELATIONS_OFFICER") senderRole = "PUBLIC_RELATIONS_OFFICER";
+    else if (msg.author?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS") senderRole = "EXTERNAL_MAINTAINER_WITH_ACCESS";
+
+    return {
+      id: msg.id?.toString() || Date.now().toString(),
+      senderName:
+        msg.author?.firstName && msg.author?.lastName
+          ? `${msg.author.firstName} ${msg.author.lastName}`
+          : msg.author?.username || "Unknown",
+      senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
+      senderRole,
+      content: msg.content,
+      timestamp: msg.createdAt,
+    };
+  });
+};
+
+// Extract deduplication logic
+const addMessageIfNotExists = (prev: ChatMessage[], incoming: ChatMessage): ChatMessage[] => {
+  if (prev.some((m) => m.id === incoming.id)) return prev;
+  return [...prev, incoming];
+};
+
 export default function ChatPanel({
   reportId,
   currentUserRole,
@@ -33,58 +62,59 @@ export default function ChatPanel({
 }: Readonly<ChatPanelProps>) {
   const { data: session } = useSession();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef(0);
+  const socketRef = useRef<Socket | null>(null);
+  const isMountedRef = useRef(true);
 
-  const mapSenderRole = (role: string): SenderRole => {
-    if (role === "TECHNICAL_OFFICER") return "TECHNICAL_OFFICER";
-    if (role === "PUBLIC_RELATIONS_OFFICER") return "PUBLIC_RELATIONS_OFFICER";
-    return "CITIZEN";
-  };
-
-  // Load messages and polling
+  // Load initial messages and setup WebSocket
   useEffect(() => {
-    const loadMessages = async () => {
+    isMountedRef.current = true;
+
+    const fetchInitialMessages = async () => {
       try {
-        setIsLoadingMessages(true);
-        const reportIdBigInt = BigInt(reportId);
-        const response = await getReportMessages(reportIdBigInt);
-        
-        if (response && Array.isArray(response)) {
-          const transformedMessages: ChatMessage[] = response.map((msg: any) => ( 
-            {
-            id: msg.id.toString(),
-            senderName: msg.author?.firstName && msg.author?.lastName 
-              ? `${msg.author.firstName} ${msg.author.lastName}`
-              : msg.author?.username || "Anonymous",
-            senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
-            senderRole: mapSenderRole(msg.author?.role || "CITIZEN"),
-            content: msg.content,
-            timestamp: msg.createdAt,
-          }));
-          setMessages(transformedMessages);
+        setIsInitialLoading(true);
+        const res = await fetch(`/api/messages?reportId=${reportId}`);
+        if (!res.ok) throw new Error("Failed to fetch messages");
+        const data = await res.json();
+        if (isMountedRef.current && Array.isArray(data)) {
+          setMessages(transformMessages(data));
         }
       } catch (error) {
-        console.error("Failed to load messages:", error);
+        if (isMountedRef.current) console.error("Failed to load messages:", error);
       } finally {
-        setIsLoadingMessages(false);
+        if (isMountedRef.current) setIsInitialLoading(false);
       }
     };
 
-    loadMessages();
+    fetchInitialMessages();
 
-    // Polling of messages every second
-    const interval = setInterval(loadMessages, 1000);
+    // Setup WebSocket connection
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `ws://localhost:${process.env.NEXT_PUBLIC_WS_PORT || 4000}`;
+    const socket = io(wsUrl, { transports: ["websocket"] });
+    socketRef.current = socket;
 
-    return () => clearInterval(interval);
+    socket.emit("join", reportId.toString());
+
+    socket.on("chat-message", (incoming: ChatMessage) => {
+      if (isMountedRef.current) {
+        setMessages((prev) => addMessageIfNotExists(prev, incoming));
+      }
+    });
+
+    return () => {
+      isMountedRef.current = false;
+      socket.off("chat-message");
+      socket.disconnect();
+      socketRef.current = null;
+    };
   }, [reportId]);
 
   // Auto-scroll on new messages
   useEffect(() => {
-    // Scrolla solo se ci sono nuovi messaggi (numero di messaggi aumentato)
     if (messages.length > prevMessageCountRef.current) {
       if (scrollRef.current) {
         scrollRef.current.scrollIntoView({ behavior: "smooth" });
@@ -94,20 +124,20 @@ export default function ChatPanel({
   }, [messages.length]);
 
   const handleSendMessage = async (text: string) => {
-    if (!session?.user?.id) {
-      console.error("User not authenticated");
+    if (!session?.user?.id || !socketRef.current) {
+      console.error("User not authenticated or socket not ready");
       return;
     }
 
+    setIsSending(true);
     try {
-      setIsSending(true);
       const authorId = session.user.id;
       const reportIdBigInt = BigInt(reportId);
-
       const response = await sendMessage(text, authorId, reportIdBigInt);
 
+      let newMsg: ChatMessage;
       if (response.success) {
-        const newMsg: ChatMessage = {
+        newMsg = {
           id: response.data.id?.toString() || Date.now().toString(),
           senderName: session.user.name || "You",
           senderId: session.user.id,
@@ -117,10 +147,26 @@ export default function ChatPanel({
             ? new Date(response.data.createdAt).toISOString()
             : new Date().toISOString(),
         };
-        setMessages((prev) => [...prev, newMsg]);
+      } else {
+        newMsg = {
+          id: Date.now().toString(),
+          senderName: session.user.name || "You",
+          senderId: session.user.id,
+          senderRole: currentUserRole,
+          content: text,
+          timestamp: new Date().toISOString(),
+        };
+        console.error("Error saving message:", response.error);
       }
+
+      // Add locally and broadcast via socket
+      setMessages((prev) => [...prev, newMsg]);
+      socketRef.current.emit("chat-message", {
+        roomId: reportId.toString(),
+        message: newMsg,
+      });
     } catch (error) {
-      console.error("Failed to send message:", error);
+      console.error("Error sending message:", error);
     } finally {
       setIsSending(false);
     }
@@ -152,12 +198,12 @@ export default function ChatPanel({
 
       <ScrollArea className="flex-1 min-h-0 bg-slate-50/50 dark:bg-slate-900/50">
         <div className="flex flex-col gap-4 p-4 pr-3 min-h-full justify-between">
-          {isLoadingMessages && messages.length === 0 && (
+          {isInitialLoading && messages.length === 0 && (
             <div className="text-center py-10 text-muted-foreground text-sm">
               Loading messages...
             </div>
           )}
-          {!isLoadingMessages && messages.length === 0 && (
+          {!isInitialLoading && messages.length === 0 && (
             <div className="text-center py-10 text-muted-foreground text-sm">
               No messages yet. Start the conversation.
             </div>
@@ -223,16 +269,17 @@ export default function ChatPanel({
       <div className="p-3 border-t bg-background flex gap-2 items-end">
         <Textarea
           value={newMessage}
+          onFocus={(e) => e.target.select()} // Keeps focus on the input box
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
-          disabled={isLoadingMessages || isSending}
+          disabled={isInitialLoading || isSending}
           className="min-h-[40px] max-h-[120px] resize-none focus-visible:ring-1"
         />
         <Button
           size="icon"
           onClick={handleSend}
-          disabled={!newMessage.trim() || isSending || isLoadingMessages}
+          disabled={!newMessage.trim() || isSending || isInitialLoading}
           className="h-10 w-10 shrink-0"
         >
           <Send className="h-4 w-4" />
