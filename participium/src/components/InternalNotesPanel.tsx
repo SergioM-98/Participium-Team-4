@@ -11,6 +11,12 @@ interface InternalNotesPanelProps {
   readonly reportId: string;
 }
 
+// Extract deduplication logic
+const addNoteIfNotExists = (prev: InternalNote[], incoming: InternalNote): InternalNote[] => {
+  if (prev.some((n) => n.id === incoming.id)) return prev;
+  return [...prev, incoming];
+};
+
 export default function InternalNotesPanel({
   reportId,
 }: InternalNotesPanelProps) {
@@ -49,10 +55,7 @@ export default function InternalNotesPanel({
 
     socket.on("internal-note", (incoming: InternalNote) => {
       if (isMountedRef.current) {
-        setInternalNotes((prev) => {
-          if (prev.some((n) => n.id === incoming.id)) return prev;
-          return [...prev, incoming];
-        });
+        setInternalNotes((prev) => addNoteIfNotExists(prev, incoming));
       }
     });
 

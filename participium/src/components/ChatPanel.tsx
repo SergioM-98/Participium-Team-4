@@ -27,6 +27,34 @@ interface ChatPanelProps {
   currentUserId: string;
 }
 
+// Extract transformation logic
+const transformMessages = (messages: any[]): ChatMessage[] => {
+  return messages.map((msg: any) => {
+    let senderRole: SenderRole = "CITIZEN";
+    if (msg.author?.role === "TECHNICAL_OFFICER") senderRole = "TECHNICAL_OFFICER";
+    else if (msg.author?.role === "PUBLIC_RELATIONS_OFFICER") senderRole = "PUBLIC_RELATIONS_OFFICER";
+    else if (msg.author?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS") senderRole = "EXTERNAL_MAINTAINER_WITH_ACCESS";
+
+    return {
+      id: msg.id?.toString() || Date.now().toString(),
+      senderName:
+        msg.author?.firstName && msg.author?.lastName
+          ? `${msg.author.firstName} ${msg.author.lastName}`
+          : msg.author?.username || "Unknown",
+      senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
+      senderRole,
+      content: msg.content,
+      timestamp: msg.createdAt,
+    };
+  });
+};
+
+// Extract deduplication logic
+const addMessageIfNotExists = (prev: ChatMessage[], incoming: ChatMessage): ChatMessage[] => {
+  if (prev.some((m) => m.id === incoming.id)) return prev;
+  return [...prev, incoming];
+};
+
 export default function ChatPanel({
   reportId,
   currentUserRole,
@@ -41,27 +69,6 @@ export default function ChatPanel({
   const prevMessageCountRef = useRef(0);
   const socketRef = useRef<Socket | null>(null);
   const isMountedRef = useRef(true);
-
-  const transformMessages = (messages: any[]): ChatMessage[] => {
-    return messages.map((msg: any) => {
-      let senderRole: SenderRole = "CITIZEN";
-      if (msg.author?.role === "TECHNICAL_OFFICER") senderRole = "TECHNICAL_OFFICER";
-      else if (msg.author?.role === "PUBLIC_RELATIONS_OFFICER") senderRole = "PUBLIC_RELATIONS_OFFICER";
-      else if (msg.author?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS") senderRole = "EXTERNAL_MAINTAINER_WITH_ACCESS";
-
-      return {
-        id: msg.id?.toString() || Date.now().toString(),
-        senderName:
-          msg.author?.firstName && msg.author?.lastName
-            ? `${msg.author.firstName} ${msg.author.lastName}`
-            : msg.author?.username || "Unknown",
-        senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
-        senderRole,
-        content: msg.content,
-        timestamp: msg.createdAt,
-      };
-    });
-  };
 
   // Load initial messages and setup WebSocket
   useEffect(() => {
@@ -94,10 +101,7 @@ export default function ChatPanel({
 
     socket.on("chat-message", (incoming: ChatMessage) => {
       if (isMountedRef.current) {
-        setMessages((prev) => {
-          if (prev.some((m) => m.id === incoming.id)) return prev;
-          return [...prev, incoming];
-        });
+        setMessages((prev) => addMessageIfNotExists(prev, incoming));
       }
     });
 
@@ -111,7 +115,6 @@ export default function ChatPanel({
 
   // Auto-scroll on new messages
   useEffect(() => {
-    // Scrolla solo se ci sono nuovi messaggi (numero di messaggi aumentato)
     if (messages.length > prevMessageCountRef.current) {
       if (scrollRef.current) {
         scrollRef.current.scrollIntoView({ behavior: "smooth" });
