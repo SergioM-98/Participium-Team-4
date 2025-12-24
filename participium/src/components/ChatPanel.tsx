@@ -33,7 +33,9 @@ export default function ChatPanel({
 }: Readonly<ChatPanelProps>) {
   const { data: session } = useSession();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
+  // Track only the initial load as loading. Do NOT toggle during polling,
+  // otherwise the textarea gets disabled and loses focus periodically.
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -47,19 +49,18 @@ export default function ChatPanel({
 
   // Load messages and polling
   useEffect(() => {
-    const loadMessages = async () => {
+    const fetchMessages = async () => {
       try {
-        setIsLoadingMessages(true);
         const reportIdBigInt = BigInt(reportId);
         const response = await getReportMessages(reportIdBigInt);
-        
+
         if (response && Array.isArray(response)) {
-          const transformedMessages: ChatMessage[] = response.map((msg: any) => ( 
-            {
+          const transformedMessages: ChatMessage[] = response.map((msg: any) => ({
             id: msg.id.toString(),
-            senderName: msg.author?.firstName && msg.author?.lastName 
-              ? `${msg.author.firstName} ${msg.author.lastName}`
-              : msg.author?.username || "Anonymous",
+            senderName:
+              msg.author?.firstName && msg.author?.lastName
+                ? `${msg.author.firstName} ${msg.author.lastName}`
+                : msg.author?.username || "Anonymous",
             senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
             senderRole: mapSenderRole(msg.author?.role || "CITIZEN"),
             content: msg.content,
@@ -69,16 +70,20 @@ export default function ChatPanel({
         }
       } catch (error) {
         console.error("Failed to load messages:", error);
-      } finally {
-        setIsLoadingMessages(false);
       }
     };
 
-    loadMessages();
+    const fetchInitialMessages = async () => {
+      setIsInitialLoading(true);
+      await fetchMessages();
+      setIsInitialLoading(false);
+    };
 
-    // Polling of messages every second
-    const interval = setInterval(loadMessages, 1000);
+    // Initial load shows the loading state
+    fetchInitialMessages();
 
+    // Polling of messages every second WITHOUT toggling loading state
+    const interval = setInterval(fetchMessages, 1000);
     return () => clearInterval(interval);
   }, [reportId]);
 
@@ -152,12 +157,12 @@ export default function ChatPanel({
 
       <ScrollArea className="flex-1 min-h-0 bg-slate-50/50 dark:bg-slate-900/50">
         <div className="flex flex-col gap-4 p-4 pr-3 min-h-full justify-between">
-          {isLoadingMessages && messages.length === 0 && (
+          {isInitialLoading && messages.length === 0 && (
             <div className="text-center py-10 text-muted-foreground text-sm">
               Loading messages...
             </div>
           )}
-          {!isLoadingMessages && messages.length === 0 && (
+          {!isInitialLoading && messages.length === 0 && (
             <div className="text-center py-10 text-muted-foreground text-sm">
               No messages yet. Start the conversation.
             </div>
@@ -223,16 +228,17 @@ export default function ChatPanel({
       <div className="p-3 border-t bg-background flex gap-2 items-end">
         <Textarea
           value={newMessage}
+          onFocus={(e) => e.target.select()} // Keeps focus on the input box
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
-          disabled={isLoadingMessages || isSending}
+          disabled={isInitialLoading || isSending}
           className="min-h-[40px] max-h-[120px] resize-none focus-visible:ring-1"
         />
         <Button
           size="icon"
           onClick={handleSend}
-          disabled={!newMessage.trim() || isSending || isLoadingMessages}
+          disabled={!newMessage.trim() || isSending || isInitialLoading}
           className="h-10 w-10 shrink-0"
         >
           <Send className="h-4 w-4" />
