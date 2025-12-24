@@ -9,8 +9,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card, CardContent } from "./ui/card";
 
-import { verifyRegistration } from "@/app/lib/controllers/verification.controller";
-import { resendVerificationCode } from "@/app/lib/controllers/verification.controller";
+import { verifyRegistration, resendVerificationCode } from "@/app/lib/controllers/verification.controller";
 
 export default function VerificationForm() {
   const router = useRouter();
@@ -88,12 +87,7 @@ export default function VerificationForm() {
           setResendCountdown(60); // 60 seconds
           setTimeout(() => setSuccess(""), 3000);
         } else {
-          // Check if the error is about rate limiting
-          if (response.error?.includes("wait") || response.error?.includes("seconds")) {
-            setError(response.error);
-          } else {
-            setError(response.error);
-          }
+          setError(response.error);
         }
       } catch (err: any) {
         console.error(err);

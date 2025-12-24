@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, Dispatch, SetStateAction } from "react";
+import { useState, useEffect, useRef, Dispatch, SetStateAction } from "react";
+import { io, Socket } from "socket.io-client";
 import { useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -14,7 +15,6 @@ import {
   MessageSquare,
   Menu,
   StickyNote,
-  ShieldAlert,
 } from "lucide-react";
 
 import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
@@ -22,7 +22,6 @@ import MaintainerActionPanel from "@/app/maintainer/my-reports/MaintainerActionP
 import ChatPanel, { ChatMessage } from "./ChatPanel";
 import dynamic from "next/dynamic";
 import OfficerReportMenu from "./OfficerReportMenu";
-import { is } from "zod/v4/locales";
 import InternalNotesPanel from "./InternalNotesPanel";
 
 const LeafletMapFixed = dynamic(() => import("./LeafletMapFixed"), {
@@ -40,8 +39,8 @@ export interface Report {
     | "in_progress"
     | "suspended"
     | "rejected"
-    | "resolved";
-  /*| string to remove??*/
+    | "resolved"
+    /*| string to remove??*/;
   latitude: number;
   longitude: number;
   reporterName: string;
@@ -63,7 +62,7 @@ interface ReportDetailsCardProps {
   showChat?: boolean;
   setRefreshFlag?: Dispatch<SetStateAction<boolean>>;
   setReport?: Dispatch<SetStateAction<any>>;
-  showToast?: (type: "success" | "error", text: string) => void;
+  showToast?: (type: 'success' | 'error', text: string) => void;
 }
 
 const formatCategory = (category: string) => {
@@ -81,30 +80,18 @@ const getStatusBadge = (status: Report["status"]) => {
     case "pending":
       return <Badge variant="secondary">Pending Approval</Badge>;
     case "assigned":
-      return (
-        <Badge className="bg-yellow-500 hover:bg-yellow-500/90">Assigned</Badge>
-      );
+      return <Badge className="bg-yellow-500 hover:bg-yellow-500/90">Assigned</Badge>;
     case "in_progress":
-      return (
-        <Badge className="bg-orange-500 hover:bg-orange-500/90">
-          In Progress
-        </Badge>
-      );
+      return <Badge className="bg-orange-500 hover:bg-orange-500/90">In Progress</Badge>;
     case "suspended":
-      return (
-        <Badge className="bg-gray-500 hover:bg-gray-500/90">Suspended</Badge>
-      );
+      return <Badge className="bg-gray-500 hover:bg-gray-500/90">Suspended</Badge>;
     case "rejected":
       return <Badge className="bg-red-500 hover:bg-red-500/90">Rejected</Badge>;
     case "resolved":
-      return (
-        <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>
-      );
+      return <Badge className="bg-blue-500 hover:bg-blue-500/90">Resolved</Badge>;
     default:
       return (
-        <Badge variant="secondary">
-          {normalizedStatus.replaceAll(/_/g, " ")}
-        </Badge>
+        <Badge variant="secondary">{normalizedStatus.replaceAll(/_/g, " ")}</Badge>
       );
   }
 };
@@ -122,23 +109,15 @@ export default function ReportDetailsCard({
   onMaintainerActionComplete,
 }: Readonly<ReportDetailsCardProps>) {
   const { data: session } = useSession();
-
+  
   // show chat only if the user is the report creator or the assigned officer
-  const isReportCreator =
-    session?.user?.id &&
-    report.citizenId &&
-    String(session.user.id) === String(report.citizenId);
-  const isAssignedOfficer =
-    session?.user?.id &&
-    report.officerId &&
-    String(session.user.id) === String(report.officerId);
-  const canViewChat =
-    showChat &&
-    (isReportCreator || isAssignedOfficer || isOfficerMode || isMaintainerMode);
-
+  const isReportCreator = session?.user?.id && report.citizenId && String(session.user.id) === String(report.citizenId);
+  const isAssignedOfficer = session?.user?.id && report.officerId && String(session.user.id) === String(report.officerId);
+  const canViewChat = showChat && (isReportCreator || isAssignedOfficer || isOfficerMode || isMaintainerMode);
+  
   const evidencePhotos = report.photoUrls || report.photos || [];
   const validDate = report.createdAt || new Date().toISOString();
-
+  
   const formattedDate = new Date(validDate).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -151,25 +130,123 @@ export default function ReportDetailsCard({
   const [isMapOpen, setIsMapOpen] = useState(false);
 
   // 1. Determine Role cleanly based on DTO
-  const currentUserRole = isReportCreator
-    ? "CITIZEN"
-    : isAssignedOfficer
-    ? "TECHNICAL_OFFICER"
-    : isMaintainerMode
-    ? "EXTERNAL_MAINTAINER_WITH_ACCESS"
-    : "PUBLIC_RELATIONS_OFFICER";
+  const currentUserRole =
+    isReportCreator
+      ? "CITIZEN"
+      : isAssignedOfficer
+        ? "TECHNICAL_OFFICER"
+        : isMaintainerMode
+          ? "EXTERNAL_MAINTAINER_WITH_ACCESS"
+          : "PUBLIC_RELATIONS_OFFICER";
 
   const [seeOfficerChat, setSeeOfficerChat] = useState(1);
 
+
+  const socketRef = useRef<Socket | null>(null);
+
+  const transformMessages = (messages: any[]): ChatMessage[] => {
+    return messages.map((msg: any) => {
+      let senderRole: ChatMessage["senderRole"] = "CITIZEN";
+      if (msg.author?.role === "TECHNICAL_OFFICER") senderRole = "TECHNICAL_OFFICER";
+      else if (msg.author?.role === "PUBLIC_RELATIONS_OFFICER") senderRole = "PUBLIC_RELATIONS_OFFICER";
+      else if (msg.author?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS") senderRole = "EXTERNAL_MAINTAINER_WITH_ACCESS";
+      
+      return {
+        id: msg.id?.toString() || Date.now().toString(),
+        senderName: msg.author?.firstName && msg.author?.lastName
+          ? `${msg.author.firstName} ${msg.author.lastName}`
+          : msg.author?.username || "Unknown",
+        senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
+        senderRole,
+        content: msg.content,
+        timestamp: msg.createdAt,
+      };
+    });
+  };
+
+  const fetchMessagesFromServer = async (isMounted: boolean) => {
+    try {
+      setIsLoadingMessages(true);
+      const res = await fetch(`/api/messages?reportId=${report.id}`);
+      if (!res.ok) throw new Error("Failed to fetch messages");
+      const data = await res.json();
+      if (isMounted && Array.isArray(data)) {
+        setMessages(transformMessages(data));
+      }
+    } catch (error) {
+      if (isMounted) console.error("Failed to load messages:", error);
+    } finally {
+      if (isMounted) setIsLoadingMessages(false);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    fetchMessagesFromServer(isMounted);
+
+    const socket = io(`ws://localhost:${process.env.NEXT_PUBLIC_WS_PORT || 4000}`);
+    socketRef.current = socket;
+    socket.emit("join", report.id.toString());
+
+    socket.on("chat-message", () => {
+      fetchMessagesFromServer(isMounted);
+    });
+
+    return () => {
+      isMounted = false;
+      socket.disconnect();
+    };
+  }, [report.id]);
+
+  const handleSendMessage = async (text: string) => {
+    if (!session?.user?.id || !socketRef.current) {
+      console.error("User not authenticated o socket non pronto");
+      return;
+    }
+    setIsSending(true);
+    try {
+      setIsSending(true);
+      const authorId = session.user.id;
+      const reportIdBigInt = BigInt(report.id);
+      const response = await sendMessage(text, authorId, reportIdBigInt);
+      let newMsg: ChatMessage;
+      if (response.success) {
+        newMsg = {
+          id: response.data.id?.toString() || Date.now().toString(),
+          senderName: session.user.name || "You",
+          senderId: session.user.id,
+          senderRole: currentUserRole,
+          content: text,
+          timestamp: response.data.createdAt ? new Date(response.data.createdAt).toISOString() : new Date().toISOString(),
+        };
+      } else {
+        newMsg = {
+          id: Date.now().toString(),
+          senderName: session.user.name || "You",
+          senderId: session.user.id,
+          senderRole: currentUserRole,
+          content: text,
+          timestamp: new Date().toISOString(),
+        };
+        console.error("Error saving message:", response.error);
+      }
+      socketRef.current.emit("chat-message", { roomId: report.id.toString(), message: newMsg });
+      setMessages((prev) => [...prev, newMsg]);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setIsSending(false);
+    }
+  };
+  
   return (
     <div className="w-full h-full flex flex-col bg-background overflow-hidden">
       {/* Header */}
       <div className="flex items-start justify-between px-4 py-3 md:px-6 md:py-5 border-b bg-background flex-shrink-0">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 md:gap-3">
-            <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground line-clamp-1">
-              {report.title}
-            </h2>
+            <h2 className="text-lg md:text-2xl font-bold tracking-tight text-foreground line-clamp-1">{report.title}</h2>
             {getStatusBadge(report.status)}
           </div>
           <div className="flex items-center text-sm md:text-base text-muted-foreground gap-2 md:gap-4">
@@ -182,12 +259,7 @@ export default function ReportDetailsCard({
         </div>
         <div className="flex items-center gap-2">
           {onClose && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="text-muted-foreground hover:text-foreground"
-            >
+            <Button variant="ghost" size="icon" onClick={onClose} className="text-muted-foreground hover:text-foreground">
               <X className="h-5 w-5" />
             </Button>
           )}
@@ -195,257 +267,209 @@ export default function ReportDetailsCard({
       </div>
 
       {/* Row with 3 columns: map | menu | chat/officer */}
-      <div
-        className={`flex flex-col ${
-          canViewChat || isOfficerMode || isMaintainerMode
-            ? "md:flex-row"
-            : "md:flex-row"
-        } items-stretch gap-4 p-4 md:p-6 overflow-hidden flex-1 min-h-0`}
-      >
+      <div className={`flex flex-col ${canViewChat || isOfficerMode || isMaintainerMode ? 'md:flex-row' : 'md:flex-row'} items-stretch gap-4 p-4 md:p-6 overflow-hidden flex-1 min-h-0`}>
         {/* MAP - left (hidden on mobile; available as overlay via button) */}
-        {(isOfficerMode || isAssignedOfficer || isMaintainerMode) && (
-          <div className="hidden md:flex md:flex-1 min-h-0 rounded-lg overflow-hidden border border-border bg-muted/5">
-            <div className="w-full h-full">
-              <LeafletMapFixed
-                report={{
-                  id: report.id,
-                  latitude: report.latitude,
-                  longitude: report.longitude,
-                  title: report.title,
-                  category: report.category,
-                  status: report.status,
-                  citizenId:
-                    report.citizenId !== undefined
-                      ? String(report.citizenId)
-                      : undefined,
-                }}
-                showCloseButton={false}
-                className="w-full h-full"
-              />
-            </div>
+        {(isOfficerMode || isAssignedOfficer || isMaintainerMode) && (<div className="hidden md:flex md:flex-1 min-h-0 rounded-lg overflow-hidden border border-border bg-muted/5">
+          <div className="w-full h-full">
+            <LeafletMapFixed
+              report={{
+                id: report.id,
+                latitude: report.latitude,
+                longitude: report.longitude,
+                title: report.title,
+                category: report.category,
+                status: report.status,
+                citizenId: report.citizenId !== undefined ? String(report.citizenId) : undefined
+              }}
+              showCloseButton={false}
+              className="w-full h-full"
+            />
           </div>
-        )}
-
-        {/* MENU - center (fills the available space, internal scroll) */}
-        <div
-          className={`${
-            canViewChat || isOfficerMode || isMaintainerMode
-              ? "flex-1"
-              : "flex-1"
-          } min-h-0 rounded-lg border border-border bg-muted/10 p-3 overflow-auto`}
-        >
-          <div className="space-y-4">
-            <div className="p-1 bg-muted/30 rounded-lg border border-border/50">
-              <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
-                <Tag className="w-3 h-3" /> Category
-              </div>
-              <div className="font-medium text-base text-foreground">
-                {formatCategory(report.category)}
-              </div>
-            </div>
-
-            <div className="p-3 bg-muted/30 rounded-lg border border-border/50">
-              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                <User className="w-4 h-4" /> Reported By
-              </div>
-              <div className="font-medium text-base text-foreground">
-                {report.reporterName || "Anonymous"}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-primary" /> Problem
-                Description
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                {report.description}
-              </p>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
-                Evidence Photos{" "}
-                <Badge
-                  variant="outline"
-                  className="ml-2 text-muted-foreground font-normal text-xs"
+        </div>)}
+ 
+         {/* MENU - center (fills the available space, internal scroll) */}
+         <div className={`${canViewChat || isOfficerMode || isMaintainerMode ? 'flex-1' : 'flex-1'} min-h-0 rounded-lg border border-border bg-muted/10 p-3 overflow-auto`}>
+           <div className="space-y-4">
+             <div className="p-1 bg-muted/30 rounded-lg border border-border/50">
+               <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
+                 <Tag className="w-3 h-3" /> Category
+               </div>
+               <div className="font-medium text-base text-foreground">
+                 {formatCategory(report.category)}
+               </div>
+             </div>
+ 
+             <div className="p-3 bg-muted/30 rounded-lg border border-border/50">
+               <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                 <User className="w-4 h-4" /> Reported By
+               </div>
+               <div className="font-medium text-base text-foreground">
+                 {report.reporterName || "Anonymous"}
+               </div>
+             </div>
+ 
+             <div className="space-y-3">
+               <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                 <AlertCircle className="w-5 h-5 text-primary" /> Problem Description
+               </h3>
+               <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                 {report.description}
+               </p>
+             </div>
+ 
+             <div>
+               <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                 Evidence Photos <Badge variant="outline" className="ml-2 text-muted-foreground font-normal text-xs">{evidencePhotos.length}</Badge>
+               </h4>
+ 
+               {evidencePhotos.length > 0 ? (
+                 <div className="grid grid-cols-2 gap-3">
+                   {evidencePhotos.slice(0,4).map((url, index) => (
+                     <div key={index} className="relative aspect-video rounded-md overflow-hidden border bg-muted">
+                       <img
+                         src={url}
+                         alt={`Evidence ${index + 1}`}
+                         loading="lazy"
+                         className="w-full h-full object-cover"
+                         onError={(e) => { e.currentTarget.style.opacity = "0"; }}
+                       />
+                     </div>
+                   ))}
+                 </div>
+               ) : (
+                 <div className="h-20 border-2 border-dashed border-muted rounded-lg flex items-center justify-center text-muted-foreground bg-muted/10 text-sm">
+                   No photos attached
+                 </div>
+               )}
+             </div>
+           </div>
+         </div>
+ 
+        {/* CHAT / OFFICER - right (fills the available space) - Only show if user can interact */}
+        {canViewChat && (
+        <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex flex-col relative">
+          {/* Header / Toggle (in-flow, non overlaid) */}
+          <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/5 flex-shrink-0">
+            {/* CASE 1: canViewChat && isAssignedOfficer - show tabs */}
+            {((canViewChat && isAssignedOfficer)|| isMaintainerMode) && (
+              <div className="flex items-center gap-1.5 bg-muted/10 p-1 rounded-md">
+                {!isMaintainerMode && (<button
+                  onClick={() => setSeeOfficerChat(1)}
+                  aria-pressed={seeOfficerChat === 1}
+                  className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
                 >
-                  {evidencePhotos.length}
-                </Badge>
-              </h4>
+                  <MessageSquare className="w-5 h-5" />
+                  <span className="hidden xl:inline">Chat</span>
+                </button>)}
 
-              {evidencePhotos.length > 0 ? (
-                <div className="grid grid-cols-2 gap-3">
-                  {evidencePhotos.slice(0, 4).map((url, index) => (
-                    <div
-                      key={index}
-                      className="relative aspect-video rounded-md overflow-hidden border bg-muted"
-                    >
-                      <img
-                        src={url}
-                        alt={`Evidence ${index + 1}`}
-                        loading="lazy"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.opacity = "0";
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="h-20 border-2 border-dashed border-muted rounded-lg flex items-center justify-center text-muted-foreground bg-muted/10 text-sm">
-                  No photos attached
-                </div>
-              )}
-            </div>
+                {isMaintainerMode && (<button
+                  onClick={() => setSeeOfficerChat(1)}
+                  aria-pressed={seeOfficerChat === 1}
+                  className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                >
+                  <Menu className="w-5 h-5" />
+                  <span className="hidden xl:inline">Menu</span>
+                </button>)}
+
+                <button
+                  onClick={() => setSeeOfficerChat(2)}
+                  aria-pressed={seeOfficerChat === 2}
+                  className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 2 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                >
+                  <StickyNote className="w-5 h-5" />
+                  <span className="hidden xl:inline">Internal Notes</span>
+                </button>
+
+                {!isMaintainerMode && (<button
+                  onClick={() => setSeeOfficerChat(3)}
+                  aria-pressed={seeOfficerChat === 3}
+                  className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 3 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+                >
+                  <Menu className="w-5 h-5" />
+                  <span className="hidden xl:inline">Menu</span>
+                </button>)}
+              </div>
+            )}
+
+            {/* CASE 2: canViewChat && !isAssignedOfficer - empty space */}
+            {canViewChat && !isAssignedOfficer && (
+              <div className="text-xs text-muted-foreground"> </div>
+            )}
+
+            {/* CASE 3: !canViewChat - empty space */}
+            {!canViewChat && (
+              <div className="text-xs text-muted-foreground"> </div>
+            )}
+          </div>
+
+          {/* Content area */}
+          <div className="flex-1 min-h-0 overflow-auto p-4">
+            {/* CASE 1: canViewChat && isAssignedOfficer && seeOfficerChat === 1 (Chat) */}
+            {canViewChat && isAssignedOfficer && seeOfficerChat === 1 && (
+              <ChatPanel
+                reportId={report.id}
+                currentUserRole={currentUserRole}
+                currentUserId={session?.user?.id || ""}
+              />
+            )}
+
+            {/* CASE 2: canViewChat && isAssignedOfficer && seeOfficerChat === 2 (Internal Notes) */}
+            {canViewChat && seeOfficerChat === 2 && (
+              <InternalNotesPanel reportId={report.id} />
+            )}
+
+            {/* CASE 3: canViewChat && isAssignedOfficer && seeOfficerChat === 3 (Menu) */}
+            {canViewChat && isAssignedOfficer && seeOfficerChat === 3 && (
+              <OfficerReportMenu
+                reportId={report.id}
+                reportTitle={report.title}
+                status={report.status}
+                companyId={report.companyId || ""}
+                setRefreshFlag={setRefreshFlag!}
+                setReport={setReport!}
+                showToast={showToast!}
+              />
+            )}
+
+            {/* CASE 4: canViewChat && !isAssignedOfficer (Regular user - only Chat) */}
+            {canViewChat && !isAssignedOfficer && (
+              <ChatPanel
+                reportId={report.id}
+                currentUserRole={currentUserRole}
+                currentUserId={session?.user?.id || ""}
+              />
+            )}
+
+            {/* CASE 5: !canViewChat && isOfficerMode (Officer Action Panel) */}
+            {!canViewChat && isOfficerMode && (
+              <OfficerActionPanel
+                reportId={report.id}
+                currentStatus={report.status}
+                currentCategory={report.category}
+                onActionComplete={onOfficerActionComplete}
+              />
+            )}
+            
+            {/* CASE 7: isMaintainerMode (Maintainer Action Panel) */}
+            {isMaintainerMode && seeOfficerChat===1 && (
+              <MaintainerActionPanel
+                reportId={report.id}
+                currentStatus={report.status}
+                onActionComplete={onMaintainerActionComplete}
+              />
+            )}
+            {/* CASE 8: isMaintainerMode (Maintainer Action Panel) */}
+            {
+              isMaintainerMode && seeOfficerChat===2 && (
+                <InternalNotesPanel reportId={report.id} />
+              )
+            }
+
           </div>
         </div>
-
-        {/* CHAT / OFFICER - right (fills the available space) - Only show if user can interact */}
-        {(canViewChat || isOfficerMode || isMaintainerMode) && (
-          <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex flex-col relative">
-            {/* Header / Toggle (in-flow, non overlaid) */}
-            <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/5 flex-shrink-0">
-              {/* CASE 1: canViewChat && isAssignedOfficer - show tabs */}
-              {((canViewChat && isAssignedOfficer) || isMaintainerMode) && (
-                <div className="flex items-center gap-1.5 bg-muted/10 p-1 rounded-md">
-                  {!isMaintainerMode && (
-                    <button
-                      onClick={() => setSeeOfficerChat(1)}
-                      aria-pressed={seeOfficerChat === 1}
-                      className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${
-                        seeOfficerChat === 1
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-muted/20"
-                      }`}
-                    >
-                      <MessageSquare className="w-5 h-5" />
-                      <span className="hidden xl:inline">Chat</span>
-                    </button>
-                  )}
-
-                  {isMaintainerMode && (
-                    <button
-                      onClick={() => setSeeOfficerChat(1)}
-                      aria-pressed={seeOfficerChat === 1}
-                      className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${
-                        seeOfficerChat === 1
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-muted/20"
-                      }`}
-                    >
-                      <Menu className="w-5 h-5" />
-                      <span className="hidden xl:inline">Menu</span>
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => setSeeOfficerChat(2)}
-                    aria-pressed={seeOfficerChat === 2}
-                    className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${
-                      seeOfficerChat === 2
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-muted/20"
-                    }`}
-                  >
-                    <StickyNote className="w-5 h-5" />
-                    <span className="hidden xl:inline">Internal Notes</span>
-                  </button>
-
-                  {!isMaintainerMode && (
-                    <button
-                      onClick={() => setSeeOfficerChat(3)}
-                      aria-pressed={seeOfficerChat === 3}
-                      className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${
-                        seeOfficerChat === 3
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-muted/20"
-                      }`}
-                    >
-                      <Menu className="w-5 h-5" />
-                      <span className="hidden xl:inline">Menu</span>
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* CASE 2: canViewChat && !isAssignedOfficer - empty space */}
-              {canViewChat && !isAssignedOfficer && (
-                <div className="text-xs text-muted-foreground"> </div>
-              )}
-
-              {/* CASE 3: !canViewChat - empty space */}
-              {!canViewChat && (
-                <div className="text-xs text-muted-foreground"> </div>
-              )}
-            </div>
-
-            {/* Content area */}
-            <div className="flex-1 min-h-0 overflow-auto p-4">
-              {/* CASE 1: canViewChat && isAssignedOfficer && seeOfficerChat === 1 (Chat) */}
-              {canViewChat && isAssignedOfficer && seeOfficerChat === 1 && (
-                <ChatPanel
-                  reportId={report.id}
-                  currentUserRole={currentUserRole}
-                  currentUserId={session?.user?.id || ""}
-                />
-              )}
-
-              {/* CASE 2: canViewChat && isAssignedOfficer && seeOfficerChat === 2 (Internal Notes) */}
-              {canViewChat && seeOfficerChat === 2 && (
-                <InternalNotesPanel reportId={report.id} />
-              )}
-
-              {/* CASE 3: canViewChat && isAssignedOfficer && seeOfficerChat === 3 (Menu) */}
-              {canViewChat && isAssignedOfficer && seeOfficerChat === 3 && (
-                <OfficerReportMenu
-                  reportId={report.id}
-                  reportTitle={report.title}
-                  status={report.status}
-                  companyId={report.companyId || ""}
-                  setRefreshFlag={setRefreshFlag!}
-                  setReport={setReport!}
-                  showToast={showToast!}
-                />
-              )}
-
-              {/* CASE 4: canViewChat && !isAssignedOfficer (Regular user - only Chat) */}
-              {canViewChat && !isAssignedOfficer && (
-                <ChatPanel
-                  reportId={report.id}
-                  currentUserRole={currentUserRole}
-                  currentUserId={session?.user?.id || ""}
-                />
-              )}
-
-              {/* CASE 5: !canViewChat && isOfficerMode (Officer Action Panel) */}
-              {!canViewChat && isOfficerMode && (
-                <OfficerActionPanel
-                  reportId={report.id}
-                  currentStatus={report.status}
-                  currentCategory={report.category}
-                  onActionComplete={onOfficerActionComplete}
-                />
-              )}
-
-              {/* CASE 7: isMaintainerMode (Maintainer Action Panel) */}
-              {isMaintainerMode && seeOfficerChat === 1 && (
-                <MaintainerActionPanel
-                  reportId={report.id}
-                  currentStatus={report.status}
-                  onActionComplete={onMaintainerActionComplete}
-                />
-              )}
-              {/* CASE 8: isMaintainerMode (Maintainer Action Panel) */}
-              {isMaintainerMode && seeOfficerChat === 2 && (
-                <InternalNotesPanel reportId={report.id} />
-              )}
-            </div>
-          </div>
         )}
       </div>
-
+      
       {/* Mobile map overlay (on top of modal) */}
       {isMapOpen && (
         <div
@@ -465,10 +489,7 @@ export default function ReportDetailsCard({
                   title: report.title,
                   category: report.category,
                   status: report.status,
-                  citizenId:
-                    report.citizenId !== undefined
-                      ? String(report.citizenId)
-                      : undefined,
+                  citizenId: report.citizenId !== undefined ? String(report.citizenId) : undefined
                 }}
                 showCloseButton={true}
                 onClose={() => setIsMapOpen(false)}
@@ -480,18 +501,11 @@ export default function ReportDetailsCard({
       )}
 
       {/* Mobile footer: view map button (only on small screens) */}
-      {isOfficerMode && (
-        <div className="md:hidden flex items-center justify-center p-3 border-t bg-background/90">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setIsMapOpen(true)}
-          >
-            <Eye className="w-4 h-4 mr-2" />
-            View map
-          </Button>
-        </div>
-      )}
+      {isOfficerMode  && (<div className="md:hidden flex items-center justify-center p-3 border-t bg-background/90">
+        <Button variant="secondary" size="sm" onClick={() => setIsMapOpen(true)}>
+          <Eye className="w-4 h-4 mr-2" />View map
+        </Button>
+      </div>)}
     </div>
   );
 }

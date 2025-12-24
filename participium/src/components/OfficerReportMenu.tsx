@@ -88,16 +88,28 @@ export default function OfficerReportMenu(props: Readonly<Props>) {
         console.log(`Assigning company ${selectedCompany} to report ${props.reportId}`);
     };
 
+    const getStatusLabel = (status: string): string => {
+        switch (status) {
+            case "IN_PROGRESS":
+                return "In Progress";
+            case "RESOLVED":
+                return "Resolved";
+            case "SUSPENDED":
+                return "Suspended";
+            case "ASSIGNED":
+                return "Assigned";
+            default:
+                return status;
+        }
+    };
+
     const handleUpdateReportStatus = async (newStatus:string) => {
         await updateReportStatus(newStatus, props.reportId);
         props.setRefreshFlag((prev)=>!prev);
         props.setReport((prev: any) => (null));
         
         const reportName = props.reportTitle || `#${props.reportId}`;
-        const statusLabel = newStatus === "IN_PROGRESS" ? "In Progress" : 
-                           newStatus === "RESOLVED" ? "Resolved" : 
-                           newStatus === "SUSPENDED" ? "Suspended" : 
-                           newStatus === "ASSIGNED" ? "Assigned" : newStatus;
+        const statusLabel = getStatusLabel(newStatus);
         
         props.showToast('success', `Updated status for report ${reportName} to ${statusLabel}`);
         console.log(`Updating status for report ${props.reportId} to ${newStatus}`);
@@ -107,9 +119,21 @@ export default function OfficerReportMenu(props: Readonly<Props>) {
       <div className="w-full p-3 bg-card rounded-md shadow-sm border border-border">
         {/* TOP: company selector or assigned company */}
         <div className="mb-3">
-          {!props.companyId ? (
+          {props.companyId ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-full bg-secondary/10 flex items-center justify-center text-sm font-semibold text-secondary">
+                  {companies.find(c => c.id === props.companyId)?.name?.charAt(0).toUpperCase() || props.companyId?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div className="text-sm font-medium">{companies.find(company => company.id === props.companyId)?.name || props.companyId}</div>
+                  <div className="text-[11px] text-muted-foreground">Assigned</div>
+                </div>
+              </div>
+            </div>
+          ) : (
             <div>
-              <label className="block text-[11px] font-semibold text-muted-foreground uppercase mb-1">
+              <label htmlFor="company-select" className="block text-[11px] font-semibold text-muted-foreground uppercase mb-1">
                 Assign Company
               </label>
               <Select
@@ -117,7 +141,7 @@ export default function OfficerReportMenu(props: Readonly<Props>) {
                 onValueChange={handleCompanyChange}
                 disabled={companiesLoading}
               >
-                <SelectTrigger className="w-full h-9 text-sm rounded-md border border-input bg-background">
+                <SelectTrigger id="company-select" className="w-full h-9 text-sm rounded-md border border-input bg-background">
                   <SelectValue placeholder={companiesLoading ? "Loading..." : "Select company..."} />
                 </SelectTrigger>
                 <SelectContent className="z-[9999] max-h-[220px]">
@@ -133,18 +157,6 @@ export default function OfficerReportMenu(props: Readonly<Props>) {
                 <Button className="w-full h-9 text-sm" onClick={async ()=>await handleAssignCompany()} disabled={!selectedCompany}>
                   Assign
                 </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-full bg-secondary/10 flex items-center justify-center text-sm font-semibold text-secondary">
-                  {companies.find(c => c.id === props.companyId)?.name?.charAt(0).toUpperCase() || props.companyId?.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div className="text-sm font-medium">{companies.find(company => company.id === props.companyId)?.name || props.companyId}</div>
-                  <div className="text-[11px] text-muted-foreground">Assigned</div>
-                </div>
               </div>
             </div>
           )}

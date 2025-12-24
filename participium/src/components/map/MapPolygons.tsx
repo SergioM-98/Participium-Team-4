@@ -4,10 +4,10 @@ import { Polygon } from "react-leaflet";
 export default function MapPolygons({ cityPolygons, borderColor }: Readonly<{ cityPolygons: [number, number][][], borderColor: string }>) {
     return (
         <>
-            {cityPolygons.map((polygon, idx) => (
+            {cityPolygons.map((polygon) => (
                 <Polygon
-                    key={idx}
-                    positions={polygon as any}
+                    key={`polygon-${polygon[0].join('-')}`}
+                    positions={polygon}
                     pathOptions={{ color: borderColor, fillOpacity: 0, weight: 1.5 }}
                 />
             ))}

@@ -99,22 +99,27 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
   }, [refreshFlag]);
 
   useEffect(() => {
+    async function buildPhotoCache(): Promise<Record<string, string>> {
+      const cache: Record<string, string> = {};
+      
+      for (const report of reports) {
+        for (const photoFileName of report.photos) {
+          if (cache[photoFileName]) continue;
+          
+          const photoResponse = await getPhoto(photoFileName);
+          if (photoResponse.success && photoResponse.data) {
+            cache[photoFileName] = photoResponse.data;
+          }
+        }
+      }
+      
+      return cache;
+    }
+
     async function fetchPhotos() {
       try {
         if (reports && reports.length > 0) {
-          const cache: Record<string, string> = {};
-
-          for (const report of reports) {
-            for (const photoFileName of report.photos) {
-              if (cache[photoFileName]) continue;
-
-              const photoResponse = await getPhoto(photoFileName);
-              if (photoResponse.success && photoResponse.data) {
-                cache[photoFileName] = photoResponse.data;
-              }
-            }
-          }
-
+          const cache = await buildPhotoCache();
           setPhotoCache(cache);
         }
       } catch (err) {
@@ -226,14 +231,16 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
         </p>
       </div>
 
-      {isLoading ? (
+      {isLoading && (
         <div className="flex items-center justify-center py-20">
           <div className="flex flex-col items-center gap-4">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
             <p className="text-muted-foreground">Loading your reports...</p>
           </div>
         </div>
-      ) : error ? (
+      )}
+
+      {error && (
         <Card className="p-12">
           <div className="flex flex-col items-center justify-center text-center">
             <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
@@ -241,12 +248,14 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
               Error Loading Reports
             </h3>
             <p className="text-muted-foreground max-w-md">{error}</p>
-            <Button className="mt-4" onClick={() => window.location.reload()}>
+            <Button className="mt-4" onClick={() => globalThis.location.reload()}>
               Try Again
             </Button>
           </div>
         </Card>
-      ) : filteredReports.length === 0 ? (
+      )}
+
+      {!isLoading && !error && filteredReports.length === 0 && (
         <Card className="p-12">
           <div className="flex flex-col items-center justify-center text-center">
             <FileText className="h-16 w-16 text-muted-foreground mb-4" />
@@ -258,7 +267,9 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
             </p>
           </div>
         </Card>
-      ) : (
+      )}
+
+      {!isLoading && !error && filteredReports.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredReports.map((report) => (
             <Card
@@ -289,15 +300,15 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
                     {report.photos.length === 1 ? "photo" : "photos"}
                   </p>
                   <div className="flex gap-2 overflow-x-auto">
-                    {report.photos.map((photoFileName, index) => (
+                    {report.photos.map((photoFileName) => (
                       <div
-                        key={index}
+                        key={photoFileName}
                         className="w-20 h-20 bg-muted rounded-md shrink-0 flex items-center justify-center border overflow-hidden"
                       >
                         {photoCache[photoFileName] ? (
                           <img
                             src={photoCache[photoFileName]}
-                            alt={`Report photo ${index + 1}`}
+                            alt=""
                             className="w-full h-full object-cover"
                           />
                         ) : (

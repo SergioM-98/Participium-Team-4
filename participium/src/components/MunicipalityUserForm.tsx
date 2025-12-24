@@ -388,15 +388,8 @@ export default function MunicipalityUserForm({
 
                 <div className="space-y-2">
                   <Label htmlFor="office">Office</Label>
-                  {data.role.includes("ADMIN") ? (
-                    <Input
-                      id="office"
-                      value="N/A"
-                      disabled
-                      className="bg-muted"
-                    />
-                  ) : data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-                    false ? (
+                  {data.role.includes("ADMIN") ||
+                  data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ? (
                     <Input
                       id="office"
                       value="N/A"

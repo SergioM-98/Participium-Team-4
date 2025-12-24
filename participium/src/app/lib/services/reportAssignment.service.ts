@@ -4,6 +4,7 @@ import {
   AssignReportToOfficerResponse,
 } from "@/dtos/report.dto";
 import { NotificationService } from "@/services/notification.service";
+import { m } from "framer-motion";
 
 class ReportAssignmentService {
   private static instance: ReportAssignmentService;
@@ -160,9 +161,15 @@ class ReportAssignmentService {
     } catch (error) {
       console.error("Failed to send notification:", error);
     }
+
+    let message = `Report assigned to company ${company.name}`;
+    if (employee) {
+      message += ` and employee ID ${employee.id}`;
+    }
+
     return {
       success: true,
-      data: `Report assigned to company ${company.name}${employee ? ` and employee ID ${employee.id}` : ""}`,
+      data: message,
       access: access,
       email: employee?.email || null,
     };
