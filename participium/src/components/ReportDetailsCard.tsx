@@ -247,122 +247,22 @@ export default function ReportDetailsCard({
          </div>
  
         {/* CHAT / OFFICER - right (fills the available space) - Only show if user can interact */}
-        {canViewChat && (
-        <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex flex-col relative">
-          {/* Header / Toggle (in-flow, non overlaid) */}
-          <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/5 flex-shrink-0">
-            {/* CASE 1: canViewChat && isAssignedOfficer - show tabs */}
-            {((canViewChat && isAssignedOfficer)|| isMaintainerMode) && (
-              <div className="flex items-center gap-1.5 bg-muted/10 p-1 rounded-md">
-                {!isMaintainerMode && (<button
-                  onClick={() => setSeeOfficerChat(1)}
-                  aria-pressed={seeOfficerChat === 1}
-                  className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
-                >
-                  <MessageSquare className="w-5 h-5" />
-                  <span className="hidden xl:inline">Chat</span>
-                </button>)}
-
-                {isMaintainerMode && (<button
-                  onClick={() => setSeeOfficerChat(1)}
-                  aria-pressed={seeOfficerChat === 1}
-                  className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
-                >
-                  <Menu className="w-5 h-5" />
-                  <span className="hidden xl:inline">Menu</span>
-                </button>)}
-
-                <button
-                  onClick={() => setSeeOfficerChat(2)}
-                  aria-pressed={seeOfficerChat === 2}
-                  className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 2 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
-                >
-                  <StickyNote className="w-5 h-5" />
-                  <span className="hidden xl:inline">Internal Notes</span>
-                </button>
-
-                {!isMaintainerMode && (<button
-                  onClick={() => setSeeOfficerChat(3)}
-                  aria-pressed={seeOfficerChat === 3}
-                  className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 3 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
-                >
-                  <Menu className="w-5 h-5" />
-                  <span className="hidden xl:inline">Menu</span>
-                </button>)}
-              </div>
-            )}
-
-            {/* CASE 2: canViewChat && !isAssignedOfficer - empty space */}
-            {canViewChat && !isAssignedOfficer && (
-              <div className="text-xs text-muted-foreground"> </div>
-            )}
-
-            {/* CASE 3: !canViewChat - empty space */}
-            {!canViewChat && (
-              <div className="text-xs text-muted-foreground"> </div>
-            )}
-          </div>
-
-          {/* Content area */}
-          <div className="flex-1 min-h-0 overflow-auto p-4">
-            {/* CASE 1: canViewChat && isAssignedOfficer && seeOfficerChat === 1 (Chat) */}
-            {canViewChat && isAssignedOfficer && seeOfficerChat === 1 && (
-              <ChatPanel
-                reportId={report.id}
-                currentUserRole={currentUserRole as SenderRole}
-                currentUserId={session?.user?.id || ""}
-              />
-            )}
-
-            {/* CASE 2: canViewChat && isAssignedOfficer && seeOfficerChat === 2 (Internal Notes) */}
-            {canViewChat && seeOfficerChat === 2 && (
-              <InternalNotesPanel reportId={report.id} />
-            )}
-
-            {/* CASE 3: canViewChat && isAssignedOfficer && seeOfficerChat === 3 (Menu) */}
-            {canViewChat && isAssignedOfficer && seeOfficerChat === 3 && (
-              <OfficerReportMenu
-                reportId={report.id}
-                reportTitle={report.title}
-                status={report.status}
-                companyId={report.companyId || ""}
-                setRefreshFlag={setRefreshFlag!}
-                setReport={setReport!}
-                showToast={showToast!}
-              />
-            )}
-
-            {/* CASE 4: canViewChat && !isAssignedOfficer && !isMaintainerMode (Regular user - only Chat) */}
-            {canViewChat && !isAssignedOfficer && !isMaintainerMode && (
-              <ChatPanel
-                reportId={report.id}
-                currentUserRole={currentUserRole as SenderRole}
-                currentUserId={session?.user?.id || ""}
-              />
-            )}
-
-            {/* CASE 5: !canViewChat && isOfficerMode (Officer Action Panel) */}
-            {!canViewChat && isOfficerMode && (
-              <OfficerActionPanel
-                reportId={report.id}
-                currentStatus={report.status}
-                currentCategory={report.category}
-                onActionComplete={onOfficerActionComplete}
-              />
-            )}
-            
-            {/* CASE 7: isMaintainerMode (Maintainer Action Panel) */}
-            {isMaintainerMode && seeOfficerChat===1 && (
-              <MaintainerActionPanel
-                reportId={report.id}
-                currentStatus={report.status}
-                onActionComplete={onMaintainerActionComplete}
-              />
-            )}
-
-          </div>
-        </div>
-        )}
+        {canViewChat && <ThirdColumn 
+          report={report}
+          canViewChat={canViewChat}
+          isAssignedOfficer={!!isAssignedOfficer}
+          isOfficerMode={isOfficerMode}
+          isMaintainerMode={isMaintainerMode}
+          currentUserRole={currentUserRole}
+          session={session}
+          seeOfficerChat={seeOfficerChat}
+          setSeeOfficerChat={setSeeOfficerChat}
+          onOfficerActionComplete={onOfficerActionComplete}
+          setRefreshFlag={setRefreshFlag}
+          setReport={setReport}
+          showToast={showToast}
+          onMaintainerActionComplete={onMaintainerActionComplete}
+        />}
       </div>
       
       {/* Mobile map overlay (on top of modal) */}
@@ -404,6 +304,158 @@ export default function ReportDetailsCard({
           <Eye className="w-4 h-4 mr-2" />View map
         </Button>
       </div>)}
+    </div>
+  );
+}
+
+interface ThirdColumnProps {
+  report: Report;
+  canViewChat: boolean;
+  isAssignedOfficer: boolean;
+  isOfficerMode: boolean;
+  isMaintainerMode: boolean;
+  currentUserRole: string | undefined;
+  session: any;
+  seeOfficerChat: number;
+  setSeeOfficerChat: Dispatch<SetStateAction<number>>;
+  onOfficerActionComplete?: () => void;
+  setRefreshFlag?: Dispatch<SetStateAction<boolean>>;
+  setReport?: Dispatch<SetStateAction<any>>;
+  showToast?: (type: 'success' | 'error', text: string) => void;
+  onMaintainerActionComplete?: () => void;
+}
+
+function ThirdColumn(
+  { report,
+    canViewChat,
+    isAssignedOfficer,
+    isOfficerMode,
+    isMaintainerMode,
+    currentUserRole,
+    session,
+    seeOfficerChat,
+    setSeeOfficerChat,
+    onOfficerActionComplete,
+    setRefreshFlag,
+    setReport,
+    showToast,
+    onMaintainerActionComplete
+  }: Readonly<ThirdColumnProps>
+) {
+  return (
+    <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex flex-col relative">
+      {/* Header / Toggle (in-flow, non overlaid) */}
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/5 flex-shrink-0">
+        {/* CASE 1: canViewChat && isAssignedOfficer - show tabs */}
+        {((canViewChat && isAssignedOfficer)|| isMaintainerMode) && (
+          <div className="flex items-center gap-1.5 bg-muted/10 p-1 rounded-md">
+            {!isMaintainerMode && (<button
+              onClick={() => setSeeOfficerChat(1)}
+              aria-pressed={seeOfficerChat === 1}
+              className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+            >
+              <MessageSquare className="w-5 h-5" />
+              <span className="hidden xl:inline">Chat</span>
+            </button>)}
+
+            {isMaintainerMode && (<button
+              onClick={() => setSeeOfficerChat(1)}
+              aria-pressed={seeOfficerChat === 1}
+              className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 1 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+            >
+              <Menu className="w-5 h-5" />
+              <span className="hidden xl:inline">Menu</span>
+            </button>)}
+
+            <button
+              onClick={() => setSeeOfficerChat(2)}
+              aria-pressed={seeOfficerChat === 2}
+              className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 2 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+            >
+              <StickyNote className="w-5 h-5" />
+              <span className="hidden xl:inline">Internal Notes</span>
+            </button>
+
+            {!isMaintainerMode && (<button
+              onClick={() => setSeeOfficerChat(3)}
+              aria-pressed={seeOfficerChat === 3}
+              className={`flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${seeOfficerChat === 3 ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/20"}`}
+            >
+              <Menu className="w-5 h-5" />
+              <span className="hidden xl:inline">Menu</span>
+            </button>)}
+          </div>
+        )}
+
+        {/* CASE 2: canViewChat && !isAssignedOfficer - empty space */}
+        {canViewChat && !isAssignedOfficer && (
+          <div className="text-xs text-muted-foreground"> </div>
+        )}
+
+        {/* CASE 3: !canViewChat - empty space */}
+        {!canViewChat && (
+          <div className="text-xs text-muted-foreground"> </div>
+        )}
+      </div>
+
+      {/* Content area */}
+      <div className="flex-1 min-h-0 overflow-auto p-4">
+        {/* CASE 1: canViewChat && isAssignedOfficer && seeOfficerChat === 1 (Chat) */}
+        {canViewChat && isAssignedOfficer && seeOfficerChat === 1 && (
+          <ChatPanel
+            reportId={report.id}
+            currentUserRole={currentUserRole as SenderRole}
+            currentUserId={session?.user?.id || ""}
+          />
+        )}
+
+        {/* CASE 2: canViewChat && isAssignedOfficer && seeOfficerChat === 2 (Internal Notes) */}
+        {canViewChat && seeOfficerChat === 2 && (
+          <InternalNotesPanel reportId={report.id} />
+        )}
+
+        {/* CASE 3: canViewChat && isAssignedOfficer && seeOfficerChat === 3 (Menu) */}
+        {canViewChat && isAssignedOfficer && seeOfficerChat === 3 && (
+          <OfficerReportMenu
+            reportId={report.id}
+            reportTitle={report.title}
+            status={report.status}
+            companyId={report.companyId || ""}
+            setRefreshFlag={setRefreshFlag!}
+            setReport={setReport!}
+            showToast={showToast!}
+          />
+        )}
+
+        {/* CASE 4: canViewChat && !isAssignedOfficer && !isMaintainerMode (Regular user - only Chat) */}
+        {canViewChat && !isAssignedOfficer && !isMaintainerMode && (
+          <ChatPanel
+            reportId={report.id}
+            currentUserRole={currentUserRole as SenderRole}
+            currentUserId={session?.user?.id || ""}
+          />
+        )}
+
+        {/* CASE 5: !canViewChat && isOfficerMode (Officer Action Panel) */}
+        {!canViewChat && isOfficerMode && (
+          <OfficerActionPanel
+            reportId={report.id}
+            currentStatus={report.status}
+            currentCategory={report.category}
+            onActionComplete={onOfficerActionComplete}
+          />
+        )}
+        
+        {/* CASE 7: isMaintainerMode (Maintainer Action Panel) */}
+        {isMaintainerMode && seeOfficerChat===1 && (
+          <MaintainerActionPanel
+            reportId={report.id}
+            currentStatus={report.status}
+            onActionComplete={onMaintainerActionComplete}
+          />
+        )}
+
+      </div>
     </div>
   );
 }
