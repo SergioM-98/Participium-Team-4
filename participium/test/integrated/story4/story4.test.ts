@@ -29,6 +29,9 @@ describe("Story 4 - Integration Test: Report Registration", () => {
   beforeEach(async () => {
     if (prisma.notification) await prisma.notification.deleteMany({});
     await prisma.photo.deleteMany({});
+    await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
+    await prisma.notification.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
     if (prisma.notificationPreferences) await prisma.notificationPreferences.deleteMany({});

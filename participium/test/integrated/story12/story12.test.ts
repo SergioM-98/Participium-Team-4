@@ -19,6 +19,9 @@ describe("Story 12 - Integration Test: registerTelegramReport", () => {
     }
     
     await prisma.photo.deleteMany({});
+    await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
+    await prisma.notification.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.notificationPreferences) {
       await prisma.notificationPreferences.deleteMany({});

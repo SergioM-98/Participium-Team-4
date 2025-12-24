@@ -44,6 +44,9 @@ describe("Story 3 - Integration Test: Officer Role assignment", () => {
   beforeEach(async () => {
     if (prisma.notification) await prisma.notification.deleteMany({});
     await prisma.photo.deleteMany({});
+    await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
+    await prisma.notification.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
     if (prisma.notificationPreferences)
