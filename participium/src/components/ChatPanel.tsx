@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { io, Socket } from "socket.io-client";
 import { Send, User, ShieldAlert } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useSession } from "next-auth/react";
-import { getReportMessages, sendMessage } from "@/app/lib/controllers/message.controller";
+import { sendMessage } from "@/app/lib/controllers/message.controller";
 
 type SenderRole = "CITIZEN" | 'TECHNICAL_OFFICER' | 'PUBLIC_RELATIONS_OFFICER' | 'EXTERNAL_MAINTAINER_WITH_ACCESS';
 
@@ -33,58 +34,79 @@ export default function ChatPanel({
 }: Readonly<ChatPanelProps>) {
   const { data: session } = useSession();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  // Track only the initial load as loading. Do NOT toggle during polling,
-  // otherwise the textarea gets disabled and loses focus periodically.
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef(0);
+  const socketRef = useRef<Socket | null>(null);
+  const isMountedRef = useRef(true);
 
-  const mapSenderRole = (role: string): SenderRole => {
-    if (role === "TECHNICAL_OFFICER") return "TECHNICAL_OFFICER";
-    if (role === "PUBLIC_RELATIONS_OFFICER") return "PUBLIC_RELATIONS_OFFICER";
-    return "CITIZEN";
+  const transformMessages = (messages: any[]): ChatMessage[] => {
+    return messages.map((msg: any) => {
+      let senderRole: SenderRole = "CITIZEN";
+      if (msg.author?.role === "TECHNICAL_OFFICER") senderRole = "TECHNICAL_OFFICER";
+      else if (msg.author?.role === "PUBLIC_RELATIONS_OFFICER") senderRole = "PUBLIC_RELATIONS_OFFICER";
+      else if (msg.author?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS") senderRole = "EXTERNAL_MAINTAINER_WITH_ACCESS";
+
+      return {
+        id: msg.id?.toString() || Date.now().toString(),
+        senderName:
+          msg.author?.firstName && msg.author?.lastName
+            ? `${msg.author.firstName} ${msg.author.lastName}`
+            : msg.author?.username || "Unknown",
+        senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
+        senderRole,
+        content: msg.content,
+        timestamp: msg.createdAt,
+      };
+    });
   };
 
-  // Load messages and polling
+  // Load initial messages and setup WebSocket
   useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const reportIdBigInt = BigInt(reportId);
-        const response = await getReportMessages(reportIdBigInt);
+    isMountedRef.current = true;
 
-        if (response && Array.isArray(response)) {
-          const transformedMessages: ChatMessage[] = response.map((msg: any) => ({
-            id: msg.id.toString(),
-            senderName:
-              msg.author?.firstName && msg.author?.lastName
-                ? `${msg.author.firstName} ${msg.author.lastName}`
-                : msg.author?.username || "Anonymous",
-            senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
-            senderRole: mapSenderRole(msg.author?.role || "CITIZEN"),
-            content: msg.content,
-            timestamp: msg.createdAt,
-          }));
-          setMessages(transformedMessages);
+    const fetchInitialMessages = async () => {
+      try {
+        setIsInitialLoading(true);
+        const res = await fetch(`/api/messages?reportId=${reportId}`);
+        if (!res.ok) throw new Error("Failed to fetch messages");
+        const data = await res.json();
+        if (isMountedRef.current && Array.isArray(data)) {
+          setMessages(transformMessages(data));
         }
       } catch (error) {
-        console.error("Failed to load messages:", error);
+        if (isMountedRef.current) console.error("Failed to load messages:", error);
+      } finally {
+        if (isMountedRef.current) setIsInitialLoading(false);
       }
     };
 
-    const fetchInitialMessages = async () => {
-      setIsInitialLoading(true);
-      await fetchMessages();
-      setIsInitialLoading(false);
-    };
-
-    // Initial load shows the loading state
     fetchInitialMessages();
 
-    // Polling of messages every second WITHOUT toggling loading state
-    const interval = setInterval(fetchMessages, 1000);
-    return () => clearInterval(interval);
+    // Setup WebSocket connection
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `ws://localhost:${process.env.NEXT_PUBLIC_WS_PORT || 4000}`;
+    const socket = io(wsUrl, { transports: ["websocket"] });
+    socketRef.current = socket;
+
+    socket.emit("join", reportId.toString());
+
+    socket.on("chat-message", (incoming: ChatMessage) => {
+      if (isMountedRef.current) {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === incoming.id)) return prev;
+          return [...prev, incoming];
+        });
+      }
+    });
+
+    return () => {
+      isMountedRef.current = false;
+      socket.off("chat-message");
+      socket.disconnect();
+      socketRef.current = null;
+    };
   }, [reportId]);
 
   // Auto-scroll on new messages
@@ -99,20 +121,20 @@ export default function ChatPanel({
   }, [messages.length]);
 
   const handleSendMessage = async (text: string) => {
-    if (!session?.user?.id) {
-      console.error("User not authenticated");
+    if (!session?.user?.id || !socketRef.current) {
+      console.error("User not authenticated or socket not ready");
       return;
     }
 
+    setIsSending(true);
     try {
-      setIsSending(true);
       const authorId = session.user.id;
       const reportIdBigInt = BigInt(reportId);
-
       const response = await sendMessage(text, authorId, reportIdBigInt);
 
+      let newMsg: ChatMessage;
       if (response.success) {
-        const newMsg: ChatMessage = {
+        newMsg = {
           id: response.data.id?.toString() || Date.now().toString(),
           senderName: session.user.name || "You",
           senderId: session.user.id,
@@ -122,10 +144,26 @@ export default function ChatPanel({
             ? new Date(response.data.createdAt).toISOString()
             : new Date().toISOString(),
         };
-        setMessages((prev) => [...prev, newMsg]);
+      } else {
+        newMsg = {
+          id: Date.now().toString(),
+          senderName: session.user.name || "You",
+          senderId: session.user.id,
+          senderRole: currentUserRole,
+          content: text,
+          timestamp: new Date().toISOString(),
+        };
+        console.error("Error saving message:", response.error);
       }
+
+      // Add locally and broadcast via socket
+      setMessages((prev) => [...prev, newMsg]);
+      socketRef.current.emit("chat-message", {
+        roomId: reportId.toString(),
+        message: newMsg,
+      });
     } catch (error) {
-      console.error("Failed to send message:", error);
+      console.error("Error sending message:", error);
     } finally {
       setIsSending(false);
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, Dispatch, SetStateAction } from "react";
+import { useState, Dispatch, SetStateAction } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -13,8 +13,7 @@ import {
   Eye,
   MessageSquare,
   Menu,
-  StickyNote,
-  ShieldAlert
+  StickyNote
 } from "lucide-react";
 
 import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
@@ -167,7 +166,7 @@ export default function ReportDetailsCard({
       </div>
 
       {/* Row with 3 columns: map | menu | chat/officer */}
-      <div className={`flex flex-col ${canViewChat || isOfficerMode || isMaintainerMode ? 'md:flex-row' : 'md:flex-row'} items-stretch gap-4 p-4 md:p-6 overflow-hidden flex-1 min-h-0`}>
+      <div className="flex flex-col md:flex-row items-stretch gap-4 p-4 md:p-6 overflow-hidden flex-1 min-h-0">
         {/* MAP - left (hidden on mobile; available as overlay via button) */}
         {(isOfficerMode || isAssignedOfficer || isMaintainerMode) && (<div className="hidden md:flex md:flex-1 min-h-0 rounded-lg overflow-hidden border border-border bg-muted/5">
           <div className="w-full h-full">
@@ -188,7 +187,7 @@ export default function ReportDetailsCard({
         </div>)}
  
          {/* MENU - center (fills the available space, internal scroll) */}
-         <div className={`${canViewChat || isOfficerMode || isMaintainerMode ? 'flex-1' : 'flex-1'} min-h-0 rounded-lg border border-border bg-muted/10 p-3 overflow-auto`}>
+         <div className="flex-1 min-h-0 rounded-lg border border-border bg-muted/10 p-3 overflow-auto">
            <div className="space-y-4">
              <div className="p-1 bg-muted/30 rounded-lg border border-border/50">
                <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">
@@ -224,11 +223,11 @@ export default function ReportDetailsCard({
  
                {evidencePhotos.length > 0 ? (
                  <div className="grid grid-cols-2 gap-3">
-                   {evidencePhotos.slice(0,4).map((url, index) => (
-                     <div key={index} className="relative aspect-video rounded-md overflow-hidden border bg-muted">
+                   {evidencePhotos.slice(0,4).map((url) => (
+                     <div key={url} className="relative aspect-video rounded-md overflow-hidden border bg-muted">
                        <img
                          src={url}
-                         alt={`Evidence ${index + 1}`}
+                         alt="Evidence photo"
                          loading="lazy"
                          className="w-full h-full object-cover"
                          onError={(e) => { e.currentTarget.style.opacity = "0"; }}
