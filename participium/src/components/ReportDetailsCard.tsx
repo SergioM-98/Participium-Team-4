@@ -367,13 +367,16 @@ export default function ReportDetailsCard({
       
       {/* Mobile map overlay (on top of modal) */}
       {isMapOpen && (
-        <div
+        <button
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
           onClick={() => setIsMapOpen(false)}
+          onKeyDown={(e) => e.key === "Escape" && setIsMapOpen(false)}
+          aria-label="Close map"
         >
-          <div
-            className="w-full h-full max-w-[95vw] max-h-[95vh] rounded-lg overflow-hidden bg-background shadow-xl"
+          <button
+            className="w-[95vw] h-[95vh] rounded-lg overflow-hidden bg-background shadow-xl"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             <div className="relative w-full h-full">
               <LeafletMapFixed
@@ -391,8 +394,8 @@ export default function ReportDetailsCard({
                 className="w-full h-full"
               />
             </div>
-          </div>
-        </div>
+          </button>
+        </button>
       )}
 
       {/* Mobile footer: view map button (only on small screens) */}
