@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, Dispatch, SetStateAction } from "react";
-import { io, Socket } from "socket.io-client";
 import { useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -15,11 +14,12 @@ import {
   MessageSquare,
   Menu,
   StickyNote,
+  ShieldAlert
 } from "lucide-react";
 
 import OfficerActionPanel from "@/app/officer/all-reports/OfficerActionPanel";
 import MaintainerActionPanel from "@/app/maintainer/my-reports/MaintainerActionPanel";
-import ChatPanel, { ChatMessage } from "./ChatPanel";
+import ChatPanel from "./ChatPanel";
 import dynamic from "next/dynamic";
 import OfficerReportMenu from "./OfficerReportMenu";
 import InternalNotesPanel from "./InternalNotesPanel";
@@ -126,7 +126,6 @@ export default function ReportDetailsCard({
     minute: "2-digit",
   });
 
-  const [isSending, setIsSending] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
 
   // 1. Determine Role cleanly based on DTO
@@ -140,105 +139,6 @@ export default function ReportDetailsCard({
           : "PUBLIC_RELATIONS_OFFICER";
 
   const [seeOfficerChat, setSeeOfficerChat] = useState(1);
-
-
-  const socketRef = useRef<Socket | null>(null);
-
-  const transformMessages = (messages: any[]): ChatMessage[] => {
-    return messages.map((msg: any) => {
-      let senderRole: ChatMessage["senderRole"] = "CITIZEN";
-      if (msg.author?.role === "TECHNICAL_OFFICER") senderRole = "TECHNICAL_OFFICER";
-      else if (msg.author?.role === "PUBLIC_RELATIONS_OFFICER") senderRole = "PUBLIC_RELATIONS_OFFICER";
-      else if (msg.author?.role === "EXTERNAL_MAINTAINER_WITH_ACCESS") senderRole = "EXTERNAL_MAINTAINER_WITH_ACCESS";
-      
-      return {
-        id: msg.id?.toString() || Date.now().toString(),
-        senderName: msg.author?.firstName && msg.author?.lastName
-          ? `${msg.author.firstName} ${msg.author.lastName}`
-          : msg.author?.username || "Unknown",
-        senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
-        senderRole,
-        content: msg.content,
-        timestamp: msg.createdAt,
-      };
-    });
-  };
-
-  const fetchMessagesFromServer = async (isMounted: boolean) => {
-    try {
-      setIsLoadingMessages(true);
-      const res = await fetch(`/api/messages?reportId=${report.id}`);
-      if (!res.ok) throw new Error("Failed to fetch messages");
-      const data = await res.json();
-      if (isMounted && Array.isArray(data)) {
-        setMessages(transformMessages(data));
-      }
-    } catch (error) {
-      if (isMounted) console.error("Failed to load messages:", error);
-    } finally {
-      if (isMounted) setIsLoadingMessages(false);
-    }
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-    
-    fetchMessagesFromServer(isMounted);
-
-    const socket = io(`ws://localhost:${process.env.NEXT_PUBLIC_WS_PORT || 4000}`);
-    socketRef.current = socket;
-    socket.emit("join", report.id.toString());
-
-    socket.on("chat-message", () => {
-      fetchMessagesFromServer(isMounted);
-    });
-
-    return () => {
-      isMounted = false;
-      socket.disconnect();
-    };
-  }, [report.id]);
-
-  const handleSendMessage = async (text: string) => {
-    if (!session?.user?.id || !socketRef.current) {
-      console.error("User not authenticated o socket non pronto");
-      return;
-    }
-    setIsSending(true);
-    try {
-      setIsSending(true);
-      const authorId = session.user.id;
-      const reportIdBigInt = BigInt(report.id);
-      const response = await sendMessage(text, authorId, reportIdBigInt);
-      let newMsg: ChatMessage;
-      if (response.success) {
-        newMsg = {
-          id: response.data.id?.toString() || Date.now().toString(),
-          senderName: session.user.name || "You",
-          senderId: session.user.id,
-          senderRole: currentUserRole,
-          content: text,
-          timestamp: response.data.createdAt ? new Date(response.data.createdAt).toISOString() : new Date().toISOString(),
-        };
-      } else {
-        newMsg = {
-          id: Date.now().toString(),
-          senderName: session.user.name || "You",
-          senderId: session.user.id,
-          senderRole: currentUserRole,
-          content: text,
-          timestamp: new Date().toISOString(),
-        };
-        console.error("Error saving message:", response.error);
-      }
-      socketRef.current.emit("chat-message", { roomId: report.id.toString(), message: newMsg });
-      setMessages((prev) => [...prev, newMsg]);
-    } catch (error) {
-      console.error("Error sending message:", error);
-    } finally {
-      setIsSending(false);
-    }
-  };
   
   return (
     <div className="w-full h-full flex flex-col bg-background overflow-hidden">
@@ -431,8 +331,8 @@ export default function ReportDetailsCard({
               />
             )}
 
-            {/* CASE 4: canViewChat && !isAssignedOfficer (Regular user - only Chat) */}
-            {canViewChat && !isAssignedOfficer && (
+            {/* CASE 4: canViewChat && !isAssignedOfficer && !isMaintainerMode (Regular user - only Chat) */}
+            {canViewChat && !isAssignedOfficer && !isMaintainerMode && (
               <ChatPanel
                 reportId={report.id}
                 currentUserRole={currentUserRole}

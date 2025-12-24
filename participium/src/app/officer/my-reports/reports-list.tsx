@@ -348,7 +348,7 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
           onClick={() => setSelectedReport(null)}
         >
           <div
-            className="w-screen h-screen md:w-[70vw] md:h-[70vh] max-w-[95vw] max-h-[95vh] rounded-xl shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300"
+            className="w-screen h-screen md:w-[85vw] md:h-[85vh] max-w-[95vw] max-h-[95vh] rounded-xl shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300"
              onClick={(e) => e.stopPropagation()}
            >
             <ReportDetailsCard
