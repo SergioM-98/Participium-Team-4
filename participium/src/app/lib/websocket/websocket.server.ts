@@ -20,6 +20,10 @@ io.on("connection", (socket) => {
     io.to(data.roomId).emit("chat-message", data.message);
   });
 
+  socket.on("internal-note", (data) => {
+    io.to(data.roomId).emit("internal-note", data.note);
+  });
+
   socket.on("disconnect", () => {});
 });
 

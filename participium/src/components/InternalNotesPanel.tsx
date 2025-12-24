@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { io, Socket } from "socket.io-client";
 import { Button } from "./ui/button";
 import { StickyNote, Lock } from "lucide-react";
 import { getReportComments, createComment } from "@/app/lib/controllers/comment.controller";
@@ -16,11 +17,15 @@ export default function InternalNotesPanel({
   const [internalNotes, setInternalNotes] = useState<InternalNote[]>([]);
   const [newNote, setNewNote] = useState("");
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+  const socketRef = useRef<Socket | null>(null);
+  const isMountedRef = useRef(true);
   
   useEffect(() => {
+    isMountedRef.current = true;
+
     async function fetchNotes() {
       const res = await getReportComments(BigInt(reportId));
-      if (res.success && Array.isArray(res.data)) {
+      if (isMountedRef.current && res.success && Array.isArray(res.data)) {
         setInternalNotes(
           res.data.map((c) => ({
             id: c.id.toString(),
@@ -29,15 +34,38 @@ export default function InternalNotesPanel({
             createdAt: c.createdAt.toString(),
           }))
         );
-      } else {
+      } else if (isMountedRef.current) {
         setInternalNotes([]);
       }
     }
     fetchNotes();
+
+    // Setup WebSocket connection
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || `ws://localhost:${process.env.NEXT_PUBLIC_WS_PORT || 4000}`;
+    const socket = io(wsUrl, { transports: ["websocket"] });
+    socketRef.current = socket;
+
+    socket.emit("join", reportId.toString());
+
+    socket.on("internal-note", (incoming: InternalNote) => {
+      if (isMountedRef.current) {
+        setInternalNotes((prev) => {
+          if (prev.some((n) => n.id === incoming.id)) return prev;
+          return [...prev, incoming];
+        });
+      }
+    });
+
+    return () => {
+      isMountedRef.current = false;
+      socket.off("internal-note");
+      socket.disconnect();
+      socketRef.current = null;
+    };
   }, [reportId]);
 
   const handleAddInternalNote = async () => {
-    if (!newNote.trim()) return;
+    if (!newNote.trim() || !socketRef.current) return;
     setIsSubmittingNote(true);
     try {
       const res = await createComment(newNote, BigInt(reportId));
@@ -51,6 +79,12 @@ export default function InternalNotesPanel({
         };
         setInternalNotes((prev) => [...prev, note]);
         setNewNote("");
+        
+        // Broadcast via WebSocket
+        socketRef.current.emit("internal-note", {
+          roomId: reportId.toString(),
+          note: note,
+        });
       }
     } catch (error) {
       console.error("Error adding note:", error);

@@ -357,12 +357,6 @@ export default function ReportDetailsCard({
                 onActionComplete={onMaintainerActionComplete}
               />
             )}
-            {/* CASE 8: isMaintainerMode (Maintainer Action Panel) */}
-            {
-              isMaintainerMode && seeOfficerChat===2 && (
-                <InternalNotesPanel reportId={report.id} />
-              )
-            }
 
           </div>
         </div>
