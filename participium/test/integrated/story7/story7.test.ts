@@ -25,6 +25,9 @@ describe("Story 7 - Integration Test: View approved reports on interactive map",
 
   beforeEach(async () => {
     // Clean database before each test
+    await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
+    await prisma.notification.deleteMany({});
     await prisma.report.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.user.deleteMany({});

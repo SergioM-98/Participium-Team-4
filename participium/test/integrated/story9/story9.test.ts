@@ -52,6 +52,9 @@ describe("Story 9 – Citizen Account Configuration (FULL TEST)", () => {
     if (prisma.notification) {
       await prisma.notification.deleteMany({});
     }
+    await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
+    await prisma.notification.deleteMany({});
     await prisma.report.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.profilePhoto.deleteMany({});
