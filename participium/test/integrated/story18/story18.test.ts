@@ -1,5 +1,8 @@
 import { prisma } from "../../setup";
-import { sendMessage, getReportMessages } from "../../../src/app/lib/controllers/message.controller";
+import {
+  sendMessage,
+  getReportMessages,
+} from "../../../src/app/lib/controllers/message.controller";
 
 describe("Story 18 - Integration Test: Two-way Communication Between Citizens and Municipal Operators", () => {
   let citizenId: string;
@@ -9,11 +12,13 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
   beforeEach(async () => {
     // Clean up database
     await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
     if (prisma.notification) await prisma.notification.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
-    if (prisma.notificationPreferences) await prisma.notificationPreferences.deleteMany({});
+    if (prisma.notificationPreferences)
+      await prisma.notificationPreferences.deleteMany({});
     await prisma.user.deleteMany({});
 
     // Create a citizen user
@@ -64,8 +69,9 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
 
   describe("Citizen to Officer Communication", () => {
     it("should allow a citizen to send a message to an officer about their report", async () => {
-      const messageContent = "Can you please provide an update on the repair timeline?";
-      
+      const messageContent =
+        "Can you please provide an update on the repair timeline?";
+
       const result = await sendMessage(messageContent, citizenId, reportId);
 
       expect(result.success).toBe(true);
@@ -78,7 +84,7 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
 
     it("should persist citizen messages to the database", async () => {
       const messageContent = "I have additional photos to share.";
-      
+
       await sendMessage(messageContent, citizenId, reportId);
 
       const messages = await prisma.message.findMany({
@@ -97,7 +103,7 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
 
       const messages = await prisma.message.findMany({
         where: { reportId: reportId },
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: "asc" },
       });
 
       expect(messages).toHaveLength(3);
@@ -109,8 +115,9 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
 
   describe("Officer to Citizen Communication", () => {
     it("should allow an officer to send a message to a citizen about a report", async () => {
-      const messageContent = "We will schedule the repair for next week. Thank you for your patience.";
-      
+      const messageContent =
+        "We will schedule the repair for next week. Thank you for your patience.";
+
       const result = await sendMessage(messageContent, officerId, reportId);
 
       expect(result.success).toBe(true);
@@ -122,8 +129,9 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
     });
 
     it("should persist officer messages to the database", async () => {
-      const messageContent = "The repair team has been dispatched to your location.";
-      
+      const messageContent =
+        "The repair team has been dispatched to your location.";
+
       await sendMessage(messageContent, officerId, reportId);
 
       const messages = await prisma.message.findMany({
@@ -139,23 +147,35 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
   describe("Two-way Communication Thread", () => {
     it("should support a complete conversation thread between citizen and officer", async () => {
       // Citizen starts the conversation
-      await sendMessage("The light has been broken for 3 days now.", citizenId, reportId);
+      await sendMessage(
+        "The light has been broken for 3 days now.",
+        citizenId,
+        reportId,
+      );
 
       // Officer responds
-      await sendMessage("Thank you for reporting this. We will investigate tomorrow.", officerId, reportId);
+      await sendMessage(
+        "Thank you for reporting this. We will investigate tomorrow.",
+        officerId,
+        reportId,
+      );
 
       // Citizen asks for clarification
       await sendMessage("What time will you arrive?", citizenId, reportId);
 
       // Officer provides details
-      await sendMessage("Our team will arrive between 2-4 PM.", officerId, reportId);
+      await sendMessage(
+        "Our team will arrive between 2-4 PM.",
+        officerId,
+        reportId,
+      );
 
       // Citizen acknowledges
       await sendMessage("Perfect, thank you!", citizenId, reportId);
 
       const messages = await prisma.message.findMany({
         where: { reportId: reportId },
-        orderBy: { createdAt: 'asc' },
+        orderBy: { createdAt: "asc" },
       });
 
       expect(messages).toHaveLength(5);
@@ -167,9 +187,9 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
     });
 
     it("should retrieve messages in chronological order", async () => {
-      const msg1Time = new Date('2024-01-01T10:00:00Z');
-      const msg2Time = new Date('2024-01-01T11:00:00Z');
-      const msg3Time = new Date('2024-01-01T12:00:00Z');
+      const msg1Time = new Date("2024-01-01T10:00:00Z");
+      const msg2Time = new Date("2024-01-01T11:00:00Z");
+      const msg3Time = new Date("2024-01-01T12:00:00Z");
 
       await prisma.message.create({
         data: {
@@ -262,7 +282,11 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
       });
 
       await sendMessage("Message for first report", citizenId, reportId);
-      await sendMessage("Message for second report", citizenId, anotherReport.id);
+      await sendMessage(
+        "Message for second report",
+        citizenId,
+        anotherReport.id,
+      );
 
       const messagesReport1 = await getReportMessages(reportId);
       const messagesReport2 = await getReportMessages(anotherReport.id);
@@ -286,7 +310,7 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
 
     it("should handle very long messages", async () => {
       const longMessage = "A".repeat(5000);
-      
+
       const result = await sendMessage(longMessage, citizenId, reportId);
 
       expect(result.success).toBe(true);
@@ -296,9 +320,14 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
     });
 
     it("should preserve special characters in messages", async () => {
-      const messageWithSpecialChars = "Hello! How are you? 😊 I need help with #123 @officer";
-      
-      const result = await sendMessage(messageWithSpecialChars, citizenId, reportId);
+      const messageWithSpecialChars =
+        "Hello! How are you? 😊 I need help with #123 @officer";
+
+      const result = await sendMessage(
+        messageWithSpecialChars,
+        citizenId,
+        reportId,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -308,8 +337,12 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
 
     it("should preserve newlines and formatting in messages", async () => {
       const messageWithNewlines = "Line 1\nLine 2\n\nLine 3";
-      
-      const result = await sendMessage(messageWithNewlines, citizenId, reportId);
+
+      const result = await sendMessage(
+        messageWithNewlines,
+        citizenId,
+        reportId,
+      );
 
       expect(result.success).toBe(true);
       if (result.success) {
@@ -321,8 +354,12 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
   describe("Communication Context", () => {
     it("should allow communication only on reports that exist", async () => {
       const nonExistentReportId = BigInt(999999);
-      
-      const result = await sendMessage("Test message", citizenId, nonExistentReportId);
+
+      const result = await sendMessage(
+        "Test message",
+        citizenId,
+        nonExistentReportId,
+      );
 
       // The system should handle this gracefully - either by failing or creating the message anyway
       expect(result).toBeDefined();
@@ -384,7 +421,11 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
       });
 
       // Second officer sends message
-      await sendMessage("I am taking over this case", secondOfficer.id, reportId);
+      await sendMessage(
+        "I am taking over this case",
+        secondOfficer.id,
+        reportId,
+      );
 
       // Citizen responds
       await sendMessage("Thank you for the update", citizenId, reportId);
@@ -402,8 +443,16 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
 
   describe("Concurrent Messaging", () => {
     it("should handle concurrent messages from both citizen and officer", async () => {
-      const citizenMessagePromise = sendMessage("Citizen message", citizenId, reportId);
-      const officerMessagePromise = sendMessage("Officer message", officerId, reportId);
+      const citizenMessagePromise = sendMessage(
+        "Citizen message",
+        citizenId,
+        reportId,
+      );
+      const officerMessagePromise = sendMessage(
+        "Officer message",
+        officerId,
+        reportId,
+      );
 
       const [citizenResult, officerResult] = await Promise.all([
         citizenMessagePromise,
@@ -423,23 +472,29 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
   describe("Message Timestamps", () => {
     it("should record creation timestamp for each message", async () => {
       const beforeSend = new Date();
-      
-      const result = await sendMessage("Timestamped message", citizenId, reportId);
-      
+
+      const result = await sendMessage(
+        "Timestamped message",
+        citizenId,
+        reportId,
+      );
+
       const afterSend = new Date();
 
       if (result.success) {
         const messageDate = new Date(result.data.createdAt);
-        expect(messageDate.getTime()).toBeGreaterThanOrEqual(beforeSend.getTime());
+        expect(messageDate.getTime()).toBeGreaterThanOrEqual(
+          beforeSend.getTime(),
+        );
         expect(messageDate.getTime()).toBeLessThanOrEqual(afterSend.getTime());
       }
     });
 
     it("should maintain chronological order even with rapid successive messages", async () => {
       await sendMessage("Message 1", citizenId, reportId);
-      await new Promise(resolve => setTimeout(resolve, 10)); // Small delay
+      await new Promise((resolve) => setTimeout(resolve, 10)); // Small delay
       await sendMessage("Message 2", citizenId, reportId);
-      await new Promise(resolve => setTimeout(resolve, 10)); // Small delay
+      await new Promise((resolve) => setTimeout(resolve, 10)); // Small delay
       await sendMessage("Message 3", citizenId, reportId);
 
       const messages = await getReportMessages(reportId);
@@ -448,7 +503,7 @@ describe("Story 18 - Integration Test: Two-way Communication Between Citizens an
         const time1 = new Date(messages[0].createdAt).getTime();
         const time2 = new Date(messages[1].createdAt).getTime();
         const time3 = new Date(messages[2].createdAt).getTime();
-        
+
         expect(time2).toBeGreaterThanOrEqual(time1);
         expect(time3).toBeGreaterThanOrEqual(time2);
       }

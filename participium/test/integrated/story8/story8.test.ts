@@ -41,6 +41,8 @@ describe("Story 8 - Integration Test: View approved reports of a specific office
 
   beforeEach(async () => {
     // Clean database before each test
+    await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
     await prisma.report.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.user.deleteMany({});
