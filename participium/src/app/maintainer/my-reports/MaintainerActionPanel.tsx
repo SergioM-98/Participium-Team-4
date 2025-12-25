@@ -99,20 +99,23 @@ export default function MaintainerActionPanel({
 
       <div className="space-y-3">
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
             Current Status
-          </label>
+          </span>
           <div className="p-2 bg-muted rounded-md text-sm font-medium">
             {statusLabels[currentStatus] || currentStatus}
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+          <label
+            htmlFor="status-select"
+            className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider"
+          >
             New Status
           </label>
           <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="w-full h-9 text-sm bg-background">
+            <SelectTrigger id="status-select" className="w-full h-9 text-sm bg-background">
               <SelectValue placeholder="Select new status..." />
             </SelectTrigger>
             <SelectContent className="z-9999">
