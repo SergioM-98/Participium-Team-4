@@ -142,7 +142,7 @@ export default function ReportDetailsCard({
   const [seeOfficerChat, setSeeOfficerChat] = useState(1);
   
   return (
-    <div className="w-full h-full flex flex-col bg-background overflow-hidden">
+    <div className="w-full h-full flex flex-col bg-background overflow-auto md:overflow-hidden">
       {/* Header */}
       <div className="flex items-start justify-between px-4 py-3 md:px-6 md:py-5 border-b bg-background flex-shrink-0">
         <div className="space-y-1.5">
@@ -343,7 +343,7 @@ function ThirdColumn(
   }: Readonly<ThirdColumnProps>
 ) {
   return (
-    <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-hidden flex flex-col relative">
+    <div className="flex-[1.3] md:flex-1 min-h-0 rounded-lg border border-border bg-muted/10 overflow-auto md:overflow-hidden flex flex-col relative">
       {/* Header / Toggle (in-flow, non overlaid) */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/5 flex-shrink-0">
         {/* CASE 1: canViewChat && isAssignedOfficer - show tabs */}

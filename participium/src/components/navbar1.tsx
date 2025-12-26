@@ -46,7 +46,6 @@ interface Navbar1Props {
     alt: string;
     title: string;
   };
-  menu?: MenuItem[];
   auth?: {
     login: {
       title: string;
@@ -77,7 +76,7 @@ function Navbar1({
     logout: { title: "Logout", url: "/api/auth/signout?callbackUrl=/" },
   },
   variant = "default",
-}: Navbar1Props) {
+}: Readonly<Navbar1Props>) {
   const { menu: filteredMenu, logoUrl, role, username } = useNavbarMenu();
 
   const isHomepage = variant === "homepage";
@@ -132,57 +131,12 @@ function Navbar1({
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-2 items-center">
-            {!role ? (
-              <>
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="sm"
-                  className={`${
-                    isHomepage ? "text-white" : "text-black"
-                  } !hover:bg-transparent !hover:text-inherit`}
-                >
-                  <a href={auth.login.url}>{auth.login.title}</a>
-                </Button>
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="sm"
-                  className={`${
-                    isHomepage ? "text-white" : "text-black"
-                  } !hover:bg-transparent !hover:text-inherit`}
-                >
-                  <a href={auth.signup.url}>{auth.signup.title}</a>
-                </Button>
-              </>
-            ) : (
-              <>
-                {role.includes("CITIZEN") && (
-                  <NotificationBell
-                    className={isHomepage ? "text-white" : "text-black"}
-                  />
-                )}
-
-                <LogoutButton
-                  variant="ghost"
-                  size="sm"
-                  className={`${
-                    isHomepage ? "text-white" : "text-black"
-                  } !hover:bg-transparent !hover:text-inherit`}
-                />
-                <ProfileButton
-                  variant="ghost"
-                  size="sm"
-                  showName={true}
-                  username={username}
-                  className={`${
-                    isHomepage ? "text-white" : "text-black"
-                  } !hover:bg-transparent !hover:text-inherit`}
-                />
-              </>
-            )}
-          </div>
+          <Navbar1Buttons
+            isHomepage={isHomepage}
+            role={role}
+            username={username}
+            auth={auth}
+          />
         </nav>
 
         {/* Mobile Menu */}
@@ -276,7 +230,22 @@ function Navbar1({
 
                     {/* Mobile buttons */}
                     <div className="flex flex-col gap-3">
-                      {!role ? (
+                      {role ? (
+                        <>
+                          <LogoutButton
+                            variant="secondary"
+                            size="sm"
+                            className="w-full text-black"
+                          />
+                          <ProfileButton
+                            variant="secondary"
+                            size="sm"
+                            className="w-full text-black"
+                            showName={false}
+                            username={username}
+                          />
+                        </>
+                      ) : (
                         <>
                           <Button
                             asChild
@@ -292,21 +261,6 @@ function Navbar1({
                           >
                             <a href={auth.signup.url}>{auth.signup.title}</a>
                           </Button>
-                        </>
-                      ) : (
-                        <>
-                          <LogoutButton
-                            variant="secondary"
-                            size="sm"
-                            className="w-full text-black"
-                          />
-                          <ProfileButton
-                            variant="secondary"
-                            size="sm"
-                            className="w-full text-black"
-                            showName={false}
-                            username={username}
-                          />
                         </>
                       )}
                     </div>
@@ -394,5 +348,82 @@ const SubMenuLink = ({ item }: { item: MenuItem }) => {
     </Link>
   );
 };
+
+interface Navbar1ButtonsProps {
+  isHomepage: boolean;
+  role: string[] | undefined;
+  username: string | undefined;
+  auth: {
+    login: {
+      title: string;
+      url: string;
+    };
+    signup: {
+      title: string;
+      url: string;
+    };
+    logout: {
+      title: string;
+      url: string;
+    };
+  };
+}
+
+
+const Navbar1Buttons = ({ isHomepage, role, username, auth }: Readonly<Navbar1ButtonsProps>) => {
+  return (
+    <div className="flex gap-2 items-center">
+            {role ? (
+              <>
+                {role.includes("CITIZEN") && (
+                  <NotificationBell
+                    className={isHomepage ? "text-white" : "text-black"}
+                  />
+                )}
+
+                <LogoutButton
+                  variant="ghost"
+                  size="sm"
+                  className={`${
+                    isHomepage ? "text-white" : "text-black"
+                  } !hover:bg-transparent !hover:text-inherit`}
+                />
+                <ProfileButton
+                  variant="ghost"
+                  size="sm"
+                  showName={true}
+                  username={username}
+                  className={`${
+                    isHomepage ? "text-white" : "text-black"
+                  } !hover:bg-transparent !hover:text-inherit`}
+                />
+              </>
+            ) : (
+              <>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className={`${
+                    isHomepage ? "text-white" : "text-black"
+                  } !hover:bg-transparent !hover:text-inherit`}
+                >
+                  <a href={auth.login.url}>{auth.login.title}</a>
+                </Button>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className={`${
+                    isHomepage ? "text-white" : "text-black"
+                  } !hover:bg-transparent !hover:text-inherit`}
+                >
+                  <a href={auth.signup.url}>{auth.signup.title}</a>
+                </Button>
+              </>
+            )}
+          </div>
+  );
+}
 
 export { Navbar1 };

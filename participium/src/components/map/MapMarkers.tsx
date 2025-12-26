@@ -29,8 +29,8 @@ export default function MapMarkers({
     });
     return (
         <>
-            {markers.map((pos, index) => (
-                <Marker key={index} position={pos} icon={markerIcon} />
+            {markers.map((pos) => (
+                <Marker key={pos.toString()} position={pos} icon={markerIcon} />
             ))}
         </>
     );
