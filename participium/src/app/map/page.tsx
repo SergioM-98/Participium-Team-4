@@ -36,46 +36,36 @@ export default function MapPage() {
     }
   }, [status, session, router]);
 
-  // Loading state for auth check
-  if (status === "loading" || status === "authenticated") {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-white">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="text-gray-600 font-medium">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Fetch Reports
   useEffect(() => {
-    const fetchReports = async () => {
-      setIsLoadingReports(true);
-      try {
-        const result = await getApprovedReportsForPublic();
-        if (result.success && result.data) {
-          setMapReports(
-            result.data.map((r: any) => ({
-              ...r,
-              status: r.status ?? "assigned",
-            }))
-          );
-        } else {
-          console.error("Error fetching reports:", result.error);
+    if (status === "unauthenticated") {
+      const fetchReports = async () => {
+        setIsLoadingReports(true);
+        try {
+          const result = await getApprovedReportsForPublic();
+          if (result.success && result.data) {
+            setMapReports(
+              result.data.map((r: any) => ({
+                ...r,
+                status: r.status ?? "assigned",
+              }))
+            );
+          } else {
+            console.error("Error fetching reports:", result.error);
+          }
+        } catch (error) {
+          console.error("Failed to load map reports:", error);
+        } finally {
+          setIsLoadingReports(false);
         }
-      } catch (error) {
-        console.error("Failed to load map reports:", error);
-      } finally {
-        setIsLoadingReports(false);
-      }
-    };
-    fetchReports();
-  }, []);
+      };
+      fetchReports();
+    }
+  }, [status]);
 
   // Fetch Details
   useEffect(() => {
-    if (selectedReportId) {
+    if (selectedReportId && status === "unauthenticated") {
       setIsLoadingDetails(true);
       setFullReportData(null);
 
@@ -103,10 +93,10 @@ export default function MapPage() {
         })
         .catch((err) => console.error("Failed to load details", err))
         .finally(() => setIsLoadingDetails(false));
-    } else {
+    } else if (!selectedReportId) {
       setFullReportData(null);
     }
-  }, [selectedReportId]);
+  }, [selectedReportId, status]);
 
   const handleReportClick = useCallback(
     (report: Report) => {
@@ -144,6 +134,18 @@ export default function MapPage() {
     setSelectedReportId(null);
     setFullReportData(null);
   };
+
+  // Loading state for auth check
+  if (status === "loading" || status === "authenticated") {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-white">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-gray-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const reportsLayerProps = {
     reports: mapReports,
@@ -200,13 +202,12 @@ export default function MapPage() {
         />
 
         {selectedReportId && (
-          <div
+          <dialog
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300"
-            onClick={handleCloseDetails}
+            aria-modal="true"
           >
             <div
               className="relative w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-3xl h-[85vh] sm:h-[70vh] md:h-[75vh] lg:h-[60vh] max-h-[85vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
-              onClick={(e) => e.stopPropagation()}
             >
               {isLoadingDetails && (
                 <div className="flex h-full w-full items-center justify-center bg-white border border-gray-200">
@@ -232,7 +233,7 @@ export default function MapPage() {
                 </div>
               )}
             </div>
-          </div>
+          </dialog>
         )}
       </main>
     </div>

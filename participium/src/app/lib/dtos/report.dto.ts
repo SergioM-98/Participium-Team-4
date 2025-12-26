@@ -97,7 +97,7 @@ export const reportResponseSchema = z.object({
   title: z.string().min(5).max(100),
   description: z.string(),
   category: z.string(),
-  createdAt: z.string().refine((val) => !isNaN(Date.parse(val)), {
+  createdAt: z.string().refine((val) => !Number.isNaN(Date.parse(val)), {
     message: "Invalid date format",
   }),
 });

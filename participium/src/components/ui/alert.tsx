@@ -27,7 +27,7 @@ export interface AlertProps
   message: string;
 }
 
-export function Alert({ variant, message, className, ...props }: AlertProps) {
+export function Alert({ variant, message, className, ...props }: Readonly<AlertProps>) {
   return (
     <div
       className={cn(alertVariants({ variant }), className)}

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Github, Heart } from "lucide-react";
+import { Heart } from "lucide-react";
 
 export function Footer() {
   return (
@@ -28,10 +28,10 @@ export function Footer() {
               href="https://github.com/SergioM-98/Participium-Team-4"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-600 hover:text-gray-900 transition-colors"
+              className="text-gray-600 hover:text-gray-900 transition-colors font-medium text-sm"
               aria-label="GitHub"
             >
-              <Github className="h-6 w-6" />
+              GitHub
             </a>
           </div>
         </div>

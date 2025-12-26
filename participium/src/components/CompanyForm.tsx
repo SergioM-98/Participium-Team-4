@@ -48,7 +48,7 @@ export default function CompanyForm({
   title = "Create a new company",
   description = "Fill the form to register a new company.",
   onCancel,
-}: CompanyFormProps) {
+}: Readonly<CompanyFormProps>) {
   const [formData, setFormData] = useState<CompanyFormData>(() => ({
     ...DEFAULT_FORM_DATA,
     ...initialData,

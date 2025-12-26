@@ -1,5 +1,4 @@
-import { LatLng, divIcon, Point } from "leaflet";
-import L from 'leaflet';
+import L, { LatLng, divIcon, Point } from "leaflet";
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ReportMarkerIcon, ClusterMarkerIcon } from './MapIcons';
 

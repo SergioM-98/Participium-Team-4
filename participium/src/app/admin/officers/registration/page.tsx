@@ -9,13 +9,11 @@ import { register } from "@/controllers/user.controller";
 export default function OfficerRegistrationPage() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
-  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (payload: MunicipalityUserFormData) => {
     try {
       setError("");
       setSuccess("");
-      setSubmitting(true);
 
       const formData = new FormData();
       formData.append("firstName", payload.firstName);
@@ -45,8 +43,6 @@ export default function OfficerRegistrationPage() {
     } catch (err: any) {
       setError(err.message ?? "Internal error");
       return false;
-    } finally {
-      setSubmitting(false);
     }
   };
 

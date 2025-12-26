@@ -5,9 +5,9 @@ import WithNavbarLayout from "@/app/(with-navbar)/layout";
 
 export default async function ProfileLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const session = await getServerSession(authOptions);
 
   if (!session ) {
