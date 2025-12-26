@@ -20,7 +20,7 @@ process.env.DATABASE_URL = testDatabaseUrl;
 
 console.log(
   "Test database URL:",
-  testDatabaseUrl.replace(/password=[^@]*@/, "password=***@")
+  testDatabaseUrl.replace(/password=[^@]*@/, "password=***@"),
 );
 
 import { PrismaClient } from "@prisma/client";
@@ -43,6 +43,8 @@ beforeAll(async () => {
 
       try {
         if (prisma.notification) await prisma.notification.deleteMany();
+        if (prisma.message) await prisma.message.deleteMany();
+        if (prisma.comment) await prisma.comment.deleteMany();
         await prisma.photo.deleteMany();
         await prisma.report.deleteMany();
         if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany();
@@ -66,6 +68,8 @@ beforeAll(async () => {
 afterAll(async () => {
   try {
     if (prisma.notification) await prisma.notification.deleteMany();
+    if (prisma.message) await prisma.message.deleteMany();
+    if (prisma.comment) await prisma.comment.deleteMany();
     await prisma.photo.deleteMany();
     await prisma.report.deleteMany();
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany();

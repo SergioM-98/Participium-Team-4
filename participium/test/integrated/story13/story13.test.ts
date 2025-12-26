@@ -3,9 +3,7 @@ import {
   getReportsByCitizenTelegramChatId,
   getReportByIdForTelegramUser,
 } from "../../../src/app/lib/controllers/report.controller";
-import {
-  isUserAuthenticatedByTelegram,
-} from "../../../src/app/lib/controllers/telegramBot.controller";
+import { isUserAuthenticatedByTelegram } from "../../../src/app/lib/controllers/telegramBot.controller";
 
 describe("Story 13 - Integration Test: Check Report Status via Telegram", () => {
   const chatId = "12345";
@@ -13,6 +11,8 @@ describe("Story 13 - Integration Test: Check Report Status via Telegram", () => 
 
   beforeEach(async () => {
     // Clean up database
+    await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
     await prisma.user.deleteMany({});
@@ -117,7 +117,7 @@ describe("Story 13 - Integration Test: Check Report Status via Telegram", () => 
       expect.objectContaining({
         id: "1004",
         status: "in_progress",
-      })
+      }),
     );
   });
 });
