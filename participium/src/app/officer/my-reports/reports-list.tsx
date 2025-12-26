@@ -343,14 +343,17 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
       )}
 
       {selectedReport && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300"
-          onClick={() => setSelectedReport(null)}
-        >
-          <div
-            className="w-screen h-screen md:w-[85vw] md:h-[85vh] max-w-[95vw] max-h-[95vh] rounded-xl shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300"
-             onClick={(e) => e.stopPropagation()}
-           >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 border-none w-full h-full cursor-default"
+            onClick={() => setSelectedReport(null)}
+            aria-label="Close report details"
+          />
+          <dialog
+            open
+            className="relative w-screen h-screen md:w-[85vw] md:h-[85vh] max-w-[95vw] max-h-[95vh] rounded-xl shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300 flex flex-col p-0 border-none"
+          >
             <ReportDetailsCard
               report={{
                 id: selectedReport.id.toString(),
@@ -376,7 +379,7 @@ export default function ReportsList({ officerId }: Readonly<ReportsListProps>) {
               setReport={setSelectedReport}
               showToast={showToast}
             />
-          </div>
+          </dialog>
         </div>
       )}
       {toast && (

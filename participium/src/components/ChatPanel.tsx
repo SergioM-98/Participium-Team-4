@@ -186,8 +186,8 @@ export default function ChatPanel({
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-background overflow-hidden shadow-sm">
-      <div className="p-3 border-b bg-muted/30 flex items-center justify-between">
+    <div className="flex flex-col h-full min-h-[360px] md:min-h-0 bg-background overflow-auto md:overflow-hidden shadow-sm">
+      <div className="px-3 py-2 border-b bg-muted/30 flex items-center justify-between">
         <h4 className="text-sm font-semibold flex items-center gap-2">
           Report Discussion
         </h4>
@@ -196,8 +196,8 @@ export default function ChatPanel({
         </span>
       </div>
 
-      <ScrollArea className="flex-1 min-h-0 bg-slate-50/50 dark:bg-slate-900/50">
-        <div className="flex flex-col gap-4 p-4 pr-3 min-h-full justify-between">
+      <ScrollArea className="flex-1 min-h-[220px] sm:min-h-0 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="flex flex-col gap-3 p-3 pr-2 min-h-0">
           {isInitialLoading && messages.length === 0 && (
             <div className="text-center py-10 text-muted-foreground text-sm">
               Loading messages...
@@ -266,7 +266,7 @@ export default function ChatPanel({
         </div>
       </ScrollArea>
 
-      <div className="p-3 border-t bg-background flex gap-2 items-end">
+      <div className="p-2 border-t bg-background flex gap-2 items-end">
         <Textarea
           value={newMessage}
           onFocus={(e) => e.target.select()} // Keeps focus on the input box
@@ -274,7 +274,7 @@ export default function ChatPanel({
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
           disabled={isInitialLoading || isSending}
-          className="min-h-[40px] max-h-[120px] resize-none focus-visible:ring-1"
+          className="min-h-[36px] max-h-[96px] resize-none focus-visible:ring-1 text-sm"
         />
         <Button
           size="icon"

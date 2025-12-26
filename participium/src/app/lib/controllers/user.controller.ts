@@ -28,12 +28,26 @@ export async function checkDuplicates(userData: RegistrationInput) {
   }
 }
 
-export async function register(
-  formData: FormData,
-): Promise<RegistrationResponse> {
-  const session = await getServerSession(authOptions);
+const validateData = (formData: FormData) => {
+  const rawOffice = formData.get("office");
+  let parsedOffice: string[];
+    if(rawOffice && typeof rawOffice === "string"){
+      try {
+        const parsed = JSON.parse(rawOffice);
+        parsedOffice = Array.isArray(parsed) ? parsed.map(String) : [rawOffice];
+      } catch {
+        parsedOffice = [rawOffice];
+      }
+   }else{
+      parsedOffice = [];
+   }
 
-  const validatedData = RegistrationInputSchema.safeParse({
+  const rawCompanyId = formData.get("companyId");
+  const companyId = typeof rawCompanyId === "string" && rawCompanyId.trim().length > 0
+    ? rawCompanyId.trim()
+    : undefined;
+
+  return RegistrationInputSchema.safeParse({
     id: crypto.randomUUID(),
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
@@ -42,9 +56,17 @@ export async function register(
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
     role: formData.get("role") ? JSON.parse(formData.get("role") as string) : [],
-    office: formData.get("office") ? [formData.get("office")!.toString()] : [],
-    companyId: formData.get("companyId")?.toString().trim() || undefined,
+    office: parsedOffice,
+    companyId,
   });
+}
+
+export async function register(
+  formData: FormData,
+): Promise<RegistrationResponse> {
+  const session = await getServerSession(authOptions);
+
+  const validatedData = validateData(formData);
 
   if (!validatedData.success) {
     console.error("Validation errors:", validatedData.error);

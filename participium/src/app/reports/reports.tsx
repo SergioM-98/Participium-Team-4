@@ -191,15 +191,17 @@ export default function Reports({ userId }: Readonly<ReportsProps>) {
       />
 
       {selectedReportId && (
-        <div 
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-300"
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 border-none w-full h-full cursor-default"
             onClick={handleCloseDetails}
-        >
-            <div 
-
-                className="relative w-full max-w-md sm:max-w-lg md:max-w-3xl lg:max-w-5xl xl:max-w-6xl h-[75vh] sm:h-[70vh] md:h-[75vh] lg:h-[85vh] max-h-[90vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col"
-                onClick={(e) => e.stopPropagation()} 
-            >
+            aria-label="Close report details"
+          />
+          <dialog
+            open
+            className="relative w-full max-w-md sm:max-w-lg md:max-w-3xl lg:max-w-5xl xl:max-w-6xl h-[75vh] sm:h-[70vh] md:h-[75vh] lg:h-[85vh] max-h-[90vh] overflow-hidden rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-300 flex flex-col bg-background p-0 border-none"
+          >
                 {isLoadingDetails && (
                      <div className="flex h-64 w-full items-center justify-center bg-background rounded-xl border border-border">
                         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -218,7 +220,7 @@ export default function Reports({ userId }: Readonly<ReportsProps>) {
                         <button onClick={handleCloseDetails} className="text-sm underline">Close</button>
                      </div>
                 )}
-            </div>
+          </dialog>
         </div>
       )}
     </main>

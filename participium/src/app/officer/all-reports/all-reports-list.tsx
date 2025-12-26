@@ -59,7 +59,6 @@ const categoryLabels: Record<string, string> = {
   ROADS_SIGNS_AND_TRAFFIC_LIGHTS: "Roads, Signs & Traffic Lights",
   ROADS_AND_URBAN_FURNISHINGS: "Roads & Urban Furnishings",
   PUBLIC_GREEN_AREAS_AND_BACKGROUNDS: "Public Green Areas",
-
 };
 
 export const STATUS = {
@@ -88,7 +87,7 @@ export interface Report {
   isAnonymous: boolean;
   submitter: User;
   rejectionReason?: string;
-  photos: { filename: string; url: string }[]; 
+  photos: { filename: string; url: string }[];
   latitude: number;
   longitude: number;
   citizen?: { username: string };
@@ -184,9 +183,7 @@ const columns: ColumnDef<Report>[] = [
     filterFn: "equals",
     enableSorting: true,
     cell: ({ row }) => {
-      const categoryKey = row.getValue(
-        "category"
-      ) as keyof typeof categoryLabels;
+      const categoryKey: string = row.getValue("category");
       const label = categoryLabels[categoryKey] || categoryKey;
       return <div className="text-sm font-medium">{label}</div>;
     },
@@ -269,8 +266,11 @@ export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
   const [isLoading, setIsLoading] = useState(!data);
   const [error, setError] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  
+  const [toast, setToast] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
   const [photoCache, setPhotoCache] = useState<Record<string, string>>({});
 
   // Default sorting remains on Date Submitted (newest first)
@@ -357,34 +357,35 @@ export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
 
   useEffect(() => {
     async function fetchSelectedReportPhotos() {
-      if (!selectedReport?.photos || !Array.isArray(selectedReport.photos)) return;
+      if (!selectedReport?.photos || !Array.isArray(selectedReport.photos))
+        return;
 
       const cacheUpdates: Record<string, string> = {};
       let hasUpdates = false;
 
       for (const photo of selectedReport.photos) {
         const filename = photo.filename;
-        
+
         if (!photoCache[filename] && filename) {
-           try {
-             const res = await getPhoto(filename);
-             if (res.success && res.data) {
-                cacheUpdates[filename] = res.data;
-                hasUpdates = true;
-             }
-           } catch (err) {
-             console.error(`Failed to load photo ${filename}`, err);
-           }
+          try {
+            const res = await getPhoto(filename);
+            if (res.success && res.data) {
+              cacheUpdates[filename] = res.data;
+              hasUpdates = true;
+            }
+          } catch (err) {
+            console.error(`Failed to load photo ${filename}`, err);
+          }
         }
       }
 
       if (hasUpdates) {
-        setPhotoCache(prev => ({ ...prev, ...cacheUpdates }));
+        setPhotoCache((prev) => ({ ...prev, ...cacheUpdates }));
       }
     }
 
     fetchSelectedReportPhotos();
-  }, [selectedReport]); 
+  }, [selectedReport]);
 
   const handleDialogClose = () => {
     setSelectedReport(null);
@@ -392,7 +393,7 @@ export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
     setRefreshTrigger((prev) => prev + 1);
   };
 
-  const showToast = (type: 'success' | 'error', text: string) => {
+  const showToast = (type: "success" | "error", text: string) => {
     setToast({ type, text });
     setTimeout(() => setToast(null), 3000);
   };
@@ -544,7 +545,7 @@ export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   ))}
@@ -564,7 +565,7 @@ export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
                       <TableCell key={cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}
@@ -620,21 +621,31 @@ export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
 
       {/* The Dialog Component is rendered here when a report is selected */}
       {selectedReport && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 md:p-0 animate-in fade-in duration-300"
-           onClick={handleDialogClose}
-         >
-           <div
-            className="w-screen h-screen md:w-[70vw] md:h-[70vh] max-w-[95vw] max-h-[95vh] rounded-xl shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300"
-             onClick={(e) => e.stopPropagation()}
-           >
-             <ReportDetailsCard
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-0">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 border-none w-full h-full cursor-default"
+            onClick={handleDialogClose}
+            aria-label="Close report details"
+          />
+          <dialog
+            open
+            className="relative w-screen h-screen md:w-[70vw] md:h-[70vh] max-w-[95vw] max-h-[95vh] rounded-xl shadow-2xl bg-background overflow-hidden animate-in fade-in zoom-in-95 duration-300 flex flex-col p-0 border-none"
+          >
+            <ReportDetailsCard
               report={{
                 id: selectedReport.id.toString(),
                 title: selectedReport.title,
                 description: selectedReport.description,
                 category: selectedReport.category,
-                status: (selectedReport.status?.toLowerCase() as "pending_approval"|"assigned"|"in_progress"|"suspended"|"rejected"|"resolved") || "assigned",
+                status:
+                  (selectedReport.status?.toLowerCase() as
+                    | "pending_approval"
+                    | "assigned"
+                    | "in_progress"
+                    | "suspended"
+                    | "rejected"
+                    | "resolved") || "assigned",
                 latitude: selectedReport.latitude,
                 longitude: selectedReport.longitude,
                 reporterName: selectedReport.citizen?.username || "Anonymous",
@@ -649,11 +660,11 @@ export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
               onClose={handleDialogClose}
               isOfficerMode={true}
               onOfficerActionComplete={() => {
-                showToast('success', 'Report assigned successfully!');
+                showToast("success", "Report assigned successfully!");
                 handleDialogClose();
               }}
             />
-          </div>
+          </dialog>
         </div>
       )}
 
@@ -661,9 +672,9 @@ export function AllReportsList({ data }: Readonly<AllReportsListProps>) {
       {toast && (
         <div
           className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-sm font-medium z-[9000] animate-in fade-in slide-in-from-top-2 duration-300 ${
-            toast.type === 'success'
-              ? 'bg-green-100 border border-green-400 text-green-700'
-              : 'bg-red-100 border border-red-400 text-red-700'
+            toast.type === "success"
+              ? "bg-green-100 border border-green-400 text-green-700"
+              : "bg-red-100 border border-red-400 text-red-700"
           }`}
         >
           {toast.text}

@@ -29,6 +29,8 @@ import { getServerSession } from "next-auth/next";
 describe("Story 1 - Integration Test: Citizen Registration", () => {
   beforeEach(async () => {
     if (prisma.notification) await prisma.notification.deleteMany({});
+    if (prisma.message) await prisma.message.deleteMany({});
+    if (prisma.comment) await prisma.comment.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});

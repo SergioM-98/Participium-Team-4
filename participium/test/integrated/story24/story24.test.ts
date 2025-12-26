@@ -39,6 +39,7 @@ describe("Story 24 - Integration Test: Assign Report to External Maintainer", ()
   beforeEach(async () => {
     if (prisma.notification) await prisma.notification.deleteMany({});
     await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
@@ -125,6 +126,7 @@ describe("Story 24 - Integration Test: Assign Report to External Maintainer", ()
   afterEach(async () => {
     if (prisma.notification) await prisma.notification.deleteMany({});
     await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
