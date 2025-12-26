@@ -44,7 +44,7 @@ export function ProfileButton({
 
     const name = username;
     let hash = 0;
-    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < name.length; i++) hash = (name.codePointAt(i) ?? 0) + ((hash << 5) - hash);
     const colorVar = chartColors[Math.abs(hash % chartColors.length)];
     
     return {

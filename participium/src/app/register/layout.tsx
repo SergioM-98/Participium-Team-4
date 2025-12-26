@@ -5,9 +5,9 @@ import WithNavbarLayout from "@/app/(with-navbar)/layout";
 
 export default async function RegisterLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const session = await getServerSession(authOptions);
 
   if (session) {
