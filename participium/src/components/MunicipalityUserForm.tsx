@@ -116,7 +116,7 @@ export default function MunicipalityUserForm({
 
   const usernameRegex = /^[a-zA-Z0-9._-]{3,}$/;
 
-  const validate = () => {
+  const validateNameFields = () => {
     const next: typeof errors = {};
     if (!data.firstName.trim()) next.firstName = "First name is required.";
     if (!data.lastName.trim()) next.lastName = "Last name is required.";
@@ -126,6 +126,13 @@ export default function MunicipalityUserForm({
       next.username =
         "Username must be at least 3 characters and contain only letters, numbers, dots, underscores, or hyphens.";
     }
+    return next;
+  }
+
+
+  const validate = () => {
+    const next: typeof errors = {};
+    Object.assign(next, validateNameFields());
     if (!data.password) {
       next.password = "Password is required.";
     } else if (data.password.length < 8) {
@@ -139,7 +146,6 @@ export default function MunicipalityUserForm({
     }
     if (!data.role)
       next.role = "Role selection is required.";
-
     // Office is required only for non-ADMIN roles except EXTERNAL_MAINTAINER
     if (
       !data.role.includes("ADMIN") &&
@@ -148,7 +154,6 @@ export default function MunicipalityUserForm({
       if (!data.office || data.office.trim() === "")
         next.office = "Office selection is required.";
     }
-
     // Company is required only for EXTERNAL_MAINTAINER roles
     if (
       data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS")
@@ -156,7 +161,6 @@ export default function MunicipalityUserForm({
       if (!data.companyId || data.companyId.trim() === "")
         next.companyId = "Company selection is required.";
     }
-
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -388,15 +392,8 @@ export default function MunicipalityUserForm({
 
                 <div className="space-y-2">
                   <Label htmlFor="office">Office</Label>
-                  {data.role.includes("ADMIN") ? (
-                    <Input
-                      id="office"
-                      value="N/A"
-                      disabled
-                      className="bg-muted"
-                    />
-                  ) : data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ||
-                    false ? (
+                  {data.role.includes("ADMIN") ||
+                  data.role.includes("EXTERNAL_MAINTAINER_WITH_ACCESS") ? (
                     <Input
                       id="office"
                       value="N/A"

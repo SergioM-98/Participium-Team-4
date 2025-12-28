@@ -25,6 +25,8 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
   beforeEach(async () => {
     // Clean up database
     if (prisma.notification) await prisma.notification.deleteMany({});
+    await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
@@ -103,7 +105,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "WATER_SUPPLY",
         10.5,
         45.5,
-        true // anonymous = true
+        true, // anonymous = true
       );
 
       expect(response.success).toBe(true);
@@ -144,7 +146,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "PUBLIC_LIGHTING",
         11.5,
         46.5,
-        false // anonymous = false
+        false, // anonymous = false
       );
 
       expect(response.success).toBe(true);
@@ -185,7 +187,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "ROADS_AND_URBAN_FURNISHINGS",
         12.5,
         47.5,
-        false
+        false,
       );
 
       expect(response.success).toBe(true);
@@ -223,7 +225,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "WATER_SUPPLY",
         10.5,
         45.5,
-        true
+        true,
       );
 
       expect(response.success).toBe(false);
@@ -250,7 +252,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "WATER_SUPPLY",
         10.5,
         45.5,
-        true
+        true,
       );
 
       expect(response.success).toBe(false);
@@ -277,7 +279,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "INVALID_CATEGORY" as any,
         10.5,
         45.5,
-        true
+        true,
       );
 
       expect(response.success).toBe(false);
@@ -307,7 +309,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "WATER_SUPPLY",
         10.5,
         45.5,
-        true
+        true,
       );
 
       expect(response.success).toBe(true);
@@ -362,7 +364,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "PUBLIC_LIGHTING",
         11.5,
         46.5,
-        false
+        false,
       );
 
       expect(response.success).toBe(true);
@@ -414,7 +416,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "WATER_SUPPLY",
         10.5,
         45.5,
-        true
+        true,
       );
 
       expect(response1.success).toBe(true);
@@ -427,7 +429,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "PUBLIC_LIGHTING",
         11.5,
         46.5,
-        false
+        false,
       );
 
       expect(response2.success).toBe(true);
@@ -440,7 +442,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "WASTE",
         12.5,
         47.5,
-        true
+        true,
       );
 
       expect(response3.success).toBe(true);
@@ -485,7 +487,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
           "WATER_SUPPLY",
           10.5 + i,
           45.5 + i,
-          true
+          true,
         );
       }
 
@@ -498,7 +500,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
           "PUBLIC_LIGHTING",
           11.5 + i,
           46.5 + i,
-          false
+          false,
         );
       }
 
@@ -545,7 +547,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "WATER_SUPPLY",
         10.5,
         45.5,
-        true
+        true,
       );
 
       expect(response.success).toBe(false);
@@ -562,7 +564,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "WATER_SUPPLY",
         10.5,
         45.5,
-        true
+        true,
       );
 
       expect(response.success).toBe(false);
@@ -600,7 +602,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         testData.category,
         testData.longitude,
         testData.latitude,
-        true
+        true,
       );
 
       expect(response.success).toBe(true);
@@ -644,7 +646,7 @@ describe("Anonymous Reports Feature - Integration Tests", () => {
         "WASTE",
         10.5,
         45.5,
-        true
+        true,
       );
 
       expect(response.success).toBe(true);

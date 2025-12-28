@@ -1,4 +1,4 @@
-import { Wifi, Zap } from "lucide-react";
+import { Wifi } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -53,8 +53,8 @@ const Hero115 = ({
         </p>
         {buttons.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
-            {buttons.map((button, index) => (
-              <Link key={index} href={button.href}>
+            {buttons.map((button) => (
+              <Link key={button.title} href={button.href}>
                 <Button variant={button.variant || "default"} size="lg">
                   {button.title}
                 </Button>

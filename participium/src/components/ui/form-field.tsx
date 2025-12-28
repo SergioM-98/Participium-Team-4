@@ -25,7 +25,7 @@ export function FormField({
   error,
   required = false,
   className,
-}: FormFieldProps) {
+}: Readonly<FormFieldProps>) {
   const errorId = `${id}-error`;
   const isCheckbox = type === "checkbox";
 

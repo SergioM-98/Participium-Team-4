@@ -43,14 +43,16 @@ export default function ClusterReportsSheet({
                 
                 <ScrollArea className="flex-1 w-full p-2">
                     <div className="space-y-3 p-4">
-                        {isLoading ? (
+                        {isLoading && (
                             <div className="flex flex-col items-center justify-center h-40">
                                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                 <p className="text-sm text-muted-foreground mt-3">Loading reports...</p>
                             </div>
-                        ) : reports.length === 0 ? (
+                        )}
+                        {!isLoading && reports.length === 0 && (
                             <p className="text-center text-muted-foreground pt-4">No reports found in this area.</p>
-                        ) : (
+                        )}
+                        {!isLoading && reports.length > 0 && (
                             reports.map((report) => (
                                 <Card 
                                     key={report.id} 

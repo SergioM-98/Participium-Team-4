@@ -6,7 +6,7 @@ import { Card, CardContent } from "./ui/card";
 import { FormField } from "./ui/form-field";
 
 // Constants moved outside component to avoid recreation on each render
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@.]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[\d\s\-+()]{7,}$/;
 
 const VALIDATION_MESSAGES = {
@@ -48,7 +48,7 @@ export default function CompanyForm({
   title = "Create a new company",
   description = "Fill the form to register a new company.",
   onCancel,
-}: CompanyFormProps) {
+}: Readonly<CompanyFormProps>) {
   const [formData, setFormData] = useState<CompanyFormData>(() => ({
     ...DEFAULT_FORM_DATA,
     ...initialData,

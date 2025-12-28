@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "./ui/button";
@@ -13,8 +13,7 @@ import { Card, CardContent } from "./ui/card";
 import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
 
-export default function LoginForm({ serverError }: { serverError?: string }) {
-  const router = useRouter();
+export default function LoginForm({ serverError }: Readonly<{ serverError?: string }>) {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 

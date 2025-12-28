@@ -12,6 +12,13 @@ describe("Story 14 - Bot Integration: Quick Assistance and Help Commands", () =>
     jest.clearAllMocks();
     mockCtx = {
       chatId: 12345,
+import { helpMenu } from "../../menus/helpMenu";
+
+describe("Help Handler", () => {
+  let mockCtx: Partial<Context>;
+
+  beforeEach(() => {
+    mockCtx = {
       reply: jest.fn(),
     };
   });
@@ -93,5 +100,15 @@ describe("Story 14 - Bot Integration: Quick Assistance and Help Commands", () =>
     const helpText = call[0];
 
     expect(helpText).toContain("Use the buttons below");
+  it("should reply with help text and help menu", async () => {
+    await handleHelp(mockCtx as Context);
+
+    expect(mockCtx.reply).toHaveBeenCalledWith(
+      expect.stringContaining("Available Commands"),
+      expect.objectContaining({
+        parse_mode: "HTML",
+        reply_markup: helpMenu,
+      }),
+    );
   });
 });

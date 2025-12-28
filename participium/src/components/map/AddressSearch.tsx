@@ -21,7 +21,7 @@ const TORINO_VIEWBOX = "7.5703,45.144,7.7783,45.0027";
 export default function AddressSearch({
   onLocationFound,
   selectedPosition,
-}: AddressSearchProps) {
+}: Readonly<AddressSearchProps>) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -105,7 +105,7 @@ export default function AddressSearch({
 
     setQuery(suggestion.display_name.split(",")[0]);
     setShowSuggestions(false);
-    onLocationFound(parseFloat(suggestion.lat), parseFloat(suggestion.lon));
+    onLocationFound(Number.parseFloat(suggestion.lat), Number.parseFloat(suggestion.lon));
   };
 
   const clearSearch = () => {

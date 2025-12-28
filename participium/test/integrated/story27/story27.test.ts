@@ -8,20 +8,24 @@ jest.mock("@/services/email.service", () => {
   return {
     EmailService: class {
       private static instance: any;
-      
+
       private constructor() {}
-      
+
       static getInstance() {
         if (!this.instance) {
           this.instance = new this();
         }
         return this.instance;
       }
-      
-      async sendVerificationEmail(email: string, code: string, firstName?: string) {
+
+      async sendVerificationEmail(
+        email: string,
+        code: string,
+        firstName?: string,
+      ) {
         return undefined;
       }
-    }
+    },
   };
 });
 
@@ -50,6 +54,7 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
     if (prisma.notification) await prisma.notification.deleteMany({});
     await prisma.verificationToken.deleteMany({});
     await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
@@ -65,6 +70,7 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
     if (prisma.notification) await prisma.notification.deleteMany({});
     await prisma.verificationToken.deleteMany({});
     await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
@@ -75,7 +81,10 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
 
   describe("Citizen Registration with Email Verification", () => {
     it("should register a citizen with isVerified=false", async () => {
-      const response = await registerCitizen(testCitizenUsername, testCitizenEmail);
+      const response = await registerCitizen(
+        testCitizenUsername,
+        testCitizenEmail,
+      );
 
       expect(response.success).toBe(true);
 
@@ -103,7 +112,9 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
       expect(verificationToken).not.toBeNull();
       expect(verificationToken?.code).toMatch(/^\d{6}$/);
       expect(verificationToken?.used).toBe(false);
-      expect(verificationToken?.expiresAt.getTime()).toBeGreaterThan(Date.now());
+      expect(verificationToken?.expiresAt.getTime()).toBeGreaterThan(
+        Date.now(),
+      );
     });
 
     it("should generate a 6-digit numeric verification code", async () => {
@@ -158,7 +169,7 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
 
       const response = await verifyRegistration(
         testCitizenEmail,
-        verificationToken!.code
+        verificationToken!.code,
       );
 
       expect(response.success).toBe(true);
@@ -216,7 +227,10 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
     });
 
     it("should fail verification with non-existent email", async () => {
-      const response = await verifyRegistration("nonexistent@test.com", "123456");
+      const response = await verifyRegistration(
+        "nonexistent@test.com",
+        "123456",
+      );
 
       expect(response.success).toBe(false);
       expect(response.error).toBe("User not found");
@@ -237,7 +251,7 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
 
       const secondResponse = await verifyRegistration(
         testCitizenEmail,
-        verificationToken!.code
+        verificationToken!.code,
       );
 
       expect(secondResponse.success).toBe(false);
@@ -262,12 +276,12 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
 
       const response = await verifyRegistration(
         testCitizenEmail,
-        verificationToken!.code
+        verificationToken!.code,
       );
 
       expect(response.success).toBe(false);
       expect(response.error).toBe(
-        "Verification code has expired. Please register again."
+        "Verification code has expired. Please register again.",
       );
     });
 
@@ -296,7 +310,7 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
 
       const response = await verifyRegistration(
         testCitizenEmail,
-        verificationToken!.code
+        verificationToken!.code,
       );
 
       expect(response.success).toBe(false);
@@ -309,7 +323,7 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
       // Step 1: Register
       const registrationResponse = await registerCitizen(
         testCitizenUsername,
-        testCitizenEmail
+        testCitizenEmail,
       );
 
       expect(registrationResponse.success).toBe(true);
@@ -332,7 +346,7 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
       // Step 4: Verify with code
       const verificationResponse = await verifyRegistration(
         testCitizenEmail,
-        verificationToken!.code
+        verificationToken!.code,
       );
 
       expect(verificationResponse.success).toBe(true);
@@ -352,9 +366,10 @@ describe("Story 27 - Integration Test: Citizen Email Verification with Code", ()
       expect(usedToken?.used).toBe(true);
 
       // Step 7: User should have notification preferences
-      const notificationPreferences = await prisma.notificationPreferences.findFirst({
-        where: { citizen: { id: unverifiedUser!.id } },
-      });
+      const notificationPreferences =
+        await prisma.notificationPreferences.findFirst({
+          where: { citizen: { id: unverifiedUser!.id } },
+        });
 
       expect(notificationPreferences).not.toBeNull();
       expect(notificationPreferences?.emailEnabled).toBe(true);

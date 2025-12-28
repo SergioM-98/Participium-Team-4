@@ -1,7 +1,11 @@
 import { prisma } from "../../setup";
 import bcrypt from "bcrypt";
 import { getServerSession } from "next-auth/next";
-import { updateOfficerOffices, getAllofficers, deleteOfficer } from "../../../src/app/lib/controllers/user.controller";
+import {
+  updateOfficerOffices,
+  getAllofficers,
+  deleteOfficer,
+} from "../../../src/app/lib/controllers/user.controller";
 import { Role, Offices } from "@prisma/client";
 
 jest.mock("next-auth/next", () => ({
@@ -30,6 +34,7 @@ describe("Story 10 - Integration Test: Modify Officer Offices", () => {
   beforeEach(async () => {
     if (prisma.notification) await prisma.notification.deleteMany({});
     await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
@@ -110,7 +115,7 @@ describe("Story 10 - Integration Test: Modify Officer Offices", () => {
 
       const result = await updateOfficerOffices(
         testTechnicalOfficerId,
-        newOffices
+        newOffices,
       );
 
       expect(result).toBe(true);
@@ -123,7 +128,7 @@ describe("Story 10 - Integration Test: Modify Officer Offices", () => {
         expect.arrayContaining([
           Offices.DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES,
           Offices.DEPARTMENT_OF_FINANCIAL_RESOURCES,
-        ])
+        ]),
       );
       expect(updatedOfficer?.office.length).toBe(2);
     });
@@ -144,7 +149,7 @@ describe("Story 10 - Integration Test: Modify Officer Offices", () => {
 
       const result = await updateOfficerOffices(
         testTechnicalOfficerId,
-        newOffices
+        newOffices,
       );
 
       expect(result).toBe(true);
@@ -159,7 +164,7 @@ describe("Story 10 - Integration Test: Modify Officer Offices", () => {
           Offices.DEPARTMENT_OF_COMMERCE,
           Offices.DEPARTMENT_OF_EDUCATIONAL_SERVICES,
           Offices.DEPARTMENT_OF_INTERNAL_SERVICES,
-        ])
+        ]),
       );
     });
 
@@ -185,7 +190,7 @@ describe("Story 10 - Integration Test: Modify Officer Offices", () => {
 
       const result = await updateOfficerOffices(
         testTechnicalOfficerId,
-        newOffices
+        newOffices,
       );
 
       expect(result).toBe(true);
@@ -222,7 +227,7 @@ describe("Story 10 - Integration Test: Modify Officer Offices", () => {
 
       const result = await updateOfficerOffices(
         testTechnicalOfficerId,
-        newOffices
+        newOffices,
       );
 
       expect(result).toBe(true);
@@ -233,7 +238,7 @@ describe("Story 10 - Integration Test: Modify Officer Offices", () => {
 
       expect(updatedOfficer?.office.length).toBe(1);
       expect(updatedOfficer?.office).toContain(
-        Offices.DEPARTMENT_OF_CULTURE_SPORT_MAJOR_EVENTS_AND_TOURISM_PROMOTION
+        Offices.DEPARTMENT_OF_CULTURE_SPORT_MAJOR_EVENTS_AND_TOURISM_PROMOTION,
       );
     });
   });
@@ -251,7 +256,7 @@ describe("Story 10 - Integration Test: Modify Officer Offices", () => {
 
       const result = await updateOfficerOffices(
         testTechnicalOfficerId,
-        newOffices
+        newOffices,
       );
 
       expect(result).toBe(false);
@@ -269,7 +274,7 @@ describe("Story 10 - Integration Test: Modify Officer Offices", () => {
 
       const result = await updateOfficerOffices(
         testTechnicalOfficerId,
-        newOffices
+        newOffices,
       );
 
       expect(result).toBe(false);
@@ -291,9 +296,9 @@ describe("Story 10 - Integration Test: Modify Officer Offices", () => {
       expect(result.data).toBeDefined();
       if (result.data) {
         expect(result.data.length).toBeGreaterThanOrEqual(1);
-        
+
         const techOfficer = result.data.find(
-          (o: any) => o.id === testTechnicalOfficerId
+          (o: any) => o.id === testTechnicalOfficerId,
         );
         expect(techOfficer).toBeDefined();
         expect(techOfficer?.role).toContain(Role.TECHNICAL_OFFICER);

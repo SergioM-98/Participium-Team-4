@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,9 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { approveReport, rejectReport } from "@/controllers/report.controller";
 import { cn } from "@/lib/utils";
 
-// --- CUSTOM COMPONENT START ---
-// UPDATED: Removed 'data-[state=closed]' animation classes from Overlay and Content
-// to ensure the modal closes immediately without delay.
+
 const HighZDialogContent = React.forwardRef<
   React.ComponentRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
@@ -50,7 +48,6 @@ const HighZDialogContent = React.forwardRef<
   </DialogPrimitive.Portal>
 ));
 HighZDialogContent.displayName = DialogPrimitive.Content.displayName;
-// --- CUSTOM COMPONENT END ---
 
 interface OfficerActionPanelProps {
   reportId: string | number;
@@ -164,9 +161,9 @@ export default function OfficerActionPanel({
     if (selectedDepartment && selectedDepartment !== "NONE") {
       return selectedDepartment
         .replace("DEPARTMENT_OF_", "")
-        .replaceAll(/_/g, " ")
+        .replaceAll('_', " ")
         .toLowerCase()
-        .replace(/\b\w/g, (c) => c.toUpperCase());
+        .replaceAll(/\b\w/g, (c) => c.toUpperCase());
     }
     return "None";
   };
@@ -204,11 +201,11 @@ export default function OfficerActionPanel({
 
       <div className="space-y-3">
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+          <label htmlFor="category-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
             Verify Category
           </label>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full h-9 text-sm bg-background">
+            <SelectTrigger id="category-select" className="w-full h-9 text-sm bg-background">
               <SelectValue placeholder="Category..." />
             </SelectTrigger>
             <SelectContent className="z-[9999] max-h-[250px]">
@@ -234,14 +231,14 @@ export default function OfficerActionPanel({
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+          <label htmlFor="department-select" className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
             Assign Department
           </label>
           <Select
             value={selectedDepartment}
             onValueChange={handleDepartmentChange}
           >
-            <SelectTrigger className="w-full h-9 text-sm bg-background">
+            <SelectTrigger id="department-select" className="w-full h-9 text-sm bg-background">
               <SelectValue placeholder="Select Department..." />
             </SelectTrigger>
             <SelectContent className="z-[9999] max-h-[250px]">
@@ -313,10 +310,11 @@ export default function OfficerActionPanel({
 
       {showRejectInput && (
         <div className="space-y-3 animate-in fade-in slide-in-from-top-1 p-3 bg-red-50 dark:bg-red-900/10 rounded border border-red-100 dark:border-red-900/30 mt-2">
-          <label className="text-sm font-semibold text-destructive">
+          <label htmlFor="rejection-reason" className="text-sm font-semibold text-destructive">
             Reason for Rejection
           </label>
           <Textarea
+            id="rejection-reason"
             placeholder="Please explain why..."
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
@@ -366,7 +364,7 @@ export default function OfficerActionPanel({
                 Category
               </span>
               <span className="col-span-2 font-medium">
-                {selectedCategory.replaceAll(/_/g, " ")}
+                {selectedCategory.replaceAll('_', " ")}
               </span>
             </div>
 

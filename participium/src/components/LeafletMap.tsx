@@ -4,7 +4,7 @@ import L, { LatLngExpression } from "leaflet";
 import { Polygon } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useState } from "react";
-import LocationDisplay from "./LocationDisplay";
+
 
 import MapBase from "./map/MapBase";
 import MapPolygons from "./map/MapPolygons";

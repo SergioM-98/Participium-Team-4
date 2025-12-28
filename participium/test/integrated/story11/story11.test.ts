@@ -52,6 +52,7 @@ describe("Story 11 - officer updates", () => {
     // Clean database before each test - IMPORTANT: delete notifications first due to foreign key constraints
     await prisma.notification.deleteMany({});
     await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
     await prisma.report.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.user.deleteMany({});
@@ -118,7 +119,7 @@ describe("Story 11 - officer updates", () => {
     const createdMessage = await sendMessage(
       testMessage.content,
       testMessage.authorId,
-      report.id
+      report.id,
     );
     expect(createdMessage).toBeDefined();
     const messageResult = await prisma.message.findFirst({
@@ -247,10 +248,10 @@ describe("Story 11 - officer updates", () => {
       expect(notifications.data.length).toBe(2);
       const messages = notifications.data.map((n) => n.message);
       expect(messages).toContain(
-        "Your report status has been updated to: APPROVED"
+        "Your report status has been updated to: APPROVED",
       );
       expect(messages).toContain(
-        "officer-123 sent you a new message on your report"
+        "officer-123 sent you a new message on your report",
       );
     }
   });

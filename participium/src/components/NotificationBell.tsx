@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Bell,
-  Check,
   CheckCheck,
   MessageSquare,
   FileText,
@@ -12,7 +11,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
   getInbox,
@@ -23,7 +21,7 @@ import {
 
 interface NotificationItem {
   id: string; // or bigint, handled below
-  type: "STATUS_CHANGE" | "NEW_MESSAGE" | string;
+  type: string;
   message: string;
   isRead: boolean;
   createdAt: string | Date;

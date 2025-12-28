@@ -1,9 +1,7 @@
 import { prisma } from "../../setup";
 import bcrypt from "bcrypt";
 import { getServerSession } from "next-auth/next";
-import { 
-  updateReportStatus
-} from "../../../src/app/lib/controllers/report.controller";
+import { updateReportStatus } from "../../../src/app/lib/controllers/report.controller";
 
 jest.mock("next-auth/next", () => ({
   getServerSession: jest.fn(),
@@ -32,6 +30,7 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
   beforeEach(async () => {
     if (prisma.notification) await prisma.notification.deleteMany({});
     await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
@@ -94,6 +93,7 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
   afterAll(async () => {
     if (prisma.notification) await prisma.notification.deleteMany({});
     await prisma.message.deleteMany({});
+    await prisma.comment.deleteMany({});
     await prisma.photo.deleteMany({});
     await prisma.report.deleteMany({});
     if (prisma.profilePhoto) await prisma.profilePhoto.deleteMany({});
@@ -118,7 +118,7 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
 
       const response = await updateReportStatus(
         "IN_PROGRESS",
-        testReportId.toString()
+        testReportId.toString(),
       );
 
       expect(response.success).toBe(true);
@@ -153,7 +153,7 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
 
       const response = await updateReportStatus(
         "SUSPENDED",
-        testReportId.toString()
+        testReportId.toString(),
       );
 
       expect(response.success).toBe(true);
@@ -184,7 +184,7 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
 
       const response = await updateReportStatus(
         "RESOLVED",
-        testReportId.toString()
+        testReportId.toString(),
       );
 
       expect(response.success).toBe(true);
@@ -215,7 +215,7 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
 
       const response = await updateReportStatus(
         "IN_PROGRESS",
-        testReportId.toString()
+        testReportId.toString(),
       );
 
       expect(response.success).toBe(true);
@@ -234,7 +234,7 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
 
       const response = await updateReportStatus(
         "IN_PROGRESS",
-        testReportId.toString()
+        testReportId.toString(),
       );
 
       expect(response.success).toBe(false);
@@ -263,7 +263,7 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
 
       const response = await updateReportStatus(
         "IN_PROGRESS",
-        testReportId.toString()
+        testReportId.toString(),
       );
 
       expect(response.success).toBe(false);
@@ -294,7 +294,7 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
 
       const response = await updateReportStatus(
         "INVALID_STATUS",
-        testReportId.toString()
+        testReportId.toString(),
       );
 
       expect(response.success).toBe(false);
@@ -348,7 +348,10 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
 
       (getServerSession as jest.Mock).mockResolvedValue(maintainerSession);
 
-      const response = await updateReportStatus("IN_PROGRESS", testReportId.toString());
+      const response = await updateReportStatus(
+        "IN_PROGRESS",
+        testReportId.toString(),
+      );
 
       expect(response.success).toBe(true);
 
@@ -399,7 +402,10 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
 
       (getServerSession as jest.Mock).mockResolvedValue(maintainerSession);
 
-      const response = await updateReportStatus("IN_PROGRESS", testReportId.toString());
+      const response = await updateReportStatus(
+        "IN_PROGRESS",
+        testReportId.toString(),
+      );
 
       expect(response.success).toBe(true);
 
@@ -415,7 +421,7 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
           acc[status] = (acc[status] || 0) + 1;
           return acc;
         },
-        {} as Record<string, number>
+        {} as Record<string, number>,
       );
 
       expect(statusCounts["IN_PROGRESS"]).toBe(1);
@@ -505,7 +511,7 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
 
       const response = await updateReportStatus(
         "IN_PROGRESS",
-        testReportId.toString()
+        testReportId.toString(),
       );
 
       expect(response.success).toBe(true);
@@ -533,7 +539,7 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
 
       let response = await updateReportStatus(
         "IN_PROGRESS",
-        testReportId.toString()
+        testReportId.toString(),
       );
       expect(response.success).toBe(true);
 
@@ -552,7 +558,7 @@ describe("Story 25 - Integration Test: External Maintainer Updates Report Status
 
       response = await updateReportStatus(
         "IN_PROGRESS",
-        testReportId.toString()
+        testReportId.toString(),
       );
       expect(response.success).toBe(true);
 
