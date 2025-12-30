@@ -39,6 +39,8 @@ export const reportByIdSchema = z.object({
   status: z.string(),
   username: z.string().optional().nullable(),
   citizenId: z.string().optional().nullable(),
+  officerId: z.string().optional().nullable(),
+  companyId: z.string().optional().nullable(),
   anonymous: z.boolean(),
   photos: z.array(z.string()),
 });

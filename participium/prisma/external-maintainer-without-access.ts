@@ -50,7 +50,7 @@ export default async function createExternalMaintainerWithoutAccess() {
       firstName: "Giovanni",
       lastName: "Bianchi",
       email: "gbianchi@team4.it",
-      role: ["EXTERNAL_MAINTAINER_WITHOUT_ACCESS" as const],
+      role: ["EXTERNAL_MAINTAINER_WITH_ACCESS" as const],
       companyId: companyId,
     },
   });

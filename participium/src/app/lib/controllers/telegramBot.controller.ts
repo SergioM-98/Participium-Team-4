@@ -80,7 +80,7 @@ export async function registerTelegramReport(
       longitude: Number.parseFloat(report.longitude),
       latitude: Number.parseFloat(report.latitude),
       userId: user.data,
-      isAnonymous: report.isAnonymous,
+      anonymous: report.isAnonymous,
     };
   } catch (error) {
     console.error("Error creating report data:", error);

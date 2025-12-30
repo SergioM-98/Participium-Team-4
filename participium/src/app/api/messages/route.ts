@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getReportMessages } from "@/app/lib/controllers/message.controller";
-import { prisma } from "@/app/lib/prisma/db";
+import { prisma } from "@/prisma/db";
 
 export async function GET(req: NextRequest) {
   try {

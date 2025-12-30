@@ -87,8 +87,9 @@ export async function getReportById(params: { id: string }) {
   if (!repoResult || repoResult.success === false || !repoResult.data) {
     return { success: false, error: repoResult?.error || "Report not found" };
   }
+  const reportData = repoResult.data as any;
   const processedPhotos = await Promise.all(
-    repoResult.data.photos.map(async (p: any) => {
+    (reportData.photos || []).map(async (p: any) => {
       try {
         console.log('Processing photo URL:', p.url);
         const filename = path.basename(p.url);
@@ -114,20 +115,22 @@ export async function getReportById(params: { id: string }) {
   );
 
   
-  const isAnonymous = repoResult.data.anonymous === true && currentUserId !== repoResult.data.citizenId;
+  const isAnonymous = reportData.anonymous === true && currentUserId !== reportData.citizenId;
 
   const data = {
-    id: repoResult.data.id.toString(),
-    title: repoResult.data.title,
-    description: repoResult.data.description,
-    longitude: repoResult.data.longitude,
-    latitude: repoResult.data.latitude,
-    createdAt: repoResult.data.createdAt.toISOString(),
-    category: repoResult.data.category,
-    status: repoResult.data.status,
-    username: isAnonymous ? null : repoResult.data.citizen?.username,
-    citizenId: isAnonymous ? null : repoResult.data.citizenId,
-    anonymous: repoResult.data.anonymous || false,
+    id: reportData.id.toString(),
+    title: reportData.title,
+    description: reportData.description,
+    longitude: reportData.longitude,
+    latitude: reportData.latitude,
+    createdAt: reportData.createdAt.toISOString(),
+    category: reportData.category,
+    status: reportData.status,
+    username: isAnonymous ? null : reportData.citizen?.username,
+    citizenId: isAnonymous ? null : reportData.citizenId,
+    officerId: reportData.officerId || null,
+    companyId: reportData.companyId || null,
+    anonymous: reportData.anonymous || false,
     photos: processedPhotos.filter((url) => url !== null)
   };
 
