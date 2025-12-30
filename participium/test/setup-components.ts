@@ -1,4 +1,5 @@
 // Setup file for component tests only - no database connection needed
+import "@testing-library/jest-dom";
 import path from "path";
 
 // Set environment variables for component tests
