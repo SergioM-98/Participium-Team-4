@@ -181,14 +181,13 @@ const config: Config = {
     "src/**/*.{js,jsx,ts,tsx}",
     "!src/app/api/auth/**",
     "!src/app/api/telegram/**", // Escludi API routes Telegram
-    "!src/components/ui/**",
-    "!src/components/**", // Escludi tutti i componenti UI/React
+    "!src/app/**/route.{ts,tsx}", // Escludi Next.js API route handlers
     "!src/app/lib/dtos/**",
     "!src/app/lib/hooks/**", // Escludi hooks React
     "!src/types/**",
     "!src/**/*.d.ts",
     "!src/app/**/*.css",
-    "!src/app/**/*.tsx", // Escludi tutti i file TSX (pagine e componenti)
+    "!src/components/ui/**",
     "!src/app/**/page.tsx", // Escludi tutte le pagine Next.js
     "!src/app/**/layout.tsx",
     "!src/app/**/loading.tsx",
@@ -206,7 +205,6 @@ const config: Config = {
     "!src/app/lib/services/photoStatus.service.ts",
     "!src/app/lib/services/photoUpdate.service.ts",
     "!src/app/lib/services/photoDelete.service.ts",
-    "!src/app/lib/repositories/telegramBot.repository.ts",
   ],
 
   // Estensioni dei moduli
