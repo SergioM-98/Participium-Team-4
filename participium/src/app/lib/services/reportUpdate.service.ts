@@ -43,7 +43,7 @@ class ReportUpdateService {
   
 
   private normalizeStatus(status: string): string {
-    return status.toUpperCase();
+    return status.toUpperCase().replaceAll(" ", "_");
   }
 
   private isValidStatus(status: string): boolean {
