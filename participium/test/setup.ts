@@ -3,6 +3,30 @@ import path from "path";
 // Set environment variables BEFORE importing anything else
 process.env.UPLOADS_DIR = path.join(process.cwd(), "test_uploads");
 
+// Polyfill for jsdom missing methods used by Radix UI
+if (typeof Element !== "undefined") {
+  if (!Element.prototype.hasPointerCapture) {
+    Element.prototype.hasPointerCapture = function () {
+      return false;
+    };
+  }
+  if (!Element.prototype.setPointerCapture) {
+    Element.prototype.setPointerCapture = function () {};
+  }
+  if (!Element.prototype.releasePointerCapture) {
+    Element.prototype.releasePointerCapture = function () {};
+  }
+}
+
+// Polyfill for ResizeObserver
+if (typeof global.ResizeObserver === "undefined") {
+  global.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
+
 let testDatabaseUrl: string;
 
 if (process.env.CI) {
