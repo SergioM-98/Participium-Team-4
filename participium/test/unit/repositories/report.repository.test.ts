@@ -375,22 +375,25 @@ describe("ReportRepository Story 4", () => {
     });
 
     it("should include anonymous flag in approved reports", async () => {
+      // FIX: Use BigInt for IDs to match the find() condition
       const mockReports = [
         {
-          id: "1",
+          id: BigInt(1),
           title: "Public Report",
           status: "APPROVED",
           anonymous: false,
           citizen: { username: "PublicUser" },
         },
         {
-          id: "2",
+          id: BigInt(2), // <--- matching BigInt(2)
           title: "Anonymous Report",
           status: "APPROVED",
-          anonymous: true, // <--- This report is anonymous
+          anonymous: true,
           citizen: { username: "SecretUser" },
         },
       ];
+
+      // Cast to 'any' if TypeScript complains about partial types
       mockedPrisma.report.findMany.mockResolvedValue(mockReports as any);
 
       const response = await reportRepository.getApprovedReports();
@@ -398,7 +401,12 @@ describe("ReportRepository Story 4", () => {
       expect(response.success).toBe(true);
       if (response.success && response.data) {
         expect(response.data).toHaveLength(2);
-        const anonymousReport = response.data.find((r) => r.id === BigInt(2));
+
+        // This will now find the report because both are BigInt(2)
+        const anonymousReport = response.data.find(
+          (r: any) => r.id === BigInt(2)
+        );
+
         expect(anonymousReport).toBeDefined();
         expect(anonymousReport?.anonymous).toBe(true);
       }

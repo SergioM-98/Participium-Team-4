@@ -339,24 +339,28 @@ describe("ReportController Story 4", () => {
         const isAnonymous = true;
 
         // Act
+        // FIXED: Changed category to "ROADS_AND_URBAN_FURNISHINGS" to match DTO enum
         const response = await createReport(
           "Anonymous Pothole",
           "Description of the issue",
           ["photo1"],
-          "ROAD_MAINTENANCE",
+          "ROADS_AND_URBAN_FURNISHINGS",
           10,
           10,
-          isAnonymous // Passing true
+          isAnonymous
         );
 
         // Assert
+        if (!response.success) {
+          console.error("Test Failure Error:", response.error); // Debug log
+        }
         expect(response.success).toBe(true);
-        // Verify the service was called with the specific object containing anonymous: true
+
         expect(mockService.createReport).toHaveBeenCalledWith(
           expect.objectContaining({
             title: "Anonymous Pothole",
             anonymous: true,
-            userId: citizenSession.user.id, // Ensure user ID is still attached even if anonymous (for internal tracking)
+            userId: citizenSession.user.id,
           })
         );
       });
@@ -375,19 +379,19 @@ describe("ReportController Story 4", () => {
         const isAnonymous = false;
 
         // Act
+        // FIXED: Changed category to "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS" to match DTO enum
         const response = await createReport(
           "Public Park Issue",
           "Description of the issue",
           ["photo1"],
-          "PARK_MAINTENANCE",
+          "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS",
           10,
           10,
-          isAnonymous // Passing false
+          isAnonymous
         );
 
         // Assert
         expect(response.success).toBe(true);
-        // Verify the service was called with anonymous: false
         expect(mockService.createReport).toHaveBeenCalledWith(
           expect.objectContaining({
             title: "Public Park Issue",
