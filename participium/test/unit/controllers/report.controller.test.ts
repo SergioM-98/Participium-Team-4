@@ -326,8 +326,17 @@ describe("ReportController Story 4", () => {
         }
       });
       it("should successfully register an anonymous report when the citizen chooses to be anonymous", async () => {
-        // Arrange
-        (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
+        // Arrange: Explicitly define a valid session with the CITIZEN role
+        const validCitizenSession = {
+          user: {
+            id: "2",
+            name: "Citizen User",
+            role: ["CITIZEN"], // Ensure role is an array containing 'CITIZEN'
+          },
+          expires: "2099-12-31T23:59:59.999Z",
+        };
+
+        (getServerSession as jest.Mock).mockResolvedValue(validCitizenSession);
         (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
           mockService
         );
@@ -339,7 +348,6 @@ describe("ReportController Story 4", () => {
         const isAnonymous = true;
 
         // Act
-        // FIXED: Changed category to "ROADS_AND_URBAN_FURNISHINGS" to match DTO enum
         const response = await createReport(
           "Anonymous Pothole",
           "Description of the issue",
@@ -352,7 +360,7 @@ describe("ReportController Story 4", () => {
 
         // Assert
         if (!response.success) {
-          console.error("Test Failure Error:", response.error); // Debug log
+          console.error("Test Failure Error:", response.error);
         }
         expect(response.success).toBe(true);
 
@@ -360,14 +368,23 @@ describe("ReportController Story 4", () => {
           expect.objectContaining({
             title: "Anonymous Pothole",
             anonymous: true,
-            userId: citizenSession.user.id,
+            userId: validCitizenSession.user.id,
           })
         );
       });
 
       it("should successfully register a public report when the citizen chooses not to be anonymous", async () => {
-        // Arrange
-        (getServerSession as jest.Mock).mockResolvedValue(citizenSession);
+        // Arrange: Explicitly define a valid session
+        const validCitizenSession = {
+          user: {
+            id: "2",
+            name: "Citizen User",
+            role: ["CITIZEN"],
+          },
+          expires: "2099-12-31T23:59:59.999Z",
+        };
+
+        (getServerSession as jest.Mock).mockResolvedValue(validCitizenSession);
         (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
           mockService
         );
@@ -379,7 +396,6 @@ describe("ReportController Story 4", () => {
         const isAnonymous = false;
 
         // Act
-        // FIXED: Changed category to "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS" to match DTO enum
         const response = await createReport(
           "Public Park Issue",
           "Description of the issue",
@@ -396,7 +412,7 @@ describe("ReportController Story 4", () => {
           expect.objectContaining({
             title: "Public Park Issue",
             anonymous: false,
-            userId: citizenSession.user.id,
+            userId: validCitizenSession.user.id,
           })
         );
       });
