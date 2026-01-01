@@ -45,8 +45,12 @@ describe("MessageService story 11", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    (MessageRepository.getInstance as jest.Mock).mockReturnValue(mockMessageRepo);
-    (NotificationService.getInstance as jest.Mock).mockReturnValue(mockNotificationService);
+    (MessageRepository.getInstance as jest.Mock).mockReturnValue(
+      mockMessageRepo
+    );
+    (NotificationService.getInstance as jest.Mock).mockReturnValue(
+      mockNotificationService
+    );
     (ReportRepository.getInstance as jest.Mock).mockReturnValue(mockReportRepo);
     (UserRepository.getInstance as jest.Mock).mockReturnValue(mockUserRepo);
 
@@ -81,29 +85,36 @@ describe("MessageService story 11", () => {
     };
 
     it("should create message and notify citizen if author is NOT the citizen", async () => {
-
       mockMessageRepo.createMessage.mockResolvedValue(mockMessage);
-      mockReportRepo.getReportById.mockResolvedValue({ success: true, data: mockReport });
+      mockReportRepo.getReportById.mockResolvedValue({
+        success: true,
+        data: mockReport,
+      });
       mockUserRepo.getUserById.mockResolvedValue(mockOfficer);
-      mockNotificationService.notifyNewMessage.mockResolvedValue({ success: true });
+      mockNotificationService.notifyNewMessage.mockResolvedValue({
+        success: true,
+      });
 
- 
-      const result = await messageService.sendMessage(content, officerId, reportId);
-
+      const result = await messageService.sendMessage(
+        content,
+        officerId,
+        reportId
+      );
 
       expect(mockMessageRepo.createMessage).toHaveBeenCalledWith({
         content,
         authorId: officerId,
         reportId,
       });
-      expect(mockReportRepo.getReportById).toHaveBeenCalledWith(Number(reportId));
+      expect(mockReportRepo.getReportById).toHaveBeenCalledWith(
+        Number(reportId)
+      );
       expect(mockUserRepo.getUserById).toHaveBeenCalledWith(officerId);
-      
 
       expect(mockNotificationService.notifyNewMessage).toHaveBeenCalledWith(
         citizenId,
         reportId,
-        "John" 
+        "John"
       );
       expect(result).toEqual({
         success: true,
@@ -119,10 +130,13 @@ describe("MessageService story 11", () => {
 
     it("should create message but NOT notify if author IS the citizen", async () => {
       const messageFromCitizen = { ...mockMessage, authorId: citizenId };
-      
+
       mockMessageRepo.createMessage.mockResolvedValue(messageFromCitizen);
-      mockReportRepo.getReportById.mockResolvedValue({ success: true, data: mockReport });
-      
+      mockReportRepo.getReportById.mockResolvedValue({
+        success: true,
+        data: mockReport,
+      });
+
       await messageService.sendMessage(content, citizenId, reportId);
 
       expect(mockMessageRepo.createMessage).toHaveBeenCalled();
@@ -130,22 +144,77 @@ describe("MessageService story 11", () => {
     });
 
     it("should fail gracefully (return message) if report fetch fails", async () => {
-        mockMessageRepo.createMessage.mockResolvedValue(mockMessage);
-        mockReportRepo.getReportById.mockResolvedValue({ success: false });
-  
-        const result = await messageService.sendMessage(content, officerId, reportId);
-  
-        expect(result).toEqual({
-          success: true,
-          data: {
-            id: mockMessage.id,
-            createdAt: mockMessage.createdAt.toISOString(),
-            content: mockMessage.content,
-            authorId: mockMessage.authorId,
-            reportId: mockMessage.reportId,
-          },
-        });
-        expect(mockNotificationService.notifyNewMessage).not.toHaveBeenCalled();
+      mockMessageRepo.createMessage.mockResolvedValue(mockMessage);
+      mockReportRepo.getReportById.mockResolvedValue({ success: false });
+
+      const result = await messageService.sendMessage(
+        content,
+        officerId,
+        reportId
+      );
+
+      expect(result).toEqual({
+        success: true,
+        data: {
+          id: mockMessage.id,
+          createdAt: mockMessage.createdAt.toISOString(),
+          content: mockMessage.content,
+          authorId: mockMessage.authorId,
+          reportId: mockMessage.reportId,
+        },
+      });
+      expect(mockNotificationService.notifyNewMessage).not.toHaveBeenCalled();
+    });
+
+    it("should default author name to 'Someone' if author not found, and still send message", async () => {
+      mockMessageRepo.createMessage.mockResolvedValue(mockMessage);
+      mockReportRepo.getReportById.mockResolvedValue({
+        success: true,
+        data: mockReport,
+      });
+      // Simulate user lookup failing (returning null)
+      mockUserRepo.getUserById.mockResolvedValue(null);
+
+      const result = await messageService.sendMessage(
+        content,
+        officerId,
+        reportId
+      );
+
+      expect(mockUserRepo.getUserById).toHaveBeenCalledWith(officerId);
+      // Verify notification uses fallback name "Someone"
+      expect(mockNotificationService.notifyNewMessage).toHaveBeenCalledWith(
+        citizenId,
+        reportId,
+        "Someone"
+      );
+      expect(result.success).toBe(true);
+    });
+
+    it("should succeed even if notification service throws an error", async () => {
+      mockMessageRepo.createMessage.mockResolvedValue(mockMessage);
+      mockReportRepo.getReportById.mockResolvedValue({
+        success: true,
+        data: mockReport,
+      });
+      mockUserRepo.getUserById.mockResolvedValue(mockOfficer);
+
+      // Simulate notification service crashing
+      mockNotificationService.notifyNewMessage.mockRejectedValue(
+        new Error("Notification system down")
+      );
+
+      // Should not throw
+      const result = await messageService.sendMessage(
+        content,
+        officerId,
+        reportId
+      );
+
+      expect(mockNotificationService.notifyNewMessage).toHaveBeenCalled();
+      // Message creation should still be successful
+      expect(result.success).toBe(true);
+      expect(result.data.content).toBe(content);
     });
   });
 
@@ -157,7 +226,9 @@ describe("MessageService story 11", () => {
 
       const result = await messageService.getReportMessages(reportId);
 
-      expect(mockMessageRepo.getMessagesByReport).toHaveBeenCalledWith(reportId);
+      expect(mockMessageRepo.getMessagesByReport).toHaveBeenCalledWith(
+        reportId
+      );
       expect(result).toEqual(messages);
     });
   });
