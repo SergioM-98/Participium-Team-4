@@ -71,10 +71,43 @@ describe("ReportRepository Story 4", () => {
         mockData.category,
         mockData.longitude,
         mockData.latitude,
-        mockData.userId,
+        mockData.userId
       );
       expect(response.success).toBe(false);
       expect(response).toHaveProperty("error");
+    });
+
+    it("should correctly persist the anonymous flag when true", async () => {
+      const anonymousData = {
+        title: "Anonymous Report",
+        description: "Hidden Identity",
+        photos: ["photo.jpg"],
+        category: "WASTE",
+        longitude: 10,
+        latitude: 20,
+        userId: "user123",
+        anonymous: true,
+      };
+
+      mockedPrisma.report.create.mockResolvedValue({
+        id: BigInt(2),
+        ...anonymousData,
+        createdAt: new Date(),
+        status: "PENDING",
+      });
+
+      const response = await reportRepository.createReport(
+        anonymousData as any
+      );
+
+      expect(response.success).toBe(true);
+      expect(mockedPrisma.report.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          title: "Anonymous Report",
+          anonymous: true, // <--- Key assertion
+          citizenId: "user123",
+        }),
+      });
     });
   });
 
@@ -90,7 +123,7 @@ describe("ReportRepository Story 4", () => {
       mockedPrisma.user.findFirst = jest.fn().mockResolvedValue(mockOfficer);
 
       const response = await reportRepository.getOfficerWithLeastReports(
-        "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
+        "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"
       );
 
       expect(response).not.toBeNull();
@@ -102,7 +135,7 @@ describe("ReportRepository Story 4", () => {
       mockedPrisma.user.findFirst = jest.fn().mockResolvedValue(null);
 
       const response = await reportRepository.getOfficerWithLeastReports(
-        "DEPARTMENT_OF_COMMERCE",
+        "DEPARTMENT_OF_COMMERCE"
       );
 
       expect(response).toBeNull();
@@ -115,8 +148,8 @@ describe("ReportRepository Story 4", () => {
 
       await expect(
         reportRepository.getOfficerWithLeastReports(
-          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES",
-        ),
+          "DEPARTMENT_OF_MAINTENANCE_AND_TECHNICAL_SERVICES"
+        )
       ).rejects.toThrow("Database error");
     });
   });
@@ -162,7 +195,7 @@ describe("ReportRepository Story 4", () => {
         .mockRejectedValue(new Error("Database error"));
 
       await expect(
-        reportRepository.assignReportToOfficer(1, "2"),
+        reportRepository.assignReportToOfficer(1, "2")
       ).rejects.toThrow("Database error");
     });
   });
@@ -189,7 +222,7 @@ describe("ReportRepository Story 4", () => {
 
       const response = await reportRepository.rejectReport(
         1,
-        "Insufficient information",
+        "Insufficient information"
       );
 
       expect(response).toBeDefined();
@@ -211,7 +244,7 @@ describe("ReportRepository Story 4", () => {
         .mockRejectedValue(new Error("Database error"));
 
       await expect(
-        reportRepository.rejectReport(1, "Test reason"),
+        reportRepository.rejectReport(1, "Test reason")
       ).rejects.toThrow("Database error");
     });
 
@@ -248,14 +281,14 @@ describe("ReportRepository Story 4", () => {
         expect(response.data).toHaveProperty("title", "Sample Title");
         expect(response.data).toHaveProperty(
           "description",
-          "Sample Description",
+          "Sample Description"
         );
         expect(response.data).toHaveProperty("longitude", 7.693);
         expect(response.data).toHaveProperty("latitude", 45.0682);
         expect(response.data).toHaveProperty("createdAt");
         expect(response.data).toHaveProperty(
           "category",
-          "ARCHITECTURAL_BARRIERS",
+          "ARCHITECTURAL_BARRIERS"
         );
         expect(response.data).toHaveProperty("status", "APPROVED");
         expect(response.data).toHaveProperty("citizen", {
@@ -339,6 +372,36 @@ describe("ReportRepository Story 4", () => {
     it("should return error when db fails while retrieving approved reports", async () => {
       mockedPrisma.report.findMany = jest.fn().mockRejectedValue(new Error());
       await expect(reportRepository.getApprovedReports()).rejects.toThrow();
+    });
+
+    it("should include anonymous flag in approved reports", async () => {
+      const mockReports = [
+        {
+          id: "1",
+          title: "Public Report",
+          status: "APPROVED",
+          anonymous: false,
+          citizen: { username: "PublicUser" },
+        },
+        {
+          id: "2",
+          title: "Anonymous Report",
+          status: "APPROVED",
+          anonymous: true, // <--- This report is anonymous
+          citizen: { username: "SecretUser" },
+        },
+      ];
+      mockedPrisma.report.findMany.mockResolvedValue(mockReports as any);
+
+      const response = await reportRepository.getApprovedReports();
+
+      expect(response.success).toBe(true);
+      if (response.success && response.data) {
+        expect(response.data).toHaveLength(2);
+        const anonymousReport = response.data.find((r) => r.id === BigInt(2));
+        expect(anonymousReport).toBeDefined();
+        expect(anonymousReport?.anonymous).toBe(true);
+      }
     });
 
     /******************************/

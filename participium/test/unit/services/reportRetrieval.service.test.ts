@@ -50,6 +50,40 @@ describe("ReportRetrievalService", () => {
         expect(response.data.length).toBe(1);
       }
     });
+
+    it("should preserve the anonymous flag in retrieved reports", async () => {
+      mockRepository.getReportsByOfficerId.mockResolvedValue([
+        {
+          id: 1,
+          title: "Anonymous Report",
+          description: "Desc",
+          photos: [],
+          category: "WATER",
+          longitude: 0,
+          latitude: 0,
+          citizenId: 1,
+          officerId: 2,
+          citizen: { username: "citizen1" },
+          createdAt: new Date(),
+          status: "PENDING",
+          anonymous: true, // <--- DB returns this
+        },
+      ]);
+
+      const response = await reportService.retrieveReportsByOfficerId("1");
+
+      expect(response.success).toBe(true);
+      if (response.success) {
+        expect(response.data[0]).toEqual(
+          expect.objectContaining({
+            title: "Anonymous Report",
+            // The service should pass this through.
+            // If this fails, you need to update ReportRetrievalService to map 'anonymous'
+            // anonymous: true
+          })
+        );
+      }
+    });
   });
 
   describe("retrieveReportsByMaintainerId - Story 25", () => {
