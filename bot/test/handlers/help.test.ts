@@ -1,5 +1,6 @@
 import { Context } from "grammy";
 import { handleHelp } from "../../handlers/help";
+import { helpMenu } from "../../menus/helpMenu";
 
 jest.mock("../../menus/helpMenu", () => ({
   helpMenu: { mock: "helpMenu" },
@@ -10,14 +11,6 @@ describe("Story 14 - Bot Integration: Quick Assistance and Help Commands", () =>
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCtx = {
-      chatId: 12345,
-import { helpMenu } from "../../menus/helpMenu";
-
-describe("Help Handler", () => {
-  let mockCtx: Partial<Context>;
-
-  beforeEach(() => {
     mockCtx = {
       reply: jest.fn(),
     };
@@ -100,6 +93,8 @@ describe("Help Handler", () => {
     const helpText = call[0];
 
     expect(helpText).toContain("Use the buttons below");
+  });
+
   it("should reply with help text and help menu", async () => {
     await handleHelp(mockCtx as Context);
 
