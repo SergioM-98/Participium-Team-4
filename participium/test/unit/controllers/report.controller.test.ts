@@ -325,6 +325,97 @@ describe("ReportController Story 4", () => {
           );
         }
       });
+      it("should successfully register an anonymous report when the citizen chooses to be anonymous", async () => {
+        // Arrange: Explicitly define a valid session with the CITIZEN role
+        const validCitizenSession = {
+          user: {
+            id: "2",
+            name: "Citizen User",
+            role: ["CITIZEN"], // Ensure role is an array containing 'CITIZEN'
+          },
+          expires: "2099-12-31T23:59:59.999Z",
+        };
+
+        (getServerSession as jest.Mock).mockResolvedValue(validCitizenSession);
+        (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
+          mockService
+        );
+        mockService.createReport.mockResolvedValue({
+          success: true,
+          data: "Anonymous report created",
+        });
+
+        const isAnonymous = true;
+
+        // Act
+        const response = await createReport(
+          "Anonymous Pothole",
+          "Description of the issue",
+          ["photo1"],
+          "ROADS_AND_URBAN_FURNISHINGS",
+          10,
+          10,
+          isAnonymous
+        );
+
+        // Assert
+        if (!response.success) {
+          console.error("Test Failure Error:", response.error);
+        }
+        expect(response.success).toBe(true);
+
+        expect(mockService.createReport).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: "Anonymous Pothole",
+            anonymous: true,
+            userId: validCitizenSession.user.id,
+          })
+        );
+      });
+
+      it("should successfully register a public report when the citizen chooses not to be anonymous", async () => {
+        // Arrange: Explicitly define a valid session
+        const validCitizenSession = {
+          user: {
+            id: "2",
+            name: "Citizen User",
+            role: ["CITIZEN"],
+          },
+          expires: "2099-12-31T23:59:59.999Z",
+        };
+
+        (getServerSession as jest.Mock).mockResolvedValue(validCitizenSession);
+        (ReportCreationService.getInstance as jest.Mock).mockReturnValue(
+          mockService
+        );
+        mockService.createReport.mockResolvedValue({
+          success: true,
+          data: "Public report created",
+        });
+
+        const isAnonymous = false;
+
+        // Act
+        const response = await createReport(
+          "Public Park Issue",
+          "Description of the issue",
+          ["photo1"],
+          "PUBLIC_GREEN_AREAS_AND_BACKGROUNDS",
+          10,
+          10,
+          isAnonymous
+        );
+
+        // Assert
+        expect(response.success).toBe(true);
+        expect(mockService.createReport).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: "Public Park Issue",
+            anonymous: false,
+            userId: validCitizenSession.user.id,
+          })
+        );
+      });
     });
 
     describe("approveReport - Story 6", () => {
@@ -719,6 +810,84 @@ describe("ReportController Story 4", () => {
       ).not.toHaveBeenCalled();
       if (!response.success) {
         expect(response.error).toBe("Unauthorized access");
+      }
+    });
+
+    it("should correctly retrieve reports preserving the anonymous flag", async () => {
+      // Arrange: Mock the session as an Officer
+      (getServerSession as jest.Mock).mockResolvedValue(officerSession);
+
+      // Arrange: Mock the service to return a mix of anonymous and public reports
+      mockRetrievalService.retrieveReportsByOfficerId.mockResolvedValue({
+        success: true,
+        data: [
+          {
+            id: "1",
+            title: "Anonymous Issue",
+            description: "This reporter chose to be anonymous",
+            category: "ROAD_MAINTENANCE",
+            createdAt: new Date().toISOString(),
+            photos: [],
+            longitude: 0,
+            latitude: 0,
+            isAnonymous: true, // <--- TARGET: This report is anonymous
+            userId: "2",
+            assignedOfficerId: "5",
+            status: "PENDING",
+            resolutionComments: null,
+            resolvedAt: null,
+            user: {
+              id: "2",
+              firstName: "John",
+              lastName: "Doe",
+              username: "johndoe",
+              email: "johndoe@example.com",
+            },
+          },
+          {
+            id: "2",
+            title: "Public Issue",
+            description: "This reporter is public",
+            category: "ROAD_MAINTENANCE",
+            createdAt: new Date().toISOString(),
+            photos: [],
+            longitude: 0,
+            latitude: 0,
+            isAnonymous: false, // <--- TARGET: This report is public
+            userId: "3",
+            assignedOfficerId: "5",
+            status: "PENDING",
+            resolutionComments: null,
+            resolvedAt: null,
+            user: {
+              id: "3",
+              firstName: "Jane",
+              lastName: "Smith",
+              username: "janesmith",
+              email: "jane@example.com",
+            },
+          },
+        ],
+      });
+
+      // Act
+      const response = await getReportsByOfficerId();
+
+      // Assert
+      expect(response.success).toBe(true);
+      if (response.success) {
+        // Verify we got both reports
+        expect(response.data).toHaveLength(2);
+
+        // Verify the anonymous report flag is preserved
+        const anonymousReport = response.data.find((r) => r.id === "1") as any;
+        expect(anonymousReport).toBeDefined();
+        expect(anonymousReport?.isAnonymous).toBe(true);
+
+        // Verify the public report flag is preserved
+        const publicReport = response.data.find((r) => r.id === "2") as any;
+        expect(publicReport).toBeDefined();
+        expect(publicReport?.isAnonymous).toBe(false);
       }
     });
   });
