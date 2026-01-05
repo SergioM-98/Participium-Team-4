@@ -65,4 +65,33 @@ describe("ReportCreationService - Story 12", () => {
       userId: "",
     });
   });
+
+  it("should pass the anonymous flag correctly to the repository", async () => {
+    // Arrange
+    mockRepo.createReport.mockResolvedValue({ success: true, data: "created" });
+    const service = ReportCreationService.getInstance();
+
+    // Input DTO (usually from Controller)
+    const req = {
+      title: "Anonymous Issue",
+      description: "Description",
+      photos: [],
+      category: "OTHER",
+      longitude: 0,
+      latitude: 0,
+      userId: "user1",
+      anonymous: true, // Ensuring we use the field expected by the repo DTO
+    };
+
+    // Act
+    await service.createReport(req as any);
+
+    // Assert
+    expect(mockRepo.createReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Anonymous Issue",
+        anonymous: true,
+      })
+    );
+  });
 });
