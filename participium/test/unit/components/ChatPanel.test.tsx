@@ -70,6 +70,7 @@ describe("ChatPanel", () => {
         content: "Test message",
         author: {
           id: 1,
+          username: "john_doe",
           firstName: "John",
           lastName: "Doe",
           role: "CITIZEN",
@@ -93,7 +94,7 @@ describe("ChatPanel", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Test message")).toBeInTheDocument();
-      expect(screen.getByText("John Doe")).toBeInTheDocument();
+      expect(screen.getByText("john_doe")).toBeInTheDocument();
     });
   });
 
@@ -261,13 +262,13 @@ describe("ChatPanel", () => {
       {
         id: "1",
         content: "Message 1",
-        author: { id: 1, firstName: "John", lastName: "Doe", role: "CITIZEN" },
+        author: { id: 1, username: "john_doe", firstName: "John", lastName: "Doe", role: "CITIZEN" },
         createdAt: new Date().toISOString(),
       },
       {
         id: "2",
         content: "Message 2",
-        author: { id: 2, firstName: "Jane", lastName: "Smith", role: "TECHNICAL_OFFICER" },
+        author: { id: 2, username: "jane_smith", firstName: "Jane", lastName: "Smith", role: "TECHNICAL_OFFICER" },
         createdAt: new Date().toISOString(),
       },
     ];
@@ -333,13 +334,13 @@ describe("ChatPanel", () => {
       {
         id: "1",
         content: "Citizen message",
-        author: { id: 1, firstName: "John", lastName: "Doe", role: "CITIZEN" },
+        author: { id: 1, username: "john_doe", firstName: "John", lastName: "Doe", role: "CITIZEN" },
         createdAt: new Date().toISOString(),
       },
       {
         id: "2",
         content: "Officer message",
-        author: { id: 2, firstName: "Jane", lastName: "Smith", role: "TECHNICAL_OFFICER" },
+        author: { id: 2, username: "jane_smith", firstName: "Jane", lastName: "Smith", role: "TECHNICAL_OFFICER" },
         createdAt: new Date().toISOString(),
       },
     ];
