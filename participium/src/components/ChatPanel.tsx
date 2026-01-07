@@ -38,9 +38,7 @@ const transformMessages = (messages: any[]): ChatMessage[] => {
     return {
       id: msg.id?.toString() || Date.now().toString(),
       senderName:
-        msg.author?.firstName && msg.author?.lastName
-          ? `${msg.author.firstName} ${msg.author.lastName}`
-          : msg.author?.username || "Unknown",
+        msg.author?.username || "Anonymous",
       senderId: msg.author?.id?.toString() || msg.authorId?.toString() || "",
       senderRole,
       content: msg.content,
@@ -139,7 +137,7 @@ export default function ChatPanel({
       if (response.success) {
         newMsg = {
           id: response.data.id?.toString() || Date.now().toString(),
-          senderName: session.user.name || "You",
+          senderName: session.user.username,
           senderId: session.user.id,
           senderRole: currentUserRole,
           content: text,
@@ -150,7 +148,7 @@ export default function ChatPanel({
       } else {
         newMsg = {
           id: Date.now().toString(),
-          senderName: session.user.name || "You",
+          senderName: session.user.username,
           senderId: session.user.id,
           senderRole: currentUserRole,
           content: text,
@@ -240,7 +238,7 @@ export default function ChatPanel({
                 >
                   <div className="flex items-center gap-2 mb-1 px-1">
                     <span className="text-xs font-medium text-foreground">
-                      {msg.senderName}
+                      {isMe ? "You" : msg.senderName}
                     </span>
                     <span className="text-[10px] text-muted-foreground">
                       {new Date(msg.timestamp).toLocaleTimeString([], {
