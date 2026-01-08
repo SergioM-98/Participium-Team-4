@@ -54,6 +54,7 @@ sections:
 ## QUALITY MEASURES
 
 - Unit Testing:
+
   - Total hours estimated
     > 6.65
   - Total hours spent
@@ -87,13 +88,28 @@ sections:
 
 - What caused your errors in estimation (if any)?
 
+  The error ratio was 0.17 which is actually better than sprint 3. The main problems came from underestimating how complex some integrations would be, especially for stories 13 and 18 where we had to connect with existing parts of the system. On the other hand we overestimated the time for technical tasks because honestly we're getting faster at this stuff now. Also E2E testing took a bit more than we thought (4.9h instead of 4.15h) but nothing too serious.
+
 - What lessons did you learn (both positive and negative) in this sprint?
 
+  On the positive side, writing better task descriptions like we planned last sprint really helped - way less confusion and misunderstandings this time. We're also just getting better with the technologies we use so things go smoother. We managed technical debt better by not leaving everything to the end, which was good because it didn't block anyone.
+
+  Negative stuff: we still need to get better at estimating testing time. Unit testing took 7.48h instead of the 6.65h we planned. Coverage went up to 86.93% though so at least there's that. Also some tasks dependencies still caused small delays here and there but much less than before.
+
 - Which improvement goals set in the previous retrospective were you able to achieve?
+
+  We actually achieved both goals from last retrospective. Writing detailed descriptions for tasks on GitHub/YouTrack worked really well - we had way less miscommunication and all 6 stories went pretty smoothly. Also putting deadlines somewhere everyone could see them helped a lot with time management, you can see it in the better estimation accuracy (0.17 vs 0.18 last sprint) and we finished all 25 points on time.
+
 - Which ones you were not able to achieve? Why?
+
+  Honestly we achieved what we set out to do. The task descriptions and visible deadlines thing really worked so there's nothing we didn't accomplish from last sprint's goals.
 
 - Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
 
-> Propose one or two
+  First, we want to push coverage from 86.93% to 90% or higher. The idea is to write tests while developing features instead of leaving it for later - each person should dedicate time to tests as they go instead of treating it as seperate phase.
+
+  Second, E2E testing efficiency needs work since it took longer than estimated. We should make some reusable fixtures and helper functions that everyone can use. Maybe spend 2-3 hours at the start of next sprint setting up a shared framework for E2E tests so we don't reinvent the wheel every time.
 
 - One thing you are proud of as a Team!!
+
+  Going from 319 tests in sprint 3 to 1293 tests now is honestly insane! The coverage also jumped to 86.93% which shows we're really taking code quality seriously. Plus we delivered all 6 stories (25 points) on time while also dealing with technical debt properly. Looking back at how we struggled with deadlines and communication in earlier sprints, it's pretty cool to see how much we've improved as a team.
