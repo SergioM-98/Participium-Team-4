@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Dispatch, SetStateAction } from "react";
+import { useState, Dispatch, SetStateAction, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -146,6 +146,29 @@ export default function ReportDetailsCard({
   });
 
   const [isMapOpen, setIsMapOpen] = useState(false);
+  const [hasMessages, setHasMessages] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(true);
+
+  // Check if there are any messages in the chat
+  useEffect(() => {
+    const checkMessages = async () => {
+      try {
+        setIsLoadingMessages(true);
+        const res = await fetch(`/api/messages?reportId=${report.id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setHasMessages(Array.isArray(data) && data.length > 0);
+        }
+      } catch (error) {
+        console.error("Failed to check messages:", error);
+        setHasMessages(false);
+      } finally {
+        setIsLoadingMessages(false);
+      }
+    };
+
+    checkMessages();
+  }, [report.id]);
 
   // 1. Determine Role cleanly based on DTO
   let currentUserRole;
@@ -158,6 +181,11 @@ export default function ReportDetailsCard({
   } else {
     currentUserRole = "PUBLIC_RELATIONS_OFFICER";
   }
+
+  // For citizens, only show chat if there are existing messages
+  const canViewChatModified =
+    canViewChat &&
+    (isAssignedOfficer || isOfficerMode || isMaintainerMode || hasMessages);
 
   const [seeOfficerChat, setSeeOfficerChat] = useState(1);
 
@@ -291,10 +319,10 @@ export default function ReportDetailsCard({
         </div>
 
         {/* CHAT / OFFICER - right (fills the available space) - Only show if user can interact */}
-        {(canViewChat || isOfficerMode || isMaintainerMode) && (
+        {(canViewChatModified || isOfficerMode || isMaintainerMode) && (
           <ThirdColumn
             report={report}
-            canViewChat={canViewChat}
+            canViewChat={canViewChatModified}
             isAssignedOfficer={!!isAssignedOfficer}
             isOfficerMode={isOfficerMode}
             isMaintainerMode={isMaintainerMode}
