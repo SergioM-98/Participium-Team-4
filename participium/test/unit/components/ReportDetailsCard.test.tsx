@@ -57,6 +57,14 @@ describe("ReportDetailsCard", () => {
       status: "authenticated",
       update: jest.fn(),
     } as any);
+
+    // Mock fetch for messages API
+    global.fetch = jest.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve([{ id: "1", text: "Test message" }]),
+      }),
+    ) as jest.Mock;
   });
 
   it("should render report title", () => {
@@ -119,23 +127,29 @@ describe("ReportDetailsCard", () => {
 
     const buttons = screen.queryAllByRole("button");
     const closeButtons = buttons.filter(
-      (btn) => btn.querySelector('svg') && btn.getAttribute("class")?.includes("ghost")
+      (btn) =>
+        btn.querySelector("svg") &&
+        btn.getAttribute("class")?.includes("ghost"),
     );
     expect(closeButtons.length).toBe(0);
   });
 
   it("should render map for officer mode", () => {
-    const { container } = render(<ReportDetailsCard report={mockReport} isOfficerMode={true} />);
+    const { container } = render(
+      <ReportDetailsCard report={mockReport} isOfficerMode={true} />,
+    );
 
     // Check that the map container div exists
-    const mapContainer = container.querySelector('.hidden.md\\:flex');
+    const mapContainer = container.querySelector(".hidden.md\\:flex");
     expect(mapContainer).toBeInTheDocument();
   });
 
   it("should render map for maintainer mode", () => {
     render(<ReportDetailsCard report={mockReport} isMaintainerMode={true} />);
 
-    expect(screen.getByText("Map Component", { hidden: true })).toBeInTheDocument();
+    expect(
+      screen.getByText("Map Component", { hidden: true }),
+    ).toBeInTheDocument();
   });
 
   it("should not render map for citizen", () => {
@@ -144,7 +158,7 @@ describe("ReportDetailsCard", () => {
     expect(screen.queryByText("Map Component")).not.toBeInTheDocument();
   });
 
-  it("should render chat for report creator", () => {
+  it("should render chat for report creator", async () => {
     mockUseSession.mockReturnValue({
       data: {
         user: { id: "789", username: "creator", role: ["CITIZEN"] },
@@ -155,14 +169,14 @@ describe("ReportDetailsCard", () => {
 
     const reportWithCreator = { ...mockReport, citizenId: "789" };
 
-    render(
-      <ReportDetailsCard report={reportWithCreator} showChat={true} />
-    );
+    render(<ReportDetailsCard report={reportWithCreator} showChat={true} />);
 
-    expect(screen.getByText("Chat Panel")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Chat Panel")).toBeInTheDocument();
+    });
   });
 
-  it("should render chat for assigned officer", () => {
+  it("should render chat for assigned officer", async () => {
     mockUseSession.mockReturnValue({
       data: {
         user: { id: "999", username: "officer", role: ["TECHNICAL_OFFICER"] },
@@ -173,11 +187,11 @@ describe("ReportDetailsCard", () => {
 
     const reportWithOfficer = { ...mockReport, officerId: "999" };
 
-    render(
-      <ReportDetailsCard report={reportWithOfficer} showChat={true} />
-    );
+    render(<ReportDetailsCard report={reportWithOfficer} showChat={true} />);
 
-    expect(screen.getByText("Chat Panel")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Chat Panel")).toBeInTheDocument();
+    });
   });
 
   it("should not render chat when showChat is false", () => {
@@ -198,16 +212,18 @@ describe("ReportDetailsCard", () => {
 
   it("should render OfficerActionPanel in officer mode", () => {
     render(
-      <ReportDetailsCard report={mockReport} isOfficerMode={true} showChat={false} />
+      <ReportDetailsCard
+        report={mockReport}
+        isOfficerMode={true}
+        showChat={false}
+      />,
     );
 
     expect(screen.getByText("Officer Action Panel")).toBeInTheDocument();
   });
 
   it("should render MaintainerActionPanel in maintainer mode", () => {
-    render(
-      <ReportDetailsCard report={mockReport} isMaintainerMode={true} />
-    );
+    render(<ReportDetailsCard report={mockReport} isMaintainerMode={true} />);
 
     expect(screen.getByText("Maintainer Action Panel")).toBeInTheDocument();
   });
@@ -224,9 +240,7 @@ describe("ReportDetailsCard", () => {
 
     const reportWithOfficer = { ...mockReport, officerId: "999" };
 
-    render(
-      <ReportDetailsCard report={reportWithOfficer} showChat={true} />
-    );
+    render(<ReportDetailsCard report={reportWithOfficer} showChat={true} />);
 
     // Click on Menu tab
     const menuButton = screen.getByRole("button", { name: /menu/i });
@@ -237,16 +251,16 @@ describe("ReportDetailsCard", () => {
 
   it("should render Internal Notes Panel for officers", async () => {
     const user = userEvent.setup();
-    
+
     // Mock the user as the assigned officer
     const reportWithOfficer = { ...mockReport, officerId: "456" };
-    
-    render(
-      <ReportDetailsCard report={reportWithOfficer} showChat={true} />
-    );
+
+    render(<ReportDetailsCard report={reportWithOfficer} showChat={true} />);
 
     // Click on Internal Notes tab
-    const internalNotesButton = await screen.findByRole("button", { name: /internal notes/i });
+    const internalNotesButton = await screen.findByRole("button", {
+      name: /internal notes/i,
+    });
     await user.click(internalNotesButton);
 
     // Verify Internal Notes Panel is rendered (check for a component element instead of specific text)
@@ -257,13 +271,13 @@ describe("ReportDetailsCard", () => {
 
   it("should render Internal Notes Panel for maintainers", async () => {
     const user = userEvent.setup();
-    
-    render(
-      <ReportDetailsCard report={mockReport} isMaintainerMode={true} />
-    );
+
+    render(<ReportDetailsCard report={mockReport} isMaintainerMode={true} />);
 
     // Click on Internal Notes tab (it's the second tab for maintainers)
-    const internalNotesButton = screen.getByRole("button", { name: /internal notes/i });
+    const internalNotesButton = screen.getByRole("button", {
+      name: /internal notes/i,
+    });
     await user.click(internalNotesButton);
 
     // Verify Internal Notes Panel is rendered
@@ -315,7 +329,11 @@ describe("ReportDetailsCard", () => {
   });
 
   it("should handle report with no photos", () => {
-    const reportNoPhotos = { ...mockReport, photoUrls: undefined, photos: undefined };
+    const reportNoPhotos = {
+      ...mockReport,
+      photoUrls: undefined,
+      photos: undefined,
+    };
     render(<ReportDetailsCard report={reportNoPhotos} />);
 
     expect(screen.getByText("Test Report")).toBeInTheDocument();
@@ -337,7 +355,7 @@ describe("ReportDetailsCard", () => {
 
     categories.forEach(({ input, expected }) => {
       const { unmount } = render(
-        <ReportDetailsCard report={{ ...mockReport, category: input }} />
+        <ReportDetailsCard report={{ ...mockReport, category: input }} />,
       );
       expect(screen.getByText(expected)).toBeInTheDocument();
       unmount();
@@ -361,7 +379,7 @@ describe("ReportDetailsCard", () => {
 
   it("should show different tabs for officer with chat", async () => {
     const user = userEvent.setup();
-    
+
     mockUseSession.mockReturnValue({
       data: {
         user: { id: "999", username: "officer", role: ["TECHNICAL_OFFICER"] },
@@ -372,18 +390,18 @@ describe("ReportDetailsCard", () => {
 
     const reportWithOfficer = { ...mockReport, officerId: "999" };
 
-    render(
-      <ReportDetailsCard report={reportWithOfficer} showChat={true} />
-    );
+    render(<ReportDetailsCard report={reportWithOfficer} showChat={true} />);
 
     // Chat Panel should be visible by default
     expect(screen.getByText("Chat Panel")).toBeInTheDocument();
-    
+
     // Click on Internal Notes tab
-    const internalNotesButton = screen.getByRole("button", { name: /internal notes/i });
+    const internalNotesButton = screen.getByRole("button", {
+      name: /internal notes/i,
+    });
     await user.click(internalNotesButton);
     expect(await screen.findByText("Internal Notes Panel")).toBeInTheDocument();
-    
+
     // Click on Menu tab
     const menuButton = screen.getByRole("button", { name: /menu/i });
     await user.click(menuButton);
@@ -392,18 +410,18 @@ describe("ReportDetailsCard", () => {
 
   it("should show only Menu and Internal Notes for maintainer", async () => {
     const user = userEvent.setup();
-    
-    render(
-      <ReportDetailsCard report={mockReport} isMaintainerMode={true} />
-    );
+
+    render(<ReportDetailsCard report={mockReport} isMaintainerMode={true} />);
 
     // By default, the Maintainer Action Panel (Menu tab) should be visible
     expect(screen.getByText("Maintainer Action Panel")).toBeInTheDocument();
-    
+
     // Click on Internal Notes tab
-    const internalNotesButton = screen.getByRole("button", { name: /internal notes/i });
+    const internalNotesButton = screen.getByRole("button", {
+      name: /internal notes/i,
+    });
     await user.click(internalNotesButton);
-    
+
     // Verify Internal Notes Panel is rendered
     await waitFor(() => {
       expect(internalNotesButton).toHaveAttribute("aria-pressed", "true");
@@ -417,7 +435,7 @@ describe("ReportDetailsCard", () => {
         report={mockReport}
         isOfficerMode={true}
         onOfficerActionComplete={onComplete}
-      />
+      />,
     );
 
     expect(screen.getByText("Officer Action Panel")).toBeInTheDocument();
@@ -430,7 +448,7 @@ describe("ReportDetailsCard", () => {
         report={mockReport}
         isMaintainerMode={true}
         onMaintainerActionComplete={onComplete}
-      />
+      />,
     );
 
     expect(screen.getByText("Maintainer Action Panel")).toBeInTheDocument();
@@ -443,7 +461,7 @@ describe("ReportDetailsCard", () => {
         report={mockReport}
         isOfficerMode={true}
         setRefreshFlag={setRefreshFlag}
-      />
+      />,
     );
 
     expect(screen.getByText("Officer Action Panel")).toBeInTheDocument();
@@ -456,7 +474,7 @@ describe("ReportDetailsCard", () => {
         report={mockReport}
         isOfficerMode={true}
         setReport={setReport}
-      />
+      />,
     );
 
     expect(screen.getByText("Officer Action Panel")).toBeInTheDocument();
@@ -469,7 +487,7 @@ describe("ReportDetailsCard", () => {
         report={mockReport}
         isOfficerMode={true}
         showToast={showToast}
-      />
+      />,
     );
 
     expect(screen.getByText("Officer Action Panel")).toBeInTheDocument();
@@ -498,7 +516,7 @@ describe("ReportDetailsCard", () => {
 
     statusVariants.forEach(({ input, expected }) => {
       const { unmount } = render(
-        <ReportDetailsCard report={{ ...mockReport, status: input as any }} />
+        <ReportDetailsCard report={{ ...mockReport, status: input as any }} />,
       );
       expect(screen.getByText(expected)).toBeInTheDocument();
       unmount();
