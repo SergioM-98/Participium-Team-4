@@ -42,6 +42,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && npx prisma generate && npm start & npm run chat_server & wait"
 
   telegram_bot:
     image: skeitt/participium-team-4-bot:latest
